@@ -4,13 +4,16 @@ import SecurityStatus from '@/components/SecurityStatus/SecurityStatus';
 import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
 import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import Tooltip from '@/components/Tooltip/Tooltip';
+import { CpuChipIcon, UserIcon, UsersIcon } from '@heroicons/react/16/solid';
 import { formatKillmailDateTime, formatKillmailTime } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
 import { getShipTier } from '@/utils/shipTier';
 import Link from 'next/link';
+import { attackerBadge } from './attackerBadge';
 import { getKillmailRowStyles } from './killmailRowStyles';
 import { KillmailRowProps } from './types';
 import EveImage from '../ui/EveImage';
+import IconBadge from '../ui/IconBadge';
 
 export default function KillmailRow({
   killmail: km,
@@ -30,6 +33,7 @@ export default function KillmailRow({
   // Use backend-computed fields
   const isSolo = km.solo;
   const isNpcAttacker = km.npc;
+  const leadingBadge = attackerBadge({ solo: isSolo, npc: isNpcAttacker });
   const shipTier = getShipTier(km.victim?.shipType?.dogmaAttributes);
 
   return (
@@ -120,12 +124,6 @@ export default function KillmailRow({
           )}
           <div className="flex-1 min-w-0 leading-tight">
             <div className="flex items-center gap-2">
-              {km.solarSystem?.securityStatus !== null &&
-                km.solarSystem?.securityStatus !== undefined && (
-                  <SecurityStatus
-                    securityStatus={km.solarSystem.securityStatus}
-                  />
-                )}
               <Tooltip content="Show Solar System Info" position="top">
                 <Link
                   href={`/solar-systems/${km.solarSystem?.id}?tab=killmails`}
@@ -135,13 +133,19 @@ export default function KillmailRow({
                   {km.solarSystem?.name || 'Unknown'}
                 </Link>
               </Tooltip>
+              {km.solarSystem?.securityStatus !== null &&
+                km.solarSystem?.securityStatus !== undefined && (
+                  <SecurityStatus
+                    securityStatus={km.solarSystem.securityStatus}
+                  />
+                )}
             </div>
             {km.solarSystem?.constellation && (
-              <div className="text-base text-purple-500">
+              <div className="text-base text-ink-faint">
                 <Tooltip content="Show Constellation Info" position="top">
                   <Link
                     href={`/constellations/${km.solarSystem.constellation?.id}`}
-                    className="transition-colors hover:text-purple-400"
+                    className="transition-colors hover:text-accent-link"
                     prefetch={false}
                   >
                     {km.solarSystem.constellation.name}
@@ -150,7 +154,7 @@ export default function KillmailRow({
               </div>
             )}
             {km.solarSystem?.constellation?.region && (
-              <div className="text-base text-blue-400">
+              <div className="text-base text-ink-faint">
                 <Tooltip content="Show Region Info" position="top">
                   <Link
                     href={`/regions/${km.solarSystem.constellation.region.id}`}
@@ -322,22 +326,16 @@ export default function KillmailRow({
 
       {/* Attackers Column */}
       <td className="td-cell">
-        <div className="flex items-center justify-center gap-2">
-          {isSolo ? (
-            // SOLO badge's green-600, not dropped's green-400 — a different step, untouched by this sweep
-            <span className="px-2 py-0.5 font-medium text-green-600 rounded bg-green-600/10">
-              SOLO
-            </span>
-          ) : (
-            <span className="px-2 py-0.5 font-medium text-purple-400  bg-purple-400/10">
+        <div className="flex items-center gap-2">
+          {leadingBadge === 'solo' ? (
+            <IconBadge icon={UserIcon}>SOLO</IconBadge>
+          ) : leadingBadge === 'count' ? (
+            <IconBadge icon={UsersIcon}>
               {km.attackerCount}
-            </span>
-          )}
-          {isNpcAttacker && (
-            <span className="px-2 py-0.5 font-medium text-destroyed rounded bg-destroyed/10">
-              NPC
-            </span>
-          )}
+              <span className="sr-only">attackers</span>
+            </IconBadge>
+          ) : null}
+          {isNpcAttacker && <IconBadge icon={CpuChipIcon}>NPC</IconBadge>}
         </div>
       </td>
     </tr>
