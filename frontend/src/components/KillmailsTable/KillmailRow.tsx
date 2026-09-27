@@ -349,7 +349,7 @@ export default function KillmailRow({
             </span>
           )}
           {isNpcAttacker && (
-            <span className="px-2 py-0.5 font-medium text-destroyed rounded bg-destroyed/10">
+            <span className="px-2 py-0.5 font-medium text-destroyed bg-destroyed/10">
               NPC
             </span>
           )}
