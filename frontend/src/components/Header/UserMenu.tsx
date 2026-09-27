@@ -56,10 +56,13 @@ export function UserMenu({
             buttonRef.current?.blur();
           }}
         >
+          {/* `nav-item` is the nav's own hover line (globals.css), so the
+              portrait answers the pointer and the keyboard the way every other
+              entry in the header does. */}
           <PopoverButton
             ref={buttonRef}
             aria-label={`Account menu for ${user.characterName}`}
-            className="block size-8 focus:outline-none"
+            className="block size-8 nav-item focus:outline-none"
           >
             <EveImage
               kind="character"

@@ -60,8 +60,10 @@ dropdown davranışı olan `NavPopover` yapısına geçildi.
 - 32px, çerçevesiz: buton `size-8`, içinde `EveImage kind="character"
 size={32}` — portre 64px çekilir (`eveImageUrl.ts` `fetchSize`).
 - Kare: `rounded` yok. Uygulama düz ve köşesiz (`buttons.css:7`).
-- Çerçeve yok. Accent çerçeve denendi, kullanıcı kararıyla kaldırıldı. Outline/ring
-  de yok.
+- Çerçeve yok. Accent çerçeve denendi, kullanıcı kararıyla kaldırıldı.
+- Hover ve klavye odağı nav'ın kendi çizgisini alır: buton `nav-item`
+  (`globals.css`), portrenin 7px altında 1px accent çizgi 0'dan %100'e açılır.
+  Outline/ring yok.
 - `aria-label`: `"Account menu for {characterName}"`.
 - Karakter adı header'da görünmez; menü satırının açıklamasında durur.
 
