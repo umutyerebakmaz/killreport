@@ -36,28 +36,29 @@ export default function ActiveUsersCounter() {
   }
 
   return (
-    <Tooltip
-      content={
-        <p>Visitors on KillReport now and players online on Tranquility.</p>
-      }
-      position="bottom"
-    >
-      <div className="flex items-center gap-2 text-sm text-ink-muted cursor-help">
-        {isConnected && (
-          <div className="relative flex size-2">
-            <span className="absolute inline-flex w-full h-full bg-success rounded-full opacity-75 animate-ping"></span>
-            <span className="relative inline-flex bg-success rounded-full size-2"></span>
-          </div>
-        )}
-        <UsersIcon className="size-4" />
-        <span className="font-medium text-white">{count}</span>
-        <span className="hidden sm:inline">active</span>
-        <span aria-hidden="true">·</span>
-        <span className="font-medium text-white">
-          {players?.toLocaleString() ?? '-'}
-        </span>
-        <span className="hidden sm:inline">in game</span>
-      </div>
-    </Tooltip>
+    <div className="flex items-center gap-2 text-sm text-ink-muted">
+      <Tooltip content="Visitors on KillReport" position="bottom">
+        <div className="flex items-center gap-2 cursor-help">
+          {isConnected && (
+            <div className="relative flex size-2">
+              <span className="absolute inline-flex w-full h-full bg-success rounded-full opacity-75 animate-ping"></span>
+              <span className="relative inline-flex bg-success rounded-full size-2"></span>
+            </div>
+          )}
+          <UsersIcon className="size-4" />
+          <span className="font-medium text-white">{count}</span>
+          <span className="hidden sm:inline">active</span>
+        </div>
+      </Tooltip>
+      <span aria-hidden="true">·</span>
+      <Tooltip content="Players online on Tranquility" position="bottom">
+        <div className="flex items-center gap-2 cursor-help">
+          <span className="font-medium text-white">
+            {players?.toLocaleString() ?? '-'}
+          </span>
+          <span className="hidden sm:inline">in game</span>
+        </div>
+      </Tooltip>
+    </div>
   );
 }
