@@ -57,8 +57,8 @@ export default function AuthButton({
             kind="character"
             id={Number(user.characterId)}
             name={user.characterName}
-            size={40}
-            className="border border-white/10"
+            size={30}
+            className="border border-accent"
           />
           <span className="text-sm font-medium text-white">
             {user.characterName}

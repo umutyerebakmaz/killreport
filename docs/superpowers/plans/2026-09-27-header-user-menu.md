@@ -18,12 +18,11 @@ eder (`variant` prop'u). `Header.tsx` yalnızca çekmecedeki çağrıya
 **Spec:** `docs/superpowers/specs/2026-09-27-header-user-menu-design.md`
 
 > **Sonradan değişti:** Görev 2 aşağıda `Menu` / `MenuItems` + `anchor` ile
-> yazıldı ve öyle uygulandı. Review'da header'daki diğer dropdown'larla
-> (`NotificationBell`, `NavPopover`) aynı mimariye, `Popover` +
-> `absolute right-0 pt-3` + `CloseButton`'a çevrildi; `-my-3` butondan
-> `relative` sarmalayıcıya taşındı, kırmızı ton
-> `hover:bg-danger/20 focus-visible:bg-danger/20` oldu, `data-focus` testi yerine
-> imleç ayrılınca kapanma testi geldi. Güncel hali spec'te ve
+> 64px portre olarak yazıldı ve öyle uygulandı. Review'da iki adımda değişti:
+> önce `NotificationBell` gibi yalnızca tıklamayla açılan bir `Popover`'a, sonra
+> `PopoverGroup`'taki `NavPopover` yapısına (hover ile açılma, touch koruması,
+> `NavPopoverLink` satırı). Portre 32px ve accent çerçeveli oldu, `-my-3`
+> kalktı. Aşağıdaki kod blokları ilk uygulamanın kaydıdır; güncel hali spec'te ve
 > `frontend/src/components/Header/UserMenu.tsx`'te.
 
 ## Global Constraints
