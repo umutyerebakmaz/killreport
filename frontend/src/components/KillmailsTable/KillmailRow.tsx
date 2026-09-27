@@ -9,11 +9,11 @@ import { formatKillmailDateTime, formatKillmailTime } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
 import { getShipTier } from '@/utils/shipTier';
 import Link from 'next/link';
-import type { ComponentType, ReactNode, SVGProps } from 'react';
 import { attackerBadge } from './attackerBadge';
 import { getKillmailRowStyles } from './killmailRowStyles';
 import { KillmailRowProps } from './types';
 import EveImage from '../ui/EveImage';
+import IconBadge from '../ui/IconBadge';
 
 export default function KillmailRow({
   killmail: km,
@@ -328,40 +328,16 @@ export default function KillmailRow({
       <td className="td-cell">
         <div className="flex items-center gap-2">
           {leadingBadge === 'solo' ? (
-            <CellBadge icon={UserIcon}>SOLO</CellBadge>
+            <IconBadge icon={UserIcon}>SOLO</IconBadge>
           ) : leadingBadge === 'count' ? (
-            <CellBadge icon={UsersIcon}>
+            <IconBadge icon={UsersIcon}>
               {km.attackerCount}
               <span className="sr-only">attackers</span>
-            </CellBadge>
+            </IconBadge>
           ) : null}
-          {isNpcAttacker && <CellBadge icon={CpuChipIcon}>NPC</CellBadge>}
+          {isNpcAttacker && <IconBadge icon={CpuChipIcon}>NPC</IconBadge>}
         </div>
       </td>
     </tr>
-  );
-}
-
-/**
- * The attackers cell's badge: two parts inside one border, the icon cut out
- * of a solid fill in the page's own dark, the label on no ground of its own so
- * the border alone frames it. One grey for every badge: SOLO, the count and
- * NPC are told apart by their icon and their word, and three colours side by
- * side down a whole table was tiring to read.
- */
-function CellBadge({
-  icon: Icon,
-  children,
-}: {
-  icon: ComponentType<SVGProps<SVGSVGElement>>;
-  children: ReactNode;
-}) {
-  return (
-    <span className="inline-flex items-stretch text-xs/4.5 font-medium border border-ink-faint tabular-nums">
-      <span className="flex items-center px-1 text-ground bg-ink-faint">
-        <Icon aria-hidden="true" className="size-3" />
-      </span>
-      <span className="px-1.5 py-px text-ink-faint">{children}</span>
-    </span>
   );
 }

@@ -5,9 +5,11 @@ import {
   ChevronRightIcon,
   ChevronUpIcon,
 } from '@heroicons/react/24/outline';
+import { UsersIcon } from '@heroicons/react/16/solid';
 import Link from 'next/link';
 import { useState } from 'react';
 import EveImage from '../ui/EveImage';
+import IconBadge from '../ui/IconBadge';
 
 interface AttackersCardProps {
   attackers: NonNullable<KillmailQuery['killmail']>['attackers'];
@@ -124,7 +126,11 @@ export default function AttackersCard({
   return (
     <div>
       <div className="items-end card-header">
-        <span className="card-title">{killmail.attackerCount} ATTACKERS</span>
+        {/* The killmail table's attackers badge, at the 16px a .card-title
+            sets, standing in as the card's heading. */}
+        <IconBadge icon={UsersIcon} size="md">
+          {killmail.attackerCount} ATTACKERS
+        </IconBadge>
       </div>
 
       {/* All Attackers */}
