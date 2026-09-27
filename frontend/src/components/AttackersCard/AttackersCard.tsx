@@ -129,7 +129,8 @@ export default function AttackersCard({
         {/* The killmail table's attackers badge, at the 16px a .card-title
             sets, standing in as the card's heading. */}
         <IconBadge icon={UsersIcon} size="md">
-          {killmail.attackerCount} ATTACKERS
+          {killmail.attackerCount}
+          <span className="sr-only"> attackers</span>
         </IconBadge>
       </div>
 
