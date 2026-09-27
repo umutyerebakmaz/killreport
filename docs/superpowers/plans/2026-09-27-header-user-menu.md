@@ -21,8 +21,8 @@ eder (`variant` prop'u). `Header.tsx` yalnızca çekmecedeki çağrıya
 > 64px portre olarak yazıldı ve öyle uygulandı. Review'da iki adımda değişti:
 > önce `NotificationBell` gibi yalnızca tıklamayla açılan bir `Popover`'a, sonra
 > `PopoverGroup`'taki `NavPopover` yapısına (hover ile açılma, touch koruması,
-> `NavPopoverLink` satırı). Portre 32px ve accent çerçeveli oldu, `-my-3`
-> kalktı. Aşağıdaki kod blokları ilk uygulamanın kaydıdır; güncel hali spec'te ve
+> `NavPopoverLink` satırı). Portre 32px ve çerçevesiz oldu (accent çerçeve
+> denenip kaldırıldı), `-my-3` kalktı. Aşağıdaki kod blokları ilk uygulamanın kaydıdır; güncel hali spec'te ve
 > `frontend/src/components/Header/UserMenu.tsx`'te.
 
 ## Global Constraints

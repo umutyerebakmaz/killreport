@@ -8,8 +8,7 @@ Header'ın en sağındaki giriş yapmış kullanıcı alanı bugün karakter ad�
 metin olarak ve yanında kırmızı bir `LOGOUT` butonu gösteriyor
 (`frontend/src/components/AuthButton/AuthButton.tsx:40-50`). Bunun yerine:
 
-- Header'ın en sağında karakterin **kare** portresi, **32px**, accent
-  çerçeveli.
+- Header'ın en sağında karakterin **kare** portresi, **32px**, çerçevesiz.
 - Portrenin üzerine gelince ya da tıklanınca bir dropdown menü açılır; içinde **Logout** vardır.
 
 Giriş yapmamış durum (`LOGIN` butonu, hata mesajı) ve yükleniyor durumu
@@ -58,13 +57,11 @@ dropdown davranışı olan `NavPopover` yapısına geçildi.
 
 ### Avatar (PopoverButton)
 
-- Kutu 32px, 1px çerçeve dahil: buton `size-8 border`, içinde
-  `EveImage kind="character" size={30}` — portre 64px çekilir
-  (`eveImageUrl.ts` `fetchSize`).
+- 32px, çerçevesiz: buton `size-8`, içinde `EveImage kind="character"
+size={32}` — portre 64px çekilir (`eveImageUrl.ts` `fetchSize`).
 - Kare: `rounded` yok. Uygulama düz ve köşesiz (`buttons.css:7`).
-- Çerçeve **accent**: `border-accent`; "giriş yapıldı"yı bir bakışta söyleyen
-  şey bu. Hover'da, açıkken ve klavye odağında `border-accent-hover`
-  (`globals.css:48`). Outline/ring yok.
+- Çerçeve yok. Accent çerçeve denendi, kullanıcı kararıyla kaldırıldı. Outline/ring
+  de yok.
 - `aria-label`: `"Account menu for {characterName}"`.
 - Karakter adı header'da görünmez; menü satırının açıklamasında durur.
 
@@ -94,8 +91,8 @@ padding'e taşıyordu) ve `py-6` → `py-3` + `min-h-16`. Kullanıcı kararıyla
 
 `AuthButton` mobil çekmecede de render ediliyor (`Header.tsx`, `DialogPanel`
 içindeki son blok). Orada dropdown gereksiz — çekmece zaten bir menü. Giriş
-yapmış kullanıcı için çekmecede tek satır: header'daki gibi 32px, accent
-çerçeveli kare avatar + karakter adı, altında
+yapmış kullanıcı için çekmecede tek satır: header'daki gibi 32px,
+çerçevesiz kare avatar + karakter adı, altında
 tam genişlikte `button button-danger` `LOGOUT` — menüdeki kırmızı tonla aynı
 dil.
 

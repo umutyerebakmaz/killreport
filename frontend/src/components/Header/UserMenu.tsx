@@ -26,9 +26,8 @@ const USER_MENU_SURFACE = 'overflow-hidden float p-4';
  * between button and surface — so the header has one dropdown behaviour, not
  * two. Hovering only shows the row; ending the session still takes a click.
  *
- * The accent border is what says "signed in" at a glance. At 32px the portrait
- * is shorter than the 40px row the LOGIN button sets, so the header's height
- * does not move between the two states.
+ * At 32px the portrait is shorter than the 40px row the LOGIN button sets, so
+ * the header's height does not move between the two states.
  */
 export function UserMenu({
   user,
@@ -60,13 +59,13 @@ export function UserMenu({
           <PopoverButton
             ref={buttonRef}
             aria-label={`Account menu for ${user.characterName}`}
-            className="block transition-colors border size-8 border-accent hover:border-accent-hover focus:outline-none focus-visible:border-accent-hover data-open:border-accent-hover"
+            className="block size-8 focus:outline-none"
           >
             <EveImage
               kind="character"
               id={Number(user.characterId)}
               name={user.characterName}
-              size={30}
+              size={32}
             />
           </PopoverButton>
           <PopoverPanel transition className={USER_MENU_PANEL}>
