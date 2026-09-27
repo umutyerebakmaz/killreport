@@ -124,12 +124,6 @@ export default function KillmailRow({
           )}
           <div className="flex-1 min-w-0 leading-tight">
             <div className="flex items-center gap-2">
-              {km.solarSystem?.securityStatus !== null &&
-                km.solarSystem?.securityStatus !== undefined && (
-                  <SecurityStatus
-                    securityStatus={km.solarSystem.securityStatus}
-                  />
-                )}
               <Tooltip content="Show Solar System Info" position="top">
                 <Link
                   href={`/solar-systems/${km.solarSystem?.id}?tab=killmails`}
@@ -139,6 +133,12 @@ export default function KillmailRow({
                   {km.solarSystem?.name || 'Unknown'}
                 </Link>
               </Tooltip>
+              {km.solarSystem?.securityStatus !== null &&
+                km.solarSystem?.securityStatus !== undefined && (
+                  <SecurityStatus
+                    securityStatus={km.solarSystem.securityStatus}
+                  />
+                )}
             </div>
             {km.solarSystem?.constellation && (
               <div className="text-base text-purple-500">
