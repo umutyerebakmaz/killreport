@@ -112,7 +112,7 @@ export default function SovLegend({ owners }: { owners: readonly Owner[] }) {
                   size={CREST_PX}
                 />
               </span>
-              <span className="flex-1 truncate text-ink">{owner.name}</span>
+              <span className="flex-1 truncate">{owner.name}</span>
               <span className="text-ink-muted tabular-nums">
                 {owner.systemCount}
               </span>
