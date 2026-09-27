@@ -20,6 +20,7 @@ function detail(overrides: Partial<KillmailDetail> = {}): KillmailDetail {
       character_id: 95465499,
       corporation_id: 98000001,
       alliance_id: 99005338,
+      faction_id: 500003,
       ship_type_id: 670,
       damage_taken: 1200,
     },
@@ -28,6 +29,7 @@ function detail(overrides: Partial<KillmailDetail> = {}): KillmailDetail {
         character_id: 90000001,
         corporation_id: 98000002,
         alliance_id: 99000002,
+        faction_id: 500003,
         ship_type_id: 17738,
         damage_done: 900,
         final_blow: true,
@@ -121,6 +123,28 @@ describe('toFilterInput', () => {
 
     expect(input.attacker_ship_type_ids).toEqual([17738, 17738]);
     expect(input.attacker_alliance_ids).toEqual([99000002, null]);
+  });
+
+  it('carries the victim faction, and a missing one as null', () => {
+    expect(toFilterInput(detail()).victim_faction_id).toBe(500003);
+    expect(
+      toFilterInput(
+        detail({
+          victim: {
+            corporation_id: 98000001,
+            ship_type_id: 670,
+            damage_taken: 1200,
+          },
+        }),
+      ).victim_faction_id,
+    ).toBeNull();
+  });
+
+  it('passes the attacker factions through unreduced', () => {
+    expect(toFilterInput(detail()).attacker_faction_ids).toEqual([
+      500003,
+      null,
+    ]);
   });
 
   it('takes the solar system and time from the detail', () => {

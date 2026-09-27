@@ -52,6 +52,7 @@ input CorporationFilter {
   dateFoundedFrom: String
   dateFoundedTo: String
   allianceId: Int
+  factionId: Int
   orderBy: CorporationOrderBy
 }
 

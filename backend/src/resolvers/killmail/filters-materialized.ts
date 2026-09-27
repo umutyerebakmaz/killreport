@@ -35,6 +35,7 @@ export async function filtersMaterialized(
     characterAttacker,
     corporationId,
     allianceId,
+    factionId,
     minAttackers,
     maxAttackers,
   } = filter;
@@ -136,6 +137,15 @@ export async function filtersMaterialized(
     params.push(allianceId);
     conditions.push(
       `(victim_alliance_id = $${paramIndex} OR $${paramIndex} = ANY(attacker_alliance_ids))`,
+    );
+    paramIndex++;
+  }
+
+  // Faction filter (victim OR attacker)
+  if (factionId !== undefined && factionId !== null) {
+    params.push(factionId);
+    conditions.push(
+      `(victim_faction_id = $${paramIndex} OR $${paramIndex} = ANY(attacker_faction_ids))`,
     );
     paramIndex++;
   }

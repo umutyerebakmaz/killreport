@@ -3,6 +3,8 @@
 import { Loader } from '@/components/Loader/Loader';
 import Card from '@/components/ui/Card';
 import RankNumber from '@/components/ui/RankNumber';
+import Tooltip from '@/components/Tooltip/Tooltip';
+import Link from 'next/link';
 import { ReactNode } from 'react';
 import EveImage from '../ui/EveImage';
 
@@ -79,9 +81,20 @@ export default function TopFactionsCard({
                 </div>
 
                 <div className="flex items-center justify-between flex-1 min-w-0 gap-2">
-                  <span className="block min-w-0 font-medium text-ink-muted truncate">
-                    {faction.name}
-                  </span>
+                  <div className="min-w-0">
+                    <Tooltip
+                      content="Show faction info"
+                      className="w-full! min-w-0"
+                    >
+                      <Link
+                        href={`/factions/${faction.id}?tab=killmails`}
+                        className="block min-w-0 font-medium text-ink-muted truncate hover:text-accent-link"
+                        prefetch={false}
+                      >
+                        {faction.name}
+                      </Link>
+                    </Tooltip>
+                  </div>
                   <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
                     {faction.killCount}
                   </span>

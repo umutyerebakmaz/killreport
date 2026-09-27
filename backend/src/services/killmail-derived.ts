@@ -55,11 +55,13 @@ export function toFilterInput(detail: KillmailDetail): KillmailFilterData {
     victim_character_id: orNull(detail.victim.character_id),
     victim_corporation_id: orNull(detail.victim.corporation_id),
     victim_alliance_id: orNull(detail.victim.alliance_id),
+    victim_faction_id: orNull(detail.victim.faction_id),
     attacker_ship_type_ids: detail.attackers.map((a) => orNull(a.ship_type_id)),
     attacker_character_ids: detail.attackers.map((a) => orNull(a.character_id)),
     attacker_corporation_ids: detail.attackers.map((a) =>
       orNull(a.corporation_id),
     ),
     attacker_alliance_ids: detail.attackers.map((a) => orNull(a.alliance_id)),
+    attacker_faction_ids: detail.attackers.map((a) => orNull(a.faction_id)),
   };
 }

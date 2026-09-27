@@ -32,7 +32,7 @@ import {
   dogmaAttributeQueries,
 } from './dogma-attribute';
 import { dogmaEffectMutations, dogmaEffectQueries } from './dogma-effect';
-import { factionFields, factionQueries } from './faction';
+import { factionFields, factionQueries, factionStatsQueries } from './faction';
 import {
   itemGroupFields,
   itemGroupMutations,
@@ -82,6 +82,7 @@ export const resolvers: Resolvers = {
     ...corporationStatsQueries,
     ...raceQueries,
     ...factionQueries,
+    ...factionStatsQueries,
     ...bloodlineQueries,
     ...categoryQueries,
     ...itemGroupQueries,

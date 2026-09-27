@@ -88,6 +88,7 @@ export const killmailQueries: QueryResolvers = {
       args.filter?.characterId ||
       args.filter?.corporationId ||
       args.filter?.allianceId ||
+      args.filter?.factionId ||
       args.filter?.regionId ||
       args.filter?.constellationId ||
       args.filter?.systemId ||
@@ -446,6 +447,7 @@ export const killmailQueries: QueryResolvers = {
       args.filter?.characterId ||
       args.filter?.corporationId ||
       args.filter?.allianceId ||
+      args.filter?.factionId ||
       args.filter?.regionId ||
       args.filter?.constellationId ||
       args.filter?.systemId ||

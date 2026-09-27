@@ -12,6 +12,7 @@ input KillmailFilter {
   characterAttacker: Boolean
   corporationId: Int
   allianceId: Int
+  factionId: Int
   regionId: Int
   constellationId: Int
   systemId: Int

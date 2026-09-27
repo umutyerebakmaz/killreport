@@ -9,6 +9,7 @@ import Image from 'next/image';
 const navigation = {
   explore: [
     { name: 'Killmails', href: '/killmails' },
+    { name: 'Factions', href: '/factions' },
     { name: 'Alliances', href: '/alliances' },
     { name: 'Corporations', href: '/corporations' },
     { name: 'Characters', href: '/characters' },

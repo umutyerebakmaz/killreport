@@ -66,6 +66,10 @@ export const corporationQueries: QueryResolvers = {
       where.alliance_id = filter.allianceId;
     }
 
+    if (filter?.factionId) {
+      where.faction_id = filter.factionId;
+    }
+
     if (filter?.dateFoundedFrom || filter?.dateFoundedTo) {
       where.date_founded = {};
       if (filter?.dateFoundedFrom) {

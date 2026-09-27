@@ -330,6 +330,7 @@ input CorporationFilter {
   allianceId: Int
   dateFoundedFrom: String
   dateFoundedTo: String
+  factionId: Int
   limit: Int
   name: String
   orderBy: CorporationOrderBy
@@ -438,11 +439,24 @@ type DogmaEffectsResponse {
 }
 
 type Faction {
+  corporation: Corporation
   corporationId: Int
   description: String
   id: Int!
+  memberCharacterCount: Int!
+  memberCorporationCount: Int!
+  militiaCorporation: Corporation
   militiaCorporationId: Int
   name: String!
+  solarSystem: SolarSystem
+  sovereigntySystemCount: Int!
+  stationCount: Int
+  stationSystemCount: Int
+}
+
+type FactionTopTarget {
+  faction: Faction!
+  killCount: Int!
 }
 
 """
@@ -571,6 +585,7 @@ input KillmailFilter {
   constellationId: Int
   corporationId: Int
   endDate: String
+  factionId: Int
   limit: Int
   maxAttackers: Int
   maxValue: Float
@@ -1021,6 +1036,11 @@ type Query {
   dogmaEffect(id: Int!): DogmaEffect
   dogmaEffects(filter: DogmaEffectFilter): DogmaEffectsResponse!
   faction(id: Int!): Faction
+  factionTopCharacters(factionId: Int!, filter: TopTargetFilter): [CharacterTopTarget!]!
+  factionTopCorporations(factionId: Int!, filter: TopTargetFilter): [CorporationTopTarget!]!
+  factionTopFactionTargets(factionId: Int!, filter: TopTargetFilter): [FactionTopTarget!]!
+  factionTopShipTargets(factionId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
+  factionTopShips(factionId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
   factions: [Faction!]!
   itemGroup(id: Int!): ItemGroup
   itemGroups(filter: ItemGroupFilter): ItemGroupsResponse!

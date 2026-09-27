@@ -19,21 +19,19 @@ async function fetchAndSaveFactions() {
 
     for (const faction of factions) {
       try {
+        const data = {
+          name: faction.name,
+          description: faction.description,
+          corporation_id: faction.corporation_id ?? null,
+          militia_corporation_id: faction.militia_corporation_id ?? null,
+          solar_system_id: faction.solar_system_id ?? null,
+          station_count: faction.station_count ?? null,
+          station_system_count: faction.station_system_count ?? null,
+        };
         await prismaWorker.faction.upsert({
           where: { id: faction.faction_id },
-          create: {
-            id: faction.faction_id,
-            name: faction.name,
-            description: faction.description,
-            corporation_id: faction.corporation_id ?? null,
-            militia_corporation_id: faction.militia_corporation_id ?? null,
-          },
-          update: {
-            name: faction.name,
-            description: faction.description,
-            corporation_id: faction.corporation_id ?? null,
-            militia_corporation_id: faction.militia_corporation_id ?? null,
-          },
+          create: { id: faction.faction_id, ...data },
+          update: data,
         });
         logger.debug(`  ✓ Saved: ${faction.name}`);
       } catch (error: any) {

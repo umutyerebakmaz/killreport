@@ -27,10 +27,12 @@ const BASE = {
   victim_character_id: 95465499,
   victim_corporation_id: 98000001,
   victim_alliance_id: 99005338,
+  victim_faction_id: 500003 as number | null,
   attacker_ship_type_ids: [] as (number | null)[],
   attacker_character_ids: [] as (number | null)[],
   attacker_corporation_ids: [] as (number | null)[],
   attacker_alliance_ids: [] as (number | null)[],
+  attacker_faction_ids: [] as (number | null)[],
 };
 
 const insert = (overrides: Partial<typeof BASE> = {}) =>
@@ -53,16 +55,13 @@ function values() {
   return bound;
 }
 
-/** The four attacker arrays, which are the last four bound values. */
+/** The five attacker arrays, which are the last five bound values. */
 function arrays() {
   const bound = values();
-  const [ships, characters, corporations, alliances] = bound.slice(-4) as [
-    number[],
-    number[],
-    number[],
-    number[],
-  ];
-  return { ships, characters, corporations, alliances };
+  const [ships, characters, corporations, alliances, factions] = bound.slice(
+    -5,
+  ) as [number[], number[], number[], number[], number[]];
+  return { ships, characters, corporations, alliances, factions };
 }
 
 beforeEach(() => {
@@ -76,6 +75,7 @@ describe('the attacker arrays', () => {
       attacker_character_ids: [null, null],
       attacker_corporation_ids: [98000001, null],
       attacker_alliance_ids: [null, 99005338],
+      attacker_faction_ids: [500003, null, 500003, 500021],
     });
 
     expect(arrays()).toEqual({
@@ -83,6 +83,7 @@ describe('the attacker arrays', () => {
       characters: [],
       corporations: [98000001],
       alliances: [99005338],
+      factions: [500003, 500021],
     });
   });
 
@@ -108,6 +109,7 @@ describe('the attacker arrays', () => {
       attacker_character_ids: [null],
       attacker_corporation_ids: [null],
       attacker_alliance_ids: [null],
+      attacker_faction_ids: [null],
     });
 
     expect(arrays()).toEqual({
@@ -115,6 +117,7 @@ describe('the attacker arrays', () => {
       characters: [],
       corporations: [],
       alliances: [],
+      factions: [],
     });
   });
 });
@@ -123,7 +126,7 @@ describe('the statement', () => {
   it('binds every caller-supplied column rather than interpolating it', async () => {
     await insert({ attacker_ship_type_ids: [587] });
 
-    expect(values().slice(0, 8)).toEqual([
+    expect(values().slice(0, 9)).toEqual([
       130000001n,
       BASE.killmail_time,
       30000142,
@@ -132,9 +135,18 @@ describe('the statement', () => {
       95465499,
       98000001,
       99005338,
+      500003,
     ]);
     expect(sql()).not.toContain('130000001');
     expect(sql()).not.toContain('95465499');
+  });
+
+  it('writes both faction columns', async () => {
+    await insert();
+    const insertPart = sql().split('ON CONFLICT')[0];
+
+    expect(insertPart).toContain('victim_faction_id');
+    expect(insertPart).toContain('attacker_faction_ids');
   });
 
   it('runs exactly one statement per killmail', async () => {
@@ -150,9 +162,9 @@ describe('the statement', () => {
     expect(sql()).toContain('LEFT JOIN constellations');
     expect(sql()).toContain('LEFT JOIN types');
     expect(sql()).toContain('LEFT JOIN killmails');
-    // Twelve bound values, and none of them a region or constellation: the
+    // Fourteen bound values, and none of them a region or constellation: the
     // callers never had those, which is how they stayed NULL for five months.
-    expect(values()).toHaveLength(12);
+    expect(values()).toHaveLength(14);
   });
 
   it('heals a row only while its derived columns are still NULL', async () => {
@@ -178,6 +190,8 @@ describe('the statement', () => {
     expect(onConflict).not.toContain('attacker_character_ids');
     expect(onConflict).not.toContain('attacker_corporation_ids');
     expect(onConflict).not.toContain('attacker_alliance_ids');
+    expect(onConflict).not.toContain('attacker_faction_ids');
+    expect(onConflict).not.toContain('victim_faction_id');
     expect(onConflict).not.toContain('attacker_count');
   });
 });
