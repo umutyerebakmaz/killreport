@@ -18,5 +18,6 @@ model Corporation {
   snapshots                    CorporationSnapshot[]
 
   @@index([alliance_id])
+  @@index([faction_id])
   @@map("corporations")
 }

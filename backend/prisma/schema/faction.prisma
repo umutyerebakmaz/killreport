@@ -4,6 +4,9 @@ model Faction {
   description            String?
   corporation_id         Int?
   militia_corporation_id Int?
+  solar_system_id        Int?
+  station_count          Int?
+  station_system_count   Int?
   created_at             DateTime @default(now())
   updated_at             DateTime @updatedAt
 
