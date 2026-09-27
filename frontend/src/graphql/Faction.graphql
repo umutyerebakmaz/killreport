@@ -1,0 +1,9 @@
+query Factions {
+  factions {
+    id
+    name
+    memberCorporationCount
+    memberCharacterCount
+    sovereigntySystemCount
+  }
+}

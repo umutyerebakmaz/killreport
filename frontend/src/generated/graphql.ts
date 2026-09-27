@@ -398,6 +398,7 @@ export type CorporationFilter = {
   allianceId?: InputMaybe<Scalars['Int']['input']>;
   dateFoundedFrom?: InputMaybe<Scalars['String']['input']>;
   dateFoundedTo?: InputMaybe<Scalars['String']['input']>;
+  factionId?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<CorporationOrderBy>;
@@ -516,11 +517,25 @@ export type DogmaEffectsResponse = {
 
 export type Faction = {
   __typename?: 'Faction';
+  corporation?: Maybe<Corporation>;
   corporationId?: Maybe<Scalars['Int']['output']>;
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['Int']['output'];
+  memberCharacterCount: Scalars['Int']['output'];
+  memberCorporationCount: Scalars['Int']['output'];
+  militiaCorporation?: Maybe<Corporation>;
   militiaCorporationId?: Maybe<Scalars['Int']['output']>;
   name: Scalars['String']['output'];
+  solarSystem?: Maybe<SolarSystem>;
+  sovereigntySystemCount: Scalars['Int']['output'];
+  stationCount?: Maybe<Scalars['Int']['output']>;
+  stationSystemCount?: Maybe<Scalars['Int']['output']>;
+};
+
+export type FactionTopTarget = {
+  __typename?: 'FactionTopTarget';
+  faction: Faction;
+  killCount: Scalars['Int']['output'];
 };
 
 /**
@@ -650,6 +665,7 @@ export type KillmailFilter = {
   constellationId?: InputMaybe<Scalars['Int']['input']>;
   corporationId?: InputMaybe<Scalars['Int']['input']>;
   endDate?: InputMaybe<Scalars['String']['input']>;
+  factionId?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   maxAttackers?: InputMaybe<Scalars['Int']['input']>;
   maxValue?: InputMaybe<Scalars['Float']['input']>;
@@ -1146,6 +1162,11 @@ export type Query = {
   dogmaEffect?: Maybe<DogmaEffect>;
   dogmaEffects: DogmaEffectsResponse;
   faction?: Maybe<Faction>;
+  factionTopCharacters: Array<CharacterTopTarget>;
+  factionTopCorporations: Array<CorporationTopTarget>;
+  factionTopFactionTargets: Array<FactionTopTarget>;
+  factionTopShipTargets: Array<ShipTopKill>;
+  factionTopShips: Array<ShipTopKill>;
   factions: Array<Faction>;
   itemGroup?: Maybe<ItemGroup>;
   itemGroups: ItemGroupsResponse;
@@ -1435,6 +1456,36 @@ export type QueryDogmaEffectsArgs = {
 
 export type QueryFactionArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryFactionTopCharactersArgs = {
+  factionId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryFactionTopCorporationsArgs = {
+  factionId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryFactionTopFactionTargetsArgs = {
+  factionId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryFactionTopShipTargetsArgs = {
+  factionId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+};
+
+
+export type QueryFactionTopShipsArgs = {
+  factionId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
 };
 
 
@@ -2690,6 +2741,11 @@ export type CorporationsQueryVariables = Exact<{
 
 
 export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationsResponse', items: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, date_founded?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type FactionsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type FactionsQuery = { __typename?: 'Query', factions: Array<{ __typename?: 'Faction', id: number, name: string, memberCorporationCount: number, memberCharacterCount: number, sovereigntySystemCount: number }> };
 
 export type KillmailQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -5175,6 +5231,52 @@ export type CorporationsQueryHookResult = ReturnType<typeof useCorporationsQuery
 export type CorporationsLazyQueryHookResult = ReturnType<typeof useCorporationsLazyQuery>;
 export type CorporationsSuspenseQueryHookResult = ReturnType<typeof useCorporationsSuspenseQuery>;
 export type CorporationsQueryResult = Apollo.QueryResult<CorporationsQuery, CorporationsQueryVariables>;
+export const FactionsDocument = gql`
+    query Factions {
+  factions {
+    id
+    name
+    memberCorporationCount
+    memberCharacterCount
+    sovereigntySystemCount
+  }
+}
+    `;
+
+/**
+ * __useFactionsQuery__
+ *
+ * To run a query within a React component, call `useFactionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFactionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFactionsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useFactionsQuery(baseOptions?: Apollo.QueryHookOptions<FactionsQuery, FactionsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FactionsQuery, FactionsQueryVariables>(FactionsDocument, options);
+      }
+export function useFactionsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FactionsQuery, FactionsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FactionsQuery, FactionsQueryVariables>(FactionsDocument, options);
+        }
+// @ts-ignore
+export function useFactionsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<FactionsQuery, FactionsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionsQuery, FactionsQueryVariables>;
+export function useFactionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionsQuery, FactionsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionsQuery | undefined, FactionsQueryVariables>;
+export function useFactionsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionsQuery, FactionsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<FactionsQuery, FactionsQueryVariables>(FactionsDocument, options);
+        }
+export type FactionsQueryHookResult = ReturnType<typeof useFactionsQuery>;
+export type FactionsLazyQueryHookResult = ReturnType<typeof useFactionsLazyQuery>;
+export type FactionsSuspenseQueryHookResult = ReturnType<typeof useFactionsSuspenseQuery>;
+export type FactionsQueryResult = Apollo.QueryResult<FactionsQuery, FactionsQueryVariables>;
 export const KillmailDocument = gql`
     query Killmail($id: ID!) {
   killmail(id: $id) {
