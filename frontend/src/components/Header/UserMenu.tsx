@@ -6,6 +6,7 @@ import {
   PopoverButton,
   PopoverPanel,
 } from '@headlessui/react';
+import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/20/solid';
 import { useRef } from 'react';
 
 import EveImage from '@/components/ui/EveImage';
@@ -73,21 +74,21 @@ export function UserMenu({
           </PopoverButton>
           <PopoverPanel transition className={USER_MENU_PANEL}>
             <div className={USER_MENU_SURFACE}>
-              {/* NavPopoverLink's row, red where it is cyan: the row is not a
+              {/* NavPopoverLink's padding and hit area, with an icon in place of
+                  the description, and red where it is cyan: the row is not a
                   place to go, it ends the session. */}
-              <div className="relative flex items-center p-4 group gap-x-6 text-sm/6 hover:bg-danger/20 has-[button:focus-visible]:bg-danger/20">
-                <div className="flex-auto">
-                  <CloseButton
-                    onClick={onLogout}
-                    className="block font-medium text-left text-white focus:outline-none"
-                  >
-                    LOGOUT
-                    <span className="absolute inset-0" />
-                  </CloseButton>
-                  <p className="mt-1 text-ink-muted">
-                    Signed in as {user.characterName}
-                  </p>
-                </div>
+              <div className="relative flex items-center p-4 gap-x-3 text-sm/6 hover:bg-danger/20 has-[button:focus-visible]:bg-danger/20">
+                <ArrowRightStartOnRectangleIcon
+                  aria-hidden="true"
+                  className="flex-none size-5 text-ink-muted"
+                />
+                <CloseButton
+                  onClick={onLogout}
+                  className="block font-medium text-left text-white focus:outline-none"
+                >
+                  LOGOUT
+                  <span className="absolute inset-0" />
+                </CloseButton>
               </div>
             </div>
           </PopoverPanel>

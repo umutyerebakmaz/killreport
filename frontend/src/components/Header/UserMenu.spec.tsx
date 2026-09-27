@@ -41,7 +41,7 @@ describe('UserMenu', () => {
     );
   });
 
-  it('opens on click and names the signed-in character', async () => {
+  it('opens on click', async () => {
     const user = userEvent.setup();
     const { button } = renderUserMenu();
     expect(logoutButton()).toBeNull();
@@ -49,9 +49,6 @@ describe('UserMenu', () => {
     await user.click(button);
 
     expect(logoutButton()).toBeInTheDocument();
-    expect(
-      screen.getByText('Signed in as Umut Yerebakmaz'),
-    ).toBeInTheDocument();
   });
 
   it('opens on hover alone when the pointer can hover', async () => {

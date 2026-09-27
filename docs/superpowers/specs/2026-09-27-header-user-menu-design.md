@@ -41,11 +41,10 @@ Headless UI `Popover`, `PopoverButton`, `PopoverPanel`, `CloseButton`.
 - İmleç `relative` sarmalayıcıdan çıkınca `close()` ve butondan `blur()`.
 - Panel `absolute`, 12px boşluk panelin `pt-3`'ü, yüzey `overflow-hidden float
 p-4`.
-- Satır `NavPopoverLink`'in satırı: `p-4`, kalın etiket + altında
-  `text-ink-muted` açıklama, tüm satırı kaplayan `absolute inset-0` tıklama
-  alanı.
+- Satır `NavPopoverLink`'in `p-4`'ü ve tüm satırı kaplayan `absolute inset-0`
+  tıklama alanı; açıklama yerine solda bir ikon.
 
-Tek fark: panel `left-0` değil `right-0`, çünkü portre header'ın son öğesi;
+Diğer fark: panel `left-0` değil `right-0`, çünkü portre header'ın son öğesi;
 soldan açılsa sayfanın dışına taşar. Genişlik `w-screen max-w-xs`.
 
 Üzerine gelmek yalnızca satırı gösterir; oturumu kapatmak yine bir tıklama
@@ -65,11 +64,14 @@ size={32}` — portre 64px çekilir (`eveImageUrl.ts` `fetchSize`).
   (`globals.css`), portrenin 7px altında 1px accent çizgi 0'dan %100'e açılır.
   Outline/ring yok.
 - `aria-label`: `"Account menu for {characterName}"`.
-- Karakter adı header'da görünmez; menü satırının açıklamasında durur.
+- Karakter adı ekranda görünmez; portrenin `alt`'ında ve butonun
+  `aria-label`'ında durur.
 
 ### Dropdown (PopoverPanel)
 
-- Tek satır: etiket **`LOGOUT`**, açıklama `Signed in as {characterName}`.
+- Tek satır: `ArrowRightStartOnRectangleIcon` (heroicons 20/solid,
+  `text-ink-muted`) + etiket **`LOGOUT`**, `gap-x-3`. Açıklama satırı yok;
+  `Signed in as {characterName}` denendi, kullanıcı kararıyla kaldırıldı.
   Tıklanınca panel kapanır ve `onLogout` çağrılır.
 - Hover ve klavye odağı **kırmızı ton** alır:
   `hover:bg-danger/20 has-[button:focus-visible]:bg-danger/20`. Nav popover
@@ -108,7 +110,7 @@ mevcut `NavPopover.spec.tsx` gibi):
 
 - Avatar `images.evetech.net/characters/{id}/portrait?size=64` ister ve
   `aria-label` karakter adını içerir.
-- Tıklanınca açılır, `LOGOUT` ve `Signed in as {characterName}` görünür.
+- Tıklanınca açılır ve `LOGOUT` görünür.
 - Hover yapabilen cihazda üzerine gelince açılır, yapamayanda açılmaz.
 - İmleç ayrılınca kapanır.
 - `LOGOUT` `onLogout`'u bir kez çağırır ve paneli kapatır.
