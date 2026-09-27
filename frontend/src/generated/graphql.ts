@@ -2742,10 +2742,71 @@ export type CorporationsQueryVariables = Exact<{
 
 export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationsResponse', items: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, date_founded?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
+export type FactionQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type FactionQuery = { __typename?: 'Query', faction?: { __typename?: 'Faction', id: number, name: string, description?: string | null, stationCount?: number | null, stationSystemCount?: number | null, memberCorporationCount: number, memberCharacterCount: number, sovereigntySystemCount: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, militiaCorporation?: { __typename?: 'Corporation', id: number, name: string } | null } | null };
+
 export type FactionsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type FactionsQuery = { __typename?: 'Query', factions: Array<{ __typename?: 'Faction', id: number, name: string, memberCorporationCount: number, memberCharacterCount: number, sovereigntySystemCount: number }> };
+
+export type FactionKillmailsQueryVariables = Exact<{
+  filter?: InputMaybe<KillmailFilter>;
+}>;
+
+
+export type FactionKillmailsQuery = { __typename?: 'Query', killmails: { __typename?: 'KillmailsResponse', items: Array<{ __typename?: 'Killmail', id: string, killmailTime: string, totalValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, isWarRelated: boolean, victim?: { __typename?: 'Victim', damageTaken: number, character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', name: string } | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, finalBlow?: { __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, attackers: Array<{ __typename?: 'Attacker', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null }>, solarSystem: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', id: number, name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean, currentPage: number, totalPages: number, totalCount: number } } };
+
+export type FactionCorporationsQueryVariables = Exact<{
+  filter?: InputMaybe<CorporationFilter>;
+}>;
+
+
+export type FactionCorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationsResponse', items: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, ceo?: { __typename?: 'Character', id: number, name: string } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type FactionTopCharactersQueryVariables = Exact<{
+  factionId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+}>;
+
+
+export type FactionTopCharactersQuery = { __typename?: 'Query', factionTopCharacters: Array<{ __typename?: 'CharacterTopTarget', killCount: number, character: { __typename?: 'Character', id: number, name: string, securityStatus?: number | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } }> };
+
+export type FactionTopCorporationsQueryVariables = Exact<{
+  factionId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+}>;
+
+
+export type FactionTopCorporationsQuery = { __typename?: 'Query', factionTopCorporations: Array<{ __typename?: 'CorporationTopTarget', killCount: number, corporation: { __typename?: 'Corporation', id: number, name: string, ticker: string } }> };
+
+export type FactionTopShipsQueryVariables = Exact<{
+  factionId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+}>;
+
+
+export type FactionTopShipsQuery = { __typename?: 'Query', factionTopShips: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } }> };
+
+export type FactionTopFactionTargetsQueryVariables = Exact<{
+  factionId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+}>;
+
+
+export type FactionTopFactionTargetsQuery = { __typename?: 'Query', factionTopFactionTargets: Array<{ __typename?: 'FactionTopTarget', killCount: number, faction: { __typename?: 'Faction', id: number, name: string } }> };
+
+export type FactionTopShipTargetsQueryVariables = Exact<{
+  factionId: Scalars['Int']['input'];
+  filter?: InputMaybe<TopTargetFilter>;
+}>;
+
+
+export type FactionTopShipTargetsQuery = { __typename?: 'Query', factionTopShipTargets: Array<{ __typename?: 'ShipTopKill', killCount: number, shipType: { __typename?: 'Type', id: number, name: string, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } }> };
 
 export type KillmailQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -5231,6 +5292,68 @@ export type CorporationsQueryHookResult = ReturnType<typeof useCorporationsQuery
 export type CorporationsLazyQueryHookResult = ReturnType<typeof useCorporationsLazyQuery>;
 export type CorporationsSuspenseQueryHookResult = ReturnType<typeof useCorporationsSuspenseQuery>;
 export type CorporationsQueryResult = Apollo.QueryResult<CorporationsQuery, CorporationsQueryVariables>;
+export const FactionDocument = gql`
+    query Faction($id: Int!) {
+  faction(id: $id) {
+    id
+    name
+    description
+    stationCount
+    stationSystemCount
+    memberCorporationCount
+    memberCharacterCount
+    sovereigntySystemCount
+    solarSystem {
+      id
+      name
+    }
+    corporation {
+      id
+      name
+    }
+    militiaCorporation {
+      id
+      name
+    }
+  }
+}
+    `;
+
+/**
+ * __useFactionQuery__
+ *
+ * To run a query within a React component, call `useFactionQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFactionQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFactionQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useFactionQuery(baseOptions: Apollo.QueryHookOptions<FactionQuery, FactionQueryVariables> & ({ variables: FactionQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FactionQuery, FactionQueryVariables>(FactionDocument, options);
+      }
+export function useFactionLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FactionQuery, FactionQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FactionQuery, FactionQueryVariables>(FactionDocument, options);
+        }
+// @ts-ignore
+export function useFactionSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<FactionQuery, FactionQueryVariables>): Apollo.UseSuspenseQueryResult<FactionQuery, FactionQueryVariables>;
+export function useFactionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionQuery, FactionQueryVariables>): Apollo.UseSuspenseQueryResult<FactionQuery | undefined, FactionQueryVariables>;
+export function useFactionSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionQuery, FactionQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<FactionQuery, FactionQueryVariables>(FactionDocument, options);
+        }
+export type FactionQueryHookResult = ReturnType<typeof useFactionQuery>;
+export type FactionLazyQueryHookResult = ReturnType<typeof useFactionLazyQuery>;
+export type FactionSuspenseQueryHookResult = ReturnType<typeof useFactionSuspenseQuery>;
+export type FactionQueryResult = Apollo.QueryResult<FactionQuery, FactionQueryVariables>;
 export const FactionsDocument = gql`
     query Factions {
   factions {
@@ -5277,6 +5400,448 @@ export type FactionsQueryHookResult = ReturnType<typeof useFactionsQuery>;
 export type FactionsLazyQueryHookResult = ReturnType<typeof useFactionsLazyQuery>;
 export type FactionsSuspenseQueryHookResult = ReturnType<typeof useFactionsSuspenseQuery>;
 export type FactionsQueryResult = Apollo.QueryResult<FactionsQuery, FactionsQueryVariables>;
+export const FactionKillmailsDocument = gql`
+    query FactionKillmails($filter: KillmailFilter) {
+  killmails(filter: $filter) {
+    items {
+      id
+      killmailTime
+      totalValue
+      attackerCount
+      solo
+      npc
+      isWarRelated
+      victim {
+        character {
+          id
+          name
+        }
+        corporation {
+          id
+          name
+        }
+        alliance {
+          id
+          name
+        }
+        shipType {
+          id
+          name
+          group {
+            name
+          }
+          dogmaAttributes(ids: [422, 1692]) {
+            attribute_id
+            value
+          }
+        }
+        damageTaken
+      }
+      finalBlow {
+        character {
+          id
+          name
+        }
+        corporation {
+          id
+          name
+        }
+        alliance {
+          id
+          name
+        }
+      }
+      attackers {
+        character {
+          id
+          name
+        }
+        corporation {
+          id
+          name
+        }
+        alliance {
+          id
+          name
+        }
+      }
+      solarSystem {
+        id
+        name
+        securityStatus
+        constellation {
+          id
+          name
+          region {
+            id
+            name
+          }
+        }
+      }
+    }
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      currentPage
+      totalPages
+      totalCount
+    }
+  }
+}
+    `;
+
+/**
+ * __useFactionKillmailsQuery__
+ *
+ * To run a query within a React component, call `useFactionKillmailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFactionKillmailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFactionKillmailsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useFactionKillmailsQuery(baseOptions?: Apollo.QueryHookOptions<FactionKillmailsQuery, FactionKillmailsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FactionKillmailsQuery, FactionKillmailsQueryVariables>(FactionKillmailsDocument, options);
+      }
+export function useFactionKillmailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FactionKillmailsQuery, FactionKillmailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FactionKillmailsQuery, FactionKillmailsQueryVariables>(FactionKillmailsDocument, options);
+        }
+// @ts-ignore
+export function useFactionKillmailsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<FactionKillmailsQuery, FactionKillmailsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionKillmailsQuery, FactionKillmailsQueryVariables>;
+export function useFactionKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionKillmailsQuery, FactionKillmailsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionKillmailsQuery | undefined, FactionKillmailsQueryVariables>;
+export function useFactionKillmailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionKillmailsQuery, FactionKillmailsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<FactionKillmailsQuery, FactionKillmailsQueryVariables>(FactionKillmailsDocument, options);
+        }
+export type FactionKillmailsQueryHookResult = ReturnType<typeof useFactionKillmailsQuery>;
+export type FactionKillmailsLazyQueryHookResult = ReturnType<typeof useFactionKillmailsLazyQuery>;
+export type FactionKillmailsSuspenseQueryHookResult = ReturnType<typeof useFactionKillmailsSuspenseQuery>;
+export type FactionKillmailsQueryResult = Apollo.QueryResult<FactionKillmailsQuery, FactionKillmailsQueryVariables>;
+export const FactionCorporationsDocument = gql`
+    query FactionCorporations($filter: CorporationFilter) {
+  corporations(filter: $filter) {
+    items {
+      id
+      name
+      ticker
+      member_count
+      ceo {
+        id
+        name
+      }
+    }
+    pageInfo {
+      currentPage
+      totalPages
+      totalCount
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useFactionCorporationsQuery__
+ *
+ * To run a query within a React component, call `useFactionCorporationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFactionCorporationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFactionCorporationsQuery({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useFactionCorporationsQuery(baseOptions?: Apollo.QueryHookOptions<FactionCorporationsQuery, FactionCorporationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FactionCorporationsQuery, FactionCorporationsQueryVariables>(FactionCorporationsDocument, options);
+      }
+export function useFactionCorporationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FactionCorporationsQuery, FactionCorporationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FactionCorporationsQuery, FactionCorporationsQueryVariables>(FactionCorporationsDocument, options);
+        }
+// @ts-ignore
+export function useFactionCorporationsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<FactionCorporationsQuery, FactionCorporationsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionCorporationsQuery, FactionCorporationsQueryVariables>;
+export function useFactionCorporationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionCorporationsQuery, FactionCorporationsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionCorporationsQuery | undefined, FactionCorporationsQueryVariables>;
+export function useFactionCorporationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionCorporationsQuery, FactionCorporationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<FactionCorporationsQuery, FactionCorporationsQueryVariables>(FactionCorporationsDocument, options);
+        }
+export type FactionCorporationsQueryHookResult = ReturnType<typeof useFactionCorporationsQuery>;
+export type FactionCorporationsLazyQueryHookResult = ReturnType<typeof useFactionCorporationsLazyQuery>;
+export type FactionCorporationsSuspenseQueryHookResult = ReturnType<typeof useFactionCorporationsSuspenseQuery>;
+export type FactionCorporationsQueryResult = Apollo.QueryResult<FactionCorporationsQuery, FactionCorporationsQueryVariables>;
+export const FactionTopCharactersDocument = gql`
+    query FactionTopCharacters($factionId: Int!, $filter: TopTargetFilter) {
+  factionTopCharacters(factionId: $factionId, filter: $filter) {
+    killCount
+    character {
+      id
+      name
+      securityStatus
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useFactionTopCharactersQuery__
+ *
+ * To run a query within a React component, call `useFactionTopCharactersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFactionTopCharactersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFactionTopCharactersQuery({
+ *   variables: {
+ *      factionId: // value for 'factionId'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useFactionTopCharactersQuery(baseOptions: Apollo.QueryHookOptions<FactionTopCharactersQuery, FactionTopCharactersQueryVariables> & ({ variables: FactionTopCharactersQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FactionTopCharactersQuery, FactionTopCharactersQueryVariables>(FactionTopCharactersDocument, options);
+      }
+export function useFactionTopCharactersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FactionTopCharactersQuery, FactionTopCharactersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FactionTopCharactersQuery, FactionTopCharactersQueryVariables>(FactionTopCharactersDocument, options);
+        }
+// @ts-ignore
+export function useFactionTopCharactersSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<FactionTopCharactersQuery, FactionTopCharactersQueryVariables>): Apollo.UseSuspenseQueryResult<FactionTopCharactersQuery, FactionTopCharactersQueryVariables>;
+export function useFactionTopCharactersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionTopCharactersQuery, FactionTopCharactersQueryVariables>): Apollo.UseSuspenseQueryResult<FactionTopCharactersQuery | undefined, FactionTopCharactersQueryVariables>;
+export function useFactionTopCharactersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionTopCharactersQuery, FactionTopCharactersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<FactionTopCharactersQuery, FactionTopCharactersQueryVariables>(FactionTopCharactersDocument, options);
+        }
+export type FactionTopCharactersQueryHookResult = ReturnType<typeof useFactionTopCharactersQuery>;
+export type FactionTopCharactersLazyQueryHookResult = ReturnType<typeof useFactionTopCharactersLazyQuery>;
+export type FactionTopCharactersSuspenseQueryHookResult = ReturnType<typeof useFactionTopCharactersSuspenseQuery>;
+export type FactionTopCharactersQueryResult = Apollo.QueryResult<FactionTopCharactersQuery, FactionTopCharactersQueryVariables>;
+export const FactionTopCorporationsDocument = gql`
+    query FactionTopCorporations($factionId: Int!, $filter: TopTargetFilter) {
+  factionTopCorporations(factionId: $factionId, filter: $filter) {
+    killCount
+    corporation {
+      id
+      name
+      ticker
+    }
+  }
+}
+    `;
+
+/**
+ * __useFactionTopCorporationsQuery__
+ *
+ * To run a query within a React component, call `useFactionTopCorporationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFactionTopCorporationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFactionTopCorporationsQuery({
+ *   variables: {
+ *      factionId: // value for 'factionId'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useFactionTopCorporationsQuery(baseOptions: Apollo.QueryHookOptions<FactionTopCorporationsQuery, FactionTopCorporationsQueryVariables> & ({ variables: FactionTopCorporationsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FactionTopCorporationsQuery, FactionTopCorporationsQueryVariables>(FactionTopCorporationsDocument, options);
+      }
+export function useFactionTopCorporationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FactionTopCorporationsQuery, FactionTopCorporationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FactionTopCorporationsQuery, FactionTopCorporationsQueryVariables>(FactionTopCorporationsDocument, options);
+        }
+// @ts-ignore
+export function useFactionTopCorporationsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<FactionTopCorporationsQuery, FactionTopCorporationsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionTopCorporationsQuery, FactionTopCorporationsQueryVariables>;
+export function useFactionTopCorporationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionTopCorporationsQuery, FactionTopCorporationsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionTopCorporationsQuery | undefined, FactionTopCorporationsQueryVariables>;
+export function useFactionTopCorporationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionTopCorporationsQuery, FactionTopCorporationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<FactionTopCorporationsQuery, FactionTopCorporationsQueryVariables>(FactionTopCorporationsDocument, options);
+        }
+export type FactionTopCorporationsQueryHookResult = ReturnType<typeof useFactionTopCorporationsQuery>;
+export type FactionTopCorporationsLazyQueryHookResult = ReturnType<typeof useFactionTopCorporationsLazyQuery>;
+export type FactionTopCorporationsSuspenseQueryHookResult = ReturnType<typeof useFactionTopCorporationsSuspenseQuery>;
+export type FactionTopCorporationsQueryResult = Apollo.QueryResult<FactionTopCorporationsQuery, FactionTopCorporationsQueryVariables>;
+export const FactionTopShipsDocument = gql`
+    query FactionTopShips($factionId: Int!, $filter: TopTargetFilter) {
+  factionTopShips(factionId: $factionId, filter: $filter) {
+    killCount
+    shipType {
+      id
+      name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useFactionTopShipsQuery__
+ *
+ * To run a query within a React component, call `useFactionTopShipsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFactionTopShipsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFactionTopShipsQuery({
+ *   variables: {
+ *      factionId: // value for 'factionId'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useFactionTopShipsQuery(baseOptions: Apollo.QueryHookOptions<FactionTopShipsQuery, FactionTopShipsQueryVariables> & ({ variables: FactionTopShipsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FactionTopShipsQuery, FactionTopShipsQueryVariables>(FactionTopShipsDocument, options);
+      }
+export function useFactionTopShipsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FactionTopShipsQuery, FactionTopShipsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FactionTopShipsQuery, FactionTopShipsQueryVariables>(FactionTopShipsDocument, options);
+        }
+// @ts-ignore
+export function useFactionTopShipsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<FactionTopShipsQuery, FactionTopShipsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionTopShipsQuery, FactionTopShipsQueryVariables>;
+export function useFactionTopShipsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionTopShipsQuery, FactionTopShipsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionTopShipsQuery | undefined, FactionTopShipsQueryVariables>;
+export function useFactionTopShipsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionTopShipsQuery, FactionTopShipsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<FactionTopShipsQuery, FactionTopShipsQueryVariables>(FactionTopShipsDocument, options);
+        }
+export type FactionTopShipsQueryHookResult = ReturnType<typeof useFactionTopShipsQuery>;
+export type FactionTopShipsLazyQueryHookResult = ReturnType<typeof useFactionTopShipsLazyQuery>;
+export type FactionTopShipsSuspenseQueryHookResult = ReturnType<typeof useFactionTopShipsSuspenseQuery>;
+export type FactionTopShipsQueryResult = Apollo.QueryResult<FactionTopShipsQuery, FactionTopShipsQueryVariables>;
+export const FactionTopFactionTargetsDocument = gql`
+    query FactionTopFactionTargets($factionId: Int!, $filter: TopTargetFilter) {
+  factionTopFactionTargets(factionId: $factionId, filter: $filter) {
+    killCount
+    faction {
+      id
+      name
+    }
+  }
+}
+    `;
+
+/**
+ * __useFactionTopFactionTargetsQuery__
+ *
+ * To run a query within a React component, call `useFactionTopFactionTargetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFactionTopFactionTargetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFactionTopFactionTargetsQuery({
+ *   variables: {
+ *      factionId: // value for 'factionId'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useFactionTopFactionTargetsQuery(baseOptions: Apollo.QueryHookOptions<FactionTopFactionTargetsQuery, FactionTopFactionTargetsQueryVariables> & ({ variables: FactionTopFactionTargetsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FactionTopFactionTargetsQuery, FactionTopFactionTargetsQueryVariables>(FactionTopFactionTargetsDocument, options);
+      }
+export function useFactionTopFactionTargetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FactionTopFactionTargetsQuery, FactionTopFactionTargetsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FactionTopFactionTargetsQuery, FactionTopFactionTargetsQueryVariables>(FactionTopFactionTargetsDocument, options);
+        }
+// @ts-ignore
+export function useFactionTopFactionTargetsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<FactionTopFactionTargetsQuery, FactionTopFactionTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionTopFactionTargetsQuery, FactionTopFactionTargetsQueryVariables>;
+export function useFactionTopFactionTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionTopFactionTargetsQuery, FactionTopFactionTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionTopFactionTargetsQuery | undefined, FactionTopFactionTargetsQueryVariables>;
+export function useFactionTopFactionTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionTopFactionTargetsQuery, FactionTopFactionTargetsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<FactionTopFactionTargetsQuery, FactionTopFactionTargetsQueryVariables>(FactionTopFactionTargetsDocument, options);
+        }
+export type FactionTopFactionTargetsQueryHookResult = ReturnType<typeof useFactionTopFactionTargetsQuery>;
+export type FactionTopFactionTargetsLazyQueryHookResult = ReturnType<typeof useFactionTopFactionTargetsLazyQuery>;
+export type FactionTopFactionTargetsSuspenseQueryHookResult = ReturnType<typeof useFactionTopFactionTargetsSuspenseQuery>;
+export type FactionTopFactionTargetsQueryResult = Apollo.QueryResult<FactionTopFactionTargetsQuery, FactionTopFactionTargetsQueryVariables>;
+export const FactionTopShipTargetsDocument = gql`
+    query FactionTopShipTargets($factionId: Int!, $filter: TopTargetFilter) {
+  factionTopShipTargets(factionId: $factionId, filter: $filter) {
+    killCount
+    shipType {
+      id
+      name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useFactionTopShipTargetsQuery__
+ *
+ * To run a query within a React component, call `useFactionTopShipTargetsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useFactionTopShipTargetsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFactionTopShipTargetsQuery({
+ *   variables: {
+ *      factionId: // value for 'factionId'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useFactionTopShipTargetsQuery(baseOptions: Apollo.QueryHookOptions<FactionTopShipTargetsQuery, FactionTopShipTargetsQueryVariables> & ({ variables: FactionTopShipTargetsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<FactionTopShipTargetsQuery, FactionTopShipTargetsQueryVariables>(FactionTopShipTargetsDocument, options);
+      }
+export function useFactionTopShipTargetsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<FactionTopShipTargetsQuery, FactionTopShipTargetsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<FactionTopShipTargetsQuery, FactionTopShipTargetsQueryVariables>(FactionTopShipTargetsDocument, options);
+        }
+// @ts-ignore
+export function useFactionTopShipTargetsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<FactionTopShipTargetsQuery, FactionTopShipTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionTopShipTargetsQuery, FactionTopShipTargetsQueryVariables>;
+export function useFactionTopShipTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionTopShipTargetsQuery, FactionTopShipTargetsQueryVariables>): Apollo.UseSuspenseQueryResult<FactionTopShipTargetsQuery | undefined, FactionTopShipTargetsQueryVariables>;
+export function useFactionTopShipTargetsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<FactionTopShipTargetsQuery, FactionTopShipTargetsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<FactionTopShipTargetsQuery, FactionTopShipTargetsQueryVariables>(FactionTopShipTargetsDocument, options);
+        }
+export type FactionTopShipTargetsQueryHookResult = ReturnType<typeof useFactionTopShipTargetsQuery>;
+export type FactionTopShipTargetsLazyQueryHookResult = ReturnType<typeof useFactionTopShipTargetsLazyQuery>;
+export type FactionTopShipTargetsSuspenseQueryHookResult = ReturnType<typeof useFactionTopShipTargetsSuspenseQuery>;
+export type FactionTopShipTargetsQueryResult = Apollo.QueryResult<FactionTopShipTargetsQuery, FactionTopShipTargetsQueryVariables>;
 export const KillmailDocument = gql`
     query Killmail($id: ID!) {
   killmail(id: $id) {

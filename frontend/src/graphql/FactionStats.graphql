@@ -1,0 +1,69 @@
+# Independent faction statistics queries for the Killmails tab
+
+query FactionTopCharacters($factionId: Int!, $filter: TopTargetFilter) {
+  factionTopCharacters(factionId: $factionId, filter: $filter) {
+    killCount
+    character {
+      id
+      name
+      securityStatus
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}
+
+query FactionTopCorporations($factionId: Int!, $filter: TopTargetFilter) {
+  factionTopCorporations(factionId: $factionId, filter: $filter) {
+    killCount
+    corporation {
+      id
+      name
+      ticker
+    }
+  }
+}
+
+query FactionTopShips($factionId: Int!, $filter: TopTargetFilter) {
+  factionTopShips(factionId: $factionId, filter: $filter) {
+    killCount
+    shipType {
+      id
+      name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
+    }
+  }
+}
+
+query FactionTopFactionTargets($factionId: Int!, $filter: TopTargetFilter) {
+  factionTopFactionTargets(factionId: $factionId, filter: $filter) {
+    killCount
+    faction {
+      id
+      name
+    }
+  }
+}
+
+query FactionTopShipTargets($factionId: Int!, $filter: TopTargetFilter) {
+  factionTopShipTargets(factionId: $factionId, filter: $filter) {
+    killCount
+    shipType {
+      id
+      name
+      dogmaAttributes(ids: [422, 1692]) {
+        attribute_id
+        value
+      }
+    }
+  }
+}
