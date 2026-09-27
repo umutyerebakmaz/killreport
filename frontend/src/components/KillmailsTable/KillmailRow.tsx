@@ -349,10 +349,13 @@ export default function KillmailRow({
             </span>
           )}
           {isNpcAttacker && (
-            // The same two-part shape, in destroyed red: not a fight between
-            // players. A chip, because the attacker is the game itself.
-            <span className="inline-flex items-stretch font-medium border border-destroyed">
-              <span className="flex items-center px-1.5 text-ground bg-destroyed">
+            // The same two-part shape in EVE's red: not a fight between players.
+            // Fill and border take destroyed-fill, the deeper step globals.css
+            // keeps for grounds, since destroyed itself glares as a solid
+            // block; the label stays destroyed, the step meant for text. A
+            // chip, because the attacker is the game itself.
+            <span className="inline-flex items-stretch font-medium border border-destroyed-fill">
+              <span className="flex items-center px-1.5 text-ground bg-destroyed-fill">
                 <CpuChipIcon aria-hidden="true" className="size-4" />
               </span>
               <span className="px-2 py-0.5 text-destroyed">NPC</span>
