@@ -328,76 +328,40 @@ export default function KillmailRow({
       <td className="td-cell">
         <div className="flex items-center gap-2">
           {leadingBadge === 'solo' ? (
-            <CellBadge tone="solo" icon={UserIcon}>
-              SOLO
-            </CellBadge>
+            <CellBadge icon={UserIcon}>SOLO</CellBadge>
           ) : leadingBadge === 'count' ? (
-            <CellBadge tone="count" icon={UsersIcon}>
+            <CellBadge icon={UsersIcon}>
               {km.attackerCount}
               <span className="sr-only">attackers</span>
             </CellBadge>
           ) : null}
-          {isNpcAttacker && (
-            <CellBadge tone="npc" icon={CpuChipIcon}>
-              NPC
-            </CellBadge>
-          )}
+          {isNpcAttacker && <CellBadge icon={CpuChipIcon}>NPC</CellBadge>}
         </div>
       </td>
     </tr>
   );
 }
 
-/*
- * Each tone spelled out whole so Tailwind sees every class.
- *
- * solo: SOLO's green-600, not dropped's green-400, a different step.
- * count: purple, with tabular figures so the counts line up down the column.
- * npc: EVE's red. Fill and border take destroyed-fill, the deeper step
- * globals.css keeps for grounds, since destroyed itself glares as a solid
- * block; the label stays destroyed, the step meant for text.
- */
-const CELL_BADGE_TONES = {
-  solo: {
-    frame: 'border-green-600',
-    icon: 'bg-green-600',
-    label: 'text-green-600',
-  },
-  count: {
-    frame: 'border-purple-400 tabular-nums',
-    icon: 'bg-purple-400',
-    label: 'text-purple-400',
-  },
-  npc: {
-    frame: 'border-destroyed-fill',
-    icon: 'bg-destroyed-fill',
-    label: 'text-destroyed',
-  },
-} as const;
-
 /**
  * The attackers cell's badge: two parts inside one border, the icon cut out
- * of a solid fill in the page's own dark (as button-primary sets dark ink on
- * accent), the label on no ground of its own so the border alone frames it.
+ * of a solid fill in the page's own dark, the label on no ground of its own so
+ * the border alone frames it. One grey for every badge: SOLO, the count and
+ * NPC are told apart by their icon and their word, and three colours side by
+ * side down a whole table was tiring to read.
  */
 function CellBadge({
-  tone,
   icon: Icon,
   children,
 }: {
-  tone: keyof typeof CELL_BADGE_TONES;
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   children: ReactNode;
 }) {
-  const t = CELL_BADGE_TONES[tone];
   return (
-    <span
-      className={`inline-flex items-stretch text-xs/4.5 font-medium border ${t.frame}`}
-    >
-      <span className={`flex items-center px-1 text-ground ${t.icon}`}>
+    <span className="inline-flex items-stretch text-xs/4.5 font-medium border border-ink-faint tabular-nums">
+      <span className="flex items-center px-1 text-ground bg-ink-faint">
         <Icon aria-hidden="true" className="size-3" />
       </span>
-      <span className={`px-1.5 py-px ${t.label}`}>{children}</span>
+      <span className="px-1.5 py-px text-ink-faint">{children}</span>
     </span>
   );
 }
