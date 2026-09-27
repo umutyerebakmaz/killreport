@@ -45,7 +45,8 @@ p-4`.
   tıklama alanı; açıklama yerine solda bir ikon.
 
 Diğer fark: panel `left-0` değil `right-0`, çünkü portre header'ın son öğesi;
-soldan açılsa sayfanın dışına taşar. Genişlik `w-screen max-w-xs`.
+soldan açılsa sayfanın dışına taşar. Genişlik `w-72` (288px): yüzeyin `p-4`'ünden
+sonra içeride tam 256px kalır.
 
 Üzerine gelmek yalnızca satırı gösterir; oturumu kapatmak yine bir tıklama
 ister.
@@ -69,7 +70,11 @@ size={32}` — portre 64px çekilir (`eveImageUrl.ts` `fetchSize`).
 
 ### Dropdown (PopoverPanel)
 
-- Tek satır: `ArrowRightStartOnRectangleIcon` (heroicons 20/solid,
+- Üstte, bir `div` içinde karakter portresi, **256px**. Retina kuralı
+  (`eveImageUrl.ts` `fetchSize`): çizilen boyutun iki katı çekilir, yani 512 —
+  hem tam 2× hem sunucunun verdiği en büyük boyut. Portre panelin iç genişliğini
+  boşluksuz doldurur.
+- Altında tek satır: `ArrowRightStartOnRectangleIcon` (heroicons 20/solid,
   `text-ink-muted`) + etiket **`LOGOUT`**, `gap-x-3`. Açıklama satırı yok;
   `Signed in as {characterName}` denendi, kullanıcı kararıyla kaldırıldı.
   Tıklanınca panel kapanır ve `onLogout` çağrılır.
@@ -111,6 +116,7 @@ mevcut `NavPopover.spec.tsx` gibi):
 - Avatar `images.evetech.net/characters/{id}/portrait?size=64` ister ve
   `aria-label` karakter adını içerir.
 - Tıklanınca açılır ve `LOGOUT` görünür.
+- Paneldeki portre 256px çizilir, `?size=512` ister.
 - Hover yapabilen cihazda üzerine gelince açılır, yapamayanda açılmaz.
 - İmleç ayrılınca kapanır.
 - `LOGOUT` `onLogout`'u bir kez çağırır ve paneli kapatır.

@@ -14,9 +14,10 @@ import type { UserData } from '@/hooks/useAuth';
 
 // NavPopover's panel and surface, anchored to the right edge instead of the
 // left: the portrait is the last thing in the header, and a panel opening
-// rightwards from it would run off the page.
+// rightwards from it would run off the page. `w-72` less the surface's `p-4`
+// leaves exactly the 256px the portrait inside is drawn at.
 const USER_MENU_PANEL =
-  'absolute right-0 z-10 w-screen max-w-xs pt-3 transition duration-0 data-closed:opacity-0 data-leave:duration-150 data-leave:ease-in';
+  'absolute right-0 z-10 w-72 pt-3 transition duration-0 data-closed:opacity-0 data-leave:duration-150 data-leave:ease-in';
 const USER_MENU_SURFACE = 'overflow-hidden float p-4';
 
 /**
@@ -74,6 +75,16 @@ export function UserMenu({
           </PopoverButton>
           <PopoverPanel transition className={USER_MENU_PANEL}>
             <div className={USER_MENU_SURFACE}>
+              {/* 256px, so the image server is asked for 512 — exactly twice,
+                  and the largest size it serves (eveImageUrl.ts). */}
+              <div>
+                <EveImage
+                  kind="character"
+                  id={Number(user.characterId)}
+                  name={user.characterName}
+                  size={256}
+                />
+              </div>
               {/* NavPopoverLink's padding and hit area, with an icon in place of
                   the description, and red where it is cyan: the row is not a
                   place to go, it ends the session. */}

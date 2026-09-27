@@ -51,6 +51,21 @@ describe('UserMenu', () => {
     expect(logoutButton()).toBeInTheDocument();
   });
 
+  it('shows the portrait at 256px inside the panel, fetched at twice that', async () => {
+    const user = userEvent.setup();
+    const { button } = renderUserMenu();
+
+    await user.click(button);
+
+    const large = screen
+      .getAllByAltText('Umut Yerebakmaz')
+      .find((img) => img.getAttribute('width') === '256');
+    expect(large).toHaveAttribute(
+      'src',
+      'https://images.evetech.net/characters/95465499/portrait?size=512',
+    );
+  });
+
   it('opens on hover alone when the pointer can hover', async () => {
     stubPointer({ canHover: true });
     const user = userEvent.setup();
