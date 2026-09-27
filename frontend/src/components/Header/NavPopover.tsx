@@ -15,8 +15,8 @@ import { isNavActive } from '@/utils/navActive';
 
 // The desktop nav needs ~1750px to lay out at full size, so it only appears at
 // xl and scales up in three steps instead of switching on at lg and overflowing.
-// `nav-item` (globals.css) is the accent line that sweeps in above the label on
-// hover, copied from eveonline.com's nav. It rides on this constant rather than
+// `nav-item` (globals.css) is the accent line that sweeps in under the label on
+// hover, adapted from eveonline.com's nav. It rides on this constant rather than
 // on each call site so the popover buttons below get it from NAV_POPOVER_BUTTON.
 //
 // That line is also why every ring is gone from here. `nav-item` opens on
