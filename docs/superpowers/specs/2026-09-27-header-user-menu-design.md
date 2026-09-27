@@ -65,8 +65,7 @@ size={32}` — portre 64px çekilir (`eveImageUrl.ts` `fetchSize`).
   (`globals.css`), portrenin 7px altında 1px accent çizgi 0'dan %100'e açılır.
   Outline/ring yok.
 - `aria-label`: `"Account menu for {characterName}"`.
-- Karakter adı ekranda görünmez; portrenin `alt`'ında ve butonun
-  `aria-label`'ında durur.
+- Karakter adı header'da görünmez; paneldeki portrenin üstünde durur.
 
 ### Dropdown (PopoverPanel)
 
@@ -74,6 +73,18 @@ size={32}` — portre 64px çekilir (`eveImageUrl.ts` `fetchSize`).
   (`eveImageUrl.ts` `fetchSize`): çizilen boyutun iki katı çekilir, yani 512 —
   hem tam 2× hem sunucunun verdiği en büyük boyut. Portre panelin iç genişliğini
   boşluksuz doldurur.
+- Portrenin sol alt köşesinde, üstte karakter adı (`font-medium text-white`),
+  altında corporation logosu + adı, altında alliance logosu + adı
+  (`text-sm text-gray-200`). Logolar 20px çizilir, 64px çekilir (2× ve 2'nin
+  kuvvetine yuvarlanmış). Alliance'ı olmayan karakterde alliance satırı yok;
+  corporation/alliance sorgu cevap verene kadar yalnızca ad görünür.
+- Yazının her portrede okunması için alt bant karartılır: map kartlarının
+  `from-black/95 via-black/70 to-transparent` scrim'i, üç satır için `h-32`.
+- Corporation ve alliance `useAuth`'ta yok. `AuthButton`, karakter sayfasının ve
+  footer'ın kullandığı `Character` sorgusunu (`frontend/src/graphql/Character.graphql`)
+  çalıştırır, `UserMenu`'ye prop olarak verir; yeni doküman ve codegen yok, cache
+  karakter sayfasıyla ortak. Sorgu yalnızca header varyantında ve giriş
+  yapılmışken çalışır.
 - Altında tek satır: `ArrowRightStartOnRectangleIcon` (heroicons 20/solid,
   `text-ink-muted`) + etiket **`LOGOUT`**, `gap-x-3`. Açıklama satırı yok;
   `Signed in as {characterName}` denendi, kullanıcı kararıyla kaldırıldı.
@@ -117,6 +128,8 @@ mevcut `NavPopover.spec.tsx` gibi):
   `aria-label` karakter adını içerir.
 - Tıklanınca açılır ve `LOGOUT` görünür.
 - Paneldeki portre 256px çizilir, `?size=512` ister.
+- Ad, corporation ve alliance portrenin üstünde; logolar `?size=64` ister.
+- Alliance'ı olmayan karakterde alliance satırı yok.
 - Hover yapabilen cihazda üzerine gelince açılır, yapamayanda açılmaz.
 - İmleç ayrılınca kapanır.
 - `LOGOUT` `onLogout`'u bir kez çağırır ve paneli kapatır.

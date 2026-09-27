@@ -31,11 +31,18 @@ const USER_MENU_SURFACE = 'overflow-hidden float p-4';
  * At 32px the portrait is shorter than the 40px row the LOGIN button sets, so
  * the header's height does not move between the two states.
  */
+type Membership = { id: number; name: string } | null | undefined;
+
 export function UserMenu({
   user,
+  corporation,
+  alliance,
   onLogout,
 }: {
   user: UserData;
+  /** Absent until the character query answers; the name shows without it. */
+  corporation?: Membership;
+  alliance?: Membership;
   onLogout: () => void;
 }) {
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -77,13 +84,27 @@ export function UserMenu({
             <div className={USER_MENU_SURFACE}>
               {/* 256px, so the image server is asked for 512 — exactly twice,
                   and the largest size it serves (eveImageUrl.ts). */}
-              <div>
+              <div className="relative">
                 <EveImage
                   kind="character"
                   id={Number(user.characterId)}
                   name={user.characterName}
                   size={256}
                 />
+                {/* The bottom band is darkened so the name reads over any
+                    portrait — the map cards' scrim, taller for three lines. */}
+                <div className="absolute inset-x-0 bottom-0 h-32 pointer-events-none bg-linear-to-t from-black/95 via-black/70 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 p-3 space-y-1.5">
+                  <p className="font-medium text-white truncate">
+                    {user.characterName}
+                  </p>
+                  {corporation && (
+                    <MembershipLine kind="corporation" entity={corporation} />
+                  )}
+                  {alliance && (
+                    <MembershipLine kind="alliance" entity={alliance} />
+                  )}
+                </div>
               </div>
               {/* NavPopoverLink's padding and hit area, with an icon in place of
                   the description, and red where it is cyan: the row is not a
@@ -106,5 +127,27 @@ export function UserMenu({
         </div>
       )}
     </Popover>
+  );
+}
+
+/** A 20px logo — fetched at 64, twice and rounded up — and the name beside it. */
+function MembershipLine({
+  kind,
+  entity,
+}: {
+  kind: 'corporation' | 'alliance';
+  entity: { id: number; name: string };
+}) {
+  return (
+    <div className="flex items-center min-w-0 gap-2 text-sm text-gray-200">
+      <EveImage
+        kind={kind}
+        id={entity.id}
+        name={entity.name}
+        size={20}
+        className="flex-none"
+      />
+      <span className="truncate">{entity.name}</span>
+    </div>
   );
 }

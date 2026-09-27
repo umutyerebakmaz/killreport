@@ -66,6 +66,49 @@ describe('UserMenu', () => {
     );
   });
 
+  it('lays the name, corporation and alliance over the portrait', async () => {
+    const user = userEvent.setup();
+    render(
+      <UserMenu
+        user={character}
+        corporation={{ id: 98000001, name: 'Test Corp' }}
+        alliance={{ id: 99000001, name: 'Test Alliance' }}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
+
+    expect(screen.getByText('Umut Yerebakmaz')).toBeInTheDocument();
+    expect(screen.getByText('Test Corp')).toBeInTheDocument();
+    expect(screen.getByAltText('Test Corp')).toHaveAttribute(
+      'src',
+      'https://images.evetech.net/corporations/98000001/logo?size=64',
+    );
+    expect(screen.getByText('Test Alliance')).toBeInTheDocument();
+    expect(screen.getByAltText('Test Alliance')).toHaveAttribute(
+      'src',
+      'https://images.evetech.net/alliances/99000001/logo?size=64',
+    );
+  });
+
+  it('leaves out the alliance line for a character without one', async () => {
+    const user = userEvent.setup();
+    render(
+      <UserMenu
+        user={character}
+        corporation={{ id: 98000001, name: 'Test Corp' }}
+        alliance={null}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /account menu/i }));
+
+    expect(screen.getByText('Test Corp')).toBeInTheDocument();
+    expect(screen.queryByText('Test Alliance')).toBeNull();
+  });
+
   it('opens on hover alone when the pointer can hover', async () => {
     stubPointer({ canHover: true });
     const user = userEvent.setup();
