@@ -8,6 +8,24 @@ import { NAV, isNavGroup } from './navItems';
 const pathOf = (href: string) => href.split(/[?#]/)[0];
 
 describe('NAV', () => {
+  it('is five entries, the entity pages gathered under one menu', () => {
+    expect(NAV.map((entry) => entry.label)).toEqual([
+      'UNIVERSE',
+      'KILLMAILS',
+      'ENTITIES',
+      'LEADERBOARDS',
+      'SOVEREIGNTY',
+    ]);
+  });
+
+  it('opens KILLMAILS on the unfiltered list', () => {
+    const killmails = NAV.filter(isNavGroup).find(
+      (group) => group.label === 'KILLMAILS',
+    );
+
+    expect(killmails?.items[0].href).toBe('/killmails');
+  });
+
   it.each(NAV.filter(isNavGroup).map((group) => [group.label, group]))(
     '%s lights up on every page its menu links to',
     (_label, group) => {
