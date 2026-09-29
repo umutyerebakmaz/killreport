@@ -102,10 +102,10 @@ export default function WorkersPage() {
           </div>
           <div className="flex items-center gap-3">
             {/* This panel is bg-surface, where EVE's red measures 3.93:1 —
-                under the 4.5 floor this text needs (18px/500 isn't
+                under the 4.5 floor this text needs (14px/500 isn't
                 large-bold) — accepted per the spec's contrast trade-off. */}
             <span
-              className={`text-lg font-medium ${
+              className={`text-sm font-medium ${
                 workerStatus?.healthy ? 'text-success' : 'text-danger'
               }`}
             >
@@ -157,7 +157,7 @@ export default function WorkersPage() {
             {/* bg-surface again — same 3.93:1 floor as System Health above */}
             <span
               className={`text-sm font-medium ${
-                workerStatus.redis.connected ? 'text-success' : 'text-red-400'
+                workerStatus.redis.connected ? 'text-success' : 'text-danger'
               }`}
             >
               {workerStatus.redis.connected ? 'Connected' : 'Disconnected'}
