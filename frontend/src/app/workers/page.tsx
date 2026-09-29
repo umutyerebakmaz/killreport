@@ -354,7 +354,7 @@ function StandaloneWorkerSection({ workers }: any) {
                 </td>
                 <td className="px-2 py-4 text-center md:px-4">
                   {worker.pid ? (
-                    <span className="font-mono text-xs font-medium text-blue-400 md:text-sm">
+                    <span className="font-mono text-xs font-medium text-success md:text-sm">
                       {worker.pid}
                     </span>
                   ) : (
@@ -479,7 +479,7 @@ function QueueSection({ title, subtitle, queues }: any) {
                 </td>
                 <td className="px-2 py-4 text-center md:px-4">
                   {queue.workerPid ? (
-                    <span className="font-mono text-xs font-medium text-blue-400 md:text-sm">
+                    <span className="font-mono text-xs font-medium text-success md:text-sm">
                       {queue.workerPid}
                     </span>
                   ) : (
