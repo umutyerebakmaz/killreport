@@ -293,7 +293,7 @@ export default function WorkersPage() {
   );
 }
 
-function StatCard({ label, value }: any) {
+function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="p-4 border border-white/5 bg-surface-inset">
       <div className="text-sm font-medium text-ink-muted">{label}</div>
