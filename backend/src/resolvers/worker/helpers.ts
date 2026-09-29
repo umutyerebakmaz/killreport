@@ -18,6 +18,15 @@ export const QUEUE_WORKER_MAP: Record<string, string[]> = {
   esi_type_info_queue: ['worker:info:types', 'worker-types'],
   esi_category_info_queue: ['worker:info:categories', 'worker-categories'],
   esi_item_group_info_queue: ['worker:info:item-groups', 'worker-item-groups'],
+  esi_dogma_attribute_info_queue: [
+    'worker:info:dogma-attributes',
+    'worker-dogma-attributes',
+  ],
+  esi_dogma_effect_info_queue: [
+    'worker:info:dogma-effects',
+    'worker-dogma-effects',
+  ],
+  esi_type_dogma_queue: ['worker:type-dogma', 'worker-type-dogma'],
   esi_alliance_corporations_queue: [
     'worker:alliance-corporations',
     'worker-alliance-corporations',
@@ -25,7 +34,28 @@ export const QUEUE_WORKER_MAP: Record<string, string[]> = {
   esi_regions_queue: ['worker:regions', 'worker-regions'],
   esi_constellations_queue: ['worker:constellations', 'worker-constellations'],
   esi_solar_systems_queue: ['worker:solar-systems', 'worker-solar-systems'],
+  esi_stars_queue: ['worker:stars', 'worker-stars'],
+  esi_planets_queue: ['worker:planets', 'worker-planets'],
+  esi_moons_queue: ['worker:moons', 'worker-moons'],
+  esi_asteroid_belts_queue: ['worker:asteroid-belts', 'worker-asteroid-belts'],
+  esi_stargates_queue: ['worker:stargates', 'worker-stargates'],
+  esi_stations_queue: ['worker:stations', 'worker-stations'],
   esi_type_price_queue: ['worker:prices', 'worker-prices'],
+
+  // The script names drop the `esi-` their files carry, so the second name is
+  // the file's, which is what checkWorkerProcess can find in `ps`.
+  esi_user_killmails_queue: [
+    'worker:user-killmails',
+    'worker-esi-user-killmails',
+  ],
+  esi_corporation_killmails_queue: [
+    'worker:corporation-killmails',
+    'worker-esi-corporation-killmails',
+  ],
+  esi_killmail_detail_queue: [
+    'worker:killmail-detail',
+    'worker-killmail-detail',
+  ],
 
   zkillboard_character_queue: ['worker:zkillboard', 'worker-zkillboard'],
 
