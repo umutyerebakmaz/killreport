@@ -4,16 +4,14 @@ import SecurityStatus from '@/components/SecurityStatus/SecurityStatus';
 import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
 import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import Tooltip from '@/components/Tooltip/Tooltip';
-import { CpuChipIcon, UserIcon, UsersIcon } from '@heroicons/react/16/solid';
 import { formatKillmailDateTime, formatKillmailTime } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
 import { getShipTier } from '@/utils/shipTier';
 import Link from 'next/link';
-import { attackerBadge } from './attackerBadge';
 import { getKillmailRowStyles } from './killmailRowStyles';
 import { KillmailRowProps } from './types';
 import EveImage from '../ui/EveImage';
-import IconBadge from '../ui/IconBadge';
+import AttackerBadge from '../ui/AttackerBadge';
 
 export default function KillmailRow({
   killmail: km,
@@ -30,10 +28,6 @@ export default function KillmailRow({
     allianceId,
   });
 
-  // Use backend-computed fields
-  const isSolo = km.solo;
-  const isNpcAttacker = km.npc;
-  const leadingBadge = attackerBadge({ solo: isSolo, npc: isNpcAttacker });
   const shipTier = getShipTier(km.victim?.shipType?.dogmaAttributes);
 
   return (
@@ -327,15 +321,11 @@ export default function KillmailRow({
       {/* Attackers Column */}
       <td className="td-cell">
         <div className="flex items-center gap-2">
-          {leadingBadge === 'solo' ? (
-            <IconBadge icon={UserIcon}>SOLO</IconBadge>
-          ) : leadingBadge === 'count' ? (
-            <IconBadge icon={UsersIcon}>
-              {km.attackerCount}
-              <span className="sr-only">attackers</span>
-            </IconBadge>
-          ) : null}
-          {isNpcAttacker && <IconBadge icon={CpuChipIcon}>NPC</IconBadge>}
+          <AttackerBadge
+            solo={km.solo}
+            npc={km.npc}
+            attackerCount={km.attackerCount}
+          />
         </div>
       </td>
     </tr>
