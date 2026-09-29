@@ -40,6 +40,17 @@ export function queueHealth(queue: QueueNumbers): QueueHealth {
 }
 
 /**
+ * The page-wide verdict: healthy until any one queue is stalled.
+ *
+ * It used to be "any queue has a consumer or any worker is running", which one
+ * live worker satisfied however many other queues were piling up. An idle
+ * system with every queue empty is healthy — there is nothing waiting.
+ */
+export function systemHealthy(queues: readonly QueueNumbers[]): boolean {
+  return !queues.some((queue) => queueHealth(queue) === 'STALLED');
+}
+
+/**
  * Why a publisher must not add to this queue right now, or null when it may.
  *
  * Retry belongs to the broker since #234 (`workers/worker-error.ts`): a 429

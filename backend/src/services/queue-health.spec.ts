@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { HOLDING_QUEUES, queueHealth, skipReason } from './queue-health';
+import {
+  HOLDING_QUEUES,
+  queueHealth,
+  skipReason,
+  systemHealthy,
+} from './queue-health';
 
 const q = (over: Partial<Parameters<typeof queueHealth>[0]> = {}) => ({
   name: 'esi_type_info_queue',
@@ -41,6 +46,30 @@ describe('queueHealth', () => {
       'killreport.parking',
       'killreport.wait',
     ]);
+  });
+});
+
+describe('systemHealthy', () => {
+  it('is healthy when no queue is stalled', () => {
+    expect(
+      systemHealthy([q(), q({ name: 'b', messageCount: 0, consumerCount: 0 })]),
+    ).toBe(true);
+  });
+
+  it('is unhealthy when any one queue is stalled', () => {
+    // One live worker used to be enough to call the whole system healthy,
+    // however many other queues were piling up behind a dead one.
+    expect(
+      systemHealthy([q(), q({ name: 'b', messageCount: 5, consumerCount: 0 })]),
+    ).toBe(false);
+  });
+
+  it('ignores holding queues', () => {
+    expect(
+      systemHealthy([
+        q({ name: 'killreport.wait', messageCount: 5, consumerCount: 0 }),
+      ]),
+    ).toBe(true);
   });
 });
 
