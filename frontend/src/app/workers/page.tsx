@@ -123,120 +123,118 @@ export default function WorkersPage() {
   return (
     <div>
       <h1 className="sr-only">Worker Status Monitor</h1>
-      <div className="grid gap-6 mb-6 2xl:grid-cols-2">
-        <div className="p-6 border border-white/5 bg-surface">
-          <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
-            <div>
-              <h2 className="text-lg font-medium text-white">System Health</h2>
-              <p className="text-sm text-ink-muted">
-                Last updated:{' '}
-                {workerStatus?.timestamp
-                  ? new Date(workerStatus.timestamp).toLocaleString()
-                  : 'N/A'}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-4 h-4 rounded-full ${
-                  workerStatus?.healthy ? 'bg-success' : 'bg-danger'
-                } animate-pulse`}
-              ></div>
-              {/* This panel is bg-surface, where EVE's red measures 3.93:1 —
+      <div className="p-6 mb-6 border border-white/5 bg-surface">
+        <div className="flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
+          <div>
+            <h2 className="text-lg font-medium text-white">System Health</h2>
+            <p className="text-sm text-ink-muted">
+              Last updated:{' '}
+              {workerStatus?.timestamp
+                ? new Date(workerStatus.timestamp).toLocaleString()
+                : 'N/A'}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div
+              className={`w-4 h-4 rounded-full ${
+                workerStatus?.healthy ? 'bg-success' : 'bg-danger'
+              } animate-pulse`}
+            ></div>
+            {/* This panel is bg-surface, where EVE's red measures 3.93:1 —
                 under the 4.5 floor this text needs (18px/500 isn't
                 large-bold) — accepted per the spec's contrast trade-off. */}
-              <span
-                className={`text-lg font-medium ${
-                  workerStatus?.healthy ? 'text-success' : 'text-danger'
-                }`}
-              >
-                {workerStatus?.healthy ? 'Healthy' : 'Unhealthy'}
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-            <StatCard label="Total Queues" value={queues.length} />
-            <StatCard
-              label="Active Workers"
-              value={queues.filter((q: QueueInfo) => q.active).length}
-            />
-            <StatCard
-              label="Pending Jobs"
-              value={queues.reduce(
-                (sum: number, q: QueueInfo) => sum + q.messageCount,
-                0,
-              )}
-            />
-            <StatCard
-              label="Processing"
-              value={queues.reduce(
-                (sum: number, q: QueueInfo) => sum + q.consumerCount,
-                0,
-              )}
-            />
-            <StatCard
-              label="Database Size"
-              value={
-                workerStatus?.databaseSizeMB
-                  ? workerStatus.databaseSizeMB >= 1024
-                    ? `${(workerStatus.databaseSizeMB / 1024).toFixed(2)} GB`
-                    : `${workerStatus.databaseSizeMB.toFixed(2)} MB`
-                  : '0.00 MB'
-              }
-            />
+            <span
+              className={`text-lg font-medium ${
+                workerStatus?.healthy ? 'text-success' : 'text-danger'
+              }`}
+            >
+              {workerStatus?.healthy ? 'Healthy' : 'Unhealthy'}
+            </span>
           </div>
         </div>
 
-        {/* Redis Cache Status */}
-        {workerStatus?.redis && (
-          <div className="p-6 border border-white/5 bg-surface">
-            <div className="flex flex-col items-start justify-between gap-4 mb-6 lg:flex-row lg:items-center">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-4 h-4 rounded-full ${
-                    workerStatus.redis.connected
-                      ? 'bg-success animate-pulse'
-                      : 'bg-danger'
-                  }`}
-                ></div>
-                <h2 className="text-lg font-medium text-white">
-                  Redis Cache Status
-                </h2>
-              </div>
-              {/* bg-surface again — same 3.93:1 floor as System Health above */}
-              <span
-                className={`text-sm font-medium ${
-                  workerStatus.redis.connected ? 'text-success' : 'text-red-400'
-                }`}
-              >
-                {workerStatus.redis.connected ? 'Connected' : 'Disconnected'}
-              </span>
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
-              <StatCard
-                label="Cached Keys"
-                value={workerStatus.redis.totalKeys}
-              />
-              <StatCard
-                label="Connected Clients"
-                value={workerStatus.redis.connectedClients}
-              />
-              <StatCard
-                label="Total Commands"
-                value={formatNumber(workerStatus.redis.totalCommandsProcessed)}
-              />
-              <StatCard
-                label="Commands/sec"
-                value={workerStatus.redis.commandsPerSecond}
-              />
-              <StatCard
-                label="Memory Used"
-                value={workerStatus.redis.memoryUsage}
-              />
-            </div>
-          </div>
-        )}
+        <div className="grid grid-cols-1 gap-4 mt-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+          <StatCard label="Total Queues" value={queues.length} />
+          <StatCard
+            label="Active Workers"
+            value={queues.filter((q: QueueInfo) => q.active).length}
+          />
+          <StatCard
+            label="Pending Jobs"
+            value={queues.reduce(
+              (sum: number, q: QueueInfo) => sum + q.messageCount,
+              0,
+            )}
+          />
+          <StatCard
+            label="Processing"
+            value={queues.reduce(
+              (sum: number, q: QueueInfo) => sum + q.consumerCount,
+              0,
+            )}
+          />
+          <StatCard
+            label="Database Size"
+            value={
+              workerStatus?.databaseSizeMB
+                ? workerStatus.databaseSizeMB >= 1024
+                  ? `${(workerStatus.databaseSizeMB / 1024).toFixed(2)} GB`
+                  : `${workerStatus.databaseSizeMB.toFixed(2)} MB`
+                : '0.00 MB'
+            }
+          />
+        </div>
       </div>
+
+      {/* Redis Cache Status */}
+      {workerStatus?.redis && (
+        <div className="p-6 mb-6 border border-white/5 bg-surface">
+          <div className="flex flex-col items-start justify-between gap-4 mb-6 lg:flex-row lg:items-center">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-4 h-4 rounded-full ${
+                  workerStatus.redis.connected
+                    ? 'bg-success animate-pulse'
+                    : 'bg-danger'
+                }`}
+              ></div>
+              <h2 className="text-lg font-medium text-white">
+                Redis Cache Status
+              </h2>
+            </div>
+            {/* bg-surface again — same 3.93:1 floor as System Health above */}
+            <span
+              className={`text-sm font-medium ${
+                workerStatus.redis.connected ? 'text-success' : 'text-red-400'
+              }`}
+            >
+              {workerStatus.redis.connected ? 'Connected' : 'Disconnected'}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+            <StatCard
+              label="Cached Keys"
+              value={workerStatus.redis.totalKeys}
+            />
+            <StatCard
+              label="Connected Clients"
+              value={workerStatus.redis.connectedClients}
+            />
+            <StatCard
+              label="Total Commands"
+              value={formatNumber(workerStatus.redis.totalCommandsProcessed)}
+            />
+            <StatCard
+              label="Commands/sec"
+              value={workerStatus.redis.commandsPerSecond}
+            />
+            <StatCard
+              label="Memory Used"
+              value={workerStatus.redis.memoryUsage}
+            />
+          </div>
+        </div>
+      )}
 
       {standaloneWorkers.length > 0 && (
         <StandaloneWorkerSection workers={standaloneWorkers} />
@@ -299,7 +297,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="p-4 border border-white/5 bg-surface-inset">
       <div className="text-sm font-medium text-ink-muted">{label}</div>
-      <div className="mt-1 text-3xl font-bold text-white 2xl:text-2xl">
+      <div className="mt-1 text-3xl font-bold text-white">
         {typeof value === 'string' ? value : value.toLocaleString()}
       </div>
     </div>
