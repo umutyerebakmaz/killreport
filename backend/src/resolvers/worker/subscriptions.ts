@@ -3,6 +3,7 @@ import prisma from '@services/prisma';
 import { getAllQueueStats } from '@services/rabbitmq';
 import {
   queueHealth,
+  systemHealthy,
   type QueueHealth as ServiceQueueHealth,
 } from '@services/queue-health';
 import { CacheManager } from '@utils/cache-manager';
@@ -100,10 +101,7 @@ export const workerSubscriptions: SubscriptionResolvers = {
           }),
         );
 
-        // System is healthy if any queue has consumers OR any worker process is running
-        const healthy =
-          queues.some((q) => q.active || q.workerRunning) ||
-          standaloneWorkers.some((w) => w.running);
+        const healthy = systemHealthy(queues);
 
         yield {
           workerStatusUpdates: {
