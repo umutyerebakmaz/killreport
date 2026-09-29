@@ -415,12 +415,12 @@ function QueueSection({ title, subtitle, queues }: any) {
                   <div className="flex items-center gap-2">
                     <div
                       className={`w-3 h-3 rounded-full ${
-                        queue.workerRunning ? 'bg-blue-500' : 'bg-gray-600'
+                        queue.workerRunning ? 'bg-success' : 'bg-ink-faint'
                       }`}
                     ></div>
                     <span
                       className={`text-xs md:text-sm font-medium ${
-                        queue.workerRunning ? 'text-blue-400' : 'text-ink-faint'
+                        queue.workerRunning ? 'text-success' : 'text-ink-faint'
                       }`}
                     >
                       {queue.workerRunning ? 'Running' : 'Stopped'}
