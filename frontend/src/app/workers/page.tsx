@@ -2,6 +2,7 @@
 
 import Loader from '@/components/Loader';
 import { useWorkerStatusSubscriptionSubscription } from '@/generated/graphql';
+import { groupQueues } from '@/utils/queueGroups';
 
 interface QueueInfo {
   name: string;
@@ -83,42 +84,7 @@ export default function WorkersPage() {
   const queues = workerStatus?.queues || [];
   const standaloneWorkers = workerStatus?.standaloneWorkers || [];
 
-  // Group queues by type
-  const esiInfoQueues = queues.filter(
-    (q: QueueInfo) =>
-      (q.name.includes('_info_queue') || q.name.includes('_price_queue')) &&
-      q.name.startsWith('esi_'),
-  );
-
-  const esiSyncQueues = queues.filter(
-    (q: QueueInfo) =>
-      q.name.includes('_alliance_corporations_') && q.name.startsWith('esi_'),
-  );
-
-  const esiUniverseQueues = queues.filter(
-    (q: QueueInfo) =>
-      (q.name.includes('_regions_') ||
-        q.name.includes('_constellations_') ||
-        q.name.includes('_solar_systems_')) &&
-      q.name.startsWith('esi_'),
-  );
-
-  const zkillQueues = queues.filter(
-    (q: QueueInfo) =>
-      q.name.startsWith('zkillboard_') || q.name.startsWith('redisq_'),
-  );
-
-  const backfillQueues = queues.filter((q: QueueInfo) =>
-    q.name.includes('backfill_'),
-  );
-
-  const otherQueues = queues.filter(
-    (q: QueueInfo) =>
-      !q.name.startsWith('esi_') &&
-      !q.name.startsWith('zkillboard_') &&
-      !q.name.startsWith('redisq_') &&
-      !q.name.includes('backfill_'),
-  );
+  const queueGroups = groupQueues(queues);
 
   return (
     <div>
@@ -240,49 +206,14 @@ export default function WorkersPage() {
         <StandaloneWorkerSection workers={standaloneWorkers} />
       )}
 
-      {zkillQueues.length > 0 && (
+      {queueGroups.map((group) => (
         <QueueSection
-          title="zKillboard Workers"
-          subtitle="Killmail streaming and historical sync"
-          queues={zkillQueues}
+          key={group.title}
+          title={group.title}
+          subtitle={group.subtitle}
+          queues={group.queues}
         />
-      )}
-
-      {esiInfoQueues.length > 0 && (
-        <QueueSection
-          title="ESI Info Workers"
-          subtitle="Entity enrichment (characters, corporations, alliances, types)"
-          queues={esiInfoQueues}
-        />
-      )}
-
-      {esiSyncQueues.length > 0 && (
-        <QueueSection
-          title="ESI Sync Workers"
-          subtitle="Alliance corporation synchronization"
-          queues={esiSyncQueues}
-        />
-      )}
-
-      {esiUniverseQueues.length > 0 && (
-        <QueueSection
-          title="ESI Universe Workers"
-          subtitle="Regions, constellations, solar systems"
-          queues={esiUniverseQueues}
-        />
-      )}
-
-      {backfillQueues.length > 0 && (
-        <QueueSection
-          title="Maintenance & Backfill Workers"
-          subtitle="Historical data processing and value recalculation"
-          queues={backfillQueues}
-        />
-      )}
-
-      {otherQueues.length > 0 && (
-        <QueueSection title="Other Workers" queues={otherQueues} />
-      )}
+      ))}
 
       {queues.length === 0 && standaloneWorkers.length === 0 && (
         <div className="p-12 text-center border border-white/5 bg-surface/50">
