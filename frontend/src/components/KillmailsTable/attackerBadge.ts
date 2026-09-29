@@ -1,10 +1,10 @@
 /**
- * Which badge the attackers cell leads with, beside the NPC badge that stands
- * on its own.
+ * The one badge the attackers cell shows.
  *
- * A solo kill by an NPC would otherwise carry SOLO and NPC side by side, and
- * SOLO there says nothing NPC does not: it is one attacker, and not a player.
- * NPC alone tells it. The count stays beside NPC, where it is still news.
+ * `npc` means every attacker was an NPC, so a row is exactly one of four
+ * cases and never needs two badges: a player alone (SOLO), players in a
+ * fight (the count), an NPC alone (NPC), NPCs in a fight (the count, under
+ * the NPC icon). Two badges side by side read as two groups of attackers.
  */
 export function attackerBadge({
   solo,
@@ -12,7 +12,7 @@ export function attackerBadge({
 }: {
   solo: boolean;
   npc: boolean;
-}): 'solo' | 'count' | null {
-  if (!solo) return 'count';
-  return npc ? null : 'solo';
+}): 'solo' | 'count' | 'npc' | 'npc-count' {
+  if (npc) return solo ? 'npc' : 'npc-count';
+  return solo ? 'solo' : 'count';
 }

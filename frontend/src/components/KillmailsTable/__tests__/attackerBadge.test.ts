@@ -10,11 +10,11 @@ describe('attackerBadge', () => {
     expect(attackerBadge({ solo: true, npc: false })).toBe('solo');
   });
 
-  it('shows nothing beside NPC when an NPC made a solo kill', () => {
-    expect(attackerBadge({ solo: true, npc: true })).toBeNull();
+  it('shows NPC for a solo kill by an NPC', () => {
+    expect(attackerBadge({ solo: true, npc: true })).toBe('npc');
   });
 
-  it('keeps the count beside NPC when several attackers were NPCs', () => {
-    expect(attackerBadge({ solo: false, npc: true })).toBe('count');
+  it('shows the NPC count when several attackers were all NPCs', () => {
+    expect(attackerBadge({ solo: false, npc: true })).toBe('npc-count');
   });
 });
