@@ -101,16 +101,11 @@ export default function WorkersPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <div
-              className={`w-4 h-4 rounded-full ${
-                workerStatus?.healthy ? 'bg-success' : 'bg-danger'
-              } animate-pulse`}
-            ></div>
             {/* This panel is bg-surface, where EVE's red measures 3.93:1 —
-                under the 4.5 floor this text needs (18px/500 isn't
+                under the 4.5 floor this text needs (14px/500 isn't
                 large-bold) — accepted per the spec's contrast trade-off. */}
             <span
-              className={`text-lg font-medium ${
+              className={`text-sm font-medium ${
                 workerStatus?.healthy ? 'text-success' : 'text-danger'
               }`}
             >
@@ -156,22 +151,13 @@ export default function WorkersPage() {
       {workerStatus?.redis && (
         <div className="p-6 mb-6 border border-white/5 bg-surface">
           <div className="flex flex-col items-start justify-between gap-4 mb-6 lg:flex-row lg:items-center">
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-4 h-4 rounded-full ${
-                  workerStatus.redis.connected
-                    ? 'bg-success animate-pulse'
-                    : 'bg-danger'
-                }`}
-              ></div>
-              <h2 className="text-lg font-medium text-white">
-                Redis Cache Status
-              </h2>
-            </div>
+            <h2 className="text-lg font-medium text-white">
+              Redis Cache Status
+            </h2>
             {/* bg-surface again — same 3.93:1 floor as System Health above */}
             <span
               className={`text-sm font-medium ${
-                workerStatus.redis.connected ? 'text-success' : 'text-red-400'
+                workerStatus.redis.connected ? 'text-success' : 'text-danger'
               }`}
             >
               {workerStatus.redis.connected ? 'Connected' : 'Disconnected'}
