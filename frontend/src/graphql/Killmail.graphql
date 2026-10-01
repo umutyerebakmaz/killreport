@@ -23,6 +23,12 @@ query Killmail($id: ID!) {
         }
       }
     }
+    location {
+      kind
+      id
+      name
+      distance
+    }
     victim {
       damageTaken
       character {

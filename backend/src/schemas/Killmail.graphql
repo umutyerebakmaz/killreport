@@ -4,6 +4,8 @@ type Killmail {
   killmailTime: String!
   solarSystem: SolarSystem!
   victim: Victim
+  "The celestial the victim died nearest to. Null when ESI gave no position."
+  location: KillmailLocation
   attackers: [Attacker!]!
   attackerCount: Int!
   finalBlow: Attacker
@@ -116,4 +118,18 @@ extend type Subscription {
   Emits a new event whenever a killmail is saved
   """
   newKillmail: Killmail!
+}
+
+"""
+The nearest of the system's star, planets, moons, asteroid belts, NPC stations
+and stargates to where the victim died. Player-owned structures are never
+among them, so a kill beside a citadel reads as its distance to the nearest
+of these.
+"""
+type KillmailLocation {
+  kind: MapCelestialKind!
+  id: Int!
+  name: String
+  "Metres from the victim to the celestial."
+  distance: Float!
 }

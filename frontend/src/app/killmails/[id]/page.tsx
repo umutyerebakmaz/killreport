@@ -8,6 +8,8 @@ import Tooltip from '@/components/Tooltip/Tooltip';
 import SummaryRow from '@/components/ui/SummaryRow';
 import { useKillmailQuery } from '@/generated/graphql';
 import { formatEveDateTime, formatTimeAgo } from '@/utils/date';
+import { celestialName } from '@/utils/celestialName';
+import { formatDistance } from '@/utils/formatDistance';
 import { formatISK } from '@/utils/formatISK';
 import {
   ArrowTopRightOnSquareIcon,
@@ -265,6 +267,17 @@ export default function KillmailDetailPage({
                 </span>
               )}
             </SummaryRow>
+
+            {/* The nearest of the system's own objects: player structures are
+                never among them, so beside a citadel this reads as some AU
+                from a moon — the true distance to the nearest one we know. */}
+            {km.location && (
+              <SummaryRow label="Location">
+                {formatDistance(km.location.distance)}{' '}
+                <span className="text-ink-faint">from</span>{' '}
+                {celestialName(km.location.name)}
+              </SummaryRow>
+            )}
 
             <SummaryRow label="Time">
               {/* How long ago, then the header clock's own label
