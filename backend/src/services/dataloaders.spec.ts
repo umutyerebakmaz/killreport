@@ -58,6 +58,17 @@ vi.mock('./logger', () => ({
   default: { debug: vi.fn(), info: vi.fn(), error: vi.fn() },
 }));
 
+// The location loader hands its batch to the location service, which reaches
+// Redis and so the env config; that exits the process when EVE_CLIENT_ID is
+// unset, as it is in CI. The loader's own job is the hand-off, so the service
+// is replaced here and the hand-off is what the test below checks.
+const { getKillmailLocations } = vi.hoisted(() => ({
+  getKillmailLocations: vi.fn(),
+}));
+vi.mock('./killmail/killmail-location.service', () => ({
+  getKillmailLocations,
+}));
+
 import * as loaders from './dataloaders';
 
 function findMany(model: Model) {
@@ -742,5 +753,17 @@ describe('createDataLoaders', () => {
     for (const key of Object.keys(a) as Array<keyof typeof a>) {
       expect(a[key]).not.toBe(b[key]);
     }
+  });
+});
+
+describe('createKillmailLocationLoader', () => {
+  it('hands the whole batch to the location service in one call', async () => {
+    getKillmailLocations.mockResolvedValue([null, null]);
+    const loader = loaders.createKillmailLocationLoader();
+
+    await Promise.all([loader.load(1), loader.load(2)]);
+
+    expect(getKillmailLocations).toHaveBeenCalledTimes(1);
+    expect(getKillmailLocations).toHaveBeenCalledWith([1, 2]);
   });
 });
