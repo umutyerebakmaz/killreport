@@ -7,10 +7,10 @@ import {
   PopoverPanel,
 } from '@headlessui/react';
 import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/20/solid';
-import Link from 'next/link';
 import { useRef } from 'react';
 
 import EveImage from '@/components/ui/EveImage';
+import MembershipLink from '@/components/ui/MembershipLink';
 import type { UserData } from '@/hooks/useAuth';
 
 // NavPopover's panel and surface, anchored to the right edge instead of the
@@ -103,14 +103,20 @@ export function UserMenu({
                       is wider than the portrait. */}
                   {(corporation || alliance) && (
                     <div className="flex items-center gap-3">
+                      {/* CloseButton shuts the panel on the way out. */}
                       {corporation && (
-                        <MembershipLine
+                        <CloseButton
+                          as={MembershipLink}
                           kind="corporation"
                           entity={corporation}
                         />
                       )}
                       {alliance && (
-                        <MembershipLine kind="alliance" entity={alliance} />
+                        <CloseButton
+                          as={MembershipLink}
+                          kind="alliance"
+                          entity={alliance}
+                        />
                       )}
                     </div>
                   )}
@@ -137,38 +143,5 @@ export function UserMenu({
         </div>
       )}
     </Popover>
-  );
-}
-
-/**
- * A 20px logo — fetched at 64, twice and rounded up — and the name beside it,
- * linking to the entity's page. `CloseButton` shuts the panel on the way, and
- * `Link` keeps the navigation client-side, as in NavPopoverLink.
- */
-function MembershipLine({
-  kind,
-  entity,
-}: {
-  kind: 'corporation' | 'alliance';
-  entity: { id: number; name: string };
-}) {
-  return (
-    <CloseButton
-      as={Link}
-      href={`/${kind === 'corporation' ? 'corporations' : 'alliances'}/${entity.id}`}
-      // The logo's alt text is the same name, so without this the link
-      // would be announced twice over.
-      aria-label={entity.name}
-      className="flex items-center min-w-0 gap-2 text-sm text-gray-200 transition-colors hover:text-accent-link focus:outline-none focus-visible:text-accent-link"
-    >
-      <EveImage
-        kind={kind}
-        id={entity.id}
-        name={entity.name}
-        size={20}
-        className="flex-none"
-      />
-      <span className="truncate">{entity.name}</span>
-    </CloseButton>
   );
 }

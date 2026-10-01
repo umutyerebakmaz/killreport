@@ -5,6 +5,7 @@ import {
   humanReadableDate,
   formatKillmailDate,
   formatKillmailDateTime,
+  formatEveDateTime,
   formatKillmailTime,
   formatRelativeTime,
   formatTimeAgo,
@@ -63,6 +64,18 @@ describe('formatTimeAgo', () => {
     expect(
       formatTimeAgo(new Date(NOW.getTime() - 24 * 60 * 60_000), true),
     ).toBe('1d ago');
+  });
+
+  it('switches to months after 30 days and years after 365', () => {
+    const daysAgo = (d: number) =>
+      new Date(NOW.getTime() - d * 24 * 60 * 60_000);
+    expect(formatTimeAgo(daysAgo(29))).toBe('29 days ago');
+    expect(formatTimeAgo(daysAgo(30))).toBe('1 month ago');
+    expect(formatTimeAgo(daysAgo(100))).toBe('3 months ago');
+    expect(formatTimeAgo(daysAgo(365))).toBe('1 year ago');
+    expect(formatTimeAgo(daysAgo(800))).toBe('2 years ago');
+    expect(formatTimeAgo(daysAgo(100), true)).toBe('3mo ago');
+    expect(formatTimeAgo(daysAgo(800), true)).toBe('2y ago');
   });
 });
 
@@ -346,5 +359,21 @@ describe('MONTH_LABELS and WEEKDAY_LABELS', () => {
 
   it('starts the week on Monday, the way the app counts weeks', () => {
     expect(WEEKDAY_LABELS).toEqual(['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']);
+  });
+});
+
+describe('formatEveDateTime', () => {
+  it('writes the date the way EVE does, year first with dots, in UTC', () => {
+    expect(formatEveDateTime('2026-10-01T18:42:13Z')).toBe('2026.10.01 18:42');
+  });
+
+  it('pads single-digit months, days, hours and minutes', () => {
+    expect(formatEveDateTime('2026-03-04T05:06:00Z')).toBe('2026.03.04 05:06');
+  });
+
+  it('uses UTC whatever the offset in the input', () => {
+    expect(formatEveDateTime('2026-10-02T01:30:00+03:00')).toBe(
+      '2026.10.01 22:30',
+    );
   });
 });
