@@ -33,7 +33,7 @@ export default function KillmailDetailPage({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy to clipboard:', err);
+      console.error('failed to copy to clipboard:', err);
     }
   };
 

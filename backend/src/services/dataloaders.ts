@@ -20,7 +20,7 @@ export interface SovereigntyHolderRow {
  */
 export const createAllianceLoader = () => {
   return new DataLoader<number, any>(async (allianceIds) => {
-    logger.debug('DataLoader: Batching alliance queries', {
+    logger.debug('DataLoader: batching alliance queries', {
       count: allianceIds.length,
     });
 
@@ -45,7 +45,7 @@ export const createAllianceLoader = () => {
  */
 export const createCorporationLoader = () => {
   return new DataLoader<number, any>(async (corporationIds) => {
-    logger.debug('DataLoader: Batching corporation queries', {
+    logger.debug('DataLoader: batching corporation queries', {
       count: corporationIds.length,
     });
 
@@ -70,7 +70,7 @@ export const createCorporationLoader = () => {
  */
 export const createCharacterLoader = () => {
   return new DataLoader<number, any>(async (characterIds) => {
-    logger.debug('DataLoader: Batching character queries', {
+    logger.debug('DataLoader: batching character queries', {
       count: characterIds.length,
     });
 
@@ -91,7 +91,7 @@ export const createCharacterLoader = () => {
  */
 export const createRaceLoader = () => {
   return new DataLoader<number, any>(async (raceIds) => {
-    logger.debug('DataLoader: Batching race queries', {
+    logger.debug('DataLoader: batching race queries', {
       count: raceIds.length,
     });
 
@@ -112,7 +112,7 @@ export const createRaceLoader = () => {
  */
 export const createBloodlineLoader = () => {
   return new DataLoader<number, any>(async (bloodlineIds) => {
-    logger.debug('DataLoader: Batching bloodline queries', {
+    logger.debug('DataLoader: batching bloodline queries', {
       count: bloodlineIds.length,
     });
 
@@ -138,7 +138,7 @@ export const createBloodlineLoader = () => {
 export const createCorporationsByAllianceLoader = () => {
   return new DataLoader<number, any[]>(async (allianceIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${allianceIds.length} corporations queries`,
+      `🔄 DataLoader: batching ${allianceIds.length} corporations queries`,
     );
 
     const corporations = await prisma.corporation.findMany({
@@ -173,7 +173,7 @@ export const createCorporationsByAllianceLoader = () => {
 export const createCharactersByCorpLoader = () => {
   return new DataLoader<number, any[]>(async (corporationIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${corporationIds.length} characters by corp queries`,
+      `🔄 DataLoader: batching ${corporationIds.length} characters by corp queries`,
     );
 
     const characters = await prisma.character.findMany({
@@ -201,7 +201,7 @@ export const createCharactersByCorpLoader = () => {
  */
 export const createRegionLoader = () => {
   return new DataLoader<number, any>(async (regionIds) => {
-    console.log(`🔄 DataLoader: Batching ${regionIds.length} region queries`);
+    console.log(`🔄 DataLoader: batching ${regionIds.length} region queries`);
 
     const regions = await prisma.region.findMany({
       where: {
@@ -220,7 +220,7 @@ export const createRegionLoader = () => {
 export const createConstellationLoader = () => {
   return new DataLoader<number, any>(async (constellationIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${constellationIds.length} constellation queries`,
+      `🔄 DataLoader: batching ${constellationIds.length} constellation queries`,
     );
 
     const constellations = await prisma.constellation.findMany({
@@ -240,7 +240,7 @@ export const createConstellationLoader = () => {
 export const createSolarSystemLoader = () => {
   return new DataLoader<number, any>(async (systemIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${systemIds.length} solar system queries`,
+      `🔄 DataLoader: batching ${systemIds.length} solar system queries`,
     );
 
     const systems = await prisma.solarSystem.findMany({
@@ -260,7 +260,7 @@ export const createSolarSystemLoader = () => {
 export const createConstellationsByRegionLoader = () => {
   return new DataLoader<number, any[]>(async (regionIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${regionIds.length} constellations by region queries`,
+      `🔄 DataLoader: batching ${regionIds.length} constellations by region queries`,
     );
 
     const constellations = await prisma.constellation.findMany({
@@ -290,7 +290,7 @@ export const createConstellationsByRegionLoader = () => {
 export const createSolarSystemsByConstellationLoader = () => {
   return new DataLoader<number, any[]>(async (constellationIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${constellationIds.length} solar systems by constellation queries`,
+      `🔄 DataLoader: batching ${constellationIds.length} solar systems by constellation queries`,
     );
 
     const systems = await prisma.solarSystem.findMany({
@@ -320,7 +320,7 @@ export const createSolarSystemsByConstellationLoader = () => {
 export const createCategoryLoader = () => {
   return new DataLoader<number, any>(async (categoryIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${categoryIds.length} category queries`,
+      `🔄 DataLoader: batching ${categoryIds.length} category queries`,
     );
 
     const categories = await prisma.category.findMany({
@@ -340,7 +340,7 @@ export const createCategoryLoader = () => {
 export const createItemGroupLoader = () => {
   return new DataLoader<number, any>(async (itemGroupIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${itemGroupIds.length} item group queries`,
+      `🔄 DataLoader: batching ${itemGroupIds.length} item group queries`,
     );
 
     const itemGroups = await prisma.itemGroup.findMany({
@@ -359,7 +359,7 @@ export const createItemGroupLoader = () => {
  */
 export const createTypeLoader = () => {
   return new DataLoader<number, any>(async (typeIds) => {
-    console.log(`🔄 DataLoader: Batching ${typeIds.length} type queries`);
+    console.log(`🔄 DataLoader: batching ${typeIds.length} type queries`);
 
     const types = await prisma.type.findMany({
       where: {
@@ -378,7 +378,7 @@ export const createTypeLoader = () => {
 export const createItemGroupsByCategoryLoader = () => {
   return new DataLoader<number, any[]>(async (categoryIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${categoryIds.length} item groups by category queries`,
+      `🔄 DataLoader: batching ${categoryIds.length} item groups by category queries`,
     );
 
     const itemGroups = await prisma.itemGroup.findMany({
@@ -500,7 +500,7 @@ export const createDataLoaders = (): DataLoaderContext => ({
 export const createCorporationSnapshotLoader = () => {
   return new DataLoader<{ corporationId: number; date: Date }, any>(
     async (keys) => {
-      logger.debug('DataLoader: Batching corporation snapshot queries', {
+      logger.debug('DataLoader: batching corporation snapshot queries', {
         count: keys.length,
       });
 
@@ -545,7 +545,7 @@ export const createCorporationSnapshotLoader = () => {
 export const createAllianceSnapshotLoader = () => {
   return new DataLoader<{ allianceId: number; date: Date }, any>(
     async (keys) => {
-      logger.debug('DataLoader: Batching alliance snapshot queries', {
+      logger.debug('DataLoader: batching alliance snapshot queries', {
         count: keys.length,
       });
 
@@ -587,7 +587,7 @@ export const createAllianceSnapshotLoader = () => {
  */
 export const createTypeDogmaAttributesLoader = () => {
   return new DataLoader<number, any[]>(async (typeIds) => {
-    logger.debug('DataLoader: Batching type dogma attributes queries', {
+    logger.debug('DataLoader: batching type dogma attributes queries', {
       count: typeIds.length,
     });
 
@@ -619,7 +619,7 @@ export const createTypeDogmaAttributesLoader = () => {
  */
 export const createTypeDogmaEffectsLoader = () => {
   return new DataLoader<number, any[]>(async (typeIds) => {
-    logger.debug('DataLoader: Batching type dogma effects queries', {
+    logger.debug('DataLoader: batching type dogma effects queries', {
       count: typeIds.length,
     });
 
@@ -651,7 +651,7 @@ export const createTypeDogmaEffectsLoader = () => {
  */
 export const createVictimLoader = () => {
   return new DataLoader<number, any>(async (killmailIds) => {
-    logger.debug('DataLoader: Batching victim queries', {
+    logger.debug('DataLoader: batching victim queries', {
       count: killmailIds.length,
     });
 
@@ -673,7 +673,7 @@ export const createVictimLoader = () => {
  */
 export const createAttackersLoader = () => {
   return new DataLoader<number, any[]>(async (killmailIds) => {
-    logger.debug('DataLoader: Batching attackers queries', {
+    logger.debug('DataLoader: batching attackers queries', {
       count: killmailIds.length,
     });
 
@@ -703,7 +703,7 @@ export const createAttackersLoader = () => {
  */
 export const createFinalBlowLoader = () => {
   return new DataLoader<number, any>(async (killmailIds) => {
-    logger.debug('DataLoader: Batching final blow queries', {
+    logger.debug('DataLoader: batching final blow queries', {
       count: killmailIds.length,
     });
 
@@ -736,7 +736,7 @@ export const createFinalBlowLoader = () => {
  */
 export const createItemsLoader = () => {
   return new DataLoader<number, any[]>(async (killmailIds) => {
-    logger.debug('DataLoader: Batching items queries', {
+    logger.debug('DataLoader: batching items queries', {
       count: killmailIds.length,
     });
 
@@ -766,7 +766,7 @@ export const createItemsLoader = () => {
 export const createMarketPriceLoader = () => {
   return new DataLoader<number, any>(async (typeIds) => {
     console.log(
-      '🔄 DataLoader: Batching',
+      '🔄 DataLoader: batching',
       typeIds.length,
       'market price queries',
     );
@@ -789,7 +789,7 @@ export const createMarketPriceLoader = () => {
 export const createTypesByGroupLoader = () => {
   return new DataLoader<number, any[]>(async (groupIds) => {
     console.log(
-      '🔄 DataLoader: Batching',
+      '🔄 DataLoader: batching',
       groupIds.length,
       'types by group queries',
     );
@@ -823,7 +823,7 @@ export const createRegionStatsLoader = () => {
     { constellationCount: number; solarSystemCount: number }
   >(async (regionIds) => {
     console.log(
-      '🔄 DataLoader: Batching',
+      '🔄 DataLoader: batching',
       regionIds.length,
       'region stats queries',
     );
@@ -1009,7 +1009,7 @@ export const createConstellationSovereigntyLoader = () => {
   return new DataLoader<number, SovereigntyHolderRow | null>(
     async (constellationIds) => {
       console.log(
-        `🔄 DataLoader: Batching ${constellationIds.length} constellation sovereignty queries`,
+        `🔄 DataLoader: batching ${constellationIds.length} constellation sovereignty queries`,
       );
 
       const systems = await prisma.solarSystem.findMany({
@@ -1038,7 +1038,7 @@ export const createRegionSovereigntyLoader = () => {
   return new DataLoader<number, SovereigntyHolderRow | null>(
     async (regionIds) => {
       console.log(
-        `🔄 DataLoader: Batching ${regionIds.length} region sovereignty queries`,
+        `🔄 DataLoader: batching ${regionIds.length} region sovereignty queries`,
       );
 
       const constellations = await prisma.constellation.findMany({
@@ -1083,7 +1083,7 @@ export const createRegionSovereigntyLoader = () => {
 export const createSovereigntySystemCountByAllianceLoader = () => {
   return new DataLoader<number, number>(async (allianceIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${allianceIds.length} alliance sovereignty counts`,
+      `🔄 DataLoader: batching ${allianceIds.length} alliance sovereignty counts`,
     );
 
     const rows = await prisma.sovereigntyMapCurrent.groupBy({
@@ -1108,7 +1108,7 @@ export const createSovereigntySystemCountByAllianceLoader = () => {
 export const createStargatesBySystemLoader = () => {
   return new DataLoader<number, any[]>(async (systemIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${systemIds.length} stargates-by-system queries`,
+      `🔄 DataLoader: batching ${systemIds.length} stargates-by-system queries`,
     );
 
     const rows = await prisma.stargate.findMany({
@@ -1132,7 +1132,7 @@ export const createStargatesBySystemLoader = () => {
 export const createStargateLoader = () => {
   return new DataLoader<number, any>(async (stargateIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${stargateIds.length} stargate queries`,
+      `🔄 DataLoader: batching ${stargateIds.length} stargate queries`,
     );
 
     const rows = await prisma.stargate.findMany({
@@ -1150,7 +1150,7 @@ export const createStargateLoader = () => {
 export const createStarBySystemLoader = () => {
   return new DataLoader<number, any>(async (systemIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${systemIds.length} star-by-system queries`,
+      `🔄 DataLoader: batching ${systemIds.length} star-by-system queries`,
     );
 
     const rows = await prisma.star.findMany({
@@ -1168,7 +1168,7 @@ export const createStarBySystemLoader = () => {
 export const createPlanetsBySystemLoader = () => {
   return new DataLoader<number, any[]>(async (systemIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${systemIds.length} planets-by-system queries`,
+      `🔄 DataLoader: batching ${systemIds.length} planets-by-system queries`,
     );
 
     const rows = await prisma.planet.findMany({
@@ -1192,7 +1192,7 @@ export const createPlanetsBySystemLoader = () => {
 export const createStationsBySystemLoader = () => {
   return new DataLoader<number, any[]>(async (systemIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${systemIds.length} stations-by-system queries`,
+      `🔄 DataLoader: batching ${systemIds.length} stations-by-system queries`,
     );
 
     const rows = await prisma.station.findMany({
@@ -1216,7 +1216,7 @@ export const createStationsBySystemLoader = () => {
 export const createMoonsByPlanetLoader = () => {
   return new DataLoader<number, any[]>(async (planetIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${planetIds.length} moons-by-planet queries`,
+      `🔄 DataLoader: batching ${planetIds.length} moons-by-planet queries`,
     );
 
     const rows = await prisma.moon.findMany({
@@ -1240,7 +1240,7 @@ export const createMoonsByPlanetLoader = () => {
 export const createAsteroidBeltsByPlanetLoader = () => {
   return new DataLoader<number, any[]>(async (planetIds) => {
     console.log(
-      `🔄 DataLoader: Batching ${planetIds.length} belts-by-planet queries`,
+      `🔄 DataLoader: batching ${planetIds.length} belts-by-planet queries`,
     );
 
     const rows = await prisma.asteroidBelt.findMany({
@@ -1263,7 +1263,7 @@ export const createAsteroidBeltsByPlanetLoader = () => {
  */
 export const createPlanetLoader = () => {
   return new DataLoader<number, any>(async (planetIds) => {
-    console.log(`🔄 DataLoader: Batching ${planetIds.length} planet queries`);
+    console.log(`🔄 DataLoader: batching ${planetIds.length} planet queries`);
 
     const rows = await prisma.planet.findMany({
       where: { id: { in: [...planetIds] } },

@@ -36,7 +36,7 @@ export default function StatusReadout() {
   const count = data?.activeUsersUpdates?.count ?? 0;
 
   if (error) {
-    console.error('Active users subscription error:', error);
+    console.error('active users subscription error:', error);
     return null;
   }
 

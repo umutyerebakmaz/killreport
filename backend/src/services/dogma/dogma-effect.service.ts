@@ -46,7 +46,7 @@ export class DogmaEffectService {
         const info = await this.getEffectInfo(effectId);
         results.push(info);
       } catch (error) {
-        console.error(`Failed to fetch effect ${effectId}:`, error);
+        console.error(`failed to fetch effect ${effectId}:`, error);
       }
     }
 

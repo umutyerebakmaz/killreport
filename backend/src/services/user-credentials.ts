@@ -128,7 +128,7 @@ export async function loadUserCredentials(
       expiresAt: freshExpiresAt,
     };
   } catch (error) {
-    logger.error(`Token refresh failed for user ${userId}`, { error });
+    logger.error(`token refresh failed for user ${userId}`, { error });
     return { ok: false, reason: 'refresh-failed' };
   }
 }

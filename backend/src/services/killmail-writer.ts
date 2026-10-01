@@ -115,7 +115,7 @@ export async function saveKillmail(
       const skipped = (victim.items?.length ?? 0) - validItems.length;
       if (skipped > 0) {
         logger.warn(
-          `   ⚠️  Skipping ${skipped} invalid items (null item_type_id) for killmail ${detail.killmail_id}`,
+          `   ⚠️  skipping ${skipped} invalid items (null item_type_id) for killmail ${detail.killmail_id}`,
         );
       }
       if (validItems.length > 0) {
@@ -142,7 +142,7 @@ export async function saveKillmail(
     return true;
   } catch (error: unknown) {
     if ((error as { code?: string })?.code === 'P2002') return false;
-    logger.error(`❌ Failed to write killmail ${detail.killmail_id}`, error);
+    logger.error(`❌ failed to write killmail ${detail.killmail_id}`, error);
     throw error;
   }
 }

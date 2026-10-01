@@ -78,7 +78,7 @@ export async function getCharacterKillmailsFromZKill(
 
   const prefix = characterName ? `[${characterName}]` : '';
   logger.info(
-    `  🔍 ${prefix} Fetching from zKillboard (max ${maxPages} pages, ${limit} per page)...`,
+    `  🔍 ${prefix} fetching from zKillboard (max ${maxPages} pages, ${limit} per page)...`,
   );
 
   for (let currentPage = page; currentPage <= maxPages; currentPage++) {
@@ -107,12 +107,12 @@ export async function getCharacterKillmailsFromZKill(
         lastError = error as Error;
         if (attempt < RETRY_ATTEMPTS) {
           logger.warn(
-            `     ⚠️  ${prefix} Attempt ${attempt}/${RETRY_ATTEMPTS} failed, retrying in ${RETRY_DELAY}ms...`,
+            `     ⚠️  ${prefix} attempt ${attempt}/${RETRY_ATTEMPTS} failed, retrying in ${RETRY_DELAY}ms...`,
           );
           await sleep(RETRY_DELAY);
         } else {
           logger.error(
-            `     ❌ ${prefix} All ${RETRY_ATTEMPTS} attempts failed for page ${currentPage}`,
+            `     ❌ ${prefix} all ${RETRY_ATTEMPTS} attempts failed for page ${currentPage}`,
           );
         }
       }
@@ -126,7 +126,7 @@ export async function getCharacterKillmailsFromZKill(
     try {
       if (!response.ok) {
         if (response.status === 404) {
-          logger.info(`     ✓ ${prefix} No more pages available`);
+          logger.info(`     ✓ ${prefix} no more pages available`);
           break;
         }
         throw new Error(`zKillboard API error: ${response.status}`);
@@ -137,7 +137,7 @@ export async function getCharacterKillmailsFromZKill(
         killmails = await response.json();
       } catch (jsonError) {
         logger.warn(
-          `     ⚠️  ${prefix} Failed to parse JSON on page ${currentPage}, stopping`,
+          `     ⚠️  ${prefix} failed to parse JSON on page ${currentPage}, stopping`,
         );
         break;
       }
@@ -145,17 +145,17 @@ export async function getCharacterKillmailsFromZKill(
       // Validate killmails is an array
       if (!Array.isArray(killmails)) {
         logger.warn(
-          `     ⚠️  ${prefix} Invalid response format on page ${currentPage}, stopping`,
+          `     ⚠️  ${prefix} invalid response format on page ${currentPage}, stopping`,
         );
         break;
       }
 
       logger.debug(
-        `     📄 ${prefix} Page ${currentPage}: ${killmails.length} killmails`,
+        `     📄 ${prefix} page ${currentPage}: ${killmails.length} killmails`,
       );
 
       if (killmails.length === 0) {
-        logger.info(`     ✓ ${prefix} Reached end (empty page)`);
+        logger.info(`     ✓ ${prefix} reached end (empty page)`);
         break;
       }
 
@@ -164,7 +164,7 @@ export async function getCharacterKillmailsFromZKill(
       // Stop if we got less than expected (last page)
       if (killmails.length < limit) {
         logger.info(
-          `     ✓ ${prefix} Last page (${killmails.length} < ${limit})`,
+          `     ✓ ${prefix} last page (${killmails.length} < ${limit})`,
         );
         break;
       }
@@ -175,7 +175,7 @@ export async function getCharacterKillmailsFromZKill(
       }
     } catch (error) {
       logger.error(
-        `     ❌ ${prefix} Error fetching page ${currentPage}:`,
+        `     ❌ ${prefix} error fetching page ${currentPage}:`,
         error,
       );
       break;
@@ -183,7 +183,7 @@ export async function getCharacterKillmailsFromZKill(
   }
 
   logger.info(
-    `     ✅ ${prefix} Total: ${allKillmails.length} killmails from zKillboard`,
+    `     ✅ ${prefix} total: ${allKillmails.length} killmails from zKillboard`,
   );
   return allKillmails;
 }
@@ -228,7 +228,7 @@ export async function getCorporationKillmailsFromZKill(
 
       if (killmails.length < limit) break;
     } catch (error) {
-      logger.error(`Error fetching corp page ${currentPage}:`, error);
+      logger.error(`error fetching corp page ${currentPage}:`, error);
       break;
     }
   }
@@ -276,7 +276,7 @@ export async function getAllianceKillmailsFromZKill(
 
       if (killmails.length < limit) break;
     } catch (error) {
-      logger.error(`Error fetching alliance page ${currentPage}:`, error);
+      logger.error(`error fetching alliance page ${currentPage}:`, error);
       break;
     }
   }

@@ -10,14 +10,14 @@ const BATCH_SIZE = 100;
  * These will be processed by worker:info:types
  */
 async function queueTypes() {
-  logger.info('Fetching all type IDs from ESI...');
+  logger.info('fetching all type IDs from ESI...');
 
   try {
     // Get all type IDs from ESI (fetches from all item groups)
     const typeIds = await TypeService.getTypeIds();
 
-    logger.info(`Found ${typeIds.length} types`);
-    logger.info(`Adding to queue: ${QUEUE_NAME}`);
+    logger.info(`found ${typeIds.length} types`);
+    logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -39,17 +39,17 @@ async function queueTypes() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(typeIds.length / BATCH_SIZE)}`,
+        `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(typeIds.length / BATCH_SIZE)}`,
       );
     }
 
-    logger.info(`All ${typeIds.length} types queued successfully!`);
-    logger.info('Run worker with: yarn worker:info:types');
+    logger.info(`all ${typeIds.length} types queued successfully!`);
+    logger.info('run worker with: yarn worker:info:types');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Error queueing types', { error });
+    logger.error('error queueing types', { error });
     process.exit(1);
   }
 }

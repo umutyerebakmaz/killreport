@@ -64,10 +64,10 @@ export class QueueService {
         },
       );
 
-      logger.debug(`Message sent to queue: ${queueName}`, { priority });
+      logger.debug(`message sent to queue: ${queueName}`, { priority });
       return result;
     } catch (error) {
-      logger.error(`Failed to send message to queue ${queueName}:`, error);
+      logger.error(`failed to send message to queue ${queueName}:`, error);
       throw error;
     }
   }
@@ -87,7 +87,7 @@ export class QueueService {
         consumerCount: queueInfo.consumerCount,
       };
     } catch (error) {
-      logger.error(`Failed to get queue stats for ${queueName}:`, error);
+      logger.error(`failed to get queue stats for ${queueName}:`, error);
       throw error;
     }
   }
@@ -98,11 +98,11 @@ export class QueueService {
       const result = await channel.purgeQueue(queueName);
 
       logger.info(
-        `Purged ${result.messageCount} messages from queue: ${queueName}`,
+        `purged ${result.messageCount} messages from queue: ${queueName}`,
       );
       return result.messageCount;
     } catch (error) {
-      logger.error(`Failed to purge queue ${queueName}:`, error);
+      logger.error(`failed to purge queue ${queueName}:`, error);
       throw error;
     }
   }
@@ -112,9 +112,9 @@ export class QueueService {
       const channel = await this.getChannel();
       await channel.deleteQueue(queueName);
 
-      logger.info(`Deleted queue: ${queueName}`);
+      logger.info(`deleted queue: ${queueName}`);
     } catch (error) {
-      logger.error(`Failed to delete queue ${queueName}:`, error);
+      logger.error(`failed to delete queue ${queueName}:`, error);
       throw error;
     }
   }
@@ -123,7 +123,7 @@ export class QueueService {
     if (this.channel) {
       await this.channel.close();
       this.channel = null;
-      logger.info('Queue service channel closed');
+      logger.info('queue service channel closed');
     }
   }
 }

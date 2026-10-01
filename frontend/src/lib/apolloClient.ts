@@ -26,7 +26,7 @@ function newSessionId(): string {
 // Token refresh helper
 async function refreshAccessToken(): Promise<string | null> {
   try {
-    console.log('🔄 Apollo: Refreshing access token...');
+    console.log('🔄 Apollo: refreshing access token...');
     const response = await fetch(
       process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
       {
@@ -51,7 +51,7 @@ async function refreshAccessToken(): Promise<string | null> {
     const result = await response.json();
 
     if (result.errors) {
-      console.error('Token refresh error:', result.errors);
+      console.error('token refresh error:', result.errors);
       return null;
     }
 
@@ -62,10 +62,10 @@ async function refreshAccessToken(): Promise<string | null> {
     const expiryTime = Date.now() + data.expiresIn * 1000;
     localStorage.setItem('eve_token_expiry', expiryTime.toString());
 
-    console.log('✅ Apollo: Token refreshed successfully');
+    console.log('✅ Apollo: token refreshed successfully');
     return data.accessToken;
   } catch (error) {
-    console.error('Error refreshing token:', error);
+    console.error('error refreshing token:', error);
     return null;
   }
 }
@@ -113,7 +113,7 @@ export function createApolloClient() {
       : null;
 
   console.log(
-    '🚀 Apollo Client: WS Link initialized:',
+    '🚀 Apollo client: WS link initialized:',
     !!wsLink,
     'window:',
     typeof window,
@@ -158,7 +158,7 @@ export function createApolloClient() {
             err.message.includes('Unauthorized')
           ) {
             console.log(
-              '🔒 Authentication error detected, attempting token refresh...',
+              '🔒 authentication error detected, attempting token refresh...',
             );
 
             // Try to refresh the token
@@ -167,7 +167,7 @@ export function createApolloClient() {
                 .then((newToken) => {
                   if (!newToken) {
                     // Refresh failed, logout user
-                    console.log('❌ Token refresh failed, logging out...');
+                    console.log('❌ token refresh failed, logging out...');
                     localStorage.removeItem('eve_access_token');
                     localStorage.removeItem('eve_token_expiry');
                     localStorage.removeItem('eve_user');
@@ -195,7 +195,7 @@ export function createApolloClient() {
                   forward(operation).subscribe(subscriber);
                 })
                 .catch((error) => {
-                  console.error('Error during token refresh:', error);
+                  console.error('error during token refresh:', error);
                   observer.error(error);
                 });
             });
@@ -204,7 +204,7 @@ export function createApolloClient() {
       }
 
       if (networkError) {
-        console.error('🌐 Network error:', networkError);
+        console.error('🌐 network error:', networkError);
       }
     },
   );

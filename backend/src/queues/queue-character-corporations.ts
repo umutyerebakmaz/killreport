@@ -10,7 +10,7 @@ const BATCH_SIZE = 100;
  * These will be processed by worker:info:corporations to fetch from ESI
  */
 async function queueCharacterCorporations() {
-  logger.info('Scanning characters for missing corporations...');
+  logger.info('scanning characters for missing corporations...');
 
   try {
     // Get all unique corporation_ids from characters
@@ -24,7 +24,7 @@ async function queueCharacterCorporations() {
       .filter((id): id is number => id !== null && id !== undefined);
 
     logger.info(
-      `Found ${corporationIdsFromCharacters.length} unique corporations from characters`,
+      `found ${corporationIdsFromCharacters.length} unique corporations from characters`,
     );
 
     // Get existing corporation IDs from database
@@ -41,14 +41,14 @@ async function queueCharacterCorporations() {
       (id) => !existingCorporationIds.has(id),
     );
 
-    logger.info(`Found ${missingCorporationIds.length} missing corporations`);
+    logger.info(`found ${missingCorporationIds.length} missing corporations`);
 
     if (missingCorporationIds.length === 0) {
-      logger.info('✅ No missing corporations to queue!');
+      logger.info('✅ no missing corporations to queue!');
       process.exit(0);
     }
 
-    logger.info(`Adding to queue: ${QUEUE_NAME}`);
+    logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -71,21 +71,21 @@ async function queueCharacterCorporations() {
       }
 
       logger.info(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
+        `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
           missingCorporationIds.length / BATCH_SIZE,
         )} (${batch.length} corporations)`,
       );
     }
 
     logger.info(
-      `✅ All ${queuedCount} missing corporations queued successfully!`,
+      `✅ all ${queuedCount} missing corporations queued successfully!`,
     );
-    logger.info('Now run the worker: yarn worker:info:corporations');
+    logger.info('now run the worker: yarn worker:info:corporations');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue character corporations', { error });
+    logger.error('failed to queue character corporations', { error });
     process.exit(1);
   }
 }

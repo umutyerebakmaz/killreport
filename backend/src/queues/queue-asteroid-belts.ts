@@ -25,7 +25,7 @@ const QUEUE_NAME = TOPOLOGY_QUEUES.asteroidBelts;
 const SOURCE = 'queue-asteroid-belts';
 
 async function queueAsteroidBelts() {
-  logger.info('Asteroid belt repair queue script started');
+  logger.info('asteroid belt repair queue script started');
 
   try {
     // The IDs come from the database with WHERE name IS NULL, so a re-run queues
@@ -44,12 +44,12 @@ async function queueAsteroidBelts() {
     });
 
     if (rows.length === 0) {
-      logger.info('Nothing to do: every asteroid belt row already has a name.');
+      logger.info('nothing to do: every asteroid belt row already has a name.');
       await prismaWorker.$disconnect();
       process.exit(0);
     }
 
-    logger.info(`Found ${rows.length} asteroid belt rows with no name`);
+    logger.info(`found ${rows.length} asteroid belt rows with no name`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -66,16 +66,16 @@ async function queueAsteroidBelts() {
       });
     }
 
-    logger.info(`Queued ${rows.length} messages to ${QUEUE_NAME}`);
+    logger.info(`queued ${rows.length} messages to ${QUEUE_NAME}`);
     logger.info(
-      'Now run the worker to process them: yarn worker:asteroid-belts',
+      'now run the worker to process them: yarn worker:asteroid-belts',
     );
 
     await channel.close();
     await prismaWorker.$disconnect();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue asteroid belts', { error });
+    logger.error('failed to queue asteroid belts', { error });
     process.exit(1);
   }
 }

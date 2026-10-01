@@ -10,7 +10,7 @@ import axios from 'axios';
 export const allianceMutations: MutationResolvers = {
   startAllianceSync: async (_, { input }) => {
     try {
-      logger.info('🚀 Starting alliance sync via GraphQL...');
+      logger.info('🚀 starting alliance sync via GraphQL...');
 
       // Get all alliance IDs from ESI
       const response = await axios.get(
@@ -18,8 +18,8 @@ export const allianceMutations: MutationResolvers = {
       );
       const allianceIds: number[] = response.data;
 
-      logger.info(`✓ Found ${allianceIds.length} alliances`);
-      logger.info(`📤 Publishing to queue...`);
+      logger.info(`✓ found ${allianceIds.length} alliances`);
+      logger.info(`📤 publishing to queue...`);
 
       const channel = await getRabbitMQChannel();
       const QUEUE_NAME = 'esi_alliance_info_queue';
@@ -39,12 +39,12 @@ export const allianceMutations: MutationResolvers = {
 
         // Her 100 alliance'da bir log
         if (publishedCount % 100 === 0) {
-          logger.debug(`  ✓ Published ${publishedCount}/${allianceIds.length}`);
+          logger.debug(`  ✓ published ${publishedCount}/${allianceIds.length}`);
         }
       }
 
       logger.info(
-        `✅ All ${allianceIds.length} alliances queued successfully!`,
+        `✅ all ${allianceIds.length} alliances queued successfully!`,
       );
       return {
         success: true,
@@ -52,7 +52,7 @@ export const allianceMutations: MutationResolvers = {
         clientMutationId: input.clientMutationId || null,
       };
     } catch (error) {
-      logger.error('❌ Error starting alliance sync:', error);
+      logger.error('❌ error starting alliance sync:', error);
       return {
         success: false,
         message: 'Failed to start alliance sync',

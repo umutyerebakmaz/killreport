@@ -213,7 +213,7 @@ export default function KillmailFilterForm({
 
   // Debug: Log region query data
   useEffect(() => {
-    console.log('🔍 Region Query Debug:', {
+    console.log('🔍 region query debug:', {
       initialRegionId,
       initialRegionData,
       regionName: initialRegionData?.region?.name,
@@ -1163,7 +1163,7 @@ export default function KillmailFilterForm({
                     type="button"
                     onClick={() => {
                       console.log(
-                        '🔍 System chip remove clicked, current state:',
+                        '🔍 system chip remove clicked, current state:',
                         {
                           systemId,
                           solarSystemName,
@@ -1399,7 +1399,7 @@ export default function KillmailFilterForm({
                     type="button"
                     onClick={() => {
                       console.log(
-                        '🔍 Constellation chip remove clicked, current state:',
+                        '🔍 constellation chip remove clicked, current state:',
                         {
                           constellationId,
                           constellationName,

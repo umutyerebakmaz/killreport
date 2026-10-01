@@ -10,13 +10,13 @@ import { getRabbitMQChannel } from '@services/rabbitmq';
 export const dogmaAttributeMutations: MutationResolvers = {
   startDogmaAttributeSync: async (_, { input }) => {
     try {
-      logger.info('🚀 Starting dogma attribute sync via GraphQL...');
+      logger.info('🚀 starting dogma attribute sync via GraphQL...');
 
       // Get all dogma attribute IDs from ESI
       const attributeIds = await DogmaAttributeService.getAllAttributeIds();
 
-      logger.info(`✓ Found ${attributeIds.length} dogma attributes`);
-      logger.info(`📤 Publishing to queue...`);
+      logger.info(`✓ found ${attributeIds.length} dogma attributes`);
+      logger.info(`📤 publishing to queue...`);
 
       // Add to RabbitMQ queue
       const channel = await getRabbitMQChannel();
@@ -35,8 +35,8 @@ export const dogmaAttributeMutations: MutationResolvers = {
         });
       }
 
-      logger.info(`✓ Queued ${attributeIds.length} dogma attributes`);
-      logger.info(`📊 Run worker with: yarn worker:info:dogma-attributes`);
+      logger.info(`✓ queued ${attributeIds.length} dogma attributes`);
+      logger.info(`📊 run worker with: yarn worker:info:dogma-attributes`);
 
       return {
         success: true,
@@ -44,7 +44,7 @@ export const dogmaAttributeMutations: MutationResolvers = {
         clientMutationId: input.clientMutationId,
       };
     } catch (error: any) {
-      logger.error('Failed to start dogma attribute sync', {
+      logger.error('failed to start dogma attribute sync', {
         error: error.message,
       });
       return {

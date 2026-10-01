@@ -10,14 +10,14 @@ const BATCH_SIZE = 100;
  * These will be processed by worker:info:item-groups
  */
 async function queueItemGroups() {
-  logger.info('Fetching all item group IDs from ESI...');
+  logger.info('fetching all item group IDs from ESI...');
 
   try {
     // Get all item group IDs from ESI
     const itemGroupIds = await ItemGroupService.getItemGroupIds();
 
-    logger.info(`Found ${itemGroupIds.length} item groups`);
-    logger.info(`Adding to queue: ${QUEUE_NAME}`);
+    logger.info(`found ${itemGroupIds.length} item groups`);
+    logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -39,17 +39,17 @@ async function queueItemGroups() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(itemGroupIds.length / BATCH_SIZE)}`,
+        `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(itemGroupIds.length / BATCH_SIZE)}`,
       );
     }
 
-    logger.info(`All ${itemGroupIds.length} item groups queued successfully!`);
-    logger.info('Run worker with: yarn worker:info:item-groups');
+    logger.info(`all ${itemGroupIds.length} item groups queued successfully!`);
+    logger.info('run worker with: yarn worker:info:item-groups');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Error queueing item groups', { error });
+    logger.error('error queueing item groups', { error });
     process.exit(1);
   }
 }

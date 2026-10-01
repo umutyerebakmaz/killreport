@@ -9,13 +9,13 @@ import { getRabbitMQChannel } from '@services/rabbitmq';
 export const categoryMutations: MutationResolvers = {
   startCategorySync: async (_, { input }) => {
     try {
-      console.log('🚀 Starting category sync via GraphQL...');
+      console.log('🚀 starting category sync via GraphQL...');
 
       // Get all category IDs from ESI
       const categoryIds = await CategoryService.getAllCategoryIds();
 
-      console.log(`✓ Found ${categoryIds.length} categories`);
-      console.log(`📤 Publishing to queue...`);
+      console.log(`✓ found ${categoryIds.length} categories`);
+      console.log(`📤 publishing to queue...`);
 
       // RabbitMQ'ya ekle
       const channel = await getRabbitMQChannel();
@@ -35,7 +35,7 @@ export const categoryMutations: MutationResolvers = {
       }
 
       console.log(
-        `✅ All ${categoryIds.length} categories queued successfully!`,
+        `✅ all ${categoryIds.length} categories queued successfully!`,
       );
       return {
         success: true,
@@ -43,7 +43,7 @@ export const categoryMutations: MutationResolvers = {
         clientMutationId: input.clientMutationId || null,
       };
     } catch (error) {
-      console.error('❌ Error starting category sync:', error);
+      console.error('❌ error starting category sync:', error);
       return {
         success: false,
         message: 'Failed to start category sync',

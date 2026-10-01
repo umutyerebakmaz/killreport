@@ -139,7 +139,7 @@ describe('cache.get', () => {
     redisCache.get.mockRejectedValueOnce(failure);
 
     await expect(cache.get('k')).resolves.toBeNull();
-    expect(logger.error).toHaveBeenCalledWith('Cache get error:', failure);
+    expect(logger.error).toHaveBeenCalledWith('cache get error:', failure);
   });
 });
 
@@ -199,7 +199,7 @@ describe('cache.set', () => {
     redisCache.setex.mockRejectedValueOnce(failure);
 
     await expect(cache.set('k', { data: 1 }, 1_000)).resolves.toBeUndefined();
-    expect(logger.error).toHaveBeenCalledWith('Cache set error:', failure);
+    expect(logger.error).toHaveBeenCalledWith('cache set error:', failure);
   });
 });
 
@@ -235,7 +235,7 @@ describe('cache.invalidate', () => {
       cache.invalidate([{ typename: 'Character', id: 1 }]),
     ).resolves.toBeUndefined();
     expect(logger.error).toHaveBeenCalledWith(
-      'Cache invalidate error:',
+      'cache invalidate error:',
       failure,
     );
   });

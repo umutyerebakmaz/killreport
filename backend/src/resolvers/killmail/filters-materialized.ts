@@ -40,7 +40,7 @@ export async function filtersMaterialized(
     maxAttackers,
   } = filter;
 
-  console.log('🔍 Filter input:', {
+  console.log('🔍 filter input:', {
     shipTypeId,
     shipGroupIds,
     securitySpace,
@@ -62,7 +62,7 @@ export async function filtersMaterialized(
     shipGroupIds !== null &&
     shipGroupIds.length > 0
   ) {
-    console.log('🔍 Fetching types for groups:', shipGroupIds);
+    console.log('🔍 fetching types for groups:', shipGroupIds);
     const typesInGroups = await prisma.type.findMany({
       where: {
         group_id: { in: shipGroupIds },
@@ -70,7 +70,7 @@ export async function filtersMaterialized(
       select: { id: true },
     });
     console.log(
-      '🔍 Found types:',
+      '🔍 found types:',
       typesInGroups.length,
       'IDs:',
       typesInGroups.map((t) => t.id).slice(0, 10),
@@ -79,7 +79,7 @@ export async function filtersMaterialized(
   }
 
   console.log(
-    '🔍 All ship type IDs to filter:',
+    '🔍 all ship type IDs to filter:',
     allShipTypeIds.length,
     'IDs:',
     allShipTypeIds.slice(0, 10),
@@ -224,7 +224,7 @@ export async function filtersMaterialized(
     WHERE ${whereClause}
   `;
 
-  console.log(`🔍 killmail_filters Query:`, { query, params });
+  console.log(`🔍 killmail_filters query:`, { query, params });
 
   try {
     const result = await prisma.$queryRawUnsafe<Array<{ killmail_id: number }>>(

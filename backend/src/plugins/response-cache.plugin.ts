@@ -70,13 +70,13 @@ export function createResponseCachePlugin() {
         try {
           const value = await redisCache.get(key);
           if (value) {
-            logger.debug(`Cache HIT: ${key.substring(0, 50)}...`);
+            logger.debug(`cache hit: ${key.substring(0, 50)}...`);
             return JSON.parse(value);
           }
-          logger.debug(`Cache MISS: ${key.substring(0, 50)}...`);
+          logger.debug(`cache miss: ${key.substring(0, 50)}...`);
           return null;
         } catch (error) {
-          logger.error('Cache get error:', error);
+          logger.error('cache get error:', error);
           return null;
         }
       },
@@ -108,17 +108,17 @@ export function createResponseCachePlugin() {
             ttlInSeconds <= 0 ||
             ttlInSeconds > MAX_CACHE_TTL_SECONDS
           ) {
-            logger.warn(`Invalid TTL: ${ttlInSeconds}s, using default 60s`);
+            logger.warn(`invalid TTL: ${ttlInSeconds}s, using default 60s`);
             await redisCache.setex(key, 60, JSON.stringify(value));
             return;
           }
 
           await redisCache.setex(key, ttlInSeconds, JSON.stringify(value));
           logger.debug(
-            `Cache SET: ${key.substring(0, 50)}... (TTL: ${ttlInSeconds}s)`,
+            `cache set: ${key.substring(0, 50)}... (TTL: ${ttlInSeconds}s)`,
           );
         } catch (error) {
-          logger.error('Cache set error:', error);
+          logger.error('cache set error:', error);
         }
       },
 
@@ -130,12 +130,12 @@ export function createResponseCachePlugin() {
             if (keys.length > 0) {
               await redisCache.del(...keys);
               logger.info(
-                `Cache invalidated: ${entity.typename}:${entity.id} (${keys.length} keys)`,
+                `cache invalidated: ${entity.typename}:${entity.id} (${keys.length} keys)`,
               );
             }
           }
         } catch (error) {
-          logger.error('Cache invalidate error:', error);
+          logger.error('cache invalidate error:', error);
         }
       },
     },

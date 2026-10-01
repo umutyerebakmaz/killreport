@@ -22,35 +22,35 @@ interface EntityQueueMessage {
  * Fetches all alliance IDs from database and adds them to RabbitMQ queue
  */
 async function queueAllianceCorporations() {
-  logger.info('Alliance Corporation Queue Script Started');
+  logger.info('alliance corporation queue script started');
   logger.info('━'.repeat(70));
 
   try {
     // Get all alliance IDs from database
-    logger.info('Fetching alliance IDs from database...');
+    logger.info('fetching alliance IDs from database...');
     const alliances = await prismaWorker.alliance.findMany({
       select: { id: true, name: true },
       orderBy: { id: 'asc' },
     });
 
     if (alliances.length === 0) {
-      logger.warn('No alliances found in database');
+      logger.warn('no alliances found in database');
       logger.info(
-        'Run yarn queue:alliances and yarn worker:info:alliances first',
+        'run yarn queue:alliances and yarn worker:info:alliances first',
       );
       process.exit(0);
     }
 
-    logger.info(`Found ${alliances.length} alliances in database`);
+    logger.info(`found ${alliances.length} alliances in database`);
     logger.info('━'.repeat(70));
 
     // Connect to RabbitMQ
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
 
-    logger.info('Connected to RabbitMQ');
-    logger.info(`Queue: ${QUEUE_NAME}`);
-    logger.info('Adding alliances to queue...');
+    logger.info('connected to RabbitMQ');
+    logger.info(`queue: ${QUEUE_NAME}`);
+    logger.info('adding alliances to queue...');
 
     // Add to queue in batches
     let queuedCount = 0;
@@ -75,21 +75,21 @@ async function queueAllianceCorporations() {
       const batchNum = Math.floor(i / BATCH_SIZE) + 1;
       const totalBatches = Math.ceil(alliances.length / BATCH_SIZE);
       logger.debug(
-        `Batch ${batchNum}/${totalBatches}: ${batch.length} alliances queued`,
+        `batch ${batchNum}/${totalBatches}: ${batch.length} alliances queued`,
       );
     }
 
     logger.info('━'.repeat(70));
-    logger.info(`Successfully queued ${queuedCount} alliances!`);
+    logger.info(`successfully queued ${queuedCount} alliances!`);
     logger.info('━'.repeat(70));
-    logger.info('Next Steps:');
-    logger.info('  1. Start worker: yarn worker:alliance-corporations');
-    logger.info('  2. Start enrichment: yarn worker:info:corporations');
+    logger.info('next steps:');
+    logger.info('  1. start worker: yarn worker:alliance-corporations');
+    logger.info('  2. start enrichment: yarn worker:info:corporations');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue alliance corporations', { error });
+    logger.error('failed to queue alliance corporations', { error });
     process.exit(1);
   }
 }

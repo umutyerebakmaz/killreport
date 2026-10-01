@@ -15,15 +15,15 @@ export class CacheManager {
     try {
       const keys = await redis.keys(pattern);
       if (keys.length === 0) {
-        logger.info(`No keys found matching pattern: ${pattern}`);
+        logger.info(`no keys found matching pattern: ${pattern}`);
         return 0;
       }
 
       const deleted = await redis.del(...keys);
-      logger.info(`Deleted ${deleted} cache keys matching pattern: ${pattern}`);
+      logger.info(`deleted ${deleted} cache keys matching pattern: ${pattern}`);
       return deleted;
     } catch (error) {
-      logger.error(`Error clearing cache pattern ${pattern}:`, error);
+      logger.error(`error clearing cache pattern ${pattern}:`, error);
       throw error;
     }
   }
@@ -39,7 +39,7 @@ export class CacheManager {
       this.clearPattern(`killmails:list:*`), // Clear killmails list cache
       this.clearPattern(`killmails:dateCounts:*`), // Clear date counts cache
     ]);
-    logger.info(`Cleared cache for killmail ${killmailId}`);
+    logger.info(`cleared cache for killmail ${killmailId}`);
   }
 
   /**
@@ -51,7 +51,7 @@ export class CacheManager {
       this.clearPattern(`response-cache:*:Character:*`),
       this.clearPattern(`response-cache:*:Characters:*`),
     ]);
-    logger.info(`Cleared cache for character ${characterId}`);
+    logger.info(`cleared cache for character ${characterId}`);
   }
 
   /**
@@ -63,7 +63,7 @@ export class CacheManager {
       this.clearPattern(`response-cache:*:Corporation:*`),
       this.clearPattern(`response-cache:*:Corporations:*`),
     ]);
-    logger.info(`Cleared cache for corporation ${corporationId}`);
+    logger.info(`cleared cache for corporation ${corporationId}`);
   }
 
   /**
@@ -75,7 +75,7 @@ export class CacheManager {
       this.clearPattern(`response-cache:*:Alliance:*`),
       this.clearPattern(`response-cache:*:Alliances:*`),
     ]);
-    logger.info(`Cleared cache for alliance ${allianceId}`);
+    logger.info(`cleared cache for alliance ${allianceId}`);
   }
 
   /**
@@ -90,7 +90,7 @@ export class CacheManager {
       this.clearPattern('response-cache:*:Killmail*'),
       this.clearPattern('response-cache:*:MostValuableKillmails*'),
     ]);
-    logger.info('Cleared all killmail caches');
+    logger.info('cleared all killmail caches');
   }
 
   /**
@@ -135,12 +135,12 @@ export class CacheManager {
    * Useful after cache flush or server restart
    */
   static async warmupCache(limit: number = 100): Promise<void> {
-    logger.info(`Starting cache warmup for top ${limit} entities...`);
+    logger.info(`starting cache warmup for top ${limit} entities...`);
 
     // This would need to be implemented with actual queries
     // For now, just log the intent
     logger.info(
-      'Cache warmup would populate most-accessed killmails, characters, corps, alliances',
+      'cache warmup would populate most-accessed killmails, characters, corps, alliances',
     );
   }
 
@@ -152,7 +152,7 @@ export class CacheManager {
       await redis.ping();
       return true;
     } catch (error) {
-      logger.error('Cache health check failed:', error);
+      logger.error('cache health check failed:', error);
       return false;
     }
   }
@@ -169,7 +169,7 @@ export class CacheManager {
       );
       return usedMemory ? usedMemory.split(':')[1] : 'unknown';
     } catch (error) {
-      logger.error('Error getting memory usage:', error);
+      logger.error('error getting memory usage:', error);
       return 'error';
     }
   }
@@ -251,7 +251,7 @@ export class CacheManager {
         uptimeInSeconds,
       };
     } catch (error) {
-      logger.error('Error getting Redis metrics:', error);
+      logger.error('error getting Redis metrics:', error);
       return {
         connected: false,
         memoryUsage: 'error',

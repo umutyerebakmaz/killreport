@@ -28,7 +28,7 @@ export const killmailMutations: MutationResolvers = {
         clientMutationId: input.clientMutationId || null,
       };
     } catch (error) {
-      console.error('Sync failed:', error);
+      console.error('sync failed:', error);
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Sync failed',

@@ -13,16 +13,16 @@ async function queueCharacter() {
 
   if (!characterId || !characterName) {
     logger.error(
-      'Usage: yarn queue:character:zkillboard <characterId> <characterName>',
+      'usage: yarn queue:character:zkillboard <characterId> <characterName>',
     );
     logger.error(
-      '  Example: yarn queue:character:zkillboard 95465499 "Foo Bar"',
+      '  example: yarn queue:character:zkillboard 95465499 "Foo Bar"',
     );
     process.exit(1);
   }
 
-  logger.info('Queueing character for killmail sync...');
-  logger.info(`Character: ${characterName} (${characterId})`);
+  logger.info('queueing character for killmail sync...');
+  logger.info(`character: ${characterName} (${characterId})`);
 
   try {
     await ensureAllQueuesExist();
@@ -40,13 +40,13 @@ async function queueCharacter() {
       priority: 5, // Default priority
     });
 
-    logger.info('Character queued successfully!');
-    logger.info('Now run the worker to process: yarn worker:zkillboard');
+    logger.info('character queued successfully!');
+    logger.info('now run the worker to process: yarn worker:zkillboard');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue character', { error });
+    logger.error('failed to queue character', { error });
     process.exit(1);
   }
 }

@@ -40,7 +40,7 @@ async function getDatabaseSizeMB(): Promise<number> {
     }
     return 0;
   } catch (error) {
-    console.error('Error getting database size:', error);
+    console.error('error getting database size:', error);
     return 0;
   }
 }

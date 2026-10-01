@@ -36,7 +36,7 @@ export default function AuthButton({
         window.location.href = data.login.url;
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('login error:', error);
       reportLoginError();
     }
   };

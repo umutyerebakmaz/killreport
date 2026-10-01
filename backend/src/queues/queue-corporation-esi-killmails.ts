@@ -28,14 +28,14 @@ const QUEUE_NAME = 'esi_corporation_killmails_queue';
 async function queueCorporationESIKillmails() {
   const forceSync = process.argv.includes('--force');
   const fullSync = process.argv.includes('--full');
-  logger.info('Queueing users for Corporation ESI killmail sync...');
+  logger.info('queueing users for corporation ESI killmail sync...');
 
   if (forceSync) {
-    logger.info('Force mode: Ignoring last sync time');
+    logger.info('force mode: ignoring last sync time');
   }
   if (fullSync) {
     logger.info(
-      'Full sync mode: Disabled incremental sync (will fetch all killmails)',
+      'full sync mode: disabled incremental sync (will fetch all killmails)',
     );
   }
 
@@ -76,24 +76,24 @@ async function queueCorporationESIKillmails() {
     });
 
     if (users.length === 0) {
-      logger.warn('No active users found for sync');
+      logger.warn('no active users found for sync');
       if (!forceSync) {
-        logger.info('All users were synced recently (within 15 minutes).');
+        logger.info('all users were synced recently (within 15 minutes).');
         logger.info(
-          '  Use --force to sync anyway: yarn queue:corporation-killmails --force',
+          '  use --force to sync anyway: yarn queue:corporation-killmails --force',
         );
       } else {
-        logger.info('Users need to:');
+        logger.info('users need to:');
         logger.info(
-          '  1. Login via SSO with esi-killmails.read_corporation_killmails.v1 scope',
+          '  1. login via SSO with esi-killmails.read_corporation_killmails.v1 scope',
         );
-        logger.info('  2. Have Director or CEO role in their corporation');
+        logger.info('  2. have Director or CEO role in their corporation');
       }
       return;
     }
 
-    logger.info(`Found ${users.length} user(s) to sync`);
-    logger.info(`Adding to queue: ${QUEUE_NAME}`);
+    logger.info(`found ${users.length} user(s) to sync`);
+    logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -113,25 +113,25 @@ async function queueCorporationESIKillmails() {
 
       const syncMode = fullSync ? ' [FULL SYNC]' : ' [INCREMENTAL]';
       logger.debug(
-        `Queued: ${user.character_name} (Corp ID: ${user.corporation_id})${lastSyncInfo}${syncMode}`,
+        `queued: ${user.character_name} (corp ID: ${user.corporation_id})${lastSyncInfo}${syncMode}`,
       );
     }
 
-    logger.info(`Successfully queued ${users.length} user(s)!`);
-    logger.info('Now run the worker to process them:');
+    logger.info(`successfully queued ${users.length} user(s)!`);
+    logger.info('now run the worker to process them:');
     logger.info('  yarn worker:corporation-killmails');
     logger.warn(
-      'Note: Users must have Director/CEO role and the required scope',
+      'note: users must have Director/CEO role and the required scope',
     );
     logger.warn(
-      '  If you see 403 errors, users need to re-login with correct permissions',
+      '  if you see 403 errors, users need to re-login with correct permissions',
     );
 
     await channel.close();
     await prismaWorker.$disconnect();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue users', { error });
+    logger.error('failed to queue users', { error });
     await prismaWorker.$disconnect();
     process.exit(1);
   }

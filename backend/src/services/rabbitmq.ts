@@ -38,10 +38,10 @@ export async function getRabbitMQChannel(): Promise<amqp.Channel> {
     const ch = (await (conn as any).createChannel()) as amqp.Channel;
     channel = ch;
     // Each worker/queue script asserts its own queue - no need for global queue
-    console.log('Connected to RabbitMQ and channel is ready');
+    console.log('connected to RabbitMQ and channel is ready');
     return ch;
   } catch (error) {
-    console.error('Failed to connect to RabbitMQ', error);
+    console.error('failed to connect to RabbitMQ', error);
     throw error;
   }
 }
@@ -107,7 +107,7 @@ export async function publishToQueue(queueName: string, message: string) {
     // and it is a 406. Declaration lives in ensureAllQueuesExist() alone.
     ch.sendToQueue(queueName, Buffer.from(message), { persistent: true });
   } catch (error) {
-    console.error('Failed to publish message to queue', error);
+    console.error('failed to publish message to queue', error);
   }
 }
 
@@ -119,7 +119,7 @@ export async function ensureAllQueuesExist(): Promise<void> {
   try {
     const ch = await getRabbitMQChannel();
 
-    console.log('📋 Ensuring all RabbitMQ queues exist...');
+    console.log('📋 ensuring all RabbitMQ queues exist...');
 
     // The dead letter exchange is a FANOUT and the retry exchange is a
     // DIRECT, and the pair is the whole trick. A message carries its origin
@@ -165,9 +165,9 @@ export async function ensureAllQueuesExist(): Promise<void> {
       await ch.bindQueue(queueName, RETRY_TOPOLOGY.retry, queueName);
     }
 
-    console.log(`✅ All ${ALL_QUEUES.length} queues verified in RabbitMQ`);
+    console.log(`✅ all ${ALL_QUEUES.length} queues verified in RabbitMQ`);
   } catch (error) {
-    console.error('❌ Failed to ensure queues exist:', error);
+    console.error('❌ failed to ensure queues exist:', error);
     // Don't throw - server should still start
   }
 }

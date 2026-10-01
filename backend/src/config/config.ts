@@ -60,7 +60,7 @@ const parseEnv = () => {
     return envSchema.parse(process.env);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error('❌ Environment validation failed:');
+      console.error('❌ environment validation failed:');
       error.issues.forEach((issue) => {
         console.error(`  - ${issue.path.join('.')}: ${issue.message}`);
       });

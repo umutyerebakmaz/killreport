@@ -9,7 +9,7 @@ const QUEUE_NAME = 'zkillboard_character_queue';
  * Similar to alliance queue but for user killmail syncing
  */
 async function queueKillmailSync() {
-  logger.info('Queueing users for killmail sync...');
+  logger.info('queueing users for killmail sync...');
 
   try {
     // Get all users with valid tokens
@@ -27,12 +27,12 @@ async function queueKillmailSync() {
     });
 
     if (users.length === 0) {
-      logger.warn('No active users found with valid tokens');
+      logger.warn('no active users found with valid tokens');
       return;
     }
 
-    logger.info(`Found ${users.length} active users`);
-    logger.info('Adding to queue...');
+    logger.info(`found ${users.length} active users`);
+    logger.info('adding to queue...');
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -52,13 +52,13 @@ async function queueKillmailSync() {
       });
     }
 
-    logger.info(`All ${users.length} users queued successfully!`);
-    logger.info('Now run the worker to process them: yarn worker:zkillboard');
+    logger.info(`all ${users.length} users queued successfully!`);
+    logger.info('now run the worker to process them: yarn worker:zkillboard');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue users', { error });
+    logger.error('failed to queue users', { error });
     process.exit(1);
   }
 }

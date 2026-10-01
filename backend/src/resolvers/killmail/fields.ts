@@ -49,7 +49,7 @@ export const killmailFields: KillmailResolvers = {
     const victim = await context.loaders.victim.load(killmailId);
     if (!victim) {
       console.error(
-        `⚠️ Victim not found for killmail ${killmailId} - data inconsistency!`,
+        `⚠️ victim not found for killmail ${killmailId} - data inconsistency!`,
       );
       return null;
     }
@@ -575,8 +575,8 @@ export const killmailFields: KillmailResolvers = {
       implants: isCapsule
         ? await (async () => {
             // For Capsules (Pods), create 10 implant slots like high/mid/low slots
-            console.log('🔍 Capsule detected! Creating 10 implant slots...');
-            console.log('Total raw items:', rawItems.length);
+            console.log('🔍 capsule detected! creating 10 implant slots...');
+            console.log('total raw items:', rawItems.length);
 
             // Create 10 empty slots
             const implantSlots: any[] = Array.from({ length: 10 }, (_, i) => ({
@@ -602,7 +602,7 @@ export const killmailFields: KillmailResolvers = {
                   const slotIndex = slotNumber - 1; // Array index (0-9)
 
                   console.log(
-                    `💎 Found implant: type_id=${item.item_type_id}, implantness=${implantness.value}, slot=${slotNumber}, index=${slotIndex}`,
+                    `💎 found implant: type_id=${item.item_type_id}, implantness=${implantness.value}, slot=${slotNumber}, index=${slotIndex}`,
                   );
 
                   if (slotIndex >= 0 && slotIndex < 10) {
@@ -622,9 +622,9 @@ export const killmailFields: KillmailResolvers = {
             const filledCount = implantSlots.filter(
               (slot) => slot.module !== null,
             ).length;
-            console.log(`✅ Total implants found: ${filledCount} / 10`);
+            console.log(`✅ total implants found: ${filledCount} / 10`);
             console.log(
-              '📊 Implant slots:',
+              '📊 implant slots:',
               implantSlots
                 .map((s, i) =>
                   s.module ? `Slot ${i + 1}: filled` : `Slot ${i + 1}: empty`,
