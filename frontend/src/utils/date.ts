@@ -107,6 +107,22 @@ export const formatKillmailDateTime = (dateString: string) => {
 };
 
 /**
+ * A killmail time the way EVE writes it in game: year first with dots, 24-hour
+ * clock, in EVE Time (UTC) — e.g. "2026.10.01 18:42". The caller says it is
+ * EVE time, as the header's clock does, with a tooltip. Year first means
+ * nobody reads the day and month the wrong way round, as they would with the
+ * American 10/01/2026 or the European 01.10.2026.
+ */
+export const formatEveDateTime = (dateString: string) => {
+  const date = new Date(dateString);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
+    `${date.getUTCFullYear()}.${pad(date.getUTCMonth() + 1)}.${pad(date.getUTCDate())} ` +
+    `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}`
+  );
+};
+
+/**
  * Formats a date string to "time ago" format
  * @param dateInput - ISO date string or Date object
  * @param short - If true, uses short format (5m ago, 2h ago). Default: false
@@ -138,12 +154,27 @@ export const formatTimeAgo = (
     return short
       ? `${hours}h ago`
       : `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
-  } else {
-    const days = Math.floor(diffInMinutes / 1440);
+  }
+
+  // Months and years, so a killmail from two years back does not read as
+  // "730 days ago". A 30-day month and a 365-day year: this is a rough
+  // distance, not a calendar.
+  const days = Math.floor(diffInMinutes / 1440);
+  if (days < 30) {
     return short
       ? `${days}d ago`
       : `${days} ${days === 1 ? 'day' : 'days'} ago`;
   }
+  if (days < 365) {
+    const months = Math.floor(days / 30);
+    return short
+      ? `${months}mo ago`
+      : `${months} ${months === 1 ? 'month' : 'months'} ago`;
+  }
+  const years = Math.floor(days / 365);
+  return short
+    ? `${years}y ago`
+    : `${years} ${years === 1 ? 'year' : 'years'} ago`;
 };
 
 /**

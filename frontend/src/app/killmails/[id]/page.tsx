@@ -7,6 +7,7 @@ import { Loader } from '@/components/Loader/Loader';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import SummaryRow from '@/components/ui/SummaryRow';
 import { useKillmailQuery } from '@/generated/graphql';
+import { formatEveDateTime, formatTimeAgo } from '@/utils/date';
 import { formatISK } from '@/utils/formatISK';
 import {
   ArrowTopRightOnSquareIcon,
@@ -14,6 +15,8 @@ import {
 } from '@heroicons/react/24/outline';
 import { use, useState } from 'react';
 import EveImage from '@/components/ui/EveImage';
+import MembershipLink from '@/components/ui/MembershipLink';
+import Link from 'next/link';
 
 export default function KillmailDetailPage({
   params,
@@ -129,113 +132,86 @@ export default function KillmailDetailPage({
         </div>
 
         {/* Victim summary — second, beside the fit */}
-        <div className="p-2 card 2xl:col-start-2 2xl:row-start-1">
-          <div className="space-y-3">
-            {/* Character, Corp, Alliance Images */}
-            {(victim?.character?.id ||
-              victim?.corporation?.id ||
-              victim?.alliance?.id) && (
-              <div className="flex items-start overflow-hidden">
-                {/* Character Portrait or Ship Render */}
-                {victim?.character?.id ? (
-                  <Tooltip content="Show Victim Info" position="top">
-                    <a href={`/characters/${victim.character?.id}`}>
-                      <EveImage
-                        kind="character"
-                        id={victim.character.id}
-                        name={victim.character.name || 'Character'}
-                        size={96}
-                        className="shadow-md shrink-0"
-                      />
-                    </a>
-                  </Tooltip>
-                ) : victim?.shipType?.id ? (
-                  <Tooltip
-                    content={victim.shipType.name || 'Structure'}
-                    position="top"
+        {/* No padding on the card itself: the portrait runs to its top and
+            side edges, and the rows below get the card's usual p-2 on their
+            own. overflow-hidden lets the card's edge cut the picture. */}
+        <div className="overflow-hidden card 2xl:col-start-2 2xl:row-start-1">
+          {/*
+           * The account menu's portrait (UserMenu): the picture always as
+           * wide as the card and square, with the name and the memberships
+           * over its darkened bottom band. Below 2xl the card spans the page,
+           * so the height stops at 512px and object-cover crops the picture
+           * to a band around the face rather than drawing a huge square. A
+           * victim with no character — a structure, an NPC — shows the
+           * ship's render in its place.
+           */}
+          {(victim?.character?.id || victim?.shipType?.id) && (
+            <div className="relative w-full overflow-hidden aspect-square max-h-128 bg-surface-inset">
+              {victim?.character?.id ? (
+                <EveImage
+                  kind="character"
+                  id={victim.character.id}
+                  name={victim.character.name || 'Character'}
+                  size={512}
+                  className="object-cover size-full"
+                />
+              ) : (
+                victim?.shipType?.id && (
+                  <EveImage
+                    kind="ship"
+                    id={victim.shipType.id}
+                    name={victim.shipType.name || 'Structure'}
+                    size={512}
+                    className="object-contain size-full"
+                  />
+                )
+              )}
+              {/* The menu's scrim, at its height, so the text reads over
+                  any portrait. */}
+              <div className="absolute inset-x-0 bottom-0 h-24 pointer-events-none bg-linear-to-t from-black/95 via-black/70 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-3 space-y-1.5">
+                {victim?.character?.id && (
+                  <Link
+                    href={`/characters/${victim.character.id}`}
+                    className="block font-medium text-white truncate transition-colors hover:text-accent-link"
                   >
-                    <div
-                      className="flex items-center justify-center bg-surface-inset shrink-0"
-                      style={{ width: 96, height: 96 }}
-                    >
-                      <EveImage
-                        kind="ship"
-                        id={victim.shipType.id}
-                        name={victim.shipType.name || 'Structure'}
-                        size={96}
-                        className="shadow-md shrink-0"
-                      />
-                    </div>
-                  </Tooltip>
-                ) : null}
-
-                <div className="flex flex-col shrink-0">
-                  {/* Corporation Portrait */}
-                  {victim?.corporation?.id && (
-                    <a href={`/corporations/${victim.corporation?.id}`}>
-                      <EveImage
+                    {victim.character.name}
+                  </Link>
+                )}
+                {(victim?.corporation?.id || victim?.alliance?.id) && (
+                  <div className="flex items-center gap-3">
+                    {victim?.corporation?.id && (
+                      <MembershipLink
                         kind="corporation"
-                        id={victim.corporation.id}
-                        name={victim.corporation.name || 'Corporation'}
-                        size={48}
-                        className="shadow-sm"
+                        logoSize={32}
+                        entity={{
+                          id: victim.corporation.id,
+                          name: victim.corporation.name || 'Corporation',
+                        }}
                       />
-                    </a>
-                  )}
-                  {/* Alliance Portrait */}
-                  {victim?.alliance?.id && (
-                    <a href={`/alliances/${victim.alliance?.id}`}>
-                      <EveImage
+                    )}
+                    {victim?.alliance?.id && (
+                      <MembershipLink
                         kind="alliance"
-                        id={victim.alliance.id}
-                        name={victim.alliance.name || 'Alliance'}
-                        size={48}
-                        className="shadow-sm"
+                        logoSize={32}
+                        entity={{
+                          id: victim.alliance.id,
+                          name: victim.alliance.name || 'Alliance',
+                        }}
                       />
-                    </a>
-                  )}
-                </div>
-
-                <div className="flex flex-col items-start justify-start flex-1 min-w-0 pl-4 overflow-hidden">
-                  {victim?.character?.id && (
-                    <a
-                      href={`/characters/${victim.character?.id}`}
-                      title={victim.character?.name || 'Character'}
-                      className="block w-full text-ink-muted truncate transition-colors hover:text-accent-link"
-                    >
-                      {victim.character?.name}
-                    </a>
-                  )}
-
-                  {victim?.corporation?.id && (
-                    <Tooltip content="Show corporation info">
-                      <a
-                        href={`/corporations/${victim.corporation?.id}`}
-                        title={victim.corporation?.name || 'Corporation'}
-                        className="block w-full text-ink-muted truncate transition-colors hover:text-accent-link"
-                      >
-                        {victim.corporation?.name}
-                      </a>
-                    </Tooltip>
-                  )}
-
-                  {victim?.alliance?.id && (
-                    <Tooltip content="Show alliance info">
-                      <a
-                        href={`/alliances/${victim.alliance?.id}`}
-                        title={victim.alliance?.name || 'Alliance'}
-                        className="block w-full text-ink-muted truncate transition-colors hover:text-accent-link"
-                      >
-                        {victim.alliance?.name}
-                      </a>
-                    </Tooltip>
-                  )}
-                </div>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
+            </div>
+          )}
 
+          <div className="p-2 space-y-3">
             <SummaryRow label="Ship">
-              {victim?.shipType?.name}
+              {/* The killmail table's ship orange (KillmailRow). */}
+              <span className="font-medium text-orange-400">
+                {victim?.shipType?.name}
+              </span>
               {victim?.shipType?.group && (
                 <span className="text-ink-faint">
                   {' '}
@@ -245,7 +221,19 @@ export default function KillmailDetailPage({
             </SummaryRow>
 
             <SummaryRow label="System">
-              {km.solarSystem?.name}
+              {/* The killmail table's target (KillmailRow), with the card's
+                  own link hover rather than the table's orange. */}
+              {km.solarSystem?.id ? (
+                <Link
+                  href={`/solar-systems/${km.solarSystem.id}?tab=killmails`}
+                  className="transition-colors hover:text-accent-link"
+                  prefetch={false}
+                >
+                  {km.solarSystem.name}
+                </Link>
+              ) : (
+                km.solarSystem?.name
+              )}
               {/* EVE's own security colour code, not one of the meaning
                       tokens — green/yellow/red here mean high/low/null sec. */}
               {km.solarSystem?.securityStatus !== undefined &&
@@ -260,25 +248,37 @@ export default function KillmailDetailPage({
                     }
                   >
                     {' '}
-                    ({km.solarSystem.securityStatus.toFixed(1)})
+                    {km.solarSystem.securityStatus.toFixed(1)}
                   </span>
                 )}
               {km.solarSystem?.constellation?.region && (
                 <span className="text-ink-faint">
                   {' '}
-                  / {km.solarSystem.constellation.region.name}
+                  /{' '}
+                  <Link
+                    href={`/regions/${km.solarSystem.constellation.region.id}`}
+                    className="transition-colors hover:text-accent-link"
+                    prefetch={false}
+                  >
+                    {km.solarSystem.constellation.region.name}
+                  </Link>
                 </span>
               )}
             </SummaryRow>
 
             <SummaryRow label="Time">
-              {new Date(km.killmailTime).toLocaleString('en-US', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
+              {/* How long ago, then the header clock's own label
+                  (StatusReadout), so the row itself is just the date. */}
+              <Tooltip
+                content={
+                  <div>
+                    <div>{formatTimeAgo(km.killmailTime)}</div>
+                    <div className="text-ink-faint">EVE time (UTC)</div>
+                  </div>
+                }
+              >
+                {formatEveDateTime(km.killmailTime)}
+              </Tooltip>
             </SummaryRow>
 
             <SummaryRow label="Damage">
