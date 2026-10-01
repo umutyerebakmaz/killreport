@@ -19,9 +19,9 @@ interface EntityQueueMessage {
 }
 
 async function typeDogmaWorker() {
-  logger.info('🔬 Type Dogma Worker Started');
-  logger.info(`📦 Queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+  logger.info('🔬 type dogma worker started');
+  logger.info(`📦 queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
   try {
     await ensureAllQueuesExist();
@@ -29,8 +29,8 @@ async function typeDogmaWorker() {
 
     channel.prefetch(PREFETCH_COUNT);
 
-    logger.info('✅ Connected to RabbitMQ');
-    logger.info('⏳ Waiting for types...\n');
+    logger.info('✅ connected to RabbitMQ');
+    logger.info('⏳ waiting for types...\n');
 
     let totalProcessed = 0;
     let totalAdded = 0;
@@ -43,12 +43,12 @@ async function typeDogmaWorker() {
       const timeSinceLastMessage = Date.now() - lastMessageTime;
       if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
         logger.info('\n' + '━'.repeat(60));
-        logger.info('✅ Queue completed!');
+        logger.info('✅ queue completed!');
         logger.info(
-          `📊 Final: ${totalProcessed} processed (${totalAdded} synced, ${totalSkipped} skipped, ${totalErrors} errors)`,
+          `📊 final: ${totalProcessed} processed (${totalAdded} synced, ${totalSkipped} skipped, ${totalErrors} errors)`,
         );
         logger.info('━'.repeat(60) + '\n');
-        logger.info('⏳ Waiting for new messages...\n');
+        logger.info('⏳ waiting for new messages...\n');
       }
     }, 5000);
 
@@ -72,7 +72,7 @@ async function typeDogmaWorker() {
           });
 
           if (!typeInfo) {
-            logger.warn(`⚠️  Type ${typeId} not found in database, skipping`);
+            logger.warn(`⚠️  type ${typeId} not found in database, skipping`);
             channel.ack(msg);
             totalSkipped++;
             totalProcessed++;
@@ -95,7 +95,7 @@ async function typeDogmaWorker() {
             totalProcessed++;
             if (totalProcessed % 100 === 0) {
               logger.info(
-                `  📊 Progress: ${totalProcessed} processed (${totalAdded} synced, ${totalSkipped} skipped)`,
+                `  📊 progress: ${totalProcessed} processed (${totalAdded} synced, ${totalSkipped} skipped)`,
               );
             }
             return;
@@ -115,7 +115,7 @@ async function typeDogmaWorker() {
             totalProcessed++;
             if (totalProcessed % 100 === 0) {
               logger.info(
-                `  📊 Progress: ${totalProcessed} processed (${totalAdded} synced, ${totalSkipped} skipped)`,
+                `  📊 progress: ${totalProcessed} processed (${totalAdded} synced, ${totalSkipped} skipped)`,
               );
             }
             return;
@@ -239,7 +239,7 @@ async function typeDogmaWorker() {
 
     // Graceful shutdown
     process.on('SIGINT', async () => {
-      logger.info('\n🛑 Shutting down gracefully...');
+      logger.info('\n🛑 shutting down gracefully...');
       clearInterval(emptyCheckInterval);
       await channel.close();
       await prismaWorker.$disconnect();
@@ -247,19 +247,19 @@ async function typeDogmaWorker() {
     });
 
     process.on('SIGTERM', async () => {
-      logger.info('\n🛑 Shutting down gracefully...');
+      logger.info('\n🛑 shutting down gracefully...');
       clearInterval(emptyCheckInterval);
       await channel.close();
       await prismaWorker.$disconnect();
       process.exit(0);
     });
   } catch (error) {
-    logger.error('❌ Fatal error in Type Dogma Worker:', error);
+    logger.error('❌ fatal error in type dogma worker:', error);
     process.exit(1);
   }
 }
 
 typeDogmaWorker().catch((error) => {
-  logger.error('❌ Unhandled error:', error);
+  logger.error('❌ unhandled error:', error);
   process.exit(1);
 });

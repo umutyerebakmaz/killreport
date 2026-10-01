@@ -54,13 +54,13 @@ async function snapshotSovereignty() {
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
   );
   logger.info(
-    `📸 Starting sovereignty daily snapshot for ${snapshotDate.toISOString().slice(0, 10)}...`,
+    `📸 starting sovereignty daily snapshot for ${snapshotDate.toISOString().slice(0, 10)}...`,
   );
 
   try {
     // 1. Snapshot the current map
     const current = await prismaWorker.sovereigntyMapCurrent.findMany();
-    logger.info(`   • Snapshotting ${current.length} owned systems`);
+    logger.info(`   • snapshotting ${current.length} owned systems`);
 
     let snapshotInserted = 0;
     for (let i = 0; i < current.length; i += BATCH_SIZE) {
@@ -181,11 +181,11 @@ async function snapshotSovereignty() {
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
-      `✅ Snapshot complete: ${snapshotInserted} map rows snapshotted, ` +
+      `✅ snapshot complete: ${snapshotInserted} map rows snapshotted, ` +
         `${statsUpserted} alliance stat rows written (${duration}s)`,
     );
   } catch (error) {
-    logger.error('❌ Sovereignty snapshot failed', { error });
+    logger.error('❌ sovereignty snapshot failed', { error });
     throw error;
   }
 }

@@ -34,7 +34,7 @@ async function processConstellation(constellationId: number): Promise<boolean> {
   const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
   if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
     logger.warn(
-      `⚠️  Error limit low (${errorLimitRemain}/100), slowing down...`,
+      `⚠️  error limit low (${errorLimitRemain}/100), slowing down...`,
     );
     await sleep(2000); // Wait 2 seconds
   }
@@ -59,7 +59,7 @@ async function processConstellation(constellationId: number): Promise<boolean> {
     },
   });
 
-  logger.debug(`✅ Saved constellation ${constellationId} - ${data.name}`);
+  logger.debug(`✅ saved constellation ${constellationId} - ${data.name}`);
 
   // Short wait for rate limiting - sadece başarılı ESI çağrılarında bekle
   await sleep(RATE_LIMIT_DELAY);
@@ -75,16 +75,16 @@ function printCompletionSummary(
 ) {
   const duration = ((Date.now() - startTime) / 1000).toFixed(2);
   logger.info('\n' + '='.repeat(60));
-  logger.info('🎉 ALL TASKS COMPLETED!');
+  logger.info('🎉 all tasks completed!');
   logger.info('='.repeat(60));
-  logger.info(`✅ Processed: ${processedCount}`);
-  logger.info(`⏭️  Skipped (already exists): ${skippedCount}`);
-  logger.info(`❌ Errors: ${errorCount}`);
-  logger.info(`📊 Total: ${processedCount + skippedCount + errorCount}`);
-  logger.info(`⏱️  Duration: ${duration}s`);
+  logger.info(`✅ processed: ${processedCount}`);
+  logger.info(`⏭️  skipped (already exists): ${skippedCount}`);
+  logger.info(`❌ errors: ${errorCount}`);
+  logger.info(`📊 total: ${processedCount + skippedCount + errorCount}`);
+  logger.info(`⏱️  duration: ${duration}s`);
   logger.info('='.repeat(60));
-  logger.info('\n💡 Queue is empty, waiting for new messages...');
-  logger.info('   Press CTRL+C to stop.\n');
+  logger.info('\n💡 queue is empty, waiting for new messages...');
+  logger.info('   press CTRL+C to stop.\n');
 }
 
 /**
@@ -100,15 +100,15 @@ async function startWorker() {
     let errorCount = 0;
     let startTime = Date.now();
 
-    logger.info('🚀 Constellation Worker Started');
+    logger.info('🚀 constellation worker started');
     logger.info('==========================');
-    logger.info(`📡 Listening to queue: ${QUEUE_NAME}`);
-    logger.info(`⏱️  Rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
+    logger.info(`📡 listening to queue: ${QUEUE_NAME}`);
+    logger.info(`⏱️  rate limit: ${1000 / RATE_LIMIT_DELAY} requests/second\n`);
 
     // Check initial queue status
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
     logger.info(
-      `📊 Queue status: ${queueInfo.messageCount} messages waiting\n`,
+      `📊 queue status: ${queueInfo.messageCount} messages waiting\n`,
     );
 
     // Process only 1 message at a time
@@ -122,7 +122,7 @@ async function startWorker() {
         const constellationId = parseInt(msg.content.toString());
 
         if (isNaN(constellationId)) {
-          logger.error('❌ Invalid constellation ID:', msg.content.toString());
+          logger.error('❌ invalid constellation ID:', msg.content.toString());
           channel.ack(msg);
           errorCount++;
           return;
@@ -136,7 +136,7 @@ async function startWorker() {
             // Skip if already exists - no ESI call needed
             skippedCount++;
             logger.debug(
-              `⏭️  Constellation ${constellationId} already exists, skipping... (Processed: ${processedCount}, Skipped: ${skippedCount})`,
+              `⏭️  constellation ${constellationId} already exists, skipping... (processed: ${processedCount}, skipped: ${skippedCount})`,
             );
             channel.ack(msg);
 
@@ -185,14 +185,14 @@ async function startWorker() {
 
     // Graceful shutdown
     process.on('SIGINT', async () => {
-      logger.warn('\n\n🛑 Shutting down worker...');
+      logger.warn('\n\n🛑 shutting down worker...');
       await channel.close();
       await prismaWorker.$disconnect();
-      logger.info('✅ Worker stopped gracefully');
+      logger.info('✅ worker stopped gracefully');
       process.exit(0);
     });
   } catch (error) {
-    logger.error('❌ Failed to start worker:', error);
+    logger.error('❌ failed to start worker:', error);
     process.exit(1);
   }
 }

@@ -22,9 +22,9 @@ let isShuttingDown = false;
 let emptyCheckInterval: NodeJS.Timeout | null = null;
 
 async function characterInfoWorker() {
-  logger.info('👤 Character Info Worker Started');
-  logger.info(`📦 Queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+  logger.info('👤 character info worker started');
+  logger.info(`📦 queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
   await ensureAllQueuesExist();
   while (!isShuttingDown) {
@@ -33,8 +33,8 @@ async function characterInfoWorker() {
 
       channel.prefetch(PREFETCH_COUNT);
 
-      logger.info('✅ Connected to RabbitMQ');
-      logger.info('⏳ Waiting for characters...\n');
+      logger.info('✅ connected to RabbitMQ');
+      logger.info('⏳ waiting for characters...\n');
 
       let totalProcessed = 0;
       let totalAdded = 0;
@@ -52,18 +52,18 @@ async function characterInfoWorker() {
         const timeSinceLastMessage = Date.now() - lastMessageTime;
         if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
           logger.info('\n' + '━'.repeat(60));
-          logger.info('✅ Queue completed!');
+          logger.info('✅ queue completed!');
           logger.info(
-            `📊 Final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
+            `📊 final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
           );
           logger.info('━'.repeat(60) + '\n');
-          logger.info('⏳ Waiting for new messages...\n');
+          logger.info('⏳ waiting for new messages...\n');
         }
       }, 5000);
 
       // Handle channel errors
       channel.on('error', (err) => {
-        logger.error('❌ Channel error:', err.message);
+        logger.error('❌ channel error:', err.message);
         if (emptyCheckInterval) {
           clearInterval(emptyCheckInterval);
           emptyCheckInterval = null;
@@ -71,7 +71,7 @@ async function characterInfoWorker() {
       });
 
       channel.on('close', () => {
-        logger.warn('⚠️  Channel closed');
+        logger.warn('⚠️  channel closed');
         if (emptyCheckInterval) {
           clearInterval(emptyCheckInterval);
           emptyCheckInterval = null;
@@ -146,7 +146,7 @@ async function characterInfoWorker() {
 
             if (totalProcessed % 50 === 0) {
               logger.info(
-                `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
+                `📊 summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
               );
             }
           } catch (error) {
@@ -162,7 +162,7 @@ async function characterInfoWorker() {
 
             if (totalProcessed % 50 === 0) {
               logger.info(
-                `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
+                `📊 summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
               );
             }
           }
@@ -177,11 +177,11 @@ async function characterInfoWorker() {
       });
     } catch (error: any) {
       if (isShuttingDown) {
-        logger.info('Worker stopped during shutdown');
+        logger.info('worker stopped during shutdown');
         break;
       }
 
-      logger.error('💥 Worker error:', error.message);
+      logger.error('💥 worker error:', error.message);
 
       if (emptyCheckInterval) {
         clearInterval(emptyCheckInterval);
@@ -189,18 +189,18 @@ async function characterInfoWorker() {
       }
 
       // Wait before reconnecting
-      logger.info('🔄 Reconnecting in 5 seconds...');
+      logger.info('🔄 reconnecting in 5 seconds...');
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 
-  logger.info('Worker stopped');
+  logger.info('worker stopped');
   await prismaWorker.$disconnect();
 }
 
 function setupShutdownHandlers() {
   const shutdown = async () => {
-    logger.warn('\n\n⚠️  Shutting down...');
+    logger.warn('\n\n⚠️  shutting down...');
     isShuttingDown = true;
 
     if (emptyCheckInterval) {

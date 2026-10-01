@@ -10,10 +10,10 @@ import { RaceService } from '@services/race/race.service';
 
 async function fetchAndSaveRaces() {
   try {
-    logger.info('🚀 Starting race sync...');
+    logger.info('🚀 starting race sync...');
 
     const races = await RaceService.getRaces();
-    logger.info(`✓ Fetched ${races.length} races from ESI`);
+    logger.info(`✓ fetched ${races.length} races from ESI`);
 
     for (const race of races) {
       try {
@@ -29,16 +29,16 @@ async function fetchAndSaveRaces() {
             description: race.description,
           },
         });
-        logger.debug(`  ✓ Saved: ${race.name}`);
+        logger.debug(`  ✓ saved: ${race.name}`);
       } catch (error: any) {
-        logger.error(`  ❌ Error saving race ${race.race_id}:`, error.message);
+        logger.error(`  ❌ error saving race ${race.race_id}:`, error.message);
       }
     }
 
-    logger.info(`✅ Race sync completed! Total: ${races.length}`);
+    logger.info(`✅ race sync completed! total: ${races.length}`);
     process.exit(0);
   } catch (error: any) {
-    logger.error('❌ Error fetching races:', error.message);
+    logger.error('❌ error fetching races:', error.message);
     process.exit(1);
   }
 }

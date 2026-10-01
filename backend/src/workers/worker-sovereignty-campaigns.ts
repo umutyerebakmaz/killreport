@@ -44,11 +44,11 @@ function inferOutcome(
 
 async function syncSovereigntyCampaigns() {
   const startTime = Date.now();
-  logger.info('🏰 Starting sovereignty campaigns sync...');
+  logger.info('🏰 starting sovereignty campaigns sync...');
 
   try {
     const campaigns = await SovereigntyService.getSovereigntyCampaigns();
-    logger.info(`📡 Received ${campaigns.length} active campaigns from ESI`);
+    logger.info(`📡 received ${campaigns.length} active campaigns from ESI`);
 
     const now = new Date();
     let participantCount = 0;
@@ -172,18 +172,18 @@ async function syncSovereigntyCampaigns() {
           });
           pubsub.publish('SOVEREIGNTY_ALERT', alert);
         } catch (err) {
-          logger.error(`Failed to end campaign ${c.campaign_id}`, { err });
+          logger.error(`failed to end campaign ${c.campaign_id}`, { err });
         }
       }
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
-      `✅ Campaigns sync complete: ${campaigns.length} active, ${participantCount} participants, ` +
+      `✅ campaigns sync complete: ${campaigns.length} active, ${participantCount} participants, ` +
         `${endedCount} marked ended (${duration}s)`,
     );
   } catch (error) {
-    logger.error('❌ Sovereignty campaigns sync failed', { error });
+    logger.error('❌ sovereignty campaigns sync failed', { error });
     throw error;
   }
 }

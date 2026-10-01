@@ -13,7 +13,7 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 
 async function takeAllianceSnapshots() {
-  logger.info('📸 Alliance Snapshot Worker started...');
+  logger.info('📸 alliance snapshot worker started...');
 
   const startTime = new Date();
   const today = new Date();
@@ -25,7 +25,7 @@ async function takeAllianceSnapshots() {
       select: { id: true },
     });
 
-    logger.info(`✓ Found ${alliances.length} alliances`);
+    logger.info(`✓ found ${alliances.length} alliances`);
 
     // Check which alliances already have snapshots for today (single query)
     const existingSnapshots = await prismaWorker.allianceSnapshot.findMany({
@@ -37,7 +37,7 @@ async function takeAllianceSnapshots() {
       existingSnapshots.map((s) => s.alliance_id),
     );
     logger.info(
-      `✓ Found ${existingAllianceIds.size} existing snapshots for today`,
+      `✓ found ${existingAllianceIds.size} existing snapshots for today`,
     );
 
     // Filter alliances that need snapshots
@@ -46,17 +46,17 @@ async function takeAllianceSnapshots() {
       .map((a) => a.id);
 
     if (allianceIds.length === 0) {
-      logger.info('✅ All alliances already have snapshots for today!');
+      logger.info('✅ all alliances already have snapshots for today!');
       const duration = (
         (new Date().getTime() - startTime.getTime()) /
         1000
       ).toFixed(2);
-      logger.info(`   • Duration: ${duration} seconds`);
-      logger.info(`   • Date: ${today.toISOString().split('T')[0]}`);
+      logger.info(`   • duration: ${duration} seconds`);
+      logger.info(`   • date: ${today.toISOString().split('T')[0]}`);
       return;
     }
 
-    logger.info(`📝 Calculating stats for ${allianceIds.length} alliances...`);
+    logger.info(`📝 calculating stats for ${allianceIds.length} alliances...`);
 
     // Fetch all corporations for these alliances in ONE query
     const corporations = await prismaWorker.corporation.findMany({
@@ -68,7 +68,7 @@ async function takeAllianceSnapshots() {
     });
 
     logger.info(
-      `✓ Found ${corporations.length} corporations across ${allianceIds.length} alliances`,
+      `✓ found ${corporations.length} corporations across ${allianceIds.length} alliances`,
     );
 
     // Group corporations by alliance_id and calculate stats in JavaScript
@@ -104,7 +104,7 @@ async function takeAllianceSnapshots() {
     );
 
     logger.info(
-      `📊 Stats calculated, creating ${snapshotsData.length} snapshots...`,
+      `📊 stats calculated, creating ${snapshotsData.length} snapshots...`,
     );
 
     // Batch create snapshots in chunks of 500
@@ -123,12 +123,12 @@ async function takeAllianceSnapshots() {
 
       const progress = Math.round((created / snapshotsData.length) * 100);
       logger.info(
-        `  ⏳ Progress: ${created}/${snapshotsData.length} (${progress}%)`,
+        `  ⏳ progress: ${created}/${snapshotsData.length} (${progress}%)`,
       );
     }
 
     // Also update alliance table with current counts (batch update in chunks)
-    logger.info('🔄 Updating alliance records with current stats...');
+    logger.info('🔄 updating alliance records with current stats...');
 
     const updatePromises: Promise<any>[] = [];
     for (const [allianceId, stats] of allianceStats.entries()) {
@@ -159,16 +159,16 @@ async function takeAllianceSnapshots() {
       2,
     );
 
-    logger.info(`✅ Snapshot creation completed!`);
-    logger.info(`   • Total alliances: ${alliances.length}`);
-    logger.info(`   • New snapshots: ${created}`);
-    logger.info(`   • Already existing: ${existingAllianceIds.size}`);
-    logger.info(`   • Total corporations: ${corporations.length}`);
-    logger.info(`   • Alliance records updated: ${allianceStats.size}`);
-    logger.info(`   • Duration: ${duration} seconds`);
-    logger.info(`   • Date: ${today.toISOString().split('T')[0]}`);
+    logger.info(`✅ snapshot creation completed!`);
+    logger.info(`   • total alliances: ${alliances.length}`);
+    logger.info(`   • new snapshots: ${created}`);
+    logger.info(`   • already existing: ${existingAllianceIds.size}`);
+    logger.info(`   • total corporations: ${corporations.length}`);
+    logger.info(`   • alliance records updated: ${allianceStats.size}`);
+    logger.info(`   • duration: ${duration} seconds`);
+    logger.info(`   • date: ${today.toISOString().split('T')[0]}`);
   } catch (error) {
-    logger.error('❌ Snapshot creation error:', error);
+    logger.error('❌ snapshot creation error:', error);
     throw error;
   } finally {
     await prismaWorker.$disconnect();
@@ -178,10 +178,10 @@ async function takeAllianceSnapshots() {
 // Start worker
 takeAllianceSnapshots()
   .then(() => {
-    logger.info('👋 Worker terminated');
+    logger.info('👋 worker terminated');
     process.exit(0);
   })
   .catch((error) => {
-    logger.error('💥 Worker error:', error);
+    logger.error('💥 worker error:', error);
     process.exit(1);
   });

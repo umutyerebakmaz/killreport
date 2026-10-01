@@ -22,11 +22,11 @@ const CHUNK_SIZE = 50;
 
 async function syncSovereigntyStructures() {
   const startTime = Date.now();
-  logger.info('🛰️  Starting sovereignty structures sync...');
+  logger.info('🛰️  starting sovereignty structures sync...');
 
   try {
     const structures = await SovereigntyService.getSovereigntyStructures();
-    logger.info(`📡 Received ${structures.length} structures from ESI`);
+    logger.info(`📡 received ${structures.length} structures from ESI`);
 
     const now = new Date();
     let upserted = 0;
@@ -83,10 +83,10 @@ async function syncSovereigntyStructures() {
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
-      `✅ Structures sync complete: ${upserted} upserted, ${destroyed.count} marked destroyed (${duration}s)`,
+      `✅ structures sync complete: ${upserted} upserted, ${destroyed.count} marked destroyed (${duration}s)`,
     );
   } catch (error) {
-    logger.error('❌ Sovereignty structures sync failed', { error });
+    logger.error('❌ sovereignty structures sync failed', { error });
     throw error;
   }
 }

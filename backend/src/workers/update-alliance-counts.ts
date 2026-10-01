@@ -9,7 +9,7 @@
 import prismaWorker from '@services/prisma-worker';
 
 async function updateAllianceCounts() {
-  console.log('🔄 Updating alliance counts...');
+  console.log('🔄 updating alliance counts...');
 
   const startTime = new Date();
 
@@ -18,7 +18,7 @@ async function updateAllianceCounts() {
       select: { id: true, name: true },
     });
 
-    console.log(`✓ Found ${alliances.length} alliances`);
+    console.log(`✓ found ${alliances.length} alliances`);
 
     let processed = 0;
 
@@ -50,7 +50,7 @@ async function updateAllianceCounts() {
       processed++;
 
       if (processed % 50 === 0) {
-        console.log(`  ⏳ Processed: ${processed}/${alliances.length}`);
+        console.log(`  ⏳ processed: ${processed}/${alliances.length}`);
       }
     }
 
@@ -59,11 +59,11 @@ async function updateAllianceCounts() {
       2,
     );
 
-    console.log(`✅ Update completed!`);
-    console.log(`   • Total updated: ${processed}`);
-    console.log(`   • Duration: ${duration} seconds`);
+    console.log(`✅ update completed!`);
+    console.log(`   • total updated: ${processed}`);
+    console.log(`   • duration: ${duration} seconds`);
   } catch (error) {
-    console.error('❌ Update error:', error);
+    console.error('❌ update error:', error);
     throw error;
   } finally {
     await prismaWorker.$disconnect();
@@ -72,10 +72,10 @@ async function updateAllianceCounts() {
 
 updateAllianceCounts()
   .then(() => {
-    console.log('👋 Script finished');
+    console.log('👋 script finished');
     process.exit(0);
   })
   .catch((error) => {
-    console.error('💥 Script error:', error);
+    console.error('💥 script error:', error);
     process.exit(1);
   });

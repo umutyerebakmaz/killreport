@@ -72,11 +72,11 @@ function changeType(prev: Owner | null, next: Owner | null): string {
 
 async function syncSovereigntyMap() {
   const startTime = Date.now();
-  logger.info('🗺️  Starting sovereignty map sync...');
+  logger.info('🗺️  starting sovereignty map sync...');
 
   try {
     const map = await SovereigntyService.getSovereigntyMap();
-    logger.info(`📡 Received ${map.length} systems from ESI`);
+    logger.info(`📡 received ${map.length} systems from ESI`);
 
     // Load current ownership state
     const existingRows = await prismaWorker.sovereigntyMapCurrent.findMany();
@@ -174,13 +174,13 @@ async function syncSovereigntyMap() {
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
-      `✅ Map sync complete: ${fetchedOwned.size} owned systems, ` +
+      `✅ map sync complete: ${fetchedOwned.size} owned systems, ` +
         `${toUpsert.length} updated, ${toDelete.length} lost, ` +
         `${changes.length} territory changes logged` +
         `${isInitialPopulation ? ' (initial baseline — changes not logged)' : ''} (${duration}s)`,
     );
   } catch (error) {
-    logger.error('❌ Sovereignty map sync failed', { error });
+    logger.error('❌ sovereignty map sync failed', { error });
     throw error;
   }
 }

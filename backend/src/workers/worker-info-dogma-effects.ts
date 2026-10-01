@@ -22,9 +22,9 @@ let isShuttingDown = false;
 let emptyCheckInterval: NodeJS.Timeout | null = null;
 
 async function dogmaEffectInfoWorker() {
-  logger.info('🔶 Dogma Effect Info Worker Started');
-  logger.info(`📦 Queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+  logger.info('🔶 dogma effect info worker started');
+  logger.info(`📦 queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
   await ensureAllQueuesExist();
   while (!isShuttingDown) {
@@ -35,7 +35,7 @@ async function dogmaEffectInfoWorker() {
 
       // Handle channel errors
       channel.on('error', (err) => {
-        logger.error('❌ Channel error:', err.message);
+        logger.error('❌ channel error:', err.message);
         if (emptyCheckInterval) {
           clearInterval(emptyCheckInterval);
           emptyCheckInterval = null;
@@ -43,15 +43,15 @@ async function dogmaEffectInfoWorker() {
       });
 
       channel.on('close', () => {
-        logger.warn('⚠️  Channel closed');
+        logger.warn('⚠️  channel closed');
         if (emptyCheckInterval) {
           clearInterval(emptyCheckInterval);
           emptyCheckInterval = null;
         }
       });
 
-      logger.info('✅ Connected to RabbitMQ');
-      logger.info('⏳ Waiting for dogma effects...\n');
+      logger.info('✅ connected to RabbitMQ');
+      logger.info('⏳ waiting for dogma effects...\n');
 
       let totalProcessed = 0;
       let totalAdded = 0;
@@ -69,12 +69,12 @@ async function dogmaEffectInfoWorker() {
         const timeSinceLastMessage = Date.now() - lastMessageTime;
         if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
           logger.info('\n' + '━'.repeat(60));
-          logger.info('✅ Queue completed!');
+          logger.info('✅ queue completed!');
           logger.info(
-            `📊 Final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
+            `📊 final: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
           );
           logger.info('━'.repeat(60) + '\n');
-          logger.info('⏳ Waiting for new messages...\n');
+          logger.info('⏳ waiting for new messages...\n');
         }
       }, 5000);
 
@@ -102,7 +102,7 @@ async function dogmaEffectInfoWorker() {
               totalSkipped++;
               totalProcessed++;
               logger.info(
-                `  - [${totalProcessed}] Effect ${effectId} (exists)`,
+                `  - [${totalProcessed}] effect ${effectId} (exists)`,
               );
               return;
             }
@@ -139,7 +139,7 @@ async function dogmaEffectInfoWorker() {
 
             if (totalProcessed % 100 === 0) {
               logger.info(
-                `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
+                `📊 summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
               );
             }
           } catch (error) {
@@ -154,7 +154,7 @@ async function dogmaEffectInfoWorker() {
 
             if (totalProcessed % 100 === 0) {
               logger.info(
-                `📊 Summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
+                `📊 summary: ${totalProcessed} processed (${totalAdded} added, ${totalSkipped} skipped, ${totalErrors} errors)`,
               );
             }
           }
@@ -169,11 +169,11 @@ async function dogmaEffectInfoWorker() {
       });
     } catch (error: any) {
       if (isShuttingDown) {
-        logger.info('Worker stopped during shutdown');
+        logger.info('worker stopped during shutdown');
         break;
       }
 
-      logger.error('💥 Worker error:', error.message);
+      logger.error('💥 worker error:', error.message);
 
       if (emptyCheckInterval) {
         clearInterval(emptyCheckInterval);
@@ -181,18 +181,18 @@ async function dogmaEffectInfoWorker() {
       }
 
       // Wait before reconnecting
-      logger.info('🔄 Reconnecting in 5 seconds...');
+      logger.info('🔄 reconnecting in 5 seconds...');
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 
-  logger.info('Worker stopped');
+  logger.info('worker stopped');
   await prismaWorker.$disconnect();
 }
 
 function setupShutdownHandlers() {
   const shutdown = async () => {
-    logger.warn('\n\n⚠️  Shutting down...');
+    logger.warn('\n\n⚠️  shutting down...');
     isShuttingDown = true;
 
     if (emptyCheckInterval) {

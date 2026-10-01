@@ -34,7 +34,7 @@ function isNPCCorporation(id: number): boolean {
 }
 
 async function scanAndQueueEntities() {
-  console.log('🔍 Killmail Entity Scanner Started\n');
+  console.log('🔍 killmail entity scanner started\n');
   console.log('━'.repeat(70));
 
   try {
@@ -48,14 +48,14 @@ async function scanAndQueueEntities() {
       TYPE_QUEUE,
     ];
 
-    console.log('✅ Connected to RabbitMQ');
-    console.log('📦 Queues ready:\n');
+    console.log('✅ connected to RabbitMQ');
+    console.log('📦 queues ready:\n');
     queues.forEach((q) => console.log(`   - ${q}`));
     console.log('\n' + '━'.repeat(70));
 
     // Get total killmail count
     const totalKillmails = await prismaWorker.killmail.count();
-    console.log(`\n📊 Total killmails: ${totalKillmails}\n`);
+    console.log(`\n📊 total killmails: ${totalKillmails}\n`);
 
     // Collect all unique IDs
     const characterIds = new Set<number>();
@@ -64,7 +64,7 @@ async function scanAndQueueEntities() {
     const typeIds = new Set<number>();
 
     let offset = 0;
-    console.log('🔍 Scanning killmails...\n');
+    console.log('🔍 scanning killmails...\n');
 
     while (offset < totalKillmails) {
       const killmails = await prismaWorker.killmail.findMany({
@@ -118,16 +118,16 @@ async function scanAndQueueEntities() {
       const progress = Math.min(offset, totalKillmails);
       const percentage = ((progress / totalKillmails) * 100).toFixed(1);
       console.log(
-        `   📖 Scanned ${progress}/${totalKillmails} (${percentage}%)`,
+        `   📖 scanned ${progress}/${totalKillmails} (${percentage}%)`,
       );
     }
 
     console.log('\n' + '━'.repeat(70));
-    console.log('📊 Unique IDs found:');
-    console.log(`   Characters: ${characterIds.size}`);
-    console.log(`   Corporations: ${corporationIds.size}`);
-    console.log(`   Alliances: ${allianceIds.size}`);
-    console.log(`   Types: ${typeIds.size}`);
+    console.log('📊 unique IDs found:');
+    console.log(`   characters: ${characterIds.size}`);
+    console.log(`   corporations: ${corporationIds.size}`);
+    console.log(`   alliances: ${allianceIds.size}`);
+    console.log(`   types: ${typeIds.size}`);
     console.log('━'.repeat(70) + '\n');
 
     // Convert to arrays (including NPCs)
@@ -135,7 +135,7 @@ async function scanAndQueueEntities() {
     const allCorporationIds = Array.from(corporationIds);
 
     // Filter already existing entities
-    console.log('🔎 Checking database for existing entities...\n');
+    console.log('🔎 checking database for existing entities...\n');
 
     const [existingChars, existingCorps, existingAlliances, existingTypes] =
       await Promise.all([
@@ -163,14 +163,14 @@ async function scanAndQueueEntities() {
       (id) => !existingTypeIds.has(id),
     );
 
-    console.log('📋 Missing entities (need info fetch):');
-    console.log(`   Characters: ${missingCharIds.length}`);
-    console.log(`   Corporations: ${missingCorpIds.length}`);
-    console.log(`   Alliances: ${missingAllianceIds.length}`);
-    console.log(`   Types: ${missingTypeIds.length}\n`);
+    console.log('📋 missing entities (need info fetch):');
+    console.log(`   characters: ${missingCharIds.length}`);
+    console.log(`   corporations: ${missingCorpIds.length}`);
+    console.log(`   alliances: ${missingAllianceIds.length}`);
+    console.log(`   types: ${missingTypeIds.length}\n`);
 
     console.log('━'.repeat(70));
-    console.log('📤 Queuing entities...\n');
+    console.log('📤 queuing entities...\n');
 
     // Queue characters
     for (const id of missingCharIds) {
@@ -188,7 +188,7 @@ async function scanAndQueueEntities() {
         },
       );
     }
-    console.log(`   ✅ Queued ${missingCharIds.length} characters`);
+    console.log(`   ✅ queued ${missingCharIds.length} characters`);
 
     // Queue corporations
     for (const id of missingCorpIds) {
@@ -206,7 +206,7 @@ async function scanAndQueueEntities() {
         },
       );
     }
-    console.log(`   ✅ Queued ${missingCorpIds.length} corporations`);
+    console.log(`   ✅ queued ${missingCorpIds.length} corporations`);
 
     // Queue alliances
     for (const id of missingAllianceIds) {
@@ -224,7 +224,7 @@ async function scanAndQueueEntities() {
         },
       );
     }
-    console.log(`   ✅ Queued ${missingAllianceIds.length} alliances`);
+    console.log(`   ✅ queued ${missingAllianceIds.length} alliances`);
 
     // Queue types
     for (const id of missingTypeIds) {
@@ -238,11 +238,11 @@ async function scanAndQueueEntities() {
         priority: 5,
       });
     }
-    console.log(`   ✅ Queued ${missingTypeIds.length} types\n`);
+    console.log(`   ✅ queued ${missingTypeIds.length} types\n`);
 
     console.log('━'.repeat(70));
-    console.log('✅ Scanning complete!\n');
-    console.log('🚀 Start specialized workers:');
+    console.log('✅ scanning complete!\n');
+    console.log('🚀 start specialized workers:');
     console.log('   yarn worker:info:characters');
     console.log('   yarn worker:info:corporations');
     console.log('   yarn worker:info:alliances');
@@ -250,7 +250,7 @@ async function scanAndQueueEntities() {
 
     await prismaWorker.$disconnect();
   } catch (error) {
-    console.error('💥 Scanner failed:', error);
+    console.error('💥 scanner failed:', error);
     await prismaWorker.$disconnect();
     process.exit(1);
   }

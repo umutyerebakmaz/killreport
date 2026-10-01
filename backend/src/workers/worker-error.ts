@@ -143,7 +143,7 @@ export async function handleWorkerError(
   // 420/429: error limited. Wait, requeue untouched, burn no attempt — being
   // rate limited is not a defect in the message.
   if (isErrorLimited(error)) {
-    logger.warn('🛑 Error limited (420/429)! Waiting 60 seconds...');
+    logger.warn('🛑 error limited (420/429)! waiting 60 seconds...');
     await sleep(60_000);
     channel.nack(msg, false, true);
     return;

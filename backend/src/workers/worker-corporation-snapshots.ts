@@ -13,7 +13,7 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 
 async function takeCorporationSnapshots() {
-  logger.info('📸 Corporation Snapshot Worker started...');
+  logger.info('📸 corporation snapshot worker started...');
 
   const startTime = new Date();
   const today = new Date();
@@ -25,7 +25,7 @@ async function takeCorporationSnapshots() {
       select: { id: true, member_count: true },
     });
 
-    logger.info(`✓ Found ${corporations.length} corporations`);
+    logger.info(`✓ found ${corporations.length} corporations`);
 
     // Check which corporations already have snapshots for today (single query)
     const existingSnapshots = await prismaWorker.corporationSnapshot.findMany({
@@ -37,7 +37,7 @@ async function takeCorporationSnapshots() {
       existingSnapshots.map((s) => s.corporation_id),
     );
     logger.info(
-      `✓ Found ${existingCorporationIds.size} existing snapshots for today`,
+      `✓ found ${existingCorporationIds.size} existing snapshots for today`,
     );
 
     // Filter corporations that need snapshots
@@ -46,18 +46,18 @@ async function takeCorporationSnapshots() {
     );
 
     if (corporationsToSnapshot.length === 0) {
-      logger.info('✅ All corporations already have snapshots for today!');
+      logger.info('✅ all corporations already have snapshots for today!');
       const duration = (
         (new Date().getTime() - startTime.getTime()) /
         1000
       ).toFixed(2);
-      logger.info(`   • Duration: ${duration} seconds`);
-      logger.info(`   • Date: ${today.toISOString().split('T')[0]}`);
+      logger.info(`   • duration: ${duration} seconds`);
+      logger.info(`   • date: ${today.toISOString().split('T')[0]}`);
       return;
     }
 
     logger.info(
-      `📝 Creating ${corporationsToSnapshot.length} new snapshots...`,
+      `📝 creating ${corporationsToSnapshot.length} new snapshots...`,
     );
 
     // Prepare snapshot data
@@ -83,7 +83,7 @@ async function takeCorporationSnapshots() {
 
       const progress = Math.round((created / snapshotsData.length) * 100);
       logger.info(
-        `  ⏳ Progress: ${created}/${snapshotsData.length} (${progress}%)`,
+        `  ⏳ progress: ${created}/${snapshotsData.length} (${progress}%)`,
       );
     }
 
@@ -92,14 +92,14 @@ async function takeCorporationSnapshots() {
       2,
     );
 
-    logger.info(`✅ Snapshot creation completed!`);
-    logger.info(`   • Total corporations: ${corporations.length}`);
-    logger.info(`   • New snapshots: ${created}`);
-    logger.info(`   • Already existing: ${existingCorporationIds.size}`);
-    logger.info(`   • Duration: ${duration} seconds`);
-    logger.info(`   • Date: ${today.toISOString().split('T')[0]}`);
+    logger.info(`✅ snapshot creation completed!`);
+    logger.info(`   • total corporations: ${corporations.length}`);
+    logger.info(`   • new snapshots: ${created}`);
+    logger.info(`   • already existing: ${existingCorporationIds.size}`);
+    logger.info(`   • duration: ${duration} seconds`);
+    logger.info(`   • date: ${today.toISOString().split('T')[0]}`);
   } catch (error) {
-    logger.error('❌ Snapshot creation error:', error);
+    logger.error('❌ snapshot creation error:', error);
     throw error;
   } finally {
     await prismaWorker.$disconnect();
@@ -109,10 +109,10 @@ async function takeCorporationSnapshots() {
 // Start worker
 takeCorporationSnapshots()
   .then(() => {
-    logger.info('👋 Worker terminated');
+    logger.info('👋 worker terminated');
     process.exit(0);
   })
   .catch((error) => {
-    logger.error('💥 Worker error:', error);
+    logger.error('💥 worker error:', error);
     process.exit(1);
   });

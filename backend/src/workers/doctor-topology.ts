@@ -25,7 +25,7 @@ interface CheckRow {
 }
 
 async function doctorTopology() {
-  logger.info('🩺 Topology doctor\n');
+  logger.info('🩺 topology doctor\n');
 
   // Orphaned cross-pipeline references. ::BIGINT comes back as a JavaScript
   // BigInt, so it is converted with Number() before being printed.
@@ -64,7 +64,7 @@ async function doctorTopology() {
      WHERE g.destination_system_id IS NULL
   `;
 
-  logger.info('Cross-pipeline references:');
+  logger.info('cross-pipeline references:');
   for (const row of orphans) {
     const n = Number(row.count);
     logger.info(`  ${n === 0 ? '✅' : '⚠️ '} ${row.check}: ${n}`);
@@ -83,7 +83,7 @@ async function doctorTopology() {
     ],
   );
 
-  logger.info('\nRows with no name (run yarn queue:<domain> to repair):');
+  logger.info('\nrows with no name (run yarn queue:<domain> to repair):');
   logger.info(`  stars: ${stars}           -> yarn queue:stars`);
   logger.info(`  planets: ${planets}         -> yarn queue:planets`);
   logger.info(`  moons: ${moons}           -> yarn queue:moons`);
@@ -99,13 +99,13 @@ async function doctorTopology() {
   // topology-only.
   const parking = await getQueueStats(RETRY_TOPOLOGY.parking);
   logger.info(
-    `\nShared parking queue (${RETRY_TOPOLOGY.parking}): ` +
+    `\nshared parking queue (${RETRY_TOPOLOGY.parking}): ` +
       `${parking.exists ? `${parking.messageCount} messages` : 'not declared yet'}`,
   );
   if (parking.messageCount > 0) {
     logger.warn(
-      '⚠️  Messages parked after repeated failures, from this chain or any other worker. ' +
-        'Inspect them (see backend/docs/ops/rabbitmq.md) before re-running the scan.',
+      '⚠️  messages parked after repeated failures, from this chain or any other worker. ' +
+        'inspect them (see backend/docs/ops/rabbitmq.md) before re-running the scan.',
     );
   }
 
@@ -114,7 +114,7 @@ async function doctorTopology() {
 }
 
 doctorTopology().catch(async (error) => {
-  logger.error('Topology doctor failed', { error });
+  logger.error('topology doctor failed', { error });
   await prismaWorker.$disconnect();
   process.exit(1);
 });
