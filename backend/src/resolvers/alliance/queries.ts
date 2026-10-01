@@ -21,7 +21,7 @@ export const allianceQueries: QueryResolvers = {
     });
     if (!alliance) return null;
 
-    // Field resolver'lar eksik field'ları otomatik doldurur
+    // Field resolvers fill in the missing fields
     const result = {
       ...alliance,
       date_founded: alliance.date_founded.toISOString(),
@@ -37,7 +37,7 @@ export const allianceQueries: QueryResolvers = {
     const currentPage = filter?.page ?? 1;
     const skip = (currentPage - 1) * take;
 
-    // Filter koşullarını oluştur
+    // Build the filter conditions
     const where: any = {};
 
     if (filter?.search) {
@@ -107,7 +107,7 @@ export const allianceQueries: QueryResolvers = {
         creator_id: true,
         creator_corporation_id: true,
         faction_id: true,
-        // Hesaplanmış field'ları seç
+        // Select the computed fields
         member_count: true,
         corporation_count: true,
       },
@@ -125,7 +125,7 @@ export const allianceQueries: QueryResolvers = {
       items: alliances.map((a: any) => ({
         ...a,
         date_founded: a.date_founded.toISOString(),
-        // Field resolver'lar metrics gibi computed field'ları otomatik doldurur
+        // Field resolvers fill in computed fields such as metrics
       })),
       pageInfo,
     };

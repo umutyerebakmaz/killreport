@@ -1,6 +1,6 @@
-# Operasyon adı MapSystemDetails olmak zorunda: backend'in response cache'i
-# PUBLIC_CACHE_QUERIES'e operasyon adıyla bakıyor (backend/src/config/cache.ts).
-# Adı değiştirmek önbelleği token başına 120 s'ye düşürür.
+# The operation must be named MapSystemDetails: the backend's response cache
+# looks it up in PUBLIC_CACHE_QUERIES by operation name (backend/src/config/cache.ts).
+# Renaming it drops the cache to 120 s per token.
 query MapSystemDetails($systemId: Int!) {
   mapSystemDetails(systemId: $systemId) {
     systemId

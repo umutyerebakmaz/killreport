@@ -52,10 +52,10 @@ async function syncCharacterKillmails() {
 
     logger.info(`\n📋 listing ${zkillmails.length} killmails...\n`);
 
-    // Publish etmeden önce kuyruğun var olduğundan emin ol. sendToQueue
-    // default exchange'e yazar; kuyruk yoksa broker mesajı hatasız düşürür ve
-    // script "10 kuyruğa kondu" der. src/queues/ altındaki her script aynı
-    // sebeple assert eder.
+    // Make sure the queue exists before publishing. sendToQueue
+    // writes to the default exchange; with no queue the broker silently drops
+    // the message and the script still reports "10 queued". Every script under
+    // src/queues/ asserts for the same reason.
     await ensureAllQueuesExist();
 
     const queued = await publishKillmailDetails(

@@ -95,9 +95,9 @@ async function typeInfoWorker() {
               where: { id: typeId },
             });
 
-            // Type'lar nadiren değişir ama yine de güncel bilgiyi çekelim
+            // Types rarely change, but fetch the latest info anyway
             if (existing) {
-              // Type zaten var, skip (type'lar sabit veridir, güncellenmeye gerek yok)
+              // Type already exists, skip (types are static data, no update needed)
               channel.ack(msg);
               totalSkipped++;
               totalProcessed++;
@@ -122,7 +122,7 @@ async function typeInfoWorker() {
                 mass: typeInfo.mass,
                 icon_id: typeInfo.icon_id,
               },
-              update: {}, // Type'lar statik veri, güncellenmez
+              update: {}, // Types are static data, never updated
             });
 
             totalAdded++;

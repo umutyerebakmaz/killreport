@@ -1,32 +1,32 @@
 import prismaWorker from '@services/prisma-worker';
 
 /**
- * Artımlı sync'in nerede duracağı, veritabanından türetilir.
+ * Where an incremental sync should stop, derived from the database.
  *
- * Eskiden bu bir kolondu (`users.last_killmail_id`) ve worker killmail'leri
- * yazdıktan sonra ilerletirdi. Yayınlamak ile yazmak ayrılınca o defter yalan
- * söylemeye başlar: yayıncı imleci ilerletirse "sync'lendi" artık "kuyruğa
- * kondu" demektir, ve parking'e düşen bir killmail'in üzerinden geçilmiş olur
- * — bir daha hiç denenmez.
+ * This used to be a column (`users.last_killmail_id`) that the worker advanced
+ * after writing killmails. Once publishing and writing are split, that ledger
+ * starts to lie: if the publisher advances the cursor, "synced" now means
+ * "queued", and a killmail that lands in parking gets skipped over
+ * — never to be tried again.
  *
- * Buradan okunduğunda "sync'lendi" yeniden "yazıldı" anlamına gelir.
+ * Read from here, "synced" means "written" again.
  *
- * **Kendi kendini onarmaz.** Bu bir `MAX()` ve ESI liste ucu birebir id
- * eşleşmesinde duruyor; max'ın *altında* kalan bir boşluk — parking'e düşmüş
- * bir killmail — bir daha listelenmez. Yerine geçtiği kolon da aynı şeyi
- * yapıyordu. Böyle bir killmail'in kaydı `killreport.parking` kuyruğudur.
+ * **It does not heal itself.** This is a `MAX()`, and the ESI list endpoint
+ * stops at an exact id match; a gap *below* the max — a killmail that landed
+ * in parking — is never listed again. The column it replaces did the same.
+ * The record of such a killmail is the `killreport.parking` queue.
  *
- * **Bu tablo bu sync'in defteri değil.** Her yazıcı onu besliyor ve RedisQ
- * bütün EVE akışını yazıyor, yani buradaki max "bu varlığın EVE'deki en yeni
- * killmail'i" demek — "bu sync'in yazdığı en yeni killmail" değil. Hiç sync
- * olmamış bir kullanıcıda ikisi çakışır ve liste ilk sayfanın ilk satırında
- * durur; bu yüzden ilk sync `killmail-sync-cron.ts`'te tam sync olarak
- * yayınlanır.
+ * **This table is not this sync's ledger.** Every writer feeds it and RedisQ
+ * writes the whole EVE feed, so the max here means "this entity's newest
+ * killmail in EVE" — not "the newest killmail this sync wrote". For a user who
+ * has never synced the two coincide and the list stops at the first row of the
+ * first page; that is why the first sync is published as a full sync in
+ * `killmail-sync-cron.ts`.
  *
- * `killmail_filters` seçilir çünkü aradığımız indeksler orada: attacker
- * dizileri GIN'li, victim kolonları btree'li. Ölçüldü (2026-09-23, 108.890
- * satır): karakter için 4.8 ms, korporasyon için 4.7 ms — ikisi de bitmap
- * index scan.
+ * `killmail_filters` is chosen because the indexes we need live there: the
+ * attacker arrays are GIN-indexed, the victim columns btree. Measured
+ * (2026-09-23, 108,890 rows): 4.8 ms for a character, 4.7 ms for a
+ * corporation — both a bitmap index scan.
  */
 export async function lastStoredKillmailId(scope: {
   characterId?: number;

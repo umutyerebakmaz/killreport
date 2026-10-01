@@ -92,7 +92,7 @@ async function itemGroupInfoWorker() {
               where: { id: itemGroupId },
             });
 
-            // Fetch from ESI (her zaman güncel bilgiyi al)
+            // Fetch from ESI (always take the latest info)
             const itemGroupInfo =
               await ItemGroupService.getItemGroupInfo(itemGroupId);
 
@@ -106,7 +106,7 @@ async function itemGroupInfoWorker() {
                 published: itemGroupInfo.published ?? true,
               },
               update: {
-                // Güncellenebilir alanlar
+                // Mutable fields
                 name: itemGroupInfo.name,
                 category_id: itemGroupInfo.category_id,
                 published: itemGroupInfo.published ?? true,
@@ -128,7 +128,7 @@ async function itemGroupInfoWorker() {
             channel.ack(msg);
             totalProcessed++;
 
-            // Progress her 100 mesajda bir
+            // Progress once every 100 messages
             if (totalProcessed % 100 === 0) {
               logger.info(
                 `\n📊 progress: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)\n`,

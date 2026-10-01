@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import EveImage from '../ui/EveImage';
 
-// useCharactersQuery'nin döndüğü Character type'ını extract et
+// Extract the Character type returned by useCharactersQuery
 type Character = CharactersQuery['characters']['items'][number];
 
 type CharacterCardProps = {

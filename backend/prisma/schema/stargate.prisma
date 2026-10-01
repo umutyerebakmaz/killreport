@@ -2,7 +2,7 @@ model Stargate {
   id                      Int     @id @map("stargate_id")
   name                    String?
   solar_system_id         Int
-  /// Adım 2 bunu boş bırakır; yalnızca worker-stargates doldurur.
+  /// Step 2 leaves this empty; only worker-stargates fills it.
   destination_system_id   Int?
   destination_stargate_id Int?
   type_id                 Int?
@@ -11,16 +11,16 @@ model Stargate {
   position_z              Float?
 
   solar_system       SolarSystem  @relation("StargateSystem", fields: [solar_system_id], references: [id], onDelete: Cascade)
-  /// ON DELETE SET NULL, Cascade değil: bir sistem silindiğinde ona bakan BAŞKA
-  /// sistemlerdeki geçitler silinmemeli, yalnızca hedefleri boşalmalı.
-  /// destination_stargate_id'ye FK konmuyor: hedef geçit satırını da aynı worker
-  /// yarattığı için kuyruğun kendi içinde sık tetiklenen bir sıra bağımlılığı doğardı.
+  /// ON DELETE SET NULL, not Cascade: when a system is deleted, gates in OTHER
+  /// systems that point at it must not be deleted, only have their target cleared.
+  /// destination_stargate_id gets no FK: the same worker creates the target gate's
+  /// row, so it would create an ordering dependency inside the queue that trips often.
   destination_system SolarSystem? @relation("StargateDestination", fields: [destination_system_id], references: [id], onDelete: SetNull)
 
   /// stargatesBySystem: WHERE solar_system_id IN (...) ORDER BY id.
   @@index([solar_system_id, id])
-  /// Bugün hiçbir sorgu buradan filtrelemiyor, ama yeni SET NULL FK'si gerekli
-  /// kılıyor: indekssiz bir sistem silme bu tabloda tam tarama yapar.
+  /// No query filters on this today, but the new SET NULL FK requires it:
+  /// without an index, deleting a system does a full scan of this table.
   @@index([destination_system_id])
   @@map("stargates")
 }

@@ -1,4 +1,4 @@
-// Kullanıcı ve Sync İşlemi Modelleri
+// User and sync models
 
 model User {
   id                         Int       @id @default(autoincrement())
@@ -11,11 +11,11 @@ model User {
   email                      String?   @unique
   created_at                 DateTime  @default(now())
   updated_at                 DateTime  @updatedAt
-  last_killmail_sync_at      DateTime? // Son character killmail sync zamanı
-  last_killmail_id           Int? // En son senkronize edilen character killmail ID (incremental sync için)
-  last_corp_killmail_sync_at DateTime? // Son corporation killmail sync zamanı
-  last_corp_killmail_id      Int? // En son senkronize edilen corporation killmail ID (incremental sync için)
-  corporation_id             Int? // User'ın corporation ID'si
+  last_killmail_sync_at      DateTime? // Last character killmail sync time
+  last_killmail_id           Int? // Last synced character killmail ID (for incremental sync)
+  last_corp_killmail_sync_at DateTime? // Last corporation killmail sync time
+  last_corp_killmail_id      Int? // Last synced corporation killmail ID (for incremental sync)
+  corporation_id             Int? // The user's corporation ID
   sessions                   Session[]
 
   @@index([character_id])

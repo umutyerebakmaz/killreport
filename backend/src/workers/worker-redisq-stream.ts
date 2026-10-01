@@ -100,8 +100,8 @@ let stats = {
   saved: 0,
   skipped: 0,
   errors: 0,
-  enriched: 0, // Yeni: enrichment yapılan entity sayısı
-  enrichmentFailed: 0, // Başarısız enrichment sayısı
+  enriched: 0, // New: number of entities enriched
+  enrichmentFailed: 0, // Number of failed enrichments
   startTime: new Date(),
 };
 
@@ -312,7 +312,7 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
       logger.debug(`   📦 items found: ${itemCount}`);
     }
 
-    // 🚀 YENİ: Killmail'i kaydetmeden önce eksik entity'leri ESI'dan çek
+    // 🚀 NEW: fetch missing entities from ESI before saving the killmail
     // Can be disabled with REDISQ_ENABLE_ENRICHMENT=false to reduce DB load
     if (ENABLE_ENRICHMENT) {
       await enrichMissingEntities(killmail);
@@ -347,7 +347,7 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
 
 /**
  * Enrich missing entities (character, corporation, alliance, type) before saving killmail
- * Bu fonksiyon transaction öncesinde çalışır ve tüm eksik entity'leri ESI'dan çeker
+ * Runs before the transaction and fetches every missing entity from ESI
  */
 async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
   const enrichmentStart = Date.now();
@@ -356,13 +356,13 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
   let enrichedCount = 0;
   let failedCount = 0;
 
-  // 1. Tüm unique ID'leri topla
+  // 1. Collect every unique ID
   const characterIds = new Set<number>();
   const corporationIds = new Set<number>();
   const allianceIds = new Set<number>();
   const typeIds = new Set<number>();
 
-  // Victim'dan ID'leri topla
+  // Collect IDs from the victim
   if (killmail.victim.character_id)
     characterIds.add(killmail.victim.character_id);
   if (killmail.victim.corporation_id)
@@ -370,7 +370,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
   if (killmail.victim.alliance_id) allianceIds.add(killmail.victim.alliance_id);
   if (killmail.victim.ship_type_id) typeIds.add(killmail.victim.ship_type_id);
 
-  // Attackers'dan ID'leri topla
+  // Collect IDs from the attackers
   killmail.attackers.forEach((attacker) => {
     if (attacker.character_id) characterIds.add(attacker.character_id);
     if (attacker.corporation_id) corporationIds.add(attacker.corporation_id);
@@ -379,7 +379,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
     if (attacker.weapon_type_id) typeIds.add(attacker.weapon_type_id);
   });
 
-  // Items'dan type ID'leri topla
+  // Collect type IDs from the items
   if (killmail.victim.items) {
     killmail.victim.items.forEach((item) => {
       if (item.item_type_id) typeIds.add(item.item_type_id);
@@ -393,7 +393,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
       `${allianceIds.size} alliances, ${typeIds.size} types`,
   );
 
-  // 2. Database'de eksik olanları bul
+  // 2. Find the ones missing from the database
   const [existingChars, existingCorps, existingAlliances, existingTypes] =
     await Promise.all([
       allCharacterIds.length > 0
@@ -457,7 +457,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
       `${missingAllianceIds.length} alliances, ${missingTypeIds.length} types`,
   );
 
-  // 3. ESI'dan eksik entity'leri çek ve kaydet (batch processing)
+  // 3. Fetch the missing entities from ESI and save them (batch processing)
   // Process 10 items at a time for better performance
   const BATCH_SIZE = 10;
 
@@ -557,7 +557,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
       );
       return { success: true };
     } catch (error: any) {
-      // Detaylı error logging
+      // Detailed error logging
       const statusCode = error?.response?.status || error?.code || 'unknown';
       const errorMsg =
         error?.response?.data?.error || error?.message || 'Unknown error';
@@ -566,7 +566,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
       logger.error(`     status: ${statusCode}`);
       logger.error(`     message: ${errorMsg}`);
 
-      // Database constraint error'ları için özel handling
+      // Special handling for database constraint errors
       if (error?.code === 'P2003') {
         logger.error(`     type: foreign key constraint violation`);
         logger.error(`     meta: ${JSON.stringify(error?.meta || {})}`);

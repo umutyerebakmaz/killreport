@@ -94,7 +94,7 @@ async function categoryInfoWorker() {
               where: { id: categoryId },
             });
 
-            // Fetch from ESI (her zaman güncel bilgiyi al)
+            // Fetch from ESI (always take the latest info)
             const categoryInfo =
               await CategoryService.getCategoryInfo(categoryId);
 
@@ -107,7 +107,7 @@ async function categoryInfoWorker() {
                 published: categoryInfo.published,
               },
               update: {
-                // Güncellenebilir alanlar
+                // Mutable fields
                 name: categoryInfo.name,
                 published: categoryInfo.published,
               },

@@ -144,21 +144,21 @@ type AuthPayload {
   """JWT access token"""
   accessToken: String!
 
-  """Token geçerlilik süresi (saniye)"""
+  """Token lifetime (seconds)"""
   expiresIn: Int!
 
-  """Authenticated kullanıcı bilgileri"""
+  """The authenticated user"""
   user: User!
 }
 
 type AuthUrl {
   """
-  CSRF koruması için state parametresi. Sunucuda saklanır ve callback'te tek
-  kullanımlık olarak harcanır.
+  State parameter for CSRF protection. Stored on the server and consumed once
+  in the callback.
   """
   state: String!
 
-  """Eve Online SSO authorization URL'i"""
+  """Eve Online SSO authorization URL"""
   url: String!
 }
 
@@ -637,7 +637,7 @@ enum LeaderboardPeriod {
 }
 
 """
-Sahnedeki düğümlerin sınırları, metre. Kameranın autofit'i buradan geliyor.
+Bounds of the nodes in the scene, in metres. The camera's autofit comes from here.
 """
 type MapBounds {
   maxX: Float!
@@ -647,13 +647,13 @@ type MapBounds {
 }
 
 """
-Sistemin içindeki tek bir nesne. Koordinat **sistemin merkezine göre**, metre,
-ve düğümlerin aksine **yuvarlanmamış**: en iç gezegenin yörüngesi 2,4145e10 m,
-1e9'luk ızgara onu %4 kaydırırdı.
+A single object inside a system. Coordinates are **relative to the system centre**,
+in metres, and unlike the nodes **not rounded**: the innermost planet orbits at
+2.4145e10 m, and a 1e9 grid would shift it by 4%.
 """
 type MapCelestial {
   """
-  Yalnızca GATE'te dolu: hattın öteki ucundaki sistem. Gate ucunun çapalanması buna dayanıyor.
+  Set only on GATE: the system at the other end of the line. Anchoring the gate end relies on it.
   """
   destinationSystemId: Int
   id: Int!
@@ -661,18 +661,18 @@ type MapCelestial {
   name: String
 
   """
-  ESI'nın 1 tabanlı sırası; gezegen, ay ve kuşakta dolu, diğerlerinde null.
+  ESI's 1-based position; set for planets, moons and belts, null for the rest.
   """
   orbitIndex: Int
 
-  """Ay ve kuşağın bağlı olduğu gezegen; diğerlerinde null."""
+  """The planet a moon or belt belongs to; null for the rest."""
   planetId: Int
   systemId: Int!
   x: Float!
   z: Float!
 }
 
-"""Sistem içindeki çizilebilir nesnenin türü."""
+"""The kind of drawable object inside a system."""
 enum MapCelestialKind {
   BELT
   GATE
@@ -682,7 +682,7 @@ enum MapCelestialKind {
   STATION
 }
 
-"""Bir geçit çifti. Her çift bir kez, from < to."""
+"""A gate pair. Each pair appears once, from < to."""
 type MapEdge {
   from: Int!
   to: Int!
@@ -696,25 +696,25 @@ type MapGeometry {
 }
 
 """
-Haritada bir isim. Koordinat **galaktik metre**, düğümlerle aynı uzayda.
-Bölgede konum yok ve sahnenin çizdiği sistemlerin medoidinden hesaplanıyor;
-takımyıldızda constellations.position_x/z doğrudan kullanılıyor.
+A name on the map. Coordinates are in **galactic metres**, the same space as the nodes.
+A region has no position, so it is computed from the medoid of the systems the scene
+draws; a constellation uses constellations.position_x/z directly.
 """
 type MapLabel {
   """
-  Yalnızca REGION: bölgenin çizilen sistemlerinin sınırları. İsmin görünürlük eşiği buradan.
+  REGION only: bounds of the region's drawn systems. The name's visibility threshold comes from here.
   """
   bounds: MapBounds
 
   """
-  Bölgede region_id, takımyıldızda constellation_id. Bantlar çakışmıyor ama tek anahtar isteyen bir tüketici kind ile birlikte anahtarlamalı.
+  region_id for a region, constellation_id for a constellation. The ranges do not overlap, but a consumer that wants a single key should key on it together with kind.
   """
   id: Int!
   kind: MapLabelKind!
   name: String!
 
   """
-  Yalnızca REGION: ismin çapalandığı medoid sistemi. Yarıçapı istemci mapGeometry'den okur.
+  REGION only: the medoid system the name is anchored to. The client reads its radius from mapGeometry.
   """
   systemId: Int
   x: Float!
@@ -722,7 +722,7 @@ type MapLabel {
 }
 
 """
-Bir etiketin kademesi. Sistem adları mapGeometry'den geldiği için burada yok.
+A label's tier. System names are not here because they come from mapGeometry.
 """
 enum MapLabelKind {
   CONSTELLATION
@@ -730,20 +730,20 @@ enum MapLabelKind {
 }
 
 """
-Bir sistem, galaktik konumunda. Koordinatlar 1e9 m'ye yuvarlanmış ve asla ham GPU'ya gitmez.
+A system at its galactic position. Coordinates are rounded to 1e9 m and never reach the GPU raw.
 """
 type MapNode {
   constellationId: Int!
   name: String!
 
   """
-  x/z düzlemindeki en uzak celestial'a mesafe, metre. Nokta bu yarıçapta diske dönüşüyor.
+  Distance to the farthest celestial in the x/z plane, in metres. The dot turns into a disc at this radius.
   """
   radius: Float!
   regionId: Int!
 
   """
-  İki ondalığa KESİLMİŞ, yuvarlanmamış: yuvarlama 14 sistemi highsec'e taşıyor.
+  TRUNCATED to two decimals, not rounded: rounding moves 14 systems into highsec.
   """
   securityStatus: Float!
   systemId: Int!
@@ -752,7 +752,7 @@ type MapNode {
 }
 
 """
-Bir sistemi tutan şeyin türü. Satırda alliance varsa sahip odur; corporation yalnızca alliance yokken sahiptir.
+The kind of thing that holds a system. If the row has an alliance, that is the owner; a corporation owns only when there is no alliance.
 """
 enum MapOwnerKind {
   ALLIANCE
@@ -761,7 +761,7 @@ enum MapOwnerKind {
 }
 
 """
-Çizilebilir bir sahne. Abyssal, Proving ve GPMR-01 burada yok: içlerinde sıfır gezegen, ay ve istasyon var.
+A drawable scene. Abyssal, Proving and GPMR-01 are not here: they contain zero planets, moons and stations.
 """
 enum MapScope {
   NEW_EDEN
@@ -770,8 +770,8 @@ enum MapScope {
 }
 
 """
-Sahnede toprağı olan tek bir sahip. `systems` içinde adı tekrarlanmıyor;
-iki liste `ownerId` üzerinden birleşiyor.
+A single owner holding territory in the scene. Its name is not repeated in
+`systems`; the two lists join on `ownerId`.
 """
 type MapSovOwner {
   kind: MapOwnerKind!
@@ -779,11 +779,11 @@ type MapSovOwner {
   ownerId: Int!
   systemCount: Int!
 
-  """Faction'da null: factions tablosunda ticker sütunu yok."""
+  """Null for a faction: the factions table has no ticker column."""
   ticker: String
 }
 
-"""Tek bir sahiplik çifti. NEW_EDEN'da 5.383 satır."""
+"""A single ownership pair. 5,383 rows in NEW_EDEN."""
 type MapSovSystem {
   ownerId: Int!
   systemId: Int!
@@ -794,17 +794,17 @@ type MapSovereignty {
   scope: MapScope!
   systems: [MapSovSystem!]!
 
-  """Anlık görüntünün tazeliği, ISO. Hiç satır yoksa null."""
+  """How fresh the snapshot is, ISO. Null when there are no rows."""
   updatedAt: String
 }
 
 """
-Bir sistemin popup'ının gösterdiği her şey, tek sorguda.
+Everything a system's popup shows, in one query.
 
-Neden `solarSystem(id)` değil, oradan hepsi okunabilirken: o koordinat response
-cache'te **365 gün** duruyor (`config/cache.ts`, `STATIC_GAME_DATA`) ve içinden
-okunan saatlik veri bir yıl boyunca donar. Detay sayfasının kendi "2 saat önce"
-satırı bugün bu yüzden donuyor; buraya taşınmıyor.
+Why not `solarSystem(id)`, when all of it could be read from there: that coordinate
+stays in the response cache for **365 days** (`config/cache.ts`, `STATIC_GAME_DATA`),
+so hourly data read through it freezes for a year. The detail page's own "2 hours ago"
+line freezes today for exactly this reason; that is not carried over here.
 """
 type MapSystemDetails {
   constellationName: String!
@@ -812,66 +812,68 @@ type MapSystemDetails {
   npcKills: Int
 
   """
-  Sistemi tutan taraf. Talep edilmemiş uzayda null, yani New Eden'in çoğunda.
+  Whoever holds the system. Null in unclaimed space, which is most of New Eden.
   """
   owner: MapSystemOwner
   podKills: Int
   regionName: String!
 
   """
-  İki ondalığa KESİLMİŞ, MapNode.securityStatus ile aynı: yuvarlama 14 sistemi highsec'e taşıyor.
+  TRUNCATED to two decimals, same as MapNode.securityStatus: rounding moves 14 systems into highsec.
   """
   securityStatus: Float
 
   """
-  Satır varken de null olabilir: ESI jumps listesinde o sistemi bildirmediyse. 0 ise bildirdi ve atlama yoktu.
+  Can be null even when a row exists: if ESI left the system out of the jumps list. 0 means it reported it and there were no jumps.
   """
   shipJumps: Int
 
-  """Son anlık görüntü. Sistemin hiç satırı yoksa dördü de null."""
+  """
+  The latest snapshot. All four are null if the system has no row at all.
+  """
   shipKills: Int
 
-  """Anlık görüntünün saati, ISO. Dört sayı null ise bu da null."""
+  """The snapshot time, ISO. Null when all four numbers are null."""
   snapshotAt: String
 
   """
-  `stargates` tablosundan gerçek liste. `mapGeometry.edges`'ten türetmek EKSİK
-  kalır: orada bir kenarın iki ucu da scope içinde olmak zorunda, yani scope
-  dışına çıkan kapı hiç görünmez. Sayı ayrıca taşınmıyor — listenin uzunluğu
-  zaten o, ve tek sayının iki kaynağı zamanla ayrışır.
+  The real list from the `stargates` table. Deriving it from `mapGeometry.edges`
+  comes up SHORT: there both ends of an edge must be inside the scope, so a gate
+  leading out of the scope never shows. The count is not carried separately — the
+  list's length already is that, and two sources for one number drift apart.
   """
   stargates: [MapSystemStargate!]!
   systemId: Int!
 }
 
 """
-Tek bir sistemin sahibi. `mapSovereignty` ile AYNI COALESCE kuralından çıkıyor:
-SQL parçaları `map-sovereignty.service`'ten paylaşılıyor, yani popup altındaki
-rengin anlattığı sahiple çelişemiyor.
+The owner of a single system. It comes from the SAME COALESCE rule as `mapSovereignty`:
+the SQL fragments are shared from `map-sovereignty.service`, so the popup cannot
+contradict the owner the colour beneath it shows.
 """
 type MapSystemOwner {
   kind: MapOwnerKind!
   name: String!
   ownerId: Int!
 
-  """Faction'da null: factions tablosunda ticker sütunu yok."""
+  """Null for a faction: the factions table has no ticker column."""
   ticker: String
 }
 
 """
-Sistemden çıkan tek bir geçit ve açıldığı yer.
+A single gate leading out of the system, and where it opens.
 
-Ad olarak HEDEF sistemin adı taşınıyor, geçidin kendi adı değil: veritabanındaki
-ad zaten `Stargate (Perimeter)`, ve başlığı Stargates olan bir listede sekiz
-satırın sekizinde "Stargate" sözcüğünü tekrarlamanın bilgisi yok.
+The name carried is the DESTINATION system's, not the gate's own: the name in the
+database is already `Stargate (Perimeter)`, and repeating "Stargate" on eight of
+eight rows in a list headed Stargates tells the reader nothing.
 """
 type MapSystemStargate {
   destinationName: String!
 
   """
-  Hedefin güvenlik durumu, `MapSystemDetails.securityStatus` ile AYNI kuralla
-  iki ondalığa KESİLMİŞ. Nullable, çünkü sütun nullable — ölçüldü 2026-09-20:
-  13.978 hedefin hepsinde dolu, yani bugün hiç null dönmüyor.
+  The destination's security status, TRUNCATED to two decimals by the SAME rule
+  as `MapSystemDetails.securityStatus`. Nullable because the column is — measured
+  2026-09-20: set on all 13,978 destinations, so it never returns null today.
   """
   destinationSecurityStatus: Float
   destinationSystemId: Int!
@@ -882,7 +884,7 @@ type Moon {
   id: Int!
   name: String
 
-  """ESI'nin planets[].moons dizisindeki 1 tabanlı sıra."""
+  """1-based position in ESI's planets[].moons array."""
   orbitIndex: Int
   planet: Planet
   position: Position
@@ -926,21 +928,21 @@ type Mutation {
   createUser(input: CreateUserInput!): CreateUserPayload!
 
   """
-  Eve Online SSO login için authorization URL'i oluşturur.
+  Builds the authorization URL for Eve Online SSO login.
   
-  `returnTo` login'e basılan sayfanın göreli yoludur; SSO dönüşünde kullanıcı
-  oraya bırakılır. Site dışına çıkan her değer `/` olarak kabul edilir.
+  `returnTo` is the relative path of the page where login was clicked; the user
+  lands there after SSO. Any value pointing off-site is treated as `/`.
   """
   login(returnTo: String): AuthUrl!
 
-  """Bu oturumu kapatır ve çerezi siler"""
+  """Ends this session and clears the cookie"""
   logout: Boolean!
   refreshCharacter(characterId: Int!): RefreshCharacterResult!
 
-  """Oturum çerezini kullanarak taze bir EVE access token alır"""
+  """Gets a fresh EVE access token using the session cookie"""
   refreshSession: AuthPayload!
 
-  """Kullanıcının başka bir oturumunu kapatır"""
+  """Ends another of the user's sessions"""
   revokeSession(id: ID!): Boolean!
   startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
   startCategorySync(input: StartCategorySyncInput!): StartCategorySyncPayload!
@@ -975,7 +977,7 @@ type Planet {
   moons: [Moon!]!
   name: String
 
-  """ESI'nin planets[] dizisindeki 1 tabanlı sıra."""
+  """1-based position in ESI's planets[] array."""
   orbitIndex: Int
   position: Position
   solarSystem: SolarSystem
@@ -1056,42 +1058,43 @@ type Query {
   killmailsDateCounts(filter: KillmailFilter): [KillmailDateCount!]!
 
   """
-  Verilen sistemlerin içi. En fazla **16 sistem**; fazlası reddediliyor,
-  sessizce kesilmiyor — kısaltılmış bir liste delikli bir sahne çizer.
-  Önbellek sistem başına, 86400 s.
+  The insides of the given systems. At most **16 systems**; more are rejected,
+  not silently truncated — a shortened list draws a scene with holes.
+  Cached per system, 86400 s.
   """
   mapCelestials(systemIds: [Int!]!): [MapCelestial!]!
 
   """
-  Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
-  tazelik response cache'in STATIC_GAME_DATA'sı: 365 gün. Bir evren backfill'i
-  haritaya önbellek temizlenmeden gelmez.
+  Static universe data. The service keeps it in Redis for 86400 s, but the
+  freshness seen through the API is the response cache's STATIC_GAME_DATA: 365
+  days. A universe backfill does not reach the map until the cache is cleared.
   """
   mapGeometry(scope: MapScope! = NEW_EDEN): MapGeometry!
 
   """
-  Verilen sahnenin bir kademesinin adları. Statik evren verisi; servis Redis'te
-  86400 s tutuyor, API'den görünen tazelik response cache'in STATIC_GAME_DATA'sı.
+  The names of one tier of the given scene. Static universe data; the service keeps
+  it in Redis for 86400 s, and the freshness seen through the API is the response
+  cache's STATIC_GAME_DATA.
   """
   mapLabels(kind: MapLabelKind!, scope: MapScope! = NEW_EDEN): [MapLabel!]!
 
   """
-  Sahnenin sovereignty katmanı. Servis Redis'te 900 s tutuyor.
+  The scene's sovereignty layer. The service keeps it in Redis for 900 s.
   
-  Response cache'e **bilerek** alınmadı: `PUBLIC_CACHE_QUERIES`'e eklenirse
-  TTL'i `TTL_PER_SCHEMA_COORDINATE`'a da girmek zorunda kalır, ve servisin
-  kendi Redis anahtarı zaten işi görürken ikinci katman yalnızca bayatlığı
-  ikiye katlar.
+  Left out of the response cache **on purpose**: added to `PUBLIC_CACHE_QUERIES`,
+  its TTL would also have to go into `TTL_PER_SCHEMA_COORDINATE`, and with the
+  service's own Redis key already doing the job a second layer would only double
+  the staleness.
   """
   mapSovereignty(scope: MapScope! = NEW_EDEN): MapSovereignty!
 
   """
-  Popup'ın okuduğu tek sorgu. Önbellek sistem başına 300 s — içindeki en kısa
-  ömürlü parça saat başı değişen aktivite.
+  The single query the popup reads. Cached per system for 300 s — the shortest-lived
+  part of it is the activity, which changes every hour.
   """
   mapSystemDetails(systemId: Int!): MapSystemDetails
 
-  """Mevcut authenticated kullanıcının bilgilerini döner"""
+  """Returns the currently authenticated user"""
   me: User
 
   """
@@ -1122,7 +1125,7 @@ type Query {
     scope: MostValuableScope!
   ): [Killmail!]!
 
-  """Kullanıcının açık oturumları"""
+  """The user's open sessions"""
   mySessions: [Session!]!
   race(id: Int!): Race
   races: [Race!]!
@@ -1207,7 +1210,7 @@ type Query {
   workerStatus: WorkerStatus!
 }
 
-"""Bir kuyruğun sayılarından okunabilen durumu."""
+"""A queue's health as read from its counts."""
 enum QueueHealth {
   OK
   STALLED
@@ -1221,8 +1224,8 @@ type QueueStatus {
   consumerCount: Int!
 
   """
-  Kuyruğun kendi sayılarından çıkan durumu. STALLED = mesaj var, tüketici yok.
-  `killreport.wait` ve `killreport.parking` muaf: işleri mesaj tutmak.
+  The queue's health, derived from its own counts. STALLED = messages, no consumer.
+  `killreport.wait` and `killreport.parking` are exempt: holding messages is their job.
   """
   health: QueueHealth!
 
@@ -1321,7 +1324,7 @@ type RegionsResponse {
 type Session {
   createdAt: String!
 
-  """Bu isteği taşıyan çerezin oturumu mu"""
+  """Whether this is the session of the cookie carrying this request"""
   current: Boolean!
   expiresAt: String!
   id: ID!
@@ -1352,7 +1355,7 @@ type SolarSystem {
   securityStatus: Float
   security_class: String
 
-  """Step 3 çalışmadan önce isimsiz; star_id boşsa null."""
+  """Unnamed until step 3 runs; null when star_id is empty."""
   star: Star
   star_id: Int
   stargates: [Stargate!]!
@@ -1394,7 +1397,7 @@ enum SolarSystemOrderBy {
 }
 
 type SolarSystemStats {
-  """Son 7 günde en çok kill olan UTC saati (0-23)."""
+  """The UTC hour with the most kills over the last 7 days (0-23)."""
   busiestHourUtc: Int
   iskDestroyed7d: Float!
   kills7d: Int!
@@ -1602,17 +1605,17 @@ type StandaloneWorkerStatus {
 }
 
 type Star {
-  """Yıl."""
+  """Years."""
   age: Float
   id: Int!
   luminosity: Float
   name: String
 
-  """Metre."""
+  """Metres."""
   radius: Float
   solarSystem: SolarSystem
 
-  """Örn. "M2 V"."""
+  """E.g. "M2 V"."""
   spectralClass: String
 
   """Kelvin."""
@@ -1622,7 +1625,7 @@ type Star {
 }
 
 """
-Sistemdeki stargate. ESI'nin stargates[] dizisini yansıtır, uçları çözülmüş halde.
+A stargate in the system. Mirrors ESI's stargates[] array, with its ends resolved.
 """
 type Stargate {
   destination: StargateDestination
@@ -1635,20 +1638,20 @@ type Stargate {
 }
 
 """
-ESI'nin stargate yanıtındaki destination nesnesi.
-Ham ID'ler step 3 çalışmadan önce null; nesneler ayrıca karşılık gelen satır
-veritabanında yoksa da null.
+The destination object from ESI's stargate response.
+The raw IDs are null until step 3 runs; the objects are also null when the
+matching row is not in the database.
 """
 type StargateDestination {
   destinationStargateId: Int
   destinationSystemId: Int
 
   """
-  Karşı uçtaki stargate; kendi destination'ı bu sisteme geri işaret eder.
+  The stargate at the far end; its own destination points back to this system.
   """
   stargate: Stargate
 
-  """Karşı uçtaki sistem."""
+  """The system at the far end."""
   system: SolarSystem
 }
 
@@ -1749,7 +1752,7 @@ type Station {
   maxDockableShipVolume: Float
   name: String
 
-  """ISK cinsinden ofis kirası."""
+  """Office rental cost in ISK."""
   officeRentalCost: Float
   ownerCorporation: Corporation
   ownerCorporationId: Int
@@ -1757,7 +1760,7 @@ type Station {
   raceId: Int
   reprocessingEfficiency: Float
 
-  """İstasyonun yeniden işlemeden aldığı pay; 0.05 = %5."""
+  """The station's cut of reprocessing; 0.05 = 5%."""
   reprocessingStationsTake: Float
   services: [String!]!
   solarSystem: SolarSystem

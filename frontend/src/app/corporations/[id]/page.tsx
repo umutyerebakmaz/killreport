@@ -257,7 +257,7 @@ export default function CorporationDetailPage({
     );
   }
 
-  // Delta verilerini al (haftalık değişim)
+  // Member deltas (weekly change)
   const memberDelta7d = corporation.metrics?.memberCountDelta7d ?? null;
   const memberGrowthRate7d =
     corporation.metrics?.memberCountGrowthRate7d ?? null;
@@ -317,7 +317,7 @@ export default function CorporationDetailPage({
         : null,
     })) || [];
 
-  // Date founded'ı formatla (DD.MM.YYYY)
+  // Format the founding date (DD.MM.YYYY)
   const foundedDate = corporation.date_founded
     ? new Date(corporation.date_founded).toLocaleDateString('tr-TR', {
         year: 'numeric',

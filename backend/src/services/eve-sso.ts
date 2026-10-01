@@ -10,7 +10,7 @@ export interface EveCharacter {
 }
 
 /**
- * Eve Online SSO için authorization URL'i oluşturur
+ * Builds the authorization URL for EVE Online SSO
  */
 export async function getAuthUrl(state: string): Promise<string> {
   const params = new URLSearchParams({
@@ -25,7 +25,7 @@ export async function getAuthUrl(state: string): Promise<string> {
 }
 
 /**
- * Authorization code'unu access token ile değiştirir
+ * Exchanges an authorization code for an access token
  */
 export async function exchangeCodeForToken(code: string): Promise<{
   access_token: string;
@@ -58,7 +58,7 @@ export async function exchangeCodeForToken(code: string): Promise<{
 }
 
 /**
- * JWT token'ı doğrular ve character bilgilerini döner
+ * Verifies the JWT and returns the character info
  */
 export async function verifyToken(token: string): Promise<EveCharacter> {
   const { payload } = await jwtVerify(token, JWKS, {
@@ -69,7 +69,7 @@ export async function verifyToken(token: string): Promise<EveCharacter> {
     throw new Error('Invalid token payload');
   }
 
-  // sub formatı: "CHARACTER:EVE:123456"
+  // sub format: "CHARACTER:EVE:123456"
   const characterId = parseInt(payload.sub.toString().split(':')[2]);
 
   return {
@@ -80,7 +80,7 @@ export async function verifyToken(token: string): Promise<EveCharacter> {
 }
 
 /**
- * Refresh token kullanarak yeni access token alır
+ * Gets a new access token using a refresh token
  */
 export async function refreshAccessToken(refreshToken: string): Promise<{
   access_token: string;

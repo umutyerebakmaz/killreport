@@ -53,13 +53,13 @@ export default function KillmailDetailPage({
 
   const km = data.killmail;
   const victim = km.victim;
-  const attackers = km.attackers || []; // final blow, top damage ve +8 toplam 10 ilk yuklemede.
+  const attackers = km.attackers || []; // final blow, top damage and +8 more: 10 in total on first load.
   const fitting = km.fitting;
 
   // Check if victim is a structure
   const isStructure = victim?.shipType?.group?.category?.name === 'Structure';
 
-  // Backend'den gelen değerleri kullan
+  // Use the values computed by the backend
   const totalValue = km.totalValue || 0;
   const destroyedValue = km.destroyedValue || 0;
   const droppedValue = km.droppedValue || 0;

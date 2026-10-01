@@ -7,7 +7,7 @@ import { CategoryResolvers } from '@generated-types';
  */
 export const categoryFields: CategoryResolvers = {
   groups: async (parent, _, context) => {
-    // DataLoader ile N+1 problem'ini çöz
+    // DataLoader avoids N+1
     const groups = await context.loaders.itemGroupsByCategory.load(parent.id);
 
     return groups.map((g: any) => ({

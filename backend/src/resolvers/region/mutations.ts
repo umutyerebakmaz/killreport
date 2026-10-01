@@ -20,7 +20,7 @@ export const regionMutations: MutationResolvers = {
       console.log(`✓ found ${regionIds.length} regions`);
       console.log(`📤 publishing to queue...`);
 
-      // RabbitMQ'ya ekle
+      // Add to RabbitMQ
       const channel = await getRabbitMQChannel();
       const QUEUE_NAME = 'esi_regions_queue';
 

@@ -9,31 +9,31 @@ import { pubsub } from '@services/pubsub';
 
 export interface SaveKillmailOptions {
   /**
-   * NEW_KILLMAIL yayınlansın mı.
+   * Whether to publish NEW_KILLMAIL.
    *
-   * Varsayılan true. Toplu backfill'ler false geçer: abonelere 20.000 tarihî
-   * killmail'i "yeni" diye göndermek, frontend'in canlı listesini
-   * (`frontend/src/app/killmails/page.tsx:158` gelen olayı listenin başına
-   * ekliyor) kullanılamaz hâle getirir.
+   * Defaults to true. Bulk backfills pass false: sending subscribers 20,000
+   * historical killmails as "new" makes the frontend's live list unusable
+   * (`frontend/src/app/killmails/page.tsx:158` prepends each incoming event
+   * to the list).
    */
   publish?: boolean;
 }
 
 /**
- * Bir killmail'i veritabanına yazmanın tek yeri.
+ * The one place a killmail is written to the database.
  *
- * `true` = yeni yazıldı, `false` = zaten vardı. "Zaten vardı" bir hata değil
- * sonuçtur; çağıranların P2002 yakalamasının yerine geçer.
+ * `true` = newly written, `false` = already there. "Already there" is a
+ * result, not an error; it replaces callers catching P2002 themselves.
  */
 export async function saveKillmail(
   detail: KillmailDetail,
   hash: string,
   options: SaveKillmailOptions = {},
 ): Promise<boolean> {
-  // Bir killmail'in en az bir attacker'ı vardır. Boş liste, killmail'i
-  // attacker_count: 0 ile yazar ve agregatların kimseyi saymamasına yol açar —
-  // yani "kaydedildi ama hiçbir yerde görünmüyor" durumu, #245'te uğraştığımız
-  // sessiz bozukluğun aynısı. Kaynağın onu yeniden çekmesi gerekir.
+  // A killmail has at least one attacker. An empty list writes it with
+  // attacker_count: 0 and leaves the aggregates counting nobody — "saved but
+  // shown nowhere", the same silent breakage we chased in #245. The source
+  // has to fetch it again.
   if (!detail.attackers?.length) {
     throw new Error(
       `killmail ${detail.killmail_id} has no attackers; refusing to write it`,
@@ -107,8 +107,8 @@ export async function saveKillmail(
 
       await updateDailyAggregatesRealtime(tx, toAggregateInput(detail));
 
-      // ESI gerçek veride item_type_id'si null olan item gönderiyor; bunlar
-      // yazılmaya kalkılırsa transaction patlar.
+      // ESI sends items with a null item_type_id in real data; trying to
+      // write them blows up the transaction.
       const validItems = (victim.items ?? []).filter(
         (item) => item.item_type_id != null,
       );

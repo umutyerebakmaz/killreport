@@ -1,6 +1,6 @@
-# Operasyon adı MapGeometry olmak zorunda: backend'in response cache'i
-# PUBLIC_CACHE_QUERIES'e operasyon adıyla bakıyor (backend/src/config/cache.ts).
-# Adı değiştirmek önbelleği sessizce token başına 120 s'ye düşürür.
+# The operation must be named MapGeometry: the backend's response cache
+# looks it up in PUBLIC_CACHE_QUERIES by operation name (backend/src/config/cache.ts).
+# Renaming it silently drops the cache to 120 s per token.
 query MapGeometry($scope: MapScope!) {
   mapGeometry(scope: $scope) {
     scope

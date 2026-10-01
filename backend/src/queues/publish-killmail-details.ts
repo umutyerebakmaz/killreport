@@ -13,28 +13,28 @@ export interface KillmailRef {
 
 export interface PublishOptions {
   announce: boolean;
-  /** Toplu backfill 1, canlı sync 5. */
+  /** 1 for bulk backfill, 5 for live sync. */
   priority: number;
 }
 
 /**
- * Tek sorguda sorulacak id sayısı.
+ * How many ids to look up in a single query.
  *
- * `yarn sync:character <id> 999` ~199.800 killmail listeliyor ve PostgreSQL'in
- * genişletilmiş protokolü bind parametrelerini 65.535'te kesiyor; Prisma bunu
- * kendiliğinden parçalamıyor. Tek `IN (…)` ile sorulursa sorgu reddedilir ve
- * script hiçbir şey kuyruğa koymadan ölür.
+ * `yarn sync:character <id> 999` lists ~199,800 killmails, and PostgreSQL's
+ * extended protocol caps bind parameters at 65,535; Prisma does not split
+ * them on its own. Asked as one `IN (…)`, the query is rejected and the
+ * script dies without queueing anything.
  */
 const LOOKUP_CHUNK = 5_000;
 
 /**
- * Liste aşamasının kuyruğa koyma adımı.
+ * The queueing step of the list stage.
  *
- * Veritabanında olan id'ler **yayınlanmaz**: CLAUDE.md'nin enrichment kalıbı —
- * kaynak veritabanından okur, çözülmüş olanı eler, yalnızca eksik olanı
- * kuyruğa koyar. Bu, "önce detayı çek, sonra duplicate'e takıl" sırasını
- * tersine çevirir; zaten kayıtlı bir karakterin yeniden sync'i sayfa başına
- * tek sorguya iner ve hiç ESI detayı çekmez.
+ * Ids already in the database are **not published**: CLAUDE.md's enrichment
+ * pattern — read from the database, drop what is already resolved, queue only
+ * what is missing. This reverses the old "fetch the detail first, then hit the
+ * duplicate" order; re-syncing a character that is already stored comes down
+ * to one query per page and fetches no ESI detail at all.
  */
 export async function publishKillmailDetails(
   refs: KillmailRef[],

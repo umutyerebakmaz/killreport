@@ -2,21 +2,21 @@ model Moon {
   id              Int     @id @map("moon_id")
   name            String?
   solar_system_id Int
-  /// Zorunlu: ESI'da her ay bir gezegenin altındadır ve bu bağ yalnızca
-  /// Adım 2'de yakalanabilir — /universe/moons/{id}/ planet_id döndürmüyor.
+  /// Required: in ESI every moon sits under a planet, and that link can only be
+  /// captured in Step 2 — /universe/moons/{id}/ does not return planet_id.
   planet_id       Int
-  /// ESI'nın planets[].moons dizisindeki 1 tabanlı sıra.
+  /// 1-based position in ESI's planets[].moons array.
   orbit_index     Int?
   position_x      Float?
   position_y      Float?
   position_z      Float?
 
   solar_system SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
-  /// Bileşik: bir ayın sistemi, gezegeninin sistemiyle aynı olmak zorunda.
-  /// Tekil planet_id FK'si bunu zorlamıyordu.
+  /// Composite: a moon's system must match its planet's system.
+  /// A planet_id-only FK did not enforce that.
   planet       Planet      @relation(fields: [planet_id, solar_system_id], references: [id, solar_system_id], onDelete: Cascade)
 
-  /// counts sayımı; aşağıdaki bileşiğin soldan öneki değil, korunur.
+  /// For the counts query; not a left prefix of the composite below, so it stays.
   @@index([solar_system_id])
   /// moonsByPlanet: WHERE planet_id IN (...) ORDER BY orbit_index, id.
   @@index([planet_id, orbit_index, id])

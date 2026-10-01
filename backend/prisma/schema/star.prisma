@@ -6,7 +6,7 @@ model Star {
   spectral_class  String?
   temperature     Int?
   radius          Float?
-  /// Yıl cinsinden; 4.8e9 gibi değerler Int sınırını aştığı için Float.
+  /// In years; Float because values like 4.8e9 exceed the Int range.
   age             Float?
   luminosity      Float?
 

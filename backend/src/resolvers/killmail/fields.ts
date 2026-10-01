@@ -121,13 +121,13 @@ export const killmailFields: KillmailResolvers = {
     const killmailId =
       typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
 
-    // Victim'dan ship type'ı al
+    // Get the ship type from the victim
     const victim = await context.loaders.victim.load(killmailId);
 
-    // Killmail'in tüm itemlarını al
+    // Get all of the killmail's items
     const items = await context.loaders.items.load(killmailId);
 
-    // Ship type_id'yi de ekle
+    // Include the ship type_id too
     const allTypeIds = victim?.ship_type_id
       ? ([
           ...new Set([
@@ -137,12 +137,12 @@ export const killmailFields: KillmailResolvers = {
         ] as number[])
       : ([...new Set(items.map((item: any) => item.item_type_id))] as number[]);
 
-    // ✅ Market fiyatlarını DataLoader ile batch olarak çek (N+1 query önlenir)
+    // ✅ Batch-fetch market prices through the DataLoader (avoids N+1)
     const marketPrices = await Promise.all(
       allTypeIds.map((typeId) => context.loaders.marketPrice.load(typeId)),
     );
 
-    // type_id -> price mapping oluştur
+    // Build the type_id -> price map
     const priceMap = new Map(
       allTypeIds.map((typeId, index) => [
         typeId,
@@ -150,10 +150,10 @@ export const killmailFields: KillmailResolvers = {
       ]),
     );
 
-    // Her item için miktar * fiyat hesapla ve topla
+    // Sum quantity * price over every item
     let totalValue = 0;
 
-    // Ship'i ekle (her zaman destroyed)
+    // Add the ship (always destroyed)
     // Special case: Capsule (pod) has fixed value of 10 ISK
     if (victim?.ship_type_id) {
       const shipPrice =
@@ -163,7 +163,7 @@ export const killmailFields: KillmailResolvers = {
       totalValue += shipPrice;
     }
 
-    // Item'ları ekle
+    // Add the items
     for (const item of items) {
       // BPC (Blueprint Copy) check - use fixed 0.01 ISK value
       const isBPC = await isBlueprintCopy(item, context);
@@ -185,12 +185,12 @@ export const killmailFields: KillmailResolvers = {
     const killmailId =
       typeof parent.id === 'string' ? parseInt(parent.id) : parent.id;
 
-    // Victim'dan ship type'ı al
+    // Get the ship type from the victim
     const victim = await context.loaders.victim.load(killmailId);
 
     const items = await context.loaders.items.load(killmailId);
 
-    // Ship type_id'yi de ekle
+    // Include the ship type_id too
     const allTypeIds = victim?.ship_type_id
       ? ([
           ...new Set([
@@ -200,7 +200,7 @@ export const killmailFields: KillmailResolvers = {
         ] as number[])
       : ([...new Set(items.map((item: any) => item.item_type_id))] as number[]);
 
-    // ✅ DataLoader ile batch fetch
+    // ✅ Batch fetch through the DataLoader
     const marketPrices = await Promise.all(
       allTypeIds.map((typeId) => context.loaders.marketPrice.load(typeId)),
     );
@@ -214,7 +214,7 @@ export const killmailFields: KillmailResolvers = {
 
     let destroyedValue = 0;
 
-    // Ship'i ekle (her zaman destroyed)
+    // Add the ship (always destroyed)
     // Special case: Capsule (pod) has fixed value of 10 ISK
     if (victim?.ship_type_id) {
       const shipPrice =
@@ -224,7 +224,7 @@ export const killmailFields: KillmailResolvers = {
       destroyedValue += shipPrice;
     }
 
-    // Item'ları ekle
+    // Add the items
     for (const item of items) {
       // BPC (Blueprint Copy) check - use fixed 0.01 ISK value
       const isBPC = await isBlueprintCopy(item, context);
@@ -250,7 +250,7 @@ export const killmailFields: KillmailResolvers = {
       ...new Set(items.map((item: any) => item.item_type_id)),
     ] as number[];
 
-    // ✅ DataLoader ile batch fetch
+    // ✅ Batch fetch through the DataLoader
     const marketPrices = await Promise.all(
       typeIds.map((typeId) => context.loaders.marketPrice.load(typeId)),
     );
@@ -851,7 +851,7 @@ export const killmailItemFields: KillmailItemResolvers = {
     } as any;
   },
   charge: async (parent: any, _, context): Promise<any> => {
-    // Parent item bilgilerini al (RAW Prisma data)
+    // Get the parent item (raw Prisma data)
     const killmailId = parent.killmail_id;
     const flag = parent.flag;
     const itemTypeId = parent.item_type_id;
@@ -860,21 +860,21 @@ export const killmailItemFields: KillmailItemResolvers = {
       return null;
     }
 
-    // Aynı killmail_id ve flag'e sahip tüm itemları çek
+    // Fetch every item with the same killmail_id and flag
     const allItemsInSlot = await context.loaders.items.load(killmailId);
     const itemsWithSameFlag = allItemsInSlot.filter(
       (item: any) => item.flag === flag,
     );
 
-    // Eğer bu slotta tek item varsa charge yok
+    // A single item in this slot means there is no charge
     if (itemsWithSameFlag.length <= 1) {
       return null;
     }
 
-    // İki item var - group_id'ye göre hangisi modül hangisi charge belirle
+    // Two items - use group_id to tell the module from the charge
     const { isCharge } = await import('../../utils/item-classifier.js');
 
-    // Önce tüm itemların type bilgilerini çek
+    // First fetch the type info for every item
     const itemsWithTypes = await Promise.all(
       itemsWithSameFlag.map(async (item: any) => {
         const type = await context.loaders.type.load(item.item_type_id);
@@ -882,7 +882,7 @@ export const killmailItemFields: KillmailItemResolvers = {
       }),
     );
 
-    // Current item'ı bul
+    // Find the current item
     const currentItem = itemsWithTypes.find(
       (item: any) => item.item_type_id === itemTypeId,
     );
@@ -891,12 +891,12 @@ export const killmailItemFields: KillmailItemResolvers = {
       return null;
     }
 
-    // Eğer current item bir charge ise, charge'ı yok (charge'ın charge'ı olmaz)
+    // If the current item is a charge it has no charge of its own
     if (isCharge(currentItem.type.group_id)) {
       return null;
     }
 
-    // Current item bir modül - diğer itemlar arasında charge ara
+    // The current item is a module - look for a charge among the others
     const chargeItem = itemsWithTypes.find(
       (item: any) =>
         item.item_type_id !== itemTypeId &&

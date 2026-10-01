@@ -185,20 +185,20 @@ export type AuthPayload = {
   __typename?: 'AuthPayload';
   /** JWT access token */
   accessToken: Scalars['String']['output'];
-  /** Token geçerlilik süresi (saniye) */
+  /** Token lifetime (seconds) */
   expiresIn: Scalars['Int']['output'];
-  /** Authenticated kullanıcı bilgileri */
+  /** The authenticated user */
   user: User;
 };
 
 export type AuthUrl = {
   __typename?: 'AuthUrl';
   /**
-   * CSRF koruması için state parametresi. Sunucuda saklanır ve callback'te tek
-   * kullanımlık olarak harcanır.
+   * State parameter for CSRF protection. Stored on the server and consumed once
+   * in the callback.
    */
   state: Scalars['String']['output'];
-  /** Eve Online SSO authorization URL'i */
+  /** Eve Online SSO authorization URL */
   url: Scalars['String']['output'];
 };
 
@@ -716,7 +716,7 @@ export enum LeaderboardPeriod {
   Week = 'WEEK'
 }
 
-/** Sahnedeki düğümlerin sınırları, metre. Kameranın autofit'i buradan geliyor. */
+/** Bounds of the nodes in the scene, in metres. The camera's autofit comes from here. */
 export type MapBounds = {
   __typename?: 'MapBounds';
   maxX: Scalars['Float']['output'];
@@ -726,27 +726,27 @@ export type MapBounds = {
 };
 
 /**
- * Sistemin içindeki tek bir nesne. Koordinat **sistemin merkezine göre**, metre,
- * ve düğümlerin aksine **yuvarlanmamış**: en iç gezegenin yörüngesi 2,4145e10 m,
- * 1e9'luk ızgara onu %4 kaydırırdı.
+ * A single object inside a system. Coordinates are **relative to the system centre**,
+ * in metres, and unlike the nodes **not rounded**: the innermost planet orbits at
+ * 2.4145e10 m, and a 1e9 grid would shift it by 4%.
  */
 export type MapCelestial = {
   __typename?: 'MapCelestial';
-  /** Yalnızca GATE'te dolu: hattın öteki ucundaki sistem. Gate ucunun çapalanması buna dayanıyor. */
+  /** Set only on GATE: the system at the other end of the line. Anchoring the gate end relies on it. */
   destinationSystemId?: Maybe<Scalars['Int']['output']>;
   id: Scalars['Int']['output'];
   kind: MapCelestialKind;
   name?: Maybe<Scalars['String']['output']>;
-  /** ESI'nın 1 tabanlı sırası; gezegen, ay ve kuşakta dolu, diğerlerinde null. */
+  /** ESI's 1-based position; set for planets, moons and belts, null for the rest. */
   orbitIndex?: Maybe<Scalars['Int']['output']>;
-  /** Ay ve kuşağın bağlı olduğu gezegen; diğerlerinde null. */
+  /** The planet a moon or belt belongs to; null for the rest. */
   planetId?: Maybe<Scalars['Int']['output']>;
   systemId: Scalars['Int']['output'];
   x: Scalars['Float']['output'];
   z: Scalars['Float']['output'];
 };
 
-/** Sistem içindeki çizilebilir nesnenin türü. */
+/** The kind of drawable object inside a system. */
 export enum MapCelestialKind {
   Belt = 'BELT',
   Gate = 'GATE',
@@ -756,7 +756,7 @@ export enum MapCelestialKind {
   Station = 'STATION'
 }
 
-/** Bir geçit çifti. Her çift bir kez, from < to. */
+/** A gate pair. Each pair appears once, from < to. */
 export type MapEdge = {
   __typename?: 'MapEdge';
   from: Scalars['Int']['output'];
@@ -772,53 +772,53 @@ export type MapGeometry = {
 };
 
 /**
- * Haritada bir isim. Koordinat **galaktik metre**, düğümlerle aynı uzayda.
- * Bölgede konum yok ve sahnenin çizdiği sistemlerin medoidinden hesaplanıyor;
- * takımyıldızda constellations.position_x/z doğrudan kullanılıyor.
+ * A name on the map. Coordinates are in **galactic metres**, the same space as the nodes.
+ * A region has no position, so it is computed from the medoid of the systems the scene
+ * draws; a constellation uses constellations.position_x/z directly.
  */
 export type MapLabel = {
   __typename?: 'MapLabel';
-  /** Yalnızca REGION: bölgenin çizilen sistemlerinin sınırları. İsmin görünürlük eşiği buradan. */
+  /** REGION only: bounds of the region's drawn systems. The name's visibility threshold comes from here. */
   bounds?: Maybe<MapBounds>;
-  /** Bölgede region_id, takımyıldızda constellation_id. Bantlar çakışmıyor ama tek anahtar isteyen bir tüketici kind ile birlikte anahtarlamalı. */
+  /** region_id for a region, constellation_id for a constellation. The ranges do not overlap, but a consumer that wants a single key should key on it together with kind. */
   id: Scalars['Int']['output'];
   kind: MapLabelKind;
   name: Scalars['String']['output'];
-  /** Yalnızca REGION: ismin çapalandığı medoid sistemi. Yarıçapı istemci mapGeometry'den okur. */
+  /** REGION only: the medoid system the name is anchored to. The client reads its radius from mapGeometry. */
   systemId?: Maybe<Scalars['Int']['output']>;
   x: Scalars['Float']['output'];
   z: Scalars['Float']['output'];
 };
 
-/** Bir etiketin kademesi. Sistem adları mapGeometry'den geldiği için burada yok. */
+/** A label's tier. System names are not here because they come from mapGeometry. */
 export enum MapLabelKind {
   Constellation = 'CONSTELLATION',
   Region = 'REGION'
 }
 
-/** Bir sistem, galaktik konumunda. Koordinatlar 1e9 m'ye yuvarlanmış ve asla ham GPU'ya gitmez. */
+/** A system at its galactic position. Coordinates are rounded to 1e9 m and never reach the GPU raw. */
 export type MapNode = {
   __typename?: 'MapNode';
   constellationId: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  /** x/z düzlemindeki en uzak celestial'a mesafe, metre. Nokta bu yarıçapta diske dönüşüyor. */
+  /** Distance to the farthest celestial in the x/z plane, in metres. The dot turns into a disc at this radius. */
   radius: Scalars['Float']['output'];
   regionId: Scalars['Int']['output'];
-  /** İki ondalığa KESİLMİŞ, yuvarlanmamış: yuvarlama 14 sistemi highsec'e taşıyor. */
+  /** TRUNCATED to two decimals, not rounded: rounding moves 14 systems into highsec. */
   securityStatus: Scalars['Float']['output'];
   systemId: Scalars['Int']['output'];
   x: Scalars['Float']['output'];
   z: Scalars['Float']['output'];
 };
 
-/** Bir sistemi tutan şeyin türü. Satırda alliance varsa sahip odur; corporation yalnızca alliance yokken sahiptir. */
+/** The kind of thing that holds a system. If the row has an alliance, that is the owner; a corporation owns only when there is no alliance. */
 export enum MapOwnerKind {
   Alliance = 'ALLIANCE',
   Corporation = 'CORPORATION',
   Faction = 'FACTION'
 }
 
-/** Çizilebilir bir sahne. Abyssal, Proving ve GPMR-01 burada yok: içlerinde sıfır gezegen, ay ve istasyon var. */
+/** A drawable scene. Abyssal, Proving and GPMR-01 are not here: they contain zero planets, moons and stations. */
 export enum MapScope {
   NewEden = 'NEW_EDEN',
   Pochven = 'POCHVEN',
@@ -826,8 +826,8 @@ export enum MapScope {
 }
 
 /**
- * Sahnede toprağı olan tek bir sahip. `systems` içinde adı tekrarlanmıyor;
- * iki liste `ownerId` üzerinden birleşiyor.
+ * A single owner holding territory in the scene. Its name is not repeated in
+ * `systems`; the two lists join on `ownerId`.
  */
 export type MapSovOwner = {
   __typename?: 'MapSovOwner';
@@ -835,11 +835,11 @@ export type MapSovOwner = {
   name: Scalars['String']['output'];
   ownerId: Scalars['Int']['output'];
   systemCount: Scalars['Int']['output'];
-  /** Faction'da null: factions tablosunda ticker sütunu yok. */
+  /** Null for a faction: the factions table has no ticker column. */
   ticker?: Maybe<Scalars['String']['output']>;
 };
 
-/** Tek bir sahiplik çifti. NEW_EDEN'da 5.383 satır. */
+/** A single ownership pair. 5,383 rows in NEW_EDEN. */
 export type MapSovSystem = {
   __typename?: 'MapSovSystem';
   ownerId: Scalars['Int']['output'];
@@ -851,73 +851,73 @@ export type MapSovereignty = {
   owners: Array<MapSovOwner>;
   scope: MapScope;
   systems: Array<MapSovSystem>;
-  /** Anlık görüntünün tazeliği, ISO. Hiç satır yoksa null. */
+  /** How fresh the snapshot is, ISO. Null when there are no rows. */
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
 /**
- * Bir sistemin popup'ının gösterdiği her şey, tek sorguda.
+ * Everything a system's popup shows, in one query.
  *
- * Neden `solarSystem(id)` değil, oradan hepsi okunabilirken: o koordinat response
- * cache'te **365 gün** duruyor (`config/cache.ts`, `STATIC_GAME_DATA`) ve içinden
- * okunan saatlik veri bir yıl boyunca donar. Detay sayfasının kendi "2 saat önce"
- * satırı bugün bu yüzden donuyor; buraya taşınmıyor.
+ * Why not `solarSystem(id)`, when all of it could be read from there: that coordinate
+ * stays in the response cache for **365 days** (`config/cache.ts`, `STATIC_GAME_DATA`),
+ * so hourly data read through it freezes for a year. The detail page's own "2 hours ago"
+ * line freezes today for exactly this reason; that is not carried over here.
  */
 export type MapSystemDetails = {
   __typename?: 'MapSystemDetails';
   constellationName: Scalars['String']['output'];
   name: Scalars['String']['output'];
   npcKills?: Maybe<Scalars['Int']['output']>;
-  /** Sistemi tutan taraf. Talep edilmemiş uzayda null, yani New Eden'in çoğunda. */
+  /** Whoever holds the system. Null in unclaimed space, which is most of New Eden. */
   owner?: Maybe<MapSystemOwner>;
   podKills?: Maybe<Scalars['Int']['output']>;
   regionName: Scalars['String']['output'];
-  /** İki ondalığa KESİLMİŞ, MapNode.securityStatus ile aynı: yuvarlama 14 sistemi highsec'e taşıyor. */
+  /** TRUNCATED to two decimals, same as MapNode.securityStatus: rounding moves 14 systems into highsec. */
   securityStatus?: Maybe<Scalars['Float']['output']>;
-  /** Satır varken de null olabilir: ESI jumps listesinde o sistemi bildirmediyse. 0 ise bildirdi ve atlama yoktu. */
+  /** Can be null even when a row exists: if ESI left the system out of the jumps list. 0 means it reported it and there were no jumps. */
   shipJumps?: Maybe<Scalars['Int']['output']>;
-  /** Son anlık görüntü. Sistemin hiç satırı yoksa dördü de null. */
+  /** The latest snapshot. All four are null if the system has no row at all. */
   shipKills?: Maybe<Scalars['Int']['output']>;
-  /** Anlık görüntünün saati, ISO. Dört sayı null ise bu da null. */
+  /** The snapshot time, ISO. Null when all four numbers are null. */
   snapshotAt?: Maybe<Scalars['String']['output']>;
   /**
-   * `stargates` tablosundan gerçek liste. `mapGeometry.edges`'ten türetmek EKSİK
-   * kalır: orada bir kenarın iki ucu da scope içinde olmak zorunda, yani scope
-   * dışına çıkan kapı hiç görünmez. Sayı ayrıca taşınmıyor — listenin uzunluğu
-   * zaten o, ve tek sayının iki kaynağı zamanla ayrışır.
+   * The real list from the `stargates` table. Deriving it from `mapGeometry.edges`
+   * comes up SHORT: there both ends of an edge must be inside the scope, so a gate
+   * leading out of the scope never shows. The count is not carried separately — the
+   * list's length already is that, and two sources for one number drift apart.
    */
   stargates: Array<MapSystemStargate>;
   systemId: Scalars['Int']['output'];
 };
 
 /**
- * Tek bir sistemin sahibi. `mapSovereignty` ile AYNI COALESCE kuralından çıkıyor:
- * SQL parçaları `map-sovereignty.service`'ten paylaşılıyor, yani popup altındaki
- * rengin anlattığı sahiple çelişemiyor.
+ * The owner of a single system. It comes from the SAME COALESCE rule as `mapSovereignty`:
+ * the SQL fragments are shared from `map-sovereignty.service`, so the popup cannot
+ * contradict the owner the colour beneath it shows.
  */
 export type MapSystemOwner = {
   __typename?: 'MapSystemOwner';
   kind: MapOwnerKind;
   name: Scalars['String']['output'];
   ownerId: Scalars['Int']['output'];
-  /** Faction'da null: factions tablosunda ticker sütunu yok. */
+  /** Null for a faction: the factions table has no ticker column. */
   ticker?: Maybe<Scalars['String']['output']>;
 };
 
 /**
- * Sistemden çıkan tek bir geçit ve açıldığı yer.
+ * A single gate leading out of the system, and where it opens.
  *
- * Ad olarak HEDEF sistemin adı taşınıyor, geçidin kendi adı değil: veritabanındaki
- * ad zaten `Stargate (Perimeter)`, ve başlığı Stargates olan bir listede sekiz
- * satırın sekizinde "Stargate" sözcüğünü tekrarlamanın bilgisi yok.
+ * The name carried is the DESTINATION system's, not the gate's own: the name in the
+ * database is already `Stargate (Perimeter)`, and repeating "Stargate" on eight of
+ * eight rows in a list headed Stargates tells the reader nothing.
  */
 export type MapSystemStargate = {
   __typename?: 'MapSystemStargate';
   destinationName: Scalars['String']['output'];
   /**
-   * Hedefin güvenlik durumu, `MapSystemDetails.securityStatus` ile AYNI kuralla
-   * iki ondalığa KESİLMİŞ. Nullable, çünkü sütun nullable — ölçüldü 2026-09-20:
-   * 13.978 hedefin hepsinde dolu, yani bugün hiç null dönmüyor.
+   * The destination's security status, TRUNCATED to two decimals by the SAME rule
+   * as `MapSystemDetails.securityStatus`. Nullable because the column is — measured
+   * 2026-09-20: set on all 13,978 destinations, so it never returns null today.
    */
   destinationSecurityStatus?: Maybe<Scalars['Float']['output']>;
   destinationSystemId: Scalars['Int']['output'];
@@ -928,7 +928,7 @@ export type Moon = {
   __typename?: 'Moon';
   id: Scalars['Int']['output'];
   name?: Maybe<Scalars['String']['output']>;
-  /** ESI'nin planets[].moons dizisindeki 1 tabanlı sıra. */
+  /** 1-based position in ESI's planets[].moons array. */
   orbitIndex?: Maybe<Scalars['Int']['output']>;
   planet?: Maybe<Planet>;
   position?: Maybe<Position>;
@@ -962,18 +962,18 @@ export type Mutation = {
   clearKillmailCache: CacheOperation;
   createUser: CreateUserPayload;
   /**
-   * Eve Online SSO login için authorization URL'i oluşturur.
+   * Builds the authorization URL for Eve Online SSO login.
    *
-   * `returnTo` login'e basılan sayfanın göreli yoludur; SSO dönüşünde kullanıcı
-   * oraya bırakılır. Site dışına çıkan her değer `/` olarak kabul edilir.
+   * `returnTo` is the relative path of the page where login was clicked; the user
+   * lands there after SSO. Any value pointing off-site is treated as `/`.
    */
   login: AuthUrl;
-  /** Bu oturumu kapatır ve çerezi siler */
+  /** Ends this session and clears the cookie */
   logout: Scalars['Boolean']['output'];
   refreshCharacter: RefreshCharacterResult;
-  /** Oturum çerezini kullanarak taze bir EVE access token alır */
+  /** Gets a fresh EVE access token using the session cookie */
   refreshSession: AuthPayload;
-  /** Kullanıcının başka bir oturumunu kapatır */
+  /** Ends another of the user's sessions */
   revokeSession: Scalars['Boolean']['output'];
   startAllianceSync: StartAllianceSyncPayload;
   startCategorySync: StartCategorySyncPayload;
@@ -1103,7 +1103,7 @@ export type Planet = {
   id: Scalars['Int']['output'];
   moons: Array<Moon>;
   name?: Maybe<Scalars['String']['output']>;
-  /** ESI'nin planets[] dizisindeki 1 tabanlı sıra. */
+  /** 1-based position in ESI's planets[] array. */
   orbitIndex?: Maybe<Scalars['Int']['output']>;
   position?: Maybe<Position>;
   solarSystem?: Maybe<SolarSystem>;
@@ -1177,37 +1177,38 @@ export type Query = {
   /** Returns count of killmails grouped by date (for the current filter) */
   killmailsDateCounts: Array<KillmailDateCount>;
   /**
-   * Verilen sistemlerin içi. En fazla **16 sistem**; fazlası reddediliyor,
-   * sessizce kesilmiyor — kısaltılmış bir liste delikli bir sahne çizer.
-   * Önbellek sistem başına, 86400 s.
+   * The insides of the given systems. At most **16 systems**; more are rejected,
+   * not silently truncated — a shortened list draws a scene with holes.
+   * Cached per system, 86400 s.
    */
   mapCelestials: Array<MapCelestial>;
   /**
-   * Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
-   * tazelik response cache'in STATIC_GAME_DATA'sı: 365 gün. Bir evren backfill'i
-   * haritaya önbellek temizlenmeden gelmez.
+   * Static universe data. The service keeps it in Redis for 86400 s, but the
+   * freshness seen through the API is the response cache's STATIC_GAME_DATA: 365
+   * days. A universe backfill does not reach the map until the cache is cleared.
    */
   mapGeometry: MapGeometry;
   /**
-   * Verilen sahnenin bir kademesinin adları. Statik evren verisi; servis Redis'te
-   * 86400 s tutuyor, API'den görünen tazelik response cache'in STATIC_GAME_DATA'sı.
+   * The names of one tier of the given scene. Static universe data; the service keeps
+   * it in Redis for 86400 s, and the freshness seen through the API is the response
+   * cache's STATIC_GAME_DATA.
    */
   mapLabels: Array<MapLabel>;
   /**
-   * Sahnenin sovereignty katmanı. Servis Redis'te 900 s tutuyor.
+   * The scene's sovereignty layer. The service keeps it in Redis for 900 s.
    *
-   * Response cache'e **bilerek** alınmadı: `PUBLIC_CACHE_QUERIES`'e eklenirse
-   * TTL'i `TTL_PER_SCHEMA_COORDINATE`'a da girmek zorunda kalır, ve servisin
-   * kendi Redis anahtarı zaten işi görürken ikinci katman yalnızca bayatlığı
-   * ikiye katlar.
+   * Left out of the response cache **on purpose**: added to `PUBLIC_CACHE_QUERIES`,
+   * its TTL would also have to go into `TTL_PER_SCHEMA_COORDINATE`, and with the
+   * service's own Redis key already doing the job a second layer would only double
+   * the staleness.
    */
   mapSovereignty: MapSovereignty;
   /**
-   * Popup'ın okuduğu tek sorgu. Önbellek sistem başına 300 s — içindeki en kısa
-   * ömürlü parça saat başı değişen aktivite.
+   * The single query the popup reads. Cached per system for 300 s — the shortest-lived
+   * part of it is the activity, which changes every hour.
    */
   mapSystemDetails?: Maybe<MapSystemDetails>;
-  /** Mevcut authenticated kullanıcının bilgilerini döner */
+  /** Returns the currently authenticated user */
   me?: Maybe<User>;
   /** Alliances ranked by campaigns currently attacking (most aggressive first). */
   mostAggressiveAlliances: Array<AllianceActivityRank>;
@@ -1218,7 +1219,7 @@ export type Query = {
    * Scope is matched against the victim's hull, never an attacker's.
    */
   mostValuableKillmails: Array<Killmail>;
-  /** Kullanıcının açık oturumları */
+  /** The user's open sessions */
   mySessions: Array<Session>;
   race?: Maybe<Race>;
   races: Array<Race>;
@@ -1692,7 +1693,7 @@ export type QueryUserArgs = {
   id: Scalars['ID']['input'];
 };
 
-/** Bir kuyruğun sayılarından okunabilen durumu. */
+/** A queue's health as read from its counts. */
 export enum QueueHealth {
   Ok = 'OK',
   Stalled = 'STALLED'
@@ -1705,8 +1706,8 @@ export type QueueStatus = {
   /** Number of active consumers processing from this queue */
   consumerCount: Scalars['Int']['output'];
   /**
-   * Kuyruğun kendi sayılarından çıkan durumu. STALLED = mesaj var, tüketici yok.
-   * `killreport.wait` ve `killreport.parking` muaf: işleri mesaj tutmak.
+   * The queue's health, derived from its own counts. STALLED = messages, no consumer.
+   * `killreport.wait` and `killreport.parking` are exempt: holding messages is their job.
    */
   health: QueueHealth;
   /** Number of messages waiting to be processed */
@@ -1799,7 +1800,7 @@ export type RegionsResponse = {
 export type Session = {
   __typename?: 'Session';
   createdAt: Scalars['String']['output'];
-  /** Bu isteği taşıyan çerezin oturumu mu */
+  /** Whether this is the session of the cookie carrying this request */
   current: Scalars['Boolean']['output'];
   expiresAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
@@ -1832,7 +1833,7 @@ export type SolarSystem = {
   position?: Maybe<Position>;
   securityStatus?: Maybe<Scalars['Float']['output']>;
   security_class?: Maybe<Scalars['String']['output']>;
-  /** Step 3 çalışmadan önce isimsiz; star_id boşsa null. */
+  /** Unnamed until step 3 runs; null when star_id is empty. */
   star?: Maybe<Star>;
   star_id?: Maybe<Scalars['Int']['output']>;
   stargates: Array<Stargate>;
@@ -1876,7 +1877,7 @@ export enum SolarSystemOrderBy {
 
 export type SolarSystemStats = {
   __typename?: 'SolarSystemStats';
-  /** Son 7 günde en çok kill olan UTC saati (0-23). */
+  /** The UTC hour with the most kills over the last 7 days (0-23). */
   busiestHourUtc?: Maybe<Scalars['Int']['output']>;
   iskDestroyed7d: Scalars['Float']['output'];
   kills7d: Scalars['Int']['output'];
@@ -2061,15 +2062,15 @@ export type StandaloneWorkerStatus = {
 
 export type Star = {
   __typename?: 'Star';
-  /** Yıl. */
+  /** Years. */
   age?: Maybe<Scalars['Float']['output']>;
   id: Scalars['Int']['output'];
   luminosity?: Maybe<Scalars['Float']['output']>;
   name?: Maybe<Scalars['String']['output']>;
-  /** Metre. */
+  /** Metres. */
   radius?: Maybe<Scalars['Float']['output']>;
   solarSystem?: Maybe<SolarSystem>;
-  /** Örn. "M2 V". */
+  /** E.g. "M2 V". */
   spectralClass?: Maybe<Scalars['String']['output']>;
   /** Kelvin. */
   temperature?: Maybe<Scalars['Int']['output']>;
@@ -2077,7 +2078,7 @@ export type Star = {
   typeId?: Maybe<Scalars['Int']['output']>;
 };
 
-/** Sistemdeki stargate. ESI'nin stargates[] dizisini yansıtır, uçları çözülmüş halde. */
+/** A stargate in the system. Mirrors ESI's stargates[] array, with its ends resolved. */
 export type Stargate = {
   __typename?: 'Stargate';
   destination?: Maybe<StargateDestination>;
@@ -2090,17 +2091,17 @@ export type Stargate = {
 };
 
 /**
- * ESI'nin stargate yanıtındaki destination nesnesi.
- * Ham ID'ler step 3 çalışmadan önce null; nesneler ayrıca karşılık gelen satır
- * veritabanında yoksa da null.
+ * The destination object from ESI's stargate response.
+ * The raw IDs are null until step 3 runs; the objects are also null when the
+ * matching row is not in the database.
  */
 export type StargateDestination = {
   __typename?: 'StargateDestination';
   destinationStargateId?: Maybe<Scalars['Int']['output']>;
   destinationSystemId?: Maybe<Scalars['Int']['output']>;
-  /** Karşı uçtaki stargate; kendi destination'ı bu sisteme geri işaret eder. */
+  /** The stargate at the far end; its own destination points back to this system. */
   stargate?: Maybe<Stargate>;
-  /** Karşı uçtaki sistem. */
+  /** The system at the far end. */
   system?: Maybe<SolarSystem>;
 };
 
@@ -2210,14 +2211,14 @@ export type Station = {
   id: Scalars['Int']['output'];
   maxDockableShipVolume?: Maybe<Scalars['Float']['output']>;
   name?: Maybe<Scalars['String']['output']>;
-  /** ISK cinsinden ofis kirası. */
+  /** Office rental cost in ISK. */
   officeRentalCost?: Maybe<Scalars['Float']['output']>;
   ownerCorporation?: Maybe<Corporation>;
   ownerCorporationId?: Maybe<Scalars['Int']['output']>;
   position?: Maybe<Position>;
   raceId?: Maybe<Scalars['Int']['output']>;
   reprocessingEfficiency?: Maybe<Scalars['Float']['output']>;
-  /** İstasyonun yeniden işlemeden aldığı pay; 0.05 = %5. */
+  /** The station's cut of reprocessing; 0.05 = 5%. */
   reprocessingStationsTake?: Maybe<Scalars['Float']['output']>;
   services: Array<Scalars['String']['output']>;
   solarSystem?: Maybe<SolarSystem>;

@@ -37,7 +37,7 @@ export const allianceMutations: MutationResolvers = {
         });
         publishedCount++;
 
-        // Her 100 alliance'da bir log
+        // Log once every 100 alliances
         if (publishedCount % 100 === 0) {
           logger.debug(`  ✓ published ${publishedCount}/${allianceIds.length}`);
         }

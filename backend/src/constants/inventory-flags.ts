@@ -3,8 +3,8 @@
  * Source: EVE Static Data Export (SDE) - Fuzzwork Database
  * Reference: https://www.fuzzwork.co.uk/dump/latest/invFlags.csv
  *
- * Flag numaraları item'ların gemideki/structure'daki pozisyonunu temsil eder.
- * Bu değerler EVE Online'da sabittir ve nadiren değişir.
+ * A flag number gives an item's position within a ship or structure.
+ * These values are fixed in EVE Online and rarely change.
  */
 
 export enum InventoryFlag {

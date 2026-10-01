@@ -3,7 +3,7 @@
 # `Position` is NOT redefined here — it already exists in Position.graphql and
 # SolarSystem.position uses it.
 
-"Sistemdeki stargate. ESI'nin stargates[] dizisini yansıtır, uçları çözülmüş halde."
+"A stargate in the system. Mirrors ESI's stargates[] array, with its ends resolved."
 type Stargate {
   id: Int!
   name: String
@@ -15,16 +15,16 @@ type Stargate {
 }
 
 """
-ESI'nin stargate yanıtındaki destination nesnesi.
-Ham ID'ler step 3 çalışmadan önce null; nesneler ayrıca karşılık gelen satır
-veritabanında yoksa da null.
+The destination object from ESI's stargate response.
+The raw IDs are null until step 3 runs; the objects are also null when the
+matching row is not in the database.
 """
 type StargateDestination {
   destinationSystemId: Int
   destinationStargateId: Int
-  "Karşı uçtaki sistem."
+  "The system at the far end."
   system: SolarSystem
-  "Karşı uçtaki stargate; kendi destination'ı bu sisteme geri işaret eder."
+  "The stargate at the far end; its own destination points back to this system."
   stargate: Stargate
 }
 
@@ -33,17 +33,17 @@ type Star {
   name: String
   typeId: Int
   type: Type
-  "Örn. \"M2 V\"."
+  "E.g. \"M2 V\"."
   spectralClass: String
   "Kelvin."
   temperature: Int
-  "Metre."
+  "Metres."
   radius: Float
-  "Yıl."
+  "Years."
   age: Float
   luminosity: Float
   solarSystem: SolarSystem
-  # ESI yıldız yanıtında position yok — yıldız sistem merkezinde.
+  # ESI's star response has no position — the star sits at the system centre.
 }
 
 type Planet {
@@ -52,7 +52,7 @@ type Planet {
   typeId: Int
   "Barren, Gas, Temperate, Storm…"
   type: Type
-  "ESI'nin planets[] dizisindeki 1 tabanlı sıra."
+  "1-based position in ESI's planets[] array."
   orbitIndex: Int
   position: Position
   moons: [Moon!]!
@@ -63,7 +63,7 @@ type Planet {
 type Moon {
   id: Int!
   name: String
-  "ESI'nin planets[].moons dizisindeki 1 tabanlı sıra."
+  "1-based position in ESI's planets[].moons array."
   orbitIndex: Int
   position: Position
   planet: Planet
@@ -89,9 +89,9 @@ type Station {
   raceId: Int
   services: [String!]!
   reprocessingEfficiency: Float
-  "İstasyonun yeniden işlemeden aldığı pay; 0.05 = %5."
+  "The station's cut of reprocessing; 0.05 = 5%."
   reprocessingStationsTake: Float
-  "ISK cinsinden ofis kirası."
+  "Office rental cost in ISK."
   officeRentalCost: Float
   maxDockableShipVolume: Float
   position: Position
@@ -115,7 +115,7 @@ type SolarSystemStats {
   kills7d: Int!
   iskDestroyed7d: Float!
   lastKillTime: String
-  "Son 7 günde en çok kill olan UTC saati (0-23)."
+  "The UTC hour with the most kills over the last 7 days (0-23)."
   busiestHourUtc: Int
 }
 
@@ -123,7 +123,7 @@ extend type SolarSystem {
   stargates: [Stargate!]!
   planets: [Planet!]!
   stations: [Station!]!
-  "Step 3 çalışmadan önce isimsiz; star_id boşsa null."
+  "Unnamed until step 3 runs; null when star_id is empty."
   star: Star
   counts: SolarSystemCounts!
 }

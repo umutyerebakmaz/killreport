@@ -12,10 +12,10 @@ export interface SovereigntyHolderRow {
 }
 
 /**
- * Alliance DataLoader - Batch loading için
+ * Alliance DataLoader - for batch loading
  *
- * Örnek: 10 corporation'ın alliance'ını çekiyoruz
- * ❌ Önceki: 10 ayrı SELECT query
+ * Example: fetching the alliances of 10 corporations
+ * ❌ Before: 10 separate SELECT queries
  * ✅ DataLoader: 1 SELECT WHERE id IN (1,2,3...) query
  */
 export const createAllianceLoader = () => {
@@ -37,10 +37,10 @@ export const createAllianceLoader = () => {
 };
 
 /**
- * Corporation DataLoader - Batch loading için
+ * Corporation DataLoader - for batch loading
  *
- * Örnek: 10 alliance'ın executor corporation'ını çekiyoruz
- * ❌ Önceki: 10 ayrı SELECT query
+ * Example: fetching the executor corporations of 10 alliances
+ * ❌ Before: 10 separate SELECT queries
  * ✅ DataLoader: 1 SELECT WHERE id IN (1,2,3...) query
  */
 export const createCorporationLoader = () => {
@@ -62,10 +62,10 @@ export const createCorporationLoader = () => {
 };
 
 /**
- * Character DataLoader - Batch loading için
+ * Character DataLoader - for batch loading
  *
- * Örnek: 10 killmail victim'ın character bilgisini çekiyoruz
- * ❌ Önceki: 10 ayrı SELECT query
+ * Example: fetching character info for 10 killmail victims
+ * ❌ Before: 10 separate SELECT queries
  * ✅ DataLoader: 1 SELECT WHERE id IN (1,2,3...) query
  */
 export const createCharacterLoader = () => {
@@ -87,7 +87,7 @@ export const createCharacterLoader = () => {
 };
 
 /**
- * Race DataLoader - Batch loading için
+ * Race DataLoader - for batch loading
  */
 export const createRaceLoader = () => {
   return new DataLoader<number, any>(async (raceIds) => {
@@ -108,7 +108,7 @@ export const createRaceLoader = () => {
 };
 
 /**
- * Bloodline DataLoader - Batch loading için
+ * Bloodline DataLoader - for batch loading
  */
 export const createBloodlineLoader = () => {
   return new DataLoader<number, any>(async (bloodlineIds) => {
@@ -131,8 +131,8 @@ export const createBloodlineLoader = () => {
 /**
  * Corporations by Alliance DataLoader
  *
- * Örnek: 5 alliance'ın corporation'larını çekiyoruz
- * ❌ Önceki: 5 ayrı SELECT query
+ * Example: fetching the corporations of 5 alliances
+ * ❌ Before: 5 separate SELECT queries
  * ✅ DataLoader: 1 SELECT WHERE alliance_id IN (1,2,3,4,5) query
  */
 export const createCorporationsByAllianceLoader = () => {
@@ -166,8 +166,8 @@ export const createCorporationsByAllianceLoader = () => {
 /**
  * Characters by Corporation DataLoader
  *
- * Örnek: 5 corporation'ın character'larını çekiyoruz
- * ❌ Önceki: 5 ayrı SELECT query
+ * Example: fetching the characters of 5 corporations
+ * ❌ Before: 5 separate SELECT queries
  * ✅ DataLoader: 1 SELECT WHERE corporation_id IN (1,2,3,4,5) query
  */
 export const createCharactersByCorpLoader = () => {
@@ -197,7 +197,7 @@ export const createCharactersByCorpLoader = () => {
 };
 
 /**
- * Region DataLoader - Batch loading için
+ * Region DataLoader - for batch loading
  */
 export const createRegionLoader = () => {
   return new DataLoader<number, any>(async (regionIds) => {
@@ -215,7 +215,7 @@ export const createRegionLoader = () => {
 };
 
 /**
- * Constellation DataLoader - Batch loading için
+ * Constellation DataLoader - for batch loading
  */
 export const createConstellationLoader = () => {
   return new DataLoader<number, any>(async (constellationIds) => {
@@ -235,7 +235,7 @@ export const createConstellationLoader = () => {
 };
 
 /**
- * SolarSystem DataLoader - Batch loading için
+ * SolarSystem DataLoader - for batch loading
  */
 export const createSolarSystemLoader = () => {
   return new DataLoader<number, any>(async (systemIds) => {
@@ -315,7 +315,7 @@ export const createSolarSystemsByConstellationLoader = () => {
 };
 
 /**
- * Category DataLoader - Batch loading için
+ * Category DataLoader - for batch loading
  */
 export const createCategoryLoader = () => {
   return new DataLoader<number, any>(async (categoryIds) => {
@@ -335,7 +335,7 @@ export const createCategoryLoader = () => {
 };
 
 /**
- * ItemGroup DataLoader - Batch loading için
+ * ItemGroup DataLoader - for batch loading
  */
 export const createItemGroupLoader = () => {
   return new DataLoader<number, any>(async (itemGroupIds) => {
@@ -355,7 +355,7 @@ export const createItemGroupLoader = () => {
 };
 
 /**
- * Type DataLoader - Batch loading için
+ * Type DataLoader - for batch loading
  */
 export const createTypeLoader = () => {
   return new DataLoader<number, any>(async (typeIds) => {
@@ -401,7 +401,7 @@ export const createItemGroupsByCategoryLoader = () => {
 };
 
 /**
- * DataLoader Context - Her request için yeni instance
+ * DataLoader Context - a new instance per request
  */
 export interface DataLoaderContext {
   loaders: {

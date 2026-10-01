@@ -1,36 +1,36 @@
 extend type Query {
   """
-  Mevcut authenticated kullanıcının bilgilerini döner
+  Returns the currently authenticated user
   """
   me: User
 
   """
-  Kullanıcının açık oturumları
+  The user's open sessions
   """
   mySessions: [Session!]!
 }
 
 extend type Mutation {
   """
-  Eve Online SSO login için authorization URL'i oluşturur.
+  Builds the authorization URL for Eve Online SSO login.
 
-  `returnTo` login'e basılan sayfanın göreli yoludur; SSO dönüşünde kullanıcı
-  oraya bırakılır. Site dışına çıkan her değer `/` olarak kabul edilir.
+  `returnTo` is the relative path of the page where login was clicked; the user
+  lands there after SSO. Any value pointing off-site is treated as `/`.
   """
   login(returnTo: String): AuthUrl!
 
   """
-  Oturum çerezini kullanarak taze bir EVE access token alır
+  Gets a fresh EVE access token using the session cookie
   """
   refreshSession: AuthPayload!
 
   """
-  Bu oturumu kapatır ve çerezi siler
+  Ends this session and clears the cookie
   """
   logout: Boolean!
 
   """
-  Kullanıcının başka bir oturumunu kapatır
+  Ends another of the user's sessions
   """
   revokeSession(id: ID!): Boolean!
 }
@@ -43,20 +43,20 @@ type Session {
   userAgent: String
   ip: String
   """
-  Bu isteği taşıyan çerezin oturumu mu
+  Whether this is the session of the cookie carrying this request
   """
   current: Boolean!
 }
 
 type AuthUrl {
   """
-  Eve Online SSO authorization URL'i
+  Eve Online SSO authorization URL
   """
   url: String!
 
   """
-  CSRF koruması için state parametresi. Sunucuda saklanır ve callback'te tek
-  kullanımlık olarak harcanır.
+  State parameter for CSRF protection. Stored on the server and consumed once
+  in the callback.
   """
   state: String!
 }
@@ -68,12 +68,12 @@ type AuthPayload {
   accessToken: String!
 
   """
-  Token geçerlilik süresi (saniye)
+  Token lifetime (seconds)
   """
   expiresIn: Int!
 
   """
-  Authenticated kullanıcı bilgileri
+  The authenticated user
   """
   user: User!
 }

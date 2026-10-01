@@ -41,7 +41,7 @@ export const typeFields: TypeResolvers = {
   dogmaAttributes: async (parent, args, context) => {
     const prismaType = parent as any;
 
-    // LAZY LOADING: Eğer ids varsa, sadece o ID'leri çek (direct query)
+    // LAZY LOADING: if ids are given, fetch only those IDs (direct query)
     if (args.ids && args.ids.length > 0) {
       const attributes = await prisma.typeDogmaAttribute.findMany({
         where: {
@@ -72,7 +72,7 @@ export const typeFields: TypeResolvers = {
       }));
     }
 
-    // ids yoksa DataLoader kullan (N+1 prevention)
+    // Without ids, use the DataLoader (N+1 prevention)
     const attributes = await context.loaders.typeDogmaAttributes.load(
       prismaType.id,
     );
@@ -101,7 +101,7 @@ export const typeFields: TypeResolvers = {
   dogmaEffects: async (parent, args, context) => {
     const prismaType = parent as any;
 
-    // LAZY LOADING: Eğer ids varsa, sadece o ID'leri çek (direct query)
+    // LAZY LOADING: if ids are given, fetch only those IDs (direct query)
     if (args.ids && args.ids.length > 0) {
       const effects = await prisma.typeDogmaEffect.findMany({
         where: {
@@ -134,7 +134,7 @@ export const typeFields: TypeResolvers = {
       }));
     }
 
-    // ids yoksa DataLoader kullan (N+1 prevention)
+    // Without ids, use the DataLoader (N+1 prevention)
     const effects = await context.loaders.typeDogmaEffects.load(prismaType.id);
 
     return effects.map((eff: any) => ({

@@ -10,7 +10,7 @@ import TotalCorporationBadge from '../TotalCorporationMember/TotalCorporationBad
 import TotalMemberBadge from '../TotalMemberBadge/TotalMemberBadge';
 import EveImage from '../ui/EveImage';
 
-// useAlliancesQuery'nin döndüğü Alliance type'ını extract et
+// Extract the Alliance type returned by useAlliancesQuery
 type Alliance = AlliancesQuery['alliances']['items'][number];
 
 type AllianceCardProps = {
@@ -20,10 +20,10 @@ type AllianceCardProps = {
 export default function AllianceCard({ alliance }: AllianceCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Delta verilerini al (haftalık değişim)
+  // Member deltas (weekly change)
   const memberDelta7d = alliance.metrics?.memberCountDelta7d ?? null;
   const memberGrowthRate7d = alliance.metrics?.memberCountGrowthRate7d ?? null;
-  // Date founded'ı formatla
+  // Format the founding date
   const foundedDate = alliance.date_founded
     ? new Date(alliance.date_founded).toLocaleDateString('en-US', {
         year: 'numeric',

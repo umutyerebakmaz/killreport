@@ -1,6 +1,6 @@
 /**
  * Single Killmail Fetcher
- * ESI'den belirli bir killmail ID'sini çeker ve database'e kaydeder
+ * Fetches a single killmail ID from ESI and saves it to the database
  *
  * Usage: ts-node src/workers/fetch-single-killmail.ts <killmail_id> <killmail_hash>
  * Example: ts-node src/workers/fetch-single-killmail.ts 131757087 abc123...
@@ -43,7 +43,7 @@ async function fetchSingleKillmail(killmailId: number, killmailHash: string) {
     console.log(`✨ done!`);
     console.log(`${'='.repeat(60)}\n`);
 
-    // Enrichment bilgisi
+    // Enrichment hint
     console.log(
       `💡 tip: run enrichment to fetch missing character/corp/type data:`,
     );

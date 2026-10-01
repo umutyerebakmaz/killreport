@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Advisory lock'u temizle ve migration'ı düzelt
+# Clear the advisory lock and fix the stuck migration
 echo "🔓 Releasing advisory locks..."
 
 psql $DATABASE_URL << EOF

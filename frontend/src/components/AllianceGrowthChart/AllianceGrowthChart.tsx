@@ -45,12 +45,12 @@ export default function AllianceGrowthChart({
     );
 
     if (range === 'monthly') {
-      // Her ay için son snapshot değerini al
+      // Keep the last snapshot of each month
       const monthMap = new Map<string, Snapshot>();
       for (const snap of sorted) {
         const d = new Date(snap.date);
         const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-        monthMap.set(key, snap); // Son değer üzerine yazar
+        monthMap.set(key, snap); // Later values overwrite earlier ones
       }
 
       const entries = Array.from(monthMap.entries()).sort(([a], [b]) =>

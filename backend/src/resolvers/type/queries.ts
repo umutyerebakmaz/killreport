@@ -37,7 +37,7 @@ export const typeQueries: QueryResolvers = {
     const currentPage = filter?.page ?? 1;
     const skip = (currentPage - 1) * take;
 
-    // Filter koşullarını oluştur
+    // Build the filter conditions
     const where: any = {};
     if (filter) {
       if (filter.name) {
@@ -60,7 +60,7 @@ export const typeQueries: QueryResolvers = {
         filter.categoryList !== null &&
         filter.categoryList.length > 0
       ) {
-        // İlk önce category_id'lere göre item_groups'tan group_id'leri al
+        // First get the group_ids from item_groups for the given category_ids
         const groups = await prisma.itemGroup.findMany({
           where: { category_id: { in: filter.categoryList } },
           select: { id: true },
@@ -85,7 +85,7 @@ export const typeQueries: QueryResolvers = {
     const totalCount = await prisma.type.count({ where });
     const totalPages = Math.ceil(totalCount / take);
 
-    // Fetch data - alfabetik sıralama
+    // Fetch data - alphabetical order
     const types = await prisma.type.findMany({
       where,
       skip,
