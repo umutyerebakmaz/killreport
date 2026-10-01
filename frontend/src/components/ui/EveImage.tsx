@@ -5,11 +5,13 @@ import Image from 'next/image';
 import { useState, type CSSProperties } from 'react';
 
 /**
- * A `fill` image has no pixel box to derive a fetch size from, so it asks for
- * the largest size this app draws — the same 512 the fit screen's hull has
- * always requested.
+ * A `fill` image has no pixel box to derive a fetch size from, so it is
+ * treated as drawn at 256, which fetchSize doubles to a 512 request — enough
+ * for the killmail cards that use it. (It was 512 until the fetch cap rose to
+ * 1024; at 512 every card would now download the 1024 render.) Something drawn
+ * larger, like the fit screen's hull, passes its real `size` instead.
  */
-const FILL_SIZE = 512;
+const FILL_SIZE = 256;
 
 type Sizing = { size: number; fill?: never } | { fill: true; size?: never };
 

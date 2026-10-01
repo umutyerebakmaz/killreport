@@ -50,7 +50,7 @@ export default function FitScreen({ shipType, fitting }: FitScreenProps) {
                 kind="ship"
                 id={shipType.id}
                 name={shipType.name}
-                fill
+                size={800}
                 className="hull-image"
               />
             )}

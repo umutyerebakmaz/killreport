@@ -296,10 +296,21 @@ body {
   }
 }
 
+/*
+ * The fit screen is drawn at 800px, the size at which the module icons are
+ * 64px — the slot offsets in Slot.tsx are pixels at that scale. It never
+ * grows past that, so the icons stay sharp; when its card, the nearest size
+ * container, is narrower (the 2fr column below ~1900px, a phone) it zooms
+ * down to fit. tan(atan2(a, b)) is the CSS way to divide one length by another
+ * into a plain number. zoom rather than transform: scale, because zoom also
+ * scales the box the screen takes up, so the card shrinks with it.
+ */
 .fit-screen-container {
-  width: 600px;
-  height: 600px;
+  width: 800px;
+  height: 800px;
   position: relative;
+  margin-inline: auto;
+  zoom: min(1, tan(atan2(100cqw, 800px)));
 }
 
 .fitting {
@@ -313,9 +324,30 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 80%;
-  height: 80%;
+  /* The full screen, so the slot icons sit on the ship render rather than
+     around it. The render is 512px at most, so at 800px it is drawn about
+     1.5x and looks a little soft. */
+  width: 100%;
+  height: 100%;
   pointer-events: none;
+}
+
+/*
+ * The translucent ring under the slot icons. It hangs off the hull rather than
+ * .fitting because the hull's transform makes it a stacking context painted
+ * before the slots: the ring lands over the ship render and under the icons
+ * without a z-index anywhere. The hull fills the 800px screen, so the ring's
+ * outer radius is 400px; the 75px border leaves an inner radius of 325px. That
+ * holds only the outer row, the module boxes between 326px and 392px. Under
+ * both rows (down to the charge boxes at 258px) it read as two rings.
+ */
+.hull::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 75px solid
+    color-mix(in oklab, var(--color-surface-inset) 60%, transparent);
+  border-radius: 50%;
 }
 
 .hull-image {

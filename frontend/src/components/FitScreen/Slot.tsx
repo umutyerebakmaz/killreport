@@ -16,8 +16,8 @@ export default function Slot({
   slots,
   startAngle = 0,
   angleGap = 11.5,
-  translateX = -32,
-  translateY = -294,
+  translateX = -43,
+  translateY = -392,
   slotType = 'high',
 }: SlotProps) {
   const slotIcon = `/icons/slot-${slotType}.png`;
@@ -67,7 +67,7 @@ export default function Slot({
                               : module.itemType.id
                           }
                           name={name}
-                          size={48}
+                          size={64}
                           singleton={
                             module?.charge
                               ? module.charge.singleton
@@ -78,7 +78,7 @@ export default function Slot({
                               ? module.charge.itemType
                               : module.itemType,
                           )}
-                          className="z-10 size-12"
+                          className="z-10 size-16"
                           style={{ transform: `rotate(${-rotation}deg)` }}
                         />
                       </div>
@@ -92,10 +92,10 @@ export default function Slot({
                             kind="type"
                             id={module.itemType.id}
                             name={module.itemType.name}
-                            size={48}
+                            size={64}
                             singleton={module.singleton}
                             blueprint={isBlueprint(module.itemType)}
-                            className="size-12"
+                            className="size-16"
                             style={{ transform: `rotate(${-rotation}deg)` }}
                           />
                         </div>
@@ -106,21 +106,21 @@ export default function Slot({
                   <>
                     {/* top div empty  */}
                     <Tooltip content={`Empty ${slotTypeName} Slot`}>
-                      <div className="w-12 h-12 shrink-0">
+                      <div className="w-16 h-16 shrink-0">
                         <div className="border border-white/10 bg-white/5">
                           <Image
                             src={slotIcon}
                             alt={`${slotTypeName} Slot`}
-                            width={48}
-                            height={48}
-                            className="z-10 w-12 h-12"
+                            width={64}
+                            height={64}
+                            className="z-10 w-16 h-16"
                             unoptimized
                           />
                         </div>
                       </div>
                     </Tooltip>
                     {/* bottom div empty */}
-                    <div className="w-12 h-12 shrink-0"></div>
+                    <div className="w-16 h-16 shrink-0"></div>
                   </>
                 )}
               </div>
