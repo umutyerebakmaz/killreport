@@ -296,10 +296,28 @@ body {
   }
 }
 
+/*
+ * The fit screen is drawn at 600px — the slot offsets in Slot.tsx are pixels
+ * — and zoomed to the width of its card, the nearest size container.
+ * tan(atan2(a, b)) is the CSS way to divide one length by another into a plain
+ * number. zoom rather than transform: scale, because zoom also scales the box
+ * the screen takes up, so the card grows with it instead of overflowing.
+ * Below 2xl the fit card is full width, so the screen only ever shrinks there
+ * (a phone); at 2xl it sits in the 2fr column and may grow to 1.5x. Past that
+ * the hull render, 512px at most from the image server, starts to soften.
+ */
 .fit-screen-container {
   width: 600px;
   height: 600px;
   position: relative;
+  margin-inline: auto;
+  zoom: min(1, tan(atan2(100cqw, 600px)));
+}
+
+@media (min-width: 96rem) {
+  .fit-screen-container {
+    zoom: min(1.5, tan(atan2(100cqw, 600px)));
+  }
 }
 
 .fitting {
