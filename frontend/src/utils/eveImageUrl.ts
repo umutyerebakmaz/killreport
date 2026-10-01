@@ -13,10 +13,12 @@ export type EveImageKind =
   | 'corporation' // /corporations/{id}/logo
   | 'alliance'; // /alliances/{id}/logo
 
-/** The server answers 400 to anything that is not a power of two, and 512 is
- *  the largest size this app draws. Verified 2026-09-17. */
+/** The server answers 400 to anything that is not a power of two, and serves
+ *  up to 1024: a ship render at size=1024 comes back as a 1024x1024 JPEG,
+ *  size=2048 as a 400. Verified 2026-10-01. Only the 800px fit screen hull
+ *  is drawn large enough to reach the top. */
 const MIN_FETCH = 32;
-const MAX_FETCH = 512;
+const MAX_FETCH = 1024;
 
 /**
  * The size to request for an image drawn at `size` CSS pixels: twice it, for

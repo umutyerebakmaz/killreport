@@ -14,11 +14,12 @@ describe('fetchSize', () => {
 
   it('clamps to the range the image server serves this app', () => {
     // The server answers 400 to anything that is not a power of two
-    // between 32 and 1024; 512 is the largest this app asks for.
+    // between 32 and 1024.
     expect(fetchSize(1)).toBe(32);
     expect(fetchSize(16)).toBe(32);
     expect(fetchSize(256)).toBe(512);
-    expect(fetchSize(4000)).toBe(512);
+    expect(fetchSize(800)).toBe(1024);
+    expect(fetchSize(4000)).toBe(1024);
   });
 });
 

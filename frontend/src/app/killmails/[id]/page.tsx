@@ -83,7 +83,7 @@ export default function KillmailDetailPage({
         <div
           className={
             isStructure
-              ? '@container px-2 pt-2 pb-24 card 2xl:col-start-1 2xl:row-start-1'
+              ? '@container px-2 pt-2 pb-32 card 2xl:col-start-1 2xl:row-start-1'
               : '@container p-2 card 2xl:col-start-1 2xl:row-start-1'
           }
         >
