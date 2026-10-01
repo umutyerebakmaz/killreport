@@ -181,6 +181,41 @@ describe('separating a module from its charge', () => {
     expect(module?.charge?.itemTypeId).toBe(999);
   });
 
+  it('takes the charge from its category even when its type id is higher', () => {
+    // Heavy Pulse Laser II (3057) loaded with Scorch M (12820). ESI sends both
+    // with singleton 0, and the ammo has the higher id.
+    const fitting = organizeFitting(
+      [
+        item({ item_type_id: 12820, flag: InventoryFlag.HiSlot0 }),
+        item({ item_type_id: 3057, flag: InventoryFlag.HiSlot0 }),
+      ],
+      undefined,
+      new Set([12820]),
+    );
+    const module = fitting.highSlots[0].module;
+
+    expect(module?.itemTypeId).toBe(3057);
+    expect(module?.charge?.itemTypeId).toBe(12820);
+  });
+
+  it('pairs mid and low slot charges by category too', () => {
+    const fitting = organizeFitting(
+      [
+        item({ item_type_id: 29009, flag: InventoryFlag.MedSlot0 }),
+        item({ item_type_id: 1952, flag: InventoryFlag.MedSlot0 }),
+        item({ item_type_id: 28668, flag: InventoryFlag.LoSlot0 }),
+        item({ item_type_id: 33101, flag: InventoryFlag.LoSlot0 }),
+      ],
+      undefined,
+      new Set([29009, 28668]),
+    );
+
+    expect(fitting.midSlots[0].module?.itemTypeId).toBe(1952);
+    expect(fitting.midSlots[0].module?.charge?.itemTypeId).toBe(29009);
+    expect(fitting.lowSlots[0].module?.itemTypeId).toBe(33101);
+    expect(fitting.lowSlots[0].module?.charge?.itemTypeId).toBe(28668);
+  });
+
   it('falls back to the higher type id when neither item is fitted', () => {
     const module = inHighSlot(
       item({ item_type_id: 3, flag: InventoryFlag.HiSlot0, singleton: 0 }),

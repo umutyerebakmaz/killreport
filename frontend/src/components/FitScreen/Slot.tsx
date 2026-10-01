@@ -30,13 +30,9 @@ export default function Slot({
         const rotation = startAngle + index * angleGap;
         const module = slot.module;
 
-        const name = module?.charge
-          ? module.charge.itemType.name
-          : module?.itemType.name;
-
-        const id = module?.charge
-          ? module.charge.itemType.id
-          : module?.itemType.id;
+        // A loaded weapon (or a module holding a script) shows what is loaded;
+        // the tooltip names the module first and the charge under it.
+        const shown = module?.charge ?? module;
 
         return (
           <div
@@ -55,73 +51,61 @@ export default function Slot({
               <div className="gap-y-0.5 slot-inner">
                 {/* if module exist */}
                 {module ? (
-                  <>
-                    {/* top div */}
-                    <Tooltip content={name}>
-                      <div className="border shrink-0 border-white/10 bg-white/5">
-                        <EveImage
-                          kind="type"
-                          id={
-                            module?.charge
-                              ? module.charge.itemType.id
-                              : module.itemType.id
-                          }
-                          name={name}
-                          size={64}
-                          singleton={
-                            module?.charge
-                              ? module.charge.singleton
-                              : module.singleton
-                          }
-                          blueprint={isBlueprint(
-                            module?.charge
-                              ? module.charge.itemType
-                              : module.itemType,
-                          )}
-                          className="z-10 size-16"
-                          style={{ transform: `rotate(${-rotation}deg)` }}
+                  <Tooltip
+                    content={
+                      // The inventory grid's tooltip type (FittingItem): one
+                      // step up from tooltip.css, names bold. ink-muted rather
+                      // than FittingItem's gray-100, which read too bright
+                      // beside 64px icons.
+                      <ul className="space-y-1 text-base">
+                        {[module, module.charge].filter(Boolean).map((item) => (
+                          <li
+                            key={item.itemType.id}
+                            className="flex items-center gap-2 font-bold text-ink-muted"
+                          >
+                            <EveImage
+                              kind="type"
+                              id={item.itemType.id}
+                              name={item.itemType.name}
+                              size={64}
+                              singleton={item.singleton}
+                              blueprint={isBlueprint(item.itemType)}
+                              className="size-16"
+                            />
+                            {item.itemType.name}
+                          </li>
+                        ))}
+                      </ul>
+                    }
+                  >
+                    <div className="border shrink-0 border-white/10 bg-white/5">
+                      <EveImage
+                        kind="type"
+                        id={shown.itemType.id}
+                        name={shown.itemType.name}
+                        size={64}
+                        singleton={shown.singleton}
+                        blueprint={isBlueprint(shown.itemType)}
+                        className="z-10 size-16"
+                        style={{ transform: `rotate(${-rotation}deg)` }}
+                      />
+                    </div>
+                  </Tooltip>
+                ) : (
+                  <Tooltip content={`Empty ${slotTypeName} Slot`}>
+                    <div className="w-16 h-16 shrink-0">
+                      <div className="border border-white/10 bg-white/5">
+                        <Image
+                          src={slotIcon}
+                          alt={`${slotTypeName} Slot`}
+                          width={64}
+                          height={64}
+                          className="z-10 w-16 h-16"
+                          unoptimized
                         />
                       </div>
-                    </Tooltip>
-
-                    {/* bottom div */}
-                    {module.charge && (
-                      <Tooltip content={module.itemType.name}>
-                        <div className="border border-white/10 bg-white/5">
-                          <EveImage
-                            kind="type"
-                            id={module.itemType.id}
-                            name={module.itemType.name}
-                            size={64}
-                            singleton={module.singleton}
-                            blueprint={isBlueprint(module.itemType)}
-                            className="size-16"
-                            style={{ transform: `rotate(${-rotation}deg)` }}
-                          />
-                        </div>
-                      </Tooltip>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {/* top div empty  */}
-                    <Tooltip content={`Empty ${slotTypeName} Slot`}>
-                      <div className="w-16 h-16 shrink-0">
-                        <div className="border border-white/10 bg-white/5">
-                          <Image
-                            src={slotIcon}
-                            alt={`${slotTypeName} Slot`}
-                            width={64}
-                            height={64}
-                            className="z-10 w-16 h-16"
-                            unoptimized
-                          />
-                        </div>
-                      </div>
-                    </Tooltip>
-                    {/* bottom div empty */}
-                    <div className="w-16 h-16 shrink-0"></div>
-                  </>
+                    </div>
+                  </Tooltip>
                 )}
               </div>
             </div>

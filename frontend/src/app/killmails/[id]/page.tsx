@@ -99,15 +99,6 @@ export default function KillmailDetailPage({
                 zKillboard
               </a>
               <a
-                href={`https://kb.evetools.org/kill/${km.id}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="button button-secondary button-sm"
-              >
-                <ArrowTopRightOnSquareIcon className="w-4 h-4" />
-                EVE Tools
-              </a>
-              <a
                 href={`https://esi.evetech.net/killmails/${km.id}/${km.killmailHash}/`}
                 target="_blank"
                 rel="noopener noreferrer"
