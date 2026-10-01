@@ -1,3 +1,4 @@
+import { formatPercent } from '@/utils/formatPercent';
 import { KillmailQuery } from '@/generated/graphql';
 import Link from 'next/link';
 import Tooltip from '../Tooltip/Tooltip';
@@ -15,10 +16,7 @@ export default function FeaturedAttackerCard({
   label,
   totalDamage,
 }: FeaturedAttackerCardProps) {
-  const damagePercentage =
-    totalDamage > 0
-      ? ((attacker.damageDone / totalDamage) * 100).toFixed(1)
-      : '0.0';
+  const damagePercentage = formatPercent(attacker.damageDone, totalDamage);
   return (
     <div className="p-4 card">
       {/* Label */}
@@ -108,7 +106,7 @@ export default function FeaturedAttackerCard({
         <div className="font-medium text-destroyed">
           {attacker.damageDone.toLocaleString()}
         </div>
-        <div className="text-sm text-ink-muted">{damagePercentage}%</div>
+        <div className="text-sm text-ink-muted">{damagePercentage}</div>
       </div>
     </div>
   );
