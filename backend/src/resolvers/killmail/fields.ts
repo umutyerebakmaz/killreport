@@ -4,6 +4,7 @@ import {
   KillmailResolvers,
   VictimResolvers,
 } from '@generated-types';
+import { DataLoaderContext } from '@app-types/context';
 import { organizeFitting } from '@helpers/fitting-helper';
 
 // Capsule (pod) type_id - special handling for value calculations
@@ -28,6 +29,33 @@ async function isBlueprintCopy(item: any, context: any): Promise<boolean> {
     groupData.category_id,
   );
   return categoryData?.name === 'Blueprint';
+}
+
+/**
+ * The item types among `items` that are charges (category "Charge"), so that
+ * organizeFitting can tell a loaded charge from the module it sits in. Each
+ * level is loaded for every type at once, so the DataLoaders batch it.
+ */
+async function chargeTypeIdsOf(
+  items: { item_type_id: number }[],
+  context: DataLoaderContext,
+): Promise<Set<number>> {
+  const typeIds = [...new Set(items.map((item) => item.item_type_id))];
+  const isCharge = await Promise.all(
+    typeIds.map(async (typeId) => {
+      const typeData = await context.loaders.type.load(typeId);
+      if (!typeData?.group_id) return false;
+
+      const groupData = await context.loaders.itemGroup.load(typeData.group_id);
+      if (!groupData?.category_id) return false;
+
+      const categoryData = await context.loaders.category.load(
+        groupData.category_id,
+      );
+      return categoryData?.name === 'Charge';
+    }),
+  );
+  return new Set(typeIds.filter((_, i) => isCharge[i]));
 }
 
 /**
@@ -445,7 +473,11 @@ export const killmailFields: KillmailResolvers = {
     }
 
     // Organize items into fitting structure with actual slot counts
-    const fitting = organizeFitting(rawItems, slotCounts);
+    const fitting = organizeFitting(
+      rawItems,
+      slotCounts,
+      await chargeTypeIdsOf(rawItems, context),
+    );
 
     // Convert to GraphQL-friendly format with nested Type resolution
     return {
