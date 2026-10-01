@@ -10,9 +10,9 @@ export const pool = new Pool({
 });
 
 pool.on('connect', () => {
-  console.log('Connected to the database');
+  console.log('connected to the database');
 });
 
 pool.on('error', (err) => {
-  console.error('Database connection error', err.stack);
+  console.error('database connection error', err.stack);
 });

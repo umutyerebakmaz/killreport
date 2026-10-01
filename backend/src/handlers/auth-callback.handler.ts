@@ -53,7 +53,7 @@ export async function handleAuthCallback(
     const stored = await consumeAuthState(state);
 
     if (stored === null) {
-      logger.warn('Auth callback rejected: unknown, expired or replayed state');
+      logger.warn('auth callback rejected: unknown, expired or replayed state');
       res.writeHead(302, { Location: frontendLocation('/', 'error') });
       res.end();
       return;
@@ -62,21 +62,21 @@ export async function handleAuthCallback(
     returnTo = stored;
 
     if (!code) {
-      logger.warn('Auth callback rejected: missing code parameter');
+      logger.warn('auth callback rejected: missing code parameter');
       res.writeHead(302, { Location: frontendLocation(returnTo, 'error') });
       res.end();
       return;
     }
 
     // Exchange authorization code for access token
-    logger.debug('Exchanging code for token...');
+    logger.debug('exchanging code for token...');
     const tokenData = await exchangeCodeForToken(code);
 
     // Verify token and get character info
-    logger.debug('Verifying token...');
+    logger.debug('verifying token...');
     const character = await verifyToken(tokenData.access_token);
     logger.info(
-      `✅ User authenticated: ${character.characterName} (${character.characterId})`,
+      `✅ user authenticated: ${character.characterName} (${character.characterId})`,
     );
 
     // Calculate token expiry time
@@ -101,7 +101,7 @@ export async function handleAuthCallback(
       },
     });
 
-    logger.debug(`User ${user.character_name} saved to database`);
+    logger.debug(`user ${user.character_name} saved to database`);
 
     // The redirect used to carry the token pair in its query string, which
     // wrote a refresh token into whatever serves the frontend, its access log
@@ -125,7 +125,7 @@ export async function handleAuthCallback(
     });
     res.end();
   } catch (error) {
-    logger.error('Auth callback error:', error);
+    logger.error('auth callback error:', error);
 
     res.writeHead(302, { Location: frontendLocation(returnTo, 'error') });
     res.end();

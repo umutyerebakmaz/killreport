@@ -93,14 +93,14 @@ export async function updateDailyAggregatesRealtime(
     ]);
 
     logger.debug(
-      `✅ Updated daily aggregates: ${uniqueCharacterIds.length} pilots, ` +
+      `✅ updated daily aggregates: ${uniqueCharacterIds.length} pilots, ` +
         `${uniqueCorporationIds.length} corps, ${uniqueAllianceIds.length} alliances`,
     );
   } catch (error) {
     // Log error but don't fail the transaction
     // The periodic worker will fix any inconsistencies
     logger.error(
-      '❌ Error updating daily aggregates (will be fixed by periodic worker):',
+      '❌ error updating daily aggregates (will be fixed by periodic worker):',
       error,
     );
   }
@@ -199,11 +199,11 @@ export async function updateDailyAggregatesBatch(
     await Promise.all(queries);
 
     logger.info(
-      `✅ Batch updated daily aggregates: ${pilotCounts.size} pilot entries, ` +
+      `✅ batch updated daily aggregates: ${pilotCounts.size} pilot entries, ` +
         `${corpCounts.size} corp entries, ${allianceCounts.size} alliance entries`,
     );
   } catch (error) {
-    logger.error('❌ Error in batch update of daily aggregates:', error);
+    logger.error('❌ error in batch update of daily aggregates:', error);
     throw error;
   }
 }

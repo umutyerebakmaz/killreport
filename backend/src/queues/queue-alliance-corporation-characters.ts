@@ -34,12 +34,12 @@ function isNPCCharacter(id: number): boolean {
  * Collects character IDs from alliances and corporations and queues them
  */
 async function queueAllianceCorporationCharacters() {
-  logger.info('Alliance-Corporation Character Queue Script Started');
+  logger.info('alliance-Corporation character queue script started');
   logger.info('━'.repeat(70));
 
   try {
     // Fetch all alliances and corporations
-    logger.info('Fetching data from database...');
+    logger.info('fetching data from database...');
 
     const [alliances, corporations] = await Promise.all([
       prismaWorker.alliance.findMany({
@@ -52,8 +52,8 @@ async function queueAllianceCorporationCharacters() {
       }),
     ]);
 
-    logger.info(`Found ${alliances.length} alliances`);
-    logger.info(`Found ${corporations.length} corporations`);
+    logger.info(`found ${alliances.length} alliances`);
+    logger.info(`found ${corporations.length} corporations`);
 
     // Collect unique character IDs
     const characterIds = new Set<number>();
@@ -76,12 +76,12 @@ async function queueAllianceCorporationCharacters() {
     }
 
     logger.info(
-      `Collected ${characterIds.size} unique character IDs (including NPCs)`,
+      `collected ${characterIds.size} unique character IDs (including NPCs)`,
     );
     logger.info('━'.repeat(70));
 
     // Filter out characters that already exist in database
-    logger.info('Checking for existing characters in database...');
+    logger.info('checking for existing characters in database...');
 
     const characterIdArray = Array.from(characterIds);
     const existingCharacters = await prismaWorker.character.findMany({
@@ -99,9 +99,9 @@ async function queueAllianceCorporationCharacters() {
 
     if (missingCharacterIds.length === 0) {
       logger.info('━'.repeat(70));
-      logger.info('All characters already exist in database!');
+      logger.info('all characters already exist in database!');
       logger.info('━'.repeat(70));
-      logger.info('Nothing to queue. All done!');
+      logger.info('nothing to queue. all done!');
       await prismaWorker.$disconnect();
       process.exit(0);
     }
@@ -112,9 +112,9 @@ async function queueAllianceCorporationCharacters() {
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
 
-    logger.info('Connected to RabbitMQ');
-    logger.info(`Queue: ${QUEUE_NAME}`);
-    logger.info('Adding characters to queue...');
+    logger.info('connected to RabbitMQ');
+    logger.info(`queue: ${QUEUE_NAME}`);
+    logger.info('adding characters to queue...');
 
     // Add to queue in batches
     let queuedCount = 0;
@@ -139,7 +139,7 @@ async function queueAllianceCorporationCharacters() {
       const batchNum = Math.floor(i / BATCH_SIZE) + 1;
       const totalBatches = Math.ceil(missingCharacterIds.length / BATCH_SIZE);
       logger.info(
-        `Batch ${batchNum}/${totalBatches}: ${batch.length} characters queued`,
+        `batch ${batchNum}/${totalBatches}: ${batch.length} characters queued`,
       );
     }
 
@@ -147,21 +147,21 @@ async function queueAllianceCorporationCharacters() {
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
 
     logger.info('━'.repeat(70));
-    logger.info(`Successfully queued ${queuedCount} characters!`);
+    logger.info(`successfully queued ${queuedCount} characters!`);
     logger.info('━'.repeat(70));
-    logger.info('Statistics:', {
+    logger.info('statistics:', {
       totalUnique: characterIds.size,
       alreadyInDB: existingIds.size,
       queued: queuedCount,
       totalInQueue: queueInfo.messageCount,
     });
-    logger.info('Next Step: Start worker: yarn worker:info:characters');
+    logger.info('next step: start worker: yarn worker:info:characters');
 
     await channel.close();
     await prismaWorker.$disconnect();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue characters', { error });
+    logger.error('failed to queue characters', { error });
     await prismaWorker.$disconnect();
     process.exit(1);
   }

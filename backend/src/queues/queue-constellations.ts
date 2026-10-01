@@ -9,15 +9,15 @@ const BATCH_SIZE = 100;
  * Fetches all constellation IDs from ESI and adds them to RabbitMQ queue
  */
 async function queueConstellations() {
-  logger.info('Fetching all constellation IDs from ESI...');
+  logger.info('fetching all constellation IDs from ESI...');
 
   try {
     // Get all constellation IDs from ESI
     const constellationIds =
       await ConstellationService.getAllConstellationIds();
 
-    logger.info(`Found ${constellationIds.length} constellations`);
-    logger.info('Adding to queue...');
+    logger.info(`found ${constellationIds.length} constellations`);
+    logger.info('adding to queue...');
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -33,23 +33,23 @@ async function queueConstellations() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
+        `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
           constellationIds.length / BATCH_SIZE,
         )} (${batch.length} constellations)`,
       );
     }
 
     logger.info(
-      `All ${constellationIds.length} constellations queued successfully!`,
+      `all ${constellationIds.length} constellations queued successfully!`,
     );
     logger.info(
-      'Now run the worker to process them: yarn worker:constellations',
+      'now run the worker to process them: yarn worker:constellations',
     );
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue constellations', { error });
+    logger.error('failed to queue constellations', { error });
     process.exit(1);
   }
 }

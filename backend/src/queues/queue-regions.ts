@@ -9,14 +9,14 @@ const BATCH_SIZE = 100;
  * Fetches all region IDs from ESI and adds them to RabbitMQ queue
  */
 async function queueRegions() {
-  logger.info('Fetching all region IDs from ESI...');
+  logger.info('fetching all region IDs from ESI...');
 
   try {
     // Get all region IDs from ESI
     const regionIds = await RegionService.getAllRegionIds();
 
-    logger.info(`Found ${regionIds.length} regions`);
-    logger.info('Adding to queue...');
+    logger.info(`found ${regionIds.length} regions`);
+    logger.info('adding to queue...');
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -32,19 +32,19 @@ async function queueRegions() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
+        `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
           regionIds.length / BATCH_SIZE,
         )} (${batch.length} regions)`,
       );
     }
 
-    logger.info(`All ${regionIds.length} regions queued successfully!`);
-    logger.info('Now run the worker to process them: yarn worker:regions');
+    logger.info(`all ${regionIds.length} regions queued successfully!`);
+    logger.info('now run the worker to process them: yarn worker:regions');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue regions', { error });
+    logger.error('failed to queue regions', { error });
     process.exit(1);
   }
 }

@@ -24,25 +24,25 @@ async function queueCharacters() {
         .filter((id) => !isNaN(id));
 
       if (characterIds.length === 0) {
-        logger.error('Invalid character IDs provided');
+        logger.error('invalid character IDs provided');
         process.exit(1);
       }
 
       logger.info(
-        `Queueing ${characterIds.length} specific character(s): ${characterIds.join(', ')}`,
+        `queueing ${characterIds.length} specific character(s): ${characterIds.join(', ')}`,
       );
     } else {
       // Queue all characters from database
-      logger.info('Fetching all character IDs from database...');
+      logger.info('fetching all character IDs from database...');
       const characters = await prismaWorker.character.findMany({
         select: { id: true },
         orderBy: { id: 'asc' },
       });
       characterIds = characters.map((c) => c.id);
-      logger.info(`Found ${characterIds.length} characters in database`);
+      logger.info(`found ${characterIds.length} characters in database`);
     }
 
-    logger.info(`Adding to queue: ${QUEUE_NAME}`);
+    logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -66,20 +66,20 @@ async function queueCharacters() {
 
       if (characterIds.length > 100) {
         logger.debug(
-          `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
+          `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
             characterIds.length / BATCH_SIZE,
           )} (${batch.length} characters)`,
         );
       }
     }
 
-    logger.info(`✅ All ${queuedCount} character(s) queued successfully!`);
-    logger.info('Now run the worker: yarn worker:info:characters');
+    logger.info(`✅ all ${queuedCount} character(s) queued successfully!`);
+    logger.info('now run the worker: yarn worker:info:characters');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue characters', { error });
+    logger.error('failed to queue characters', { error });
     process.exit(1);
   }
 }

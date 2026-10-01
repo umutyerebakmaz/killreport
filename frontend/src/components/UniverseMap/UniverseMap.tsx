@@ -328,7 +328,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   useEffect(() => {
     if (fontsReady && measure === null) {
       console.warn(
-        'Map labels are off: this browser gave no 2d canvas context.',
+        'map labels are off: this browser gave no 2d canvas context.',
       );
     }
   }, [fontsReady, measure]);

@@ -77,7 +77,7 @@ export const killmailQueries: QueryResolvers = {
     // Check cache first
     const cached = await redis.get(cacheKey);
     if (cached) {
-      console.log('✅ Cache hit for killmails query');
+      console.log('✅ cache hit for killmails query');
       return JSON.parse(cached);
     }
 
@@ -434,7 +434,7 @@ export const killmailQueries: QueryResolvers = {
     // Check cache first
     const cached = await redis.get(cacheKey);
     if (cached) {
-      console.log('✅ Cache hit for killmailsDateCounts query');
+      console.log('✅ cache hit for killmailsDateCounts query');
       return JSON.parse(cached);
     }
 

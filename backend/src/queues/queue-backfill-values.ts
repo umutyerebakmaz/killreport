@@ -46,13 +46,13 @@ async function queueBackfillValues() {
     : capsulesOnly
       ? '🚀 Backfill CAPSULE Killmail Values'
       : '🔄 Backfill Killmail Values';
-  logger.info(`${scriptTitle} - Queue Script`);
+  logger.info(`${scriptTitle} - queue script`);
   logger.info('━'.repeat(60));
   if (killmailId) {
-    logger.info(`🎯 Killmail ID: ${killmailId}`);
+    logger.info(`🎯 killmail ID: ${killmailId}`);
   } else if (capsulesOnly) {
     logger.info(
-      `🛸 Filter: Capsule (pod) killmails only (type_id: ${CAPSULE_TYPE_ID})`,
+      `🛸 filter: capsule (pod) killmails only (type_id: ${CAPSULE_TYPE_ID})`,
     );
   }
 
@@ -68,11 +68,11 @@ async function queueBackfillValues() {
 
     if (totalCount === 0) {
       if (killmailId) {
-        logger.info(`❌ Killmail ${killmailId} not found!`);
+        logger.info(`❌ killmail ${killmailId} not found!`);
       } else {
         const target = capsulesOnly ? 'Capsule killmails' : 'killmails';
-        logger.info(`✅ No ${target} found matching the criteria!`);
-        logger.info('Nothing to backfill.');
+        logger.info(`✅ no ${target} found matching the criteria!`);
+        logger.info('nothing to backfill.');
       }
       process.exit(0);
     }
@@ -85,25 +85,25 @@ async function queueBackfillValues() {
         ? 'Capsule killmails'
         : 'killmails';
     if (killmailId) {
-      logger.info(`✅ Found killmail ${killmailId}`);
+      logger.info(`✅ found killmail ${killmailId}`);
     } else {
       logger.info(
-        `📊 Found ${totalCount.toLocaleString()} ${targetDesc} matching criteria`,
+        `📊 found ${totalCount.toLocaleString()} ${targetDesc} matching criteria`,
       );
       if (limit) {
         logger.info(
-          `🎯 Processing limit: ${toProcess.toLocaleString()} killmails`,
+          `🎯 processing limit: ${toProcess.toLocaleString()} killmails`,
         );
       }
     }
-    logger.info(`📦 Queue: ${QUEUE_NAME}`);
-    logger.info(`⚙️  Batch size: ${BATCH_SIZE}`);
+    logger.info(`📦 queue: ${QUEUE_NAME}`);
+    logger.info(`⚙️  batch size: ${BATCH_SIZE}`);
     logger.info('');
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
 
-    logger.info('⏳ Fetching killmail IDs...');
+    logger.info('⏳ fetching killmail IDs...');
 
     // Fetch killmail IDs in batches (to avoid loading millions of IDs in memory)
     let queuedCount = 0;
@@ -140,7 +140,7 @@ async function queueBackfillValues() {
       batchNumber++;
       const progress = ((queuedCount / toProcess) * 100).toFixed(1);
       logger.info(
-        `  📤 Queued batch ${batchNumber} ` +
+        `  📤 queued batch ${batchNumber} ` +
           `(${queuedCount.toLocaleString()}/${toProcess.toLocaleString()} - ${progress}%)`,
       );
     }
@@ -148,21 +148,21 @@ async function queueBackfillValues() {
     logger.info('');
     logger.info('━'.repeat(60));
     logger.info(
-      `✅ Successfully queued ${queuedCount.toLocaleString()} ${targetDesc}`,
+      `✅ successfully queued ${queuedCount.toLocaleString()} ${targetDesc}`,
     );
     if (capsulesOnly) {
-      logger.info(`🛸 Ship type: Capsule (type_id ${CAPSULE_TYPE_ID})`);
+      logger.info(`🛸 ship type: capsule (type_id ${CAPSULE_TYPE_ID})`);
     }
     logger.info('');
-    logger.info('🚀 Start the worker with:');
+    logger.info('🚀 start the worker with:');
     logger.info('   yarn worker:backfill-values');
     logger.info('');
     logger.info(
-      '💡 Multiple workers can run in parallel for faster processing',
+      '💡 multiple workers can run in parallel for faster processing',
     );
     if (capsulesOnly) {
       logger.info(
-        '   Each Capsule will get 10 ISK ship value + implants value',
+        '   each capsule will get 10 ISK ship value + implants value',
       );
     }
     logger.info('━'.repeat(60));
@@ -171,7 +171,7 @@ async function queueBackfillValues() {
     await prismaWorker.$disconnect();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue backfill values', { error });
+    logger.error('failed to queue backfill values', { error });
     await prismaWorker.$disconnect();
     process.exit(1);
   }

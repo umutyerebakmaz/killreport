@@ -19,17 +19,17 @@ async function queueSpecificCharacters() {
 
   if (args.length === 0) {
     logger.error(
-      'Usage: yarn queue:character <characterId1> <characterId2> ...',
+      'usage: yarn queue:character <characterId1> <characterId2> ...',
     );
-    logger.info('Examples:');
+    logger.info('examples:');
     logger.info('  yarn queue:character 95465499');
     logger.info('  yarn queue:character 95465499 123456789 987654321');
-    logger.info('Then start the worker:');
+    logger.info('then start the worker:');
     logger.info('  yarn worker:zkillboard');
     process.exit(1);
   }
 
-  logger.info('Queueing specific characters for killmail sync...');
+  logger.info('queueing specific characters for killmail sync...');
 
   try {
     await ensureAllQueuesExist();
@@ -41,7 +41,7 @@ async function queueSpecificCharacters() {
       const characterId = parseInt(arg);
 
       if (isNaN(characterId)) {
-        logger.warn(`Skipping invalid ID: ${arg}`);
+        logger.warn(`skipping invalid ID: ${arg}`);
         errorCount++;
         continue;
       }
@@ -57,21 +57,21 @@ async function queueSpecificCharacters() {
         persistent: true,
       });
 
-      logger.debug(`Queued character ID: ${characterId}`);
+      logger.debug(`queued character ID: ${characterId}`);
       successCount++;
     }
 
-    logger.info(`Successfully queued ${successCount} character(s)`);
+    logger.info(`successfully queued ${successCount} character(s)`);
     if (errorCount > 0) {
-      logger.warn(`Skipped ${errorCount} invalid ID(s)`);
+      logger.warn(`skipped ${errorCount} invalid ID(s)`);
     }
-    logger.info('Now run the worker to process them:');
+    logger.info('now run the worker to process them:');
     logger.info('  yarn worker:zkillboard');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue characters', { error });
+    logger.error('failed to queue characters', { error });
     process.exit(1);
   }
 }

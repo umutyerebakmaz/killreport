@@ -10,7 +10,7 @@ import axios from 'axios';
 export const constellationMutations: MutationResolvers = {
   startConstellationSync: async (_, { input }) => {
     try {
-      logger.info('🚀 Starting constellation sync via GraphQL...');
+      logger.info('🚀 starting constellation sync via GraphQL...');
 
       // Get all constellation IDs from ESI
       const response = await axios.get(
@@ -18,8 +18,8 @@ export const constellationMutations: MutationResolvers = {
       );
       const constellationIds: number[] = response.data;
 
-      logger.info(`✓ Found ${constellationIds.length} constellations`);
-      logger.info(`📤 Publishing to queue...`);
+      logger.info(`✓ found ${constellationIds.length} constellations`);
+      logger.info(`📤 publishing to queue...`);
 
       // RabbitMQ'ya ekle
       const channel = await getRabbitMQChannel();
@@ -34,7 +34,7 @@ export const constellationMutations: MutationResolvers = {
       }
 
       logger.info(
-        `✅ All ${constellationIds.length} constellations queued successfully!`,
+        `✅ all ${constellationIds.length} constellations queued successfully!`,
       );
       return {
         success: true,
@@ -42,7 +42,7 @@ export const constellationMutations: MutationResolvers = {
         clientMutationId: input.clientMutationId || null,
       };
     } catch (error) {
-      logger.error('❌ Error starting constellation sync:', error);
+      logger.error('❌ error starting constellation sync:', error);
       return {
         success: false,
         message: 'Failed to start constellation sync',

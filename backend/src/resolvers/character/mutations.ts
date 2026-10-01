@@ -63,7 +63,7 @@ export const characterMutations: MutationResolvers = {
       await redis.del(`character:detail:${characterId}`);
 
       logger.info(
-        `Character ${characterId} (${character.name}) queued for refresh`,
+        `character ${characterId} (${character.name}) queued for refresh`,
         {
           userId: context.user?.id,
         },
@@ -76,7 +76,7 @@ export const characterMutations: MutationResolvers = {
         queued: true,
       };
     } catch (error) {
-      logger.error('Failed to queue character refresh', { error, characterId });
+      logger.error('failed to queue character refresh', { error, characterId });
       return {
         success: false,
         message: 'Failed to queue character for refresh',

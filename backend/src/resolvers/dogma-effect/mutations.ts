@@ -10,13 +10,13 @@ import { getRabbitMQChannel } from '@services/rabbitmq';
 export const dogmaEffectMutations: MutationResolvers = {
   startDogmaEffectSync: async (_, { input }) => {
     try {
-      logger.info('🚀 Starting dogma effect sync via GraphQL...');
+      logger.info('🚀 starting dogma effect sync via GraphQL...');
 
       // Get all dogma effect IDs from ESI
       const effectIds = await DogmaEffectService.getAllEffectIds();
 
-      logger.info(`✓ Found ${effectIds.length} dogma effects`);
-      logger.info(`📤 Publishing to queue...`);
+      logger.info(`✓ found ${effectIds.length} dogma effects`);
+      logger.info(`📤 publishing to queue...`);
 
       // Add to RabbitMQ queue
       const channel = await getRabbitMQChannel();
@@ -35,8 +35,8 @@ export const dogmaEffectMutations: MutationResolvers = {
         });
       }
 
-      logger.info(`✓ Queued ${effectIds.length} dogma effects`);
-      logger.info(`📊 Run worker with: yarn worker:info:dogma-effects`);
+      logger.info(`✓ queued ${effectIds.length} dogma effects`);
+      logger.info(`📊 run worker with: yarn worker:info:dogma-effects`);
 
       return {
         success: true,
@@ -44,7 +44,7 @@ export const dogmaEffectMutations: MutationResolvers = {
         clientMutationId: input.clientMutationId,
       };
     } catch (error: any) {
-      logger.error('Failed to start dogma effect sync', {
+      logger.error('failed to start dogma effect sync', {
         error: error.message,
       });
       return {

@@ -26,14 +26,14 @@ const QUEUE_NAME = 'esi_user_killmails_queue';
 async function queueUserESIKillmails() {
   const forceSync = process.argv.includes('--force');
   const fullSync = process.argv.includes('--full');
-  logger.info('Queueing users for ESI killmail sync...');
+  logger.info('queueing users for ESI killmail sync...');
 
   if (forceSync) {
-    logger.info('Force mode: Ignoring last sync time');
+    logger.info('force mode: ignoring last sync time');
   }
   if (fullSync) {
     logger.info(
-      'Full sync mode: Disabled incremental sync (will fetch all killmails)',
+      'full sync mode: disabled incremental sync (will fetch all killmails)',
     );
   }
 
@@ -70,20 +70,20 @@ async function queueUserESIKillmails() {
     });
 
     if (users.length === 0) {
-      logger.warn('No active users found for sync');
+      logger.warn('no active users found for sync');
       if (!forceSync) {
-        logger.info('All users were synced recently (within 15 minutes).');
+        logger.info('all users were synced recently (within 15 minutes).');
         logger.info(
-          '  Use --force to sync anyway: yarn queue:user-killmails --force',
+          '  use --force to sync anyway: yarn queue:user-killmails --force',
         );
       } else {
-        logger.info('Users need to login via SSO first.');
+        logger.info('users need to login via SSO first.');
       }
       return;
     }
 
-    logger.info(`Found ${users.length} user(s) to sync`);
-    logger.info(`Adding to queue: ${QUEUE_NAME}`);
+    logger.info(`found ${users.length} user(s) to sync`);
+    logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -103,19 +103,19 @@ async function queueUserESIKillmails() {
 
       const syncMode = fullSync ? ' [FULL SYNC]' : ' [INCREMENTAL]';
       logger.debug(
-        `Queued: ${user.character_name} (ID: ${user.character_id})${lastSyncInfo}${syncMode}`,
+        `queued: ${user.character_name} (ID: ${user.character_id})${lastSyncInfo}${syncMode}`,
       );
     }
 
-    logger.info(`Successfully queued ${users.length} user(s)!`);
-    logger.info('Now run the worker to process them:');
+    logger.info(`successfully queued ${users.length} user(s)!`);
+    logger.info('now run the worker to process them:');
     logger.info('  yarn worker:user-killmails');
 
     await channel.close();
     await prismaWorker.$disconnect();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue users', { error });
+    logger.error('failed to queue users', { error });
     await prismaWorker.$disconnect();
     process.exit(1);
   }

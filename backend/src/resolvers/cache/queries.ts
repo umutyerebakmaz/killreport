@@ -19,7 +19,7 @@ export const cacheQueries: QueryResolvers = {
         isHealthy,
       };
     } catch (error) {
-      logger.error('Error fetching cache stats:', error);
+      logger.error('error fetching cache stats:', error);
       throw new Error('Failed to fetch cache statistics');
     }
   },

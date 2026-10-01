@@ -62,7 +62,7 @@ export function useAuth() {
   // Token refresh function
   const refreshToken = useCallback(async () => {
     try {
-      console.log('🔄 Refreshing access token...');
+      console.log('🔄 refreshing access token...');
       const response = await fetch(
         process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
         {
@@ -91,7 +91,7 @@ export function useAuth() {
       const result = await response.json();
 
       if (result.errors) {
-        console.error('Token refresh error:', result.errors);
+        console.error('token refresh error:', result.errors);
         logout();
         return false;
       }
@@ -111,14 +111,14 @@ export function useAuth() {
       localStorage.setItem('eve_user', JSON.stringify(userData));
       setUser(userData);
 
-      console.log('✅ Token refreshed successfully');
+      console.log('✅ token refreshed successfully');
 
       // Schedule next refresh (5 minutes before expiry)
       scheduleTokenRefresh(data.expiresIn);
 
       return true;
     } catch (error) {
-      console.error('Error refreshing token:', error);
+      console.error('error refreshing token:', error);
       logout();
       return false;
     }
@@ -137,7 +137,7 @@ export function useAuth() {
 
       if (refreshTime > 0) {
         console.log(
-          `⏰ Token will be refreshed in ${refreshTime / 1000} seconds`,
+          `⏰ token will be refreshed in ${refreshTime / 1000} seconds`,
         );
         refreshTimerRef.current = setTimeout(() => {
           refreshToken();
@@ -164,7 +164,7 @@ export function useAuth() {
 
           // If token expires in less than 5 minutes, refresh immediately
           if (timeUntilExpiry < 5 * 60 * 1000) {
-            console.log('Token expires soon, refreshing immediately...');
+            console.log('token expires soon, refreshing immediately...');
             refreshToken();
           } else {
             // Schedule refresh for 5 minutes before expiry
@@ -173,14 +173,14 @@ export function useAuth() {
           }
         } else {
           // Token expired, try to refresh
-          console.log('Token expired, attempting refresh...');
+          console.log('token expired, attempting refresh...');
           refreshToken();
         }
       } else {
         setUser(null);
       }
     } catch (error) {
-      console.error('Error checking auth:', error);
+      console.error('error checking auth:', error);
       setUser(null);
     } finally {
       setIsLoading(false);
@@ -268,7 +268,7 @@ export function useAuth() {
         },
       );
     } catch (error) {
-      console.error('Error logging out:', error);
+      console.error('error logging out:', error);
     }
 
     localStorage.removeItem('eve_access_token');

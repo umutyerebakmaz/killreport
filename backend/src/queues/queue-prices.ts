@@ -11,22 +11,22 @@ const BATCH_SIZE = 100;
  * These will be processed by worker:prices
  */
 async function queuePrices() {
-  logger.info('Fetching unique type IDs from killmail_items and victims...');
+  logger.info('fetching unique type IDs from killmail_items and victims...');
 
   try {
     // Get all unique item_type_id from killmail_items using raw query for better performance
-    logger.info('Querying unique item types from killmail_items...');
+    logger.info('querying unique item types from killmail_items...');
     const itemTypes = await prisma.$queryRaw<{ item_type_id: number }[]>`
       SELECT DISTINCT item_type_id FROM killmail_items
     `;
-    logger.info(`✓ Found ${itemTypes.length} unique item types`);
+    logger.info(`✓ found ${itemTypes.length} unique item types`);
 
     // Get all unique ship_type_id from victims using raw query
-    logger.info('Querying unique ship types from victims...');
+    logger.info('querying unique ship types from victims...');
     const shipTypes = await prisma.$queryRaw<{ ship_type_id: number }[]>`
       SELECT DISTINCT ship_type_id FROM victims
     `;
-    logger.info(`✓ Found ${shipTypes.length} unique ship types`);
+    logger.info(`✓ found ${shipTypes.length} unique ship types`);
 
     // Combine and deduplicate
     const itemTypeIds = itemTypes.map((i) => i.item_type_id);
@@ -34,8 +34,8 @@ async function queuePrices() {
     const allTypeIds = [...new Set([...itemTypeIds, ...shipTypeIds])];
     const typeIds = allTypeIds.sort((a, b) => a - b);
 
-    logger.info(`Total unique types to queue: ${typeIds.length}`);
-    logger.info(`Adding to queue: ${QUEUE_NAME}`);
+    logger.info(`total unique types to queue: ${typeIds.length}`);
+    logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -56,19 +56,19 @@ async function queuePrices() {
       }
 
       logger.info(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
+        `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
           typeIds.length / BATCH_SIZE,
         )} (${batch.length} types)`,
       );
     }
 
-    logger.info(`All ${typeIds.length} types queued successfully!`);
-    logger.info('Now run the worker: yarn worker:prices');
+    logger.info(`all ${typeIds.length} types queued successfully!`);
+    logger.info('now run the worker: yarn worker:prices');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue prices', { error });
+    logger.error('failed to queue prices', { error });
     process.exit(1);
   }
 }

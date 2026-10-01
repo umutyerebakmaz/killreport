@@ -63,7 +63,7 @@ export class MarketService {
           volume: totalVolume,
         };
       } catch (error) {
-        logger.error(`Failed to fetch ESI price for type ${typeId}:`, error);
+        logger.error(`failed to fetch ESI price for type ${typeId}:`, error);
         return null;
       }
     });
@@ -93,7 +93,7 @@ export class MarketService {
         },
       });
     } catch (error) {
-      logger.error(`Failed to save price for type ${price.type_id}:`, error);
+      logger.error(`failed to save price for type ${price.type_id}:`, error);
     }
   }
 }

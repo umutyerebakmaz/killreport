@@ -19,7 +19,7 @@ export class TypeService {
       );
       const groupIds: number[] = groupsResponse.data;
 
-      console.log(`📊 Found ${groupIds.length} item groups, fetching types...`);
+      console.log(`📊 found ${groupIds.length} item groups, fetching types...`);
 
       const allTypeIds: number[] = [];
       let processedGroups = 0;
@@ -39,15 +39,15 @@ export class TypeService {
           processedGroups++;
           if (processedGroups % 100 === 0) {
             console.log(
-              `  ✓ Processed ${processedGroups}/${groupIds.length} groups (${allTypeIds.length} types so far)`,
+              `  ✓ processed ${processedGroups}/${groupIds.length} groups (${allTypeIds.length} types so far)`,
             );
           }
         } catch (error) {
-          console.error(`  ✗ Failed to fetch group ${groupId}:`, error);
+          console.error(`  ✗ failed to fetch group ${groupId}:`, error);
         }
       }
 
-      console.log(`✓ Total types found: ${allTypeIds.length}`);
+      console.log(`✓ total types found: ${allTypeIds.length}`);
       return allTypeIds;
     });
   }

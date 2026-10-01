@@ -33,24 +33,24 @@ const pool = new Pool({
 });
 
 console.log(
-  `✅ [Worker] PostgreSQL pool configured: max=2 connections, min=0, idleTimeout=10s, pid=${process.pid}`,
+  `✅ [worker] PostgreSQL pool configured: max=2 connections, min=0, idleTimeout=10s, pid=${process.pid}`,
 );
 
 // Monitor pool connections
 pool.on('connect', () => {
   console.log(
-    `🔌 [Worker] Pool connection opened - Total: ${pool.totalCount}, Idle: ${pool.idleCount}, Waiting: ${pool.waitingCount}`,
+    `🔌 [worker] pool connection opened - total: ${pool.totalCount}, idle: ${pool.idleCount}, waiting: ${pool.waitingCount}`,
   );
 });
 
 pool.on('remove', () => {
   console.log(
-    `❌ [Worker] Pool connection closed - Total: ${pool.totalCount}, Idle: ${pool.idleCount}, Waiting: ${pool.waitingCount}`,
+    `❌ [worker] pool connection closed - total: ${pool.totalCount}, idle: ${pool.idleCount}, waiting: ${pool.waitingCount}`,
   );
 });
 
 pool.on('error', (err) => {
-  console.error('💥 [Worker] Pool error:', err.message);
+  console.error('💥 [worker] pool error:', err.message);
 });
 
 const adapter = new PrismaPg(pool);

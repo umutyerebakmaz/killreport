@@ -46,7 +46,7 @@ export class DogmaAttributeService {
         const info = await this.getAttributeInfo(attributeId);
         results.push(info);
       } catch (error) {
-        console.error(`Failed to fetch attribute ${attributeId}:`, error);
+        console.error(`failed to fetch attribute ${attributeId}:`, error);
       }
     }
 

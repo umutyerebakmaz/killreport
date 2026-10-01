@@ -82,16 +82,16 @@ export class CorporationService {
         // If null returned (404), no more pages
         if (killmails === null) {
           logger.info(
-            `     ✓ No more pages available (page ${page} returned 404)`,
+            `     ✓ no more pages available (page ${page} returned 404)`,
           );
           break;
         }
 
-        logger.debug(`     📄 Page ${page}: ${killmails.length} killmails`);
+        logger.debug(`     📄 page ${page}: ${killmails.length} killmails`);
 
         // If no killmails returned, we've reached the end
         if (killmails.length === 0) {
-          logger.info(`     ✓ Reached end of killmails (empty page)`);
+          logger.info(`     ✓ reached end of killmails (empty page)`);
           break;
         }
 
@@ -108,12 +108,12 @@ export class CorporationService {
               allKillmails.push(...newKillmails);
             }
             logger.info(
-              `     ✅ Incremental sync: Found last synced killmail (ID: ${stopAtKillmailId})`,
+              `     ✅ incremental sync: found last synced killmail (ID: ${stopAtKillmailId})`,
             );
             logger.info(
-              `     ⏭️  Stopping at page ${page} - fetched ${newKillmails.length} new killmails from this page`,
+              `     ⏭️  stopping at page ${page} - fetched ${newKillmails.length} new killmails from this page`,
             );
-            logger.info(`     📊 Total new killmails: ${allKillmails.length}`);
+            logger.info(`     📊 total new killmails: ${allKillmails.length}`);
             break;
           }
         }
@@ -124,17 +124,17 @@ export class CorporationService {
         // If less than 50 returned, this is the last page
         if (killmails.length < 50) {
           logger.info(
-            `     ✓ Last page detected (${killmails.length} < 50 killmails)`,
+            `     ✓ last page detected (${killmails.length} < 50 killmails)`,
           );
           break;
         }
 
-        logger.debug(`     ➡️  Continuing to page ${page + 1}...`);
+        logger.debug(`     ➡️  continuing to page ${page + 1}...`);
 
         // Add extra delay between pages to prevent rate limiting
         await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (error: any) {
-        logger.error(`     ❌ Error fetching page ${page}:`, error.message);
+        logger.error(`     ❌ error fetching page ${page}:`, error.message);
 
         // If rate limited, wait and retry once
         if (
@@ -143,7 +143,7 @@ export class CorporationService {
           error.message.includes('Rate limit')
         ) {
           logger.warn(
-            `     ⏳ Rate limited, waiting 5 seconds before retry...`,
+            `     ⏳ rate limited, waiting 5 seconds before retry...`,
           );
           await new Promise((resolve) => setTimeout(resolve, 5000));
 
@@ -166,7 +166,7 @@ export class CorporationService {
 
             if (retryKillmails) {
               logger.info(
-                `     ✅ Retry successful: ${retryKillmails.length} killmails`,
+                `     ✅ retry successful: ${retryKillmails.length} killmails`,
               );
               allKillmails.push(...retryKillmails);
               if (retryKillmails.length < 50) break;
@@ -174,7 +174,7 @@ export class CorporationService {
               break;
             }
           } catch (retryError: any) {
-            logger.error(`     ❌ Retry failed:`, retryError.message);
+            logger.error(`     ❌ retry failed:`, retryError.message);
             throw error; // Throw original error
           }
         } else {
@@ -183,7 +183,7 @@ export class CorporationService {
       }
     }
 
-    logger.info(`     ✅ Total: ${allKillmails.length} killmails from ESI`);
+    logger.info(`     ✅ total: ${allKillmails.length} killmails from ESI`);
     return allKillmails;
   }
 }

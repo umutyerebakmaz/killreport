@@ -9,7 +9,7 @@ import axios from 'axios';
 export const regionMutations: MutationResolvers = {
   startRegionSync: async (_, { input }) => {
     try {
-      console.log('🚀 Starting region sync via GraphQL...');
+      console.log('🚀 starting region sync via GraphQL...');
 
       // Get all region IDs from ESI
       const response = await axios.get(
@@ -17,8 +17,8 @@ export const regionMutations: MutationResolvers = {
       );
       const regionIds: number[] = response.data;
 
-      console.log(`✓ Found ${regionIds.length} regions`);
-      console.log(`📤 Publishing to queue...`);
+      console.log(`✓ found ${regionIds.length} regions`);
+      console.log(`📤 publishing to queue...`);
 
       // RabbitMQ'ya ekle
       const channel = await getRabbitMQChannel();
@@ -32,14 +32,14 @@ export const regionMutations: MutationResolvers = {
         publishedCount++;
       }
 
-      console.log(`✅ All ${regionIds.length} regions queued successfully!`);
+      console.log(`✅ all ${regionIds.length} regions queued successfully!`);
       return {
         success: true,
         message: `${regionIds.length} regions queued successfully`,
         clientMutationId: input.clientMutationId || null,
       };
     } catch (error) {
-      console.error('❌ Error starting region sync:', error);
+      console.error('❌ error starting region sync:', error);
       return {
         success: false,
         message: 'Failed to start region sync',

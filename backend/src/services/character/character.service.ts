@@ -81,16 +81,16 @@ export class CharacterService {
         // If null returned (404), no more pages
         if (killmails === null) {
           console.log(
-            `     ✓ No more pages available (page ${page} returned 404)`,
+            `     ✓ no more pages available (page ${page} returned 404)`,
           );
           break;
         }
 
-        console.log(`     📄 Page ${page}: ${killmails.length} killmails`);
+        console.log(`     📄 page ${page}: ${killmails.length} killmails`);
 
         // If no killmails returned, we've reached the end
         if (killmails.length === 0) {
-          console.log(`     ✓ Reached end of killmails (empty page)`);
+          console.log(`     ✓ reached end of killmails (empty page)`);
           break;
         }
 
@@ -107,12 +107,12 @@ export class CharacterService {
               allKillmails.push(...newKillmails);
             }
             console.log(
-              `     ✅ Incremental sync: Found last synced killmail (ID: ${stopAtKillmailId})`,
+              `     ✅ incremental sync: found last synced killmail (ID: ${stopAtKillmailId})`,
             );
             console.log(
-              `     ⏭️  Stopping at page ${page} - fetched ${newKillmails.length} new killmails from this page`,
+              `     ⏭️  stopping at page ${page} - fetched ${newKillmails.length} new killmails from this page`,
             );
-            console.log(`     📊 Total new killmails: ${allKillmails.length}`);
+            console.log(`     📊 total new killmails: ${allKillmails.length}`);
             break;
           }
         }
@@ -123,14 +123,14 @@ export class CharacterService {
         // If less than 50 returned, this is the last page
         if (killmails.length < 50) {
           console.log(
-            `     ✓ Last page detected (${killmails.length} < 50 killmails)`,
+            `     ✓ last page detected (${killmails.length} < 50 killmails)`,
           );
           break;
         }
 
-        console.log(`     ➡️  Continuing to page ${page + 1}...`);
+        console.log(`     ➡️  continuing to page ${page + 1}...`);
       } catch (error: any) {
-        console.error(`     ❌ Error fetching page ${page}:`, error.message);
+        console.error(`     ❌ error fetching page ${page}:`, error.message);
 
         // If rate limited, wait and retry once
         if (
@@ -139,7 +139,7 @@ export class CharacterService {
           error.message.includes('Rate limit')
         ) {
           console.log(
-            `     ⏳ Rate limited, waiting 5 seconds before retry...`,
+            `     ⏳ rate limited, waiting 5 seconds before retry...`,
           );
           await new Promise((resolve) => setTimeout(resolve, 5000));
 
@@ -162,7 +162,7 @@ export class CharacterService {
 
             if (retryKillmails) {
               console.log(
-                `     ✅ Retry successful: ${retryKillmails.length} killmails`,
+                `     ✅ retry successful: ${retryKillmails.length} killmails`,
               );
               allKillmails.push(...retryKillmails);
               if (retryKillmails.length < 50) break;
@@ -170,7 +170,7 @@ export class CharacterService {
               break;
             }
           } catch (retryError: any) {
-            console.error(`     ❌ Retry failed:`, retryError.message);
+            console.error(`     ❌ retry failed:`, retryError.message);
             throw error; // Throw original error
           }
         } else {
@@ -179,7 +179,7 @@ export class CharacterService {
       }
     }
 
-    console.log(`     ✅ Total: ${allKillmails.length} killmails from ESI`);
+    console.log(`     ✅ total: ${allKillmails.length} killmails from ESI`);
     return allKillmails;
   }
 }

@@ -37,18 +37,18 @@ console.log(
 // Monitor pool connections
 pool.on('connect', () => {
   console.log(
-    `🔌 Pool connection opened - Total: ${pool.totalCount}, Idle: ${pool.idleCount}, Waiting: ${pool.waitingCount}`,
+    `🔌 pool connection opened - total: ${pool.totalCount}, idle: ${pool.idleCount}, waiting: ${pool.waitingCount}`,
   );
 });
 
 pool.on('remove', () => {
   console.log(
-    `❌ Pool connection closed - Total: ${pool.totalCount}, Idle: ${pool.idleCount}, Waiting: ${pool.waitingCount}`,
+    `❌ pool connection closed - total: ${pool.totalCount}, idle: ${pool.idleCount}, waiting: ${pool.waitingCount}`,
   );
 });
 
 pool.on('error', (err) => {
-  console.error('💥 Pool error:', err.message);
+  console.error('💥 pool error:', err.message);
 });
 
 const adapter = new PrismaPg(pool);

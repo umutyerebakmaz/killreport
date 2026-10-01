@@ -26,7 +26,7 @@ const QUEUE_NAME = TOPOLOGY_QUEUES.planets;
 const SOURCE = 'queue-planets';
 
 async function queuePlanets() {
-  logger.info('Planet repair queue script started');
+  logger.info('planet repair queue script started');
 
   try {
     // The IDs come from the database with WHERE name IS NULL, so a re-run queues
@@ -40,12 +40,12 @@ async function queuePlanets() {
     });
 
     if (rows.length === 0) {
-      logger.info('Nothing to do: every planet row already has a name.');
+      logger.info('nothing to do: every planet row already has a name.');
       await prismaWorker.$disconnect();
       process.exit(0);
     }
 
-    logger.info(`Found ${rows.length} planet rows with no name`);
+    logger.info(`found ${rows.length} planet rows with no name`);
 
     const planetIds = rows.map((r) => r.id);
 
@@ -91,14 +91,14 @@ async function queuePlanets() {
       });
     }
 
-    logger.info(`Queued ${rows.length} messages to ${QUEUE_NAME}`);
-    logger.info('Now run the worker to process them: yarn worker:planets');
+    logger.info(`queued ${rows.length} messages to ${QUEUE_NAME}`);
+    logger.info('now run the worker to process them: yarn worker:planets');
 
     await channel.close();
     await prismaWorker.$disconnect();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue planets', { error });
+    logger.error('failed to queue planets', { error });
     process.exit(1);
   }
 }

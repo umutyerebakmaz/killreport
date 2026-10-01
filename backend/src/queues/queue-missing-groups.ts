@@ -9,7 +9,7 @@ const QUEUE_NAME = 'esi_item_group_info_queue';
  * This ensures all types have their group information available
  */
 async function queueMissingGroups() {
-  logger.info('Scanning for missing item groups...');
+  logger.info('scanning for missing item groups...');
 
   try {
     // Get all unique group_ids from types table
@@ -22,7 +22,7 @@ async function queueMissingGroups() {
       (t: { group_id: number }) => t.group_id,
     );
     logger.info(
-      `Found ${uniqueGroupIds.length} unique group IDs in types table`,
+      `found ${uniqueGroupIds.length} unique group IDs in types table`,
     );
 
     // Get existing item groups
@@ -34,7 +34,7 @@ async function queueMissingGroups() {
       existingGroups.map((g: { id: number }) => g.id),
     );
     logger.info(
-      `Found ${existingGroupIds.size} existing item groups in database`,
+      `found ${existingGroupIds.size} existing item groups in database`,
     );
 
     // Find missing group IDs
@@ -42,15 +42,15 @@ async function queueMissingGroups() {
       (id: number) => !existingGroupIds.has(id),
     );
 
-    logger.info(`Missing Groups: ${missingGroupIds.length}`);
+    logger.info(`missing groups: ${missingGroupIds.length}`);
 
     if (missingGroupIds.length === 0) {
-      logger.info('All item groups are already in database!');
+      logger.info('all item groups are already in database!');
       process.exit(0);
     }
 
     logger.debug(
-      'Missing group IDs: ' +
+      'missing group IDs: ' +
         missingGroupIds.sort((a: number, b: number) => a - b).join(', '),
     );
 
@@ -74,19 +74,19 @@ async function queueMissingGroups() {
       queuedCount++;
     }
 
-    logger.info(`Queued ${queuedCount} missing item groups`);
-    logger.info('Next Steps:');
+    logger.info(`queued ${queuedCount} missing item groups`);
+    logger.info('next steps:');
     logger.info(
-      '  1. Start the item group worker: yarn worker:info:item-groups',
+      '  1. start the item group worker: yarn worker:info:item-groups',
     );
     logger.info(
-      '  2. Worker will fetch missing groups from ESI and save to database',
+      '  2. worker will fetch missing groups from ESI and save to database',
     );
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Error', { error });
+    logger.error('error', { error });
     process.exit(1);
   }
 }

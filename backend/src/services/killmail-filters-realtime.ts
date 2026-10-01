@@ -163,12 +163,12 @@ export async function insertKillmailFilter(
     `;
 
     logger.debug(
-      `✅ Inserted killmail_filters for killmail ${data.killmail_id}`,
+      `✅ inserted killmail_filters for killmail ${data.killmail_id}`,
     );
   } catch (error) {
     // Log error but don't fail
     logger.error(
-      `❌ Error inserting killmail_filters for ${data.killmail_id}:`,
+      `❌ error inserting killmail_filters for ${data.killmail_id}:`,
       error,
     );
   }

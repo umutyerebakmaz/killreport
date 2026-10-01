@@ -11,13 +11,13 @@ import { TypeService } from '@services/type';
 export const typeMutations: MutationResolvers = {
   startTypeSync: async (_, { input }) => {
     try {
-      logger.info('🚀 Starting type sync via GraphQL...');
+      logger.info('🚀 starting type sync via GraphQL...');
 
       // Get all type IDs from ESI (fetches from all item groups)
       const typeIds = await TypeService.getTypeIds();
 
-      logger.info(`✓ Found ${typeIds.length} types`);
-      logger.info(`📤 Publishing to queue...`);
+      logger.info(`✓ found ${typeIds.length} types`);
+      logger.info(`📤 publishing to queue...`);
 
       // RabbitMQ'ya ekle
       const channel = await getRabbitMQChannel();
@@ -36,7 +36,7 @@ export const typeMutations: MutationResolvers = {
         publishedCount++;
       }
 
-      logger.info(`✅ Queued ${publishedCount} types for sync`);
+      logger.info(`✅ queued ${publishedCount} types for sync`);
 
       return {
         success: true,
@@ -44,7 +44,7 @@ export const typeMutations: MutationResolvers = {
         clientMutationId: input.clientMutationId,
       };
     } catch (error) {
-      logger.error('❌ Error starting type sync:', error);
+      logger.error('❌ error starting type sync:', error);
       return {
         success: false,
         message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -55,7 +55,7 @@ export const typeMutations: MutationResolvers = {
 
   startTypeDogmaSync: async (_, { input }) => {
     try {
-      logger.info('🚀 Starting type dogma sync via GraphQL...');
+      logger.info('🚀 starting type dogma sync via GraphQL...');
 
       const channel = await getRabbitMQChannel();
       const QUEUE_NAME = 'esi_type_dogma_queue';
@@ -65,16 +65,16 @@ export const typeMutations: MutationResolvers = {
       // If specific type IDs provided, use them; otherwise get all types from DB
       if (input.typeIds && input.typeIds.length > 0) {
         typeIds = input.typeIds.map((id) => Number(id));
-        logger.info(`✓ Using ${typeIds.length} specified type IDs`);
+        logger.info(`✓ using ${typeIds.length} specified type IDs`);
       } else {
         const types = await prisma.type.findMany({
           select: { id: true },
         });
         typeIds = types.map((t) => t.id);
-        logger.info(`✓ Found ${typeIds.length} types in database`);
+        logger.info(`✓ found ${typeIds.length} types in database`);
       }
 
-      logger.info(`📤 Publishing to queue...`);
+      logger.info(`📤 publishing to queue...`);
 
       let publishedCount = 0;
       for (const id of typeIds) {
@@ -89,7 +89,7 @@ export const typeMutations: MutationResolvers = {
         publishedCount++;
       }
 
-      logger.info(`✅ Queued ${publishedCount} types for dogma sync`);
+      logger.info(`✅ queued ${publishedCount} types for dogma sync`);
 
       return {
         success: true,
@@ -98,7 +98,7 @@ export const typeMutations: MutationResolvers = {
         clientMutationId: input.clientMutationId,
       };
     } catch (error) {
-      logger.error('❌ Error starting type dogma sync:', error);
+      logger.error('❌ error starting type dogma sync:', error);
       return {
         success: false,
         message: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`,

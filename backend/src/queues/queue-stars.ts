@@ -21,7 +21,7 @@ const QUEUE_NAME = TOPOLOGY_QUEUES.stars;
 const SOURCE = 'queue-stars';
 
 async function queueStars() {
-  logger.info('Star repair queue script started');
+  logger.info('star repair queue script started');
 
   try {
     // The IDs come from the database with WHERE name IS NULL, so a re-run queues
@@ -35,12 +35,12 @@ async function queueStars() {
     });
 
     if (rows.length === 0) {
-      logger.info('Nothing to do: every star row already has a name.');
+      logger.info('nothing to do: every star row already has a name.');
       await prismaWorker.$disconnect();
       process.exit(0);
     }
 
-    logger.info(`Found ${rows.length} star rows with no name`);
+    logger.info(`found ${rows.length} star rows with no name`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -53,14 +53,14 @@ async function queueStars() {
       });
     }
 
-    logger.info(`Queued ${rows.length} messages to ${QUEUE_NAME}`);
-    logger.info('Now run the worker to process them: yarn worker:stars');
+    logger.info(`queued ${rows.length} messages to ${QUEUE_NAME}`);
+    logger.info('now run the worker to process them: yarn worker:stars');
 
     await channel.close();
     await prismaWorker.$disconnect();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue stars', { error });
+    logger.error('failed to queue stars', { error });
     process.exit(1);
   }
 }

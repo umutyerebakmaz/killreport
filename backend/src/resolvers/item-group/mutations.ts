@@ -9,13 +9,13 @@ import { getRabbitMQChannel } from '@services/rabbitmq';
 export const itemGroupMutations: MutationResolvers = {
   startItemGroupSync: async (_, { input }) => {
     try {
-      console.log('🚀 Starting item group sync via GraphQL...');
+      console.log('🚀 starting item group sync via GraphQL...');
 
       // Get all item group IDs from ESI
       const itemGroupIds = await ItemGroupService.getItemGroupIds();
 
-      console.log(`✓ Found ${itemGroupIds.length} item groups`);
-      console.log(`📤 Publishing to queue...`);
+      console.log(`✓ found ${itemGroupIds.length} item groups`);
+      console.log(`📤 publishing to queue...`);
 
       // RabbitMQ'ya ekle
       const channel = await getRabbitMQChannel();
@@ -35,7 +35,7 @@ export const itemGroupMutations: MutationResolvers = {
       }
 
       console.log(
-        `✅ All ${itemGroupIds.length} item groups queued successfully!`,
+        `✅ all ${itemGroupIds.length} item groups queued successfully!`,
       );
       return {
         success: true,
@@ -43,7 +43,7 @@ export const itemGroupMutations: MutationResolvers = {
         clientMutationId: input.clientMutationId || null,
       };
     } catch (error) {
-      console.error('❌ Error starting item group sync:', error);
+      console.error('❌ error starting item group sync:', error);
       return {
         success: false,
         message: 'Failed to start item group sync',

@@ -10,14 +10,14 @@ const BATCH_SIZE = 100;
  * These will be processed by worker:info:dogma-attributes
  */
 async function queueDogmaAttributes() {
-  logger.info('Fetching all dogma attribute IDs from ESI...');
+  logger.info('fetching all dogma attribute IDs from ESI...');
 
   try {
     // Get all dogma attribute IDs from ESI
     const attributeIds = await DogmaAttributeService.getAllAttributeIds();
 
-    logger.info(`Found ${attributeIds.length} dogma attributes`);
-    logger.info(`Adding to queue: ${QUEUE_NAME}`);
+    logger.info(`found ${attributeIds.length} dogma attributes`);
+    logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -39,19 +39,19 @@ async function queueDogmaAttributes() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(attributeIds.length / BATCH_SIZE)}`,
+        `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(attributeIds.length / BATCH_SIZE)}`,
       );
     }
 
     logger.info(
-      `All ${attributeIds.length} dogma attributes queued successfully!`,
+      `all ${attributeIds.length} dogma attributes queued successfully!`,
     );
-    logger.info('Run worker with: yarn worker:info:dogma-attributes');
+    logger.info('run worker with: yarn worker:info:dogma-attributes');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Error queueing dogma attributes', { error });
+    logger.error('error queueing dogma attributes', { error });
     process.exit(1);
   }
 }

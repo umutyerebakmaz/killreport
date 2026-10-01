@@ -68,7 +68,7 @@ export function createRateLimitPlugin(
           const resetIn = Math.ceil(ttl || finalConfig.windowMs / 1000);
 
           logger.warn(
-            `🚫 Rate limit exceeded: ${identifier} (${count}/${finalConfig.max})`,
+            `🚫 rate limit exceeded: ${identifier} (${count}/${finalConfig.max})`,
           );
 
           // Return 429 response with all headers
@@ -120,7 +120,7 @@ export function createRateLimitPlugin(
         const resetTime = Date.now() + (ttl || windowSeconds) * 1000;
 
         logger.debug(
-          `✅ Rate limit: ${identifier} (${newCount}/${finalConfig.max})`,
+          `✅ rate limit: ${identifier} (${newCount}/${finalConfig.max})`,
         );
 
         // Store rate limit info on request for later
@@ -131,7 +131,7 @@ export function createRateLimitPlugin(
         };
       } catch (error) {
         // Fail open - don't block requests if Redis is down
-        logger.error('Rate limit error (failing open):', error);
+        logger.error('rate limit error (failing open):', error);
       }
     },
 

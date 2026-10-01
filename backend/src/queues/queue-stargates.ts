@@ -22,7 +22,7 @@ const QUEUE_NAME = TOPOLOGY_QUEUES.stargates;
 const SOURCE = 'queue-stargates';
 
 async function queueStargates() {
-  logger.info('Stargate repair queue script started');
+  logger.info('stargate repair queue script started');
 
   try {
     // The IDs come from the database with WHERE name IS NULL, so a re-run queues
@@ -36,12 +36,12 @@ async function queueStargates() {
     });
 
     if (rows.length === 0) {
-      logger.info('Nothing to do: every stargate row already has a name.');
+      logger.info('nothing to do: every stargate row already has a name.');
       await prismaWorker.$disconnect();
       process.exit(0);
     }
 
-    logger.info(`Found ${rows.length} stargate rows with no name`);
+    logger.info(`found ${rows.length} stargate rows with no name`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -54,14 +54,14 @@ async function queueStargates() {
       });
     }
 
-    logger.info(`Queued ${rows.length} messages to ${QUEUE_NAME}`);
-    logger.info('Now run the worker to process them: yarn worker:stargates');
+    logger.info(`queued ${rows.length} messages to ${QUEUE_NAME}`);
+    logger.info('now run the worker to process them: yarn worker:stargates');
 
     await channel.close();
     await prismaWorker.$disconnect();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue stargates', { error });
+    logger.error('failed to queue stargates', { error });
     process.exit(1);
   }
 }

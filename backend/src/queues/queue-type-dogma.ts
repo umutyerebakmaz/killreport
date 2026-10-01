@@ -11,7 +11,7 @@ const BATCH_SIZE = 100;
  * These will be processed by worker:type-dogma
  */
 async function queueTypeDogma() {
-  logger.info('Fetching all type IDs from database...');
+  logger.info('fetching all type IDs from database...');
 
   try {
     // Get all type IDs from our database
@@ -22,8 +22,8 @@ async function queueTypeDogma() {
 
     const typeIds = types.map((t) => t.id);
 
-    logger.info(`Found ${typeIds.length} types in database`);
-    logger.info(`Adding to queue: ${QUEUE_NAME}`);
+    logger.info(`found ${typeIds.length} types in database`);
+    logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -45,19 +45,19 @@ async function queueTypeDogma() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(typeIds.length / BATCH_SIZE)}`,
+        `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(typeIds.length / BATCH_SIZE)}`,
       );
     }
 
     logger.info(
-      `All ${typeIds.length} types queued successfully for dogma sync!`,
+      `all ${typeIds.length} types queued successfully for dogma sync!`,
     );
-    logger.info('Run worker with: yarn worker:type-dogma');
+    logger.info('run worker with: yarn worker:type-dogma');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Error queueing type dogma', { error });
+    logger.error('error queueing type dogma', { error });
     process.exit(1);
   }
 }

@@ -9,14 +9,14 @@ const BATCH_SIZE = 100;
  * Fetches all solar system IDs from ESI and adds them to RabbitMQ queue
  */
 async function queueSolarSystems() {
-  logger.info('Fetching all solar system IDs from ESI...');
+  logger.info('fetching all solar system IDs from ESI...');
 
   try {
     // Get all solar system IDs from ESI
     const solarSystemIds = await SolarSystemService.getAllSystemIds();
 
-    logger.info(`Found ${solarSystemIds.length} solar systems`);
-    logger.info('Adding to queue...');
+    logger.info(`found ${solarSystemIds.length} solar systems`);
+    logger.info('adding to queue...');
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -32,23 +32,23 @@ async function queueSolarSystems() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
+        `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
           solarSystemIds.length / BATCH_SIZE,
         )} (${batch.length} solar systems)`,
       );
     }
 
     logger.info(
-      `All ${solarSystemIds.length} solar systems queued successfully!`,
+      `all ${solarSystemIds.length} solar systems queued successfully!`,
     );
     logger.info(
-      'Now run the worker to process them: yarn worker:solar-systems',
+      'now run the worker to process them: yarn worker:solar-systems',
     );
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Failed to queue solar systems', { error });
+    logger.error('failed to queue solar systems', { error });
     process.exit(1);
   }
 }

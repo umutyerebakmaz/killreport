@@ -16,7 +16,7 @@ export const cacheMutations: MutationResolvers = {
         deletedKeys: null,
       };
     } catch (error) {
-      logger.error(`Error clearing killmail cache for ${killmailId}:`, error);
+      logger.error(`error clearing killmail cache for ${killmailId}:`, error);
       return {
         success: false,
         message: `Failed to clear cache: ${error}`,
@@ -34,7 +34,7 @@ export const cacheMutations: MutationResolvers = {
         deletedKeys: null,
       };
     } catch (error) {
-      logger.error(`Error clearing character cache for ${characterId}:`, error);
+      logger.error(`error clearing character cache for ${characterId}:`, error);
       return {
         success: false,
         message: `Failed to clear cache: ${error}`,
@@ -53,7 +53,7 @@ export const cacheMutations: MutationResolvers = {
       };
     } catch (error) {
       logger.error(
-        `Error clearing corporation cache for ${corporationId}:`,
+        `error clearing corporation cache for ${corporationId}:`,
         error,
       );
       return {
@@ -73,7 +73,7 @@ export const cacheMutations: MutationResolvers = {
         deletedKeys: null,
       };
     } catch (error) {
-      logger.error(`Error clearing alliance cache for ${allianceId}:`, error);
+      logger.error(`error clearing alliance cache for ${allianceId}:`, error);
       return {
         success: false,
         message: `Failed to clear cache: ${error}`,
@@ -91,7 +91,7 @@ export const cacheMutations: MutationResolvers = {
         deletedKeys: null,
       };
     } catch (error) {
-      logger.error('Error clearing all killmail caches:', error);
+      logger.error('error clearing all killmail caches:', error);
       return {
         success: false,
         message: `Failed to clear caches: ${error}`,

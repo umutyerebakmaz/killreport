@@ -85,7 +85,7 @@ export async function consumeAuthState(
   try {
     results = await redis.multi().get(key(state)).del(key(state)).exec();
   } catch (error) {
-    logger.error('Could not read the auth state from Redis:', error);
+    logger.error('could not read the auth state from Redis:', error);
     return null;
   }
 

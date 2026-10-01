@@ -53,7 +53,7 @@ describe('clearPattern', () => {
 
     await expect(CacheManager.clearPattern('k:*')).rejects.toBe(failure);
     expect(logger.error).toHaveBeenCalledWith(
-      'Error clearing cache pattern k:*:',
+      'error clearing cache pattern k:*:',
       failure,
     );
   });
@@ -161,7 +161,7 @@ describe('healthCheck', () => {
 
     await expect(CacheManager.healthCheck()).resolves.toBe(false);
     expect(logger.error).toHaveBeenCalledWith(
-      'Cache health check failed:',
+      'cache health check failed:',
       failure,
     );
   });
@@ -240,7 +240,7 @@ describe('getRedisMetrics', () => {
       uptimeInSeconds: 0,
     });
     expect(logger.error).toHaveBeenCalledWith(
-      'Error getting Redis metrics:',
+      'error getting Redis metrics:',
       failure,
     );
   });
@@ -254,7 +254,7 @@ describe('warmupCache', () => {
     expect(redisMock.keys).not.toHaveBeenCalled();
     expect(redisMock.del).not.toHaveBeenCalled();
     expect(logger.info).toHaveBeenCalledWith(
-      'Starting cache warmup for top 25 entities...',
+      'starting cache warmup for top 25 entities...',
     );
   });
 });

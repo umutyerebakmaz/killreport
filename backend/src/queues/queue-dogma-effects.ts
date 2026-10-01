@@ -10,14 +10,14 @@ const BATCH_SIZE = 100;
  * These will be processed by worker:info:dogma-effects
  */
 async function queueDogmaEffects() {
-  logger.info('Fetching all dogma effect IDs from ESI...');
+  logger.info('fetching all dogma effect IDs from ESI...');
 
   try {
     // Get all dogma effect IDs from ESI
     const effectIds = await DogmaEffectService.getAllEffectIds();
 
-    logger.info(`Found ${effectIds.length} dogma effects`);
-    logger.info(`Adding to queue: ${QUEUE_NAME}`);
+    logger.info(`found ${effectIds.length} dogma effects`);
+    logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
@@ -39,17 +39,17 @@ async function queueDogmaEffects() {
       }
 
       logger.debug(
-        `Queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(effectIds.length / BATCH_SIZE)}`,
+        `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(effectIds.length / BATCH_SIZE)}`,
       );
     }
 
-    logger.info(`All ${effectIds.length} dogma effects queued successfully!`);
-    logger.info('Run worker with: yarn worker:info:dogma-effects');
+    logger.info(`all ${effectIds.length} dogma effects queued successfully!`);
+    logger.info('run worker with: yarn worker:info:dogma-effects');
 
     await channel.close();
     process.exit(0);
   } catch (error) {
-    logger.error('Error queueing dogma effects', { error });
+    logger.error('error queueing dogma effects', { error });
     process.exit(1);
   }
 }

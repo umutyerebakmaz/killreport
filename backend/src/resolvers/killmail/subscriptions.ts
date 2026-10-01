@@ -9,12 +9,12 @@ import { pubsub } from '@services/pubsub';
 export const killmailSubscriptions: SubscriptionResolvers = {
   newKillmail: {
     subscribe: () => {
-      console.log('🔔 Client subscribed to NEW_KILLMAIL');
+      console.log('🔔 client subscribed to NEW_KILLMAIL');
       return pubsub.subscribe('NEW_KILLMAIL');
     },
     resolve: async (payload: { killmailId: number }) => {
       console.log(
-        '📨 Resolving NEW_KILLMAIL for killmail_id:',
+        '📨 resolving NEW_KILLMAIL for killmail_id:',
         payload.killmailId,
       );
 
@@ -36,7 +36,7 @@ export const killmailSubscriptions: SubscriptionResolvers = {
       });
 
       if (!killmail) {
-        console.error('❌ Killmail not found:', payload.killmailId);
+        console.error('❌ killmail not found:', payload.killmailId);
         return null;
       }
 
