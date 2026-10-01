@@ -136,8 +136,10 @@ export default function KillmailDetailPage({
         {/* Victim summary — second, beside the fit */}
         {/* No padding on the card itself: the portrait runs to its top and
             side edges, and the rows below get the card's usual p-2 on their
-            own. overflow-hidden lets the card's edge cut the picture. */}
-        <div className="overflow-hidden card 2xl:col-start-2 2xl:row-start-1">
+            own. overflow-hidden lets the card's edge cut the picture.
+            self-start keeps it at its own height: stretched to the fit card
+            beside it, it drew empty surface under Total. */}
+        <div className="overflow-hidden card 2xl:col-start-2 2xl:row-start-1 2xl:self-start">
           {/*
            * The account menu's portrait (UserMenu): the picture always as
            * wide as the card and square, with the name and the memberships
@@ -175,7 +177,7 @@ export default function KillmailDetailPage({
                 {victim?.character?.id && (
                   <Link
                     href={`/characters/${victim.character.id}`}
-                    className="block font-medium text-white truncate transition-colors hover:text-accent-link"
+                    className="block text-[2rem] font-medium text-white truncate transition-colors hover:text-accent-link"
                   >
                     {victim.character.name}
                   </Link>
@@ -266,18 +268,19 @@ export default function KillmailDetailPage({
                   </Link>
                 </span>
               )}
+              {/* Where in the system, as a second line of the System row: a
+                  label of its own would only repeat it. The nearest of the
+                  system's own objects — player structures are never among
+                  them, so beside a citadel this reads as some AU from a moon,
+                  the true distance to the nearest one we know. */}
+              {km.location && (
+                <span className="block">
+                  {formatDistance(km.location.distance)}{' '}
+                  <span className="text-ink-faint">from</span>{' '}
+                  {celestialName(km.location.name)}
+                </span>
+              )}
             </SummaryRow>
-
-            {/* The nearest of the system's own objects: player structures are
-                never among them, so beside a citadel this reads as some AU
-                from a moon — the true distance to the nearest one we know. */}
-            {km.location && (
-              <SummaryRow label="Location">
-                {formatDistance(km.location.distance)}{' '}
-                <span className="text-ink-faint">from</span>{' '}
-                {celestialName(km.location.name)}
-              </SummaryRow>
-            )}
 
             <SummaryRow label="Time">
               {/* How long ago, then the header clock's own label
