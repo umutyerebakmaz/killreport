@@ -40,9 +40,9 @@ const IDLE_EXIT_MS = 5000;
 let emptyCheckInterval: NodeJS.Timeout | null = null;
 
 async function asteroidBeltsWorker() {
-  logger.info('🚀 Asteroid Belt Worker Started');
-  logger.info(`📦 Queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent`);
+  logger.info('🚀 asteroid belt worker started');
+  logger.info(`📦 queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent`);
   logger.info(
     `🚦 ESI ceiling: ${config.esi.maxRequestsPerSecond} req/sec (ESI_MAX_RPS)\n`,
   );
@@ -55,7 +55,7 @@ async function asteroidBeltsWorker() {
 
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
     logger.info(
-      `📊 Queue status: ${queueInfo.messageCount} messages waiting\n`,
+      `📊 queue status: ${queueInfo.messageCount} messages waiting\n`,
     );
 
     let processed = 0;
@@ -73,7 +73,7 @@ async function asteroidBeltsWorker() {
         // Already closing; nothing to do.
       }
       await prismaWorker.$disconnect();
-      logger.info('✅ Worker stopped gracefully');
+      logger.info('✅ worker stopped gracefully');
       process.exit(code);
     };
 
@@ -86,13 +86,13 @@ async function asteroidBeltsWorker() {
       if (inFlight > 0 || Date.now() - lastMessageTime <= IDLE_EXIT_MS) return;
 
       if (processed + errors === 0) {
-        logger.info('💤 Nothing to do: the queue was already empty.');
+        logger.info('💤 nothing to do: the queue was already empty.');
       } else {
         const duration = ((Date.now() - startTime) / 1000).toFixed(2);
         logger.info('\n' + '='.repeat(60));
-        logger.info('🎉 ALL TASKS COMPLETED!');
+        logger.info('🎉 all tasks completed!');
         logger.info(
-          `✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`,
+          `✅ processed: ${processed}   ❌ errors: ${errors}   ⏱️  ${duration}s`,
         );
         logger.info('='.repeat(60));
       }
@@ -112,7 +112,7 @@ async function asteroidBeltsWorker() {
 
           if (!payload || typeof payload.beltId !== 'number') {
             logger.error(
-              '❌ Invalid asteroid belt message:',
+              '❌ invalid asteroid belt message:',
               msg.content.toString(),
             );
             errors++;
@@ -146,11 +146,11 @@ async function asteroidBeltsWorker() {
 
             processed++;
             logger.info(
-              `  ✅ [${processed}] Asteroid belt ${beltId} - ${data.name ?? '(unnamed)'}`,
+              `  ✅ [${processed}] asteroid belt ${beltId} - ${data.name ?? '(unnamed)'}`,
             );
             if (processed % 100 === 0) {
               logger.info(
-                `📊 Progress: ${processed} processed, ${errors} errors`,
+                `📊 progress: ${processed} processed, ${errors} errors`,
               );
             }
             channel.ack(msg);
@@ -160,7 +160,7 @@ async function asteroidBeltsWorker() {
               // A dead ID at ESI. The topology facts are still authoritative, so
               // write the row without a name rather than losing the belt entirely.
               logger.warn(
-                `⚠️  Asteroid belt ${beltId} not found (404), writing row without a name`,
+                `⚠️  asteroid belt ${beltId} not found (404), writing row without a name`,
               );
               try {
                 await prismaWorker.asteroidBelt.upsert({
@@ -213,7 +213,7 @@ async function asteroidBeltsWorker() {
       });
     }
   } catch (error) {
-    logger.error('❌ Failed to start asteroid belt worker:', error);
+    logger.error('❌ failed to start asteroid belt worker:', error);
     process.exit(1);
   }
 }

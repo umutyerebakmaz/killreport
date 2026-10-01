@@ -27,9 +27,9 @@ interface QueueMessage {
 async function killmailWorker() {
   await ensureAllQueuesExist();
   while (!isShuttingDown) {
-    logger.info('🔄 Killmail Worker Started');
-    logger.info(`📦 Queue: ${QUEUE_NAME}`);
-    logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent users\n`);
+    logger.info('🔄 killmail worker started');
+    logger.info(`📦 queue: ${QUEUE_NAME}`);
+    logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent users\n`);
 
     try {
       const channel = await getRabbitMQChannel();
@@ -37,19 +37,19 @@ async function killmailWorker() {
       // Set prefetch count (how many messages to process concurrently)
       channel.prefetch(PREFETCH_COUNT);
 
-      logger.info('✅ Connected to RabbitMQ');
-      logger.info('⏳ Waiting for killmail sync jobs...\n');
+      logger.info('✅ connected to RabbitMQ');
+      logger.info('⏳ waiting for killmail sync jobs...\n');
 
       // Add channel error handlers
       channel.on('error', (err) => {
         if (!isShuttingDown) {
-          logger.error('💥 Channel error:', err);
+          logger.error('💥 channel error:', err);
         }
       });
 
       channel.on('close', () => {
         if (!isShuttingDown) {
-          logger.warn('⚠️  Channel closed unexpectedly');
+          logger.warn('⚠️  channel closed unexpectedly');
         }
       });
 
@@ -66,16 +66,16 @@ async function killmailWorker() {
 
             logger.info(`\n${'━'.repeat(60)}`);
             logger.info(
-              `👤 Processing: ${message.characterName} (ID: ${message.characterId})`,
+              `👤 processing: ${message.characterName} (ID: ${message.characterId})`,
             );
-            logger.info(`📅 Queued at: ${message.queuedAt}`);
+            logger.info(`📅 queued at: ${message.queuedAt}`);
             logger.info('━'.repeat(60));
 
             await syncUserKillmails(message);
 
             // Acknowledge message (remove from queue)
             channel.ack(msg);
-            logger.info(`✅ Completed: ${message.characterName}\n`);
+            logger.info(`✅ completed: ${message.characterName}\n`);
           } catch (error) {
             // A malformed message throws here too - JSON.parse is inside the
             // try, so it settles through the same shared path rather than
@@ -97,13 +97,13 @@ async function killmailWorker() {
       await new Promise(() => {});
     } catch (error) {
       if (isShuttingDown) break;
-      logger.error('💥 Worker connection lost, reconnecting in 5s...', error);
+      logger.error('💥 worker connection lost, reconnecting in 5s...', error);
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 
   // Cleanup
-  logger.info('🧹 Worker cleanup completed');
+  logger.info('🧹 worker cleanup completed');
   await prismaWorker.$disconnect();
 }
 
@@ -130,13 +130,13 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
       });
 
       if (!user) {
-        logger.warn(`  ⚠️  User not found in database`);
+        logger.warn(`  ⚠️  user not found in database`);
         return;
       }
 
       // Check if token is expired
       if (user.expires_at < new Date()) {
-        logger.warn(`  ⚠️  Token expired for ${user.character_name}`);
+        logger.warn(`  ⚠️  token expired for ${user.character_name}`);
         return;
       }
 
@@ -151,15 +151,15 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
     }
 
     logger.info(`\n${'='.repeat(60)}`);
-    logger.info(`🚀 Processing Character: ${characterName} (${characterId})`);
+    logger.info(`🚀 processing character: ${characterName} (${characterId})`);
     logger.info(
-      `   Auth: ${hasAuth ? 'Yes (logged-in user)' : 'No (external character)'}`,
+      `   auth: ${hasAuth ? 'yes (logged-in user)' : 'no (external character)'}`,
     );
     logger.info(`${'='.repeat(60)}\n`);
 
     // Fetch killmails from zKillboard (includes ALL history up to MAX_PAGES)
     logger.info(
-      `  📡 [${characterName}] Fetching killmails from zKillboard (max ${MAX_PAGES} pages)...`,
+      `  📡 [${characterName}] fetching killmails from zKillboard (max ${MAX_PAGES} pages)...`,
     );
     const zkillPackages = await getCharacterKillmailsFromZKill(characterId, {
       maxPages: MAX_PAGES,
@@ -167,11 +167,11 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
     });
 
     if (zkillPackages.length === 0) {
-      logger.info(`  ℹ️  No killmails found`);
+      logger.info(`  ℹ️  no killmails found`);
       return;
     }
 
-    logger.info(`  📥 Found ${zkillPackages.length} killmails`);
+    logger.info(`  📥 found ${zkillPackages.length} killmails`);
 
     // Liste aşaması: detayı çekmez, eksik olanları kuyruğa koyar.
     const queued = await publishKillmailDetails(
@@ -184,10 +184,10 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
     );
 
     logger.info(
-      `  📤 Queued ${queued}/${zkillPackages.length} killmail(s) for detail fetch`,
+      `  📤 queued ${queued}/${zkillPackages.length} killmail(s) for detail fetch`,
     );
   } catch (error) {
-    logger.error(`  ❌ Sync failed:`, error);
+    logger.error(`  ❌ sync failed:`, error);
     throw error; // Re-throw to trigger message requeue
   }
 }
@@ -202,8 +202,8 @@ function setupShutdownHandlers() {
       clearInterval(emptyCheckInterval);
       emptyCheckInterval = null;
     }
-    logger.warn('\n\n⚠️  Received shutdown signal');
-    logger.warn('🛑 Stopping worker...');
+    logger.warn('\n\n⚠️  received shutdown signal');
+    logger.warn('🛑 stopping worker...');
     await prismaWorker.$disconnect();
     process.exit(0);
   };
@@ -215,6 +215,6 @@ function setupShutdownHandlers() {
 // Start the worker
 setupShutdownHandlers();
 killmailWorker().catch((error) => {
-  logger.error('💥 Worker crashed:', error);
+  logger.error('💥 worker crashed:', error);
   process.exit(1);
 });

@@ -42,10 +42,10 @@ interface UserSyncContext {
 export async function esiUserKillmailWorker() {
   await ensureAllQueuesExist();
   while (!isShuttingDown) {
-    logger.info('🔄 ESI User Killmail Worker Started');
-    logger.info(`📦 Queue: ${QUEUE_NAME}`);
-    logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent users`);
-    logger.info(`🌐 Data Source: ESI API (direct, no zKillboard)\n`);
+    logger.info('🔄 ESI user killmail worker started');
+    logger.info(`📦 queue: ${QUEUE_NAME}`);
+    logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent users`);
+    logger.info(`🌐 data source: ESI API (direct, no zKillboard)\n`);
 
     try {
       const channel = await getRabbitMQChannel();
@@ -53,19 +53,19 @@ export async function esiUserKillmailWorker() {
       // Set prefetch to limit concurrent processing
       channel.prefetch(PREFETCH_COUNT);
 
-      logger.info('✅ Connected to RabbitMQ');
-      logger.info('⏳ Waiting for user killmail jobs...\n');
+      logger.info('✅ connected to RabbitMQ');
+      logger.info('⏳ waiting for user killmail jobs...\n');
 
       // Add channel error handlers
       channel.on('error', (err) => {
         if (!isShuttingDown) {
-          logger.error('💥 Channel error:', err);
+          logger.error('💥 channel error:', err);
         }
       });
 
       channel.on('close', () => {
         if (!isShuttingDown) {
-          logger.warn('⚠️  Channel closed unexpectedly');
+          logger.warn('⚠️  channel closed unexpectedly');
         }
       });
 
@@ -74,11 +74,11 @@ export async function esiUserKillmailWorker() {
         QUEUE_NAME,
         async (msg) => {
           if (!msg) {
-            logger.warn('⚠️  Received null message from RabbitMQ');
+            logger.warn('⚠️  received null message from RabbitMQ');
             return;
           }
 
-          logger.info('📨 Received message from queue!');
+          logger.info('📨 received message from queue!');
 
           let message: KillmailSyncMessage | undefined;
 
@@ -86,8 +86,8 @@ export async function esiUserKillmailWorker() {
             message = JSON.parse(msg.content.toString()) as KillmailSyncMessage;
 
             logger.info(`\n${'━'.repeat(70)}`);
-            logger.info(`🆔 User ID: ${message.userId}`);
-            logger.info(`📅 Queued at: ${message.queuedAt}`);
+            logger.info(`🆔 user ID: ${message.userId}`);
+            logger.info(`📅 queued at: ${message.queuedAt}`);
             logger.info('━'.repeat(70));
 
             const credentials = await loadUserCredentials(
@@ -101,7 +101,7 @@ export async function esiUserKillmailWorker() {
               logger.error(
                 `  ❌ ${credentials.reason} for user ${message.userId}`,
               );
-              logger.error(`  ⏭️  Skipping user - requires re-login via SSO`);
+              logger.error(`  ⏭️  skipping user - requires re-login via SSO`);
               channel.ack(msg);
               return;
             }
@@ -109,7 +109,7 @@ export async function esiUserKillmailWorker() {
             const { user, accessToken } = credentials;
 
             logger.info(
-              `👤 Processing: ${user.character_name} (ID: ${user.character_id})`,
+              `👤 processing: ${user.character_name} (ID: ${user.character_id})`,
             );
 
             const lastKillmailId = message.fullSync
@@ -130,12 +130,12 @@ export async function esiUserKillmailWorker() {
 
             // Acknowledge message
             channel.ack(msg);
-            logger.info(`✅ Completed: ${user.character_name}\n`);
+            logger.info(`✅ completed: ${user.character_name}\n`);
 
             // Add delay between users to prevent rate limiting
             // This is critical when multiple users are queued
             logger.debug(
-              `⏸️  Waiting 10 seconds before next user to prevent rate limiting...\n`,
+              `⏸️  waiting 10 seconds before next user to prevent rate limiting...\n`,
             );
             await new Promise((resolve) => setTimeout(resolve, 10000));
           } catch (error) {
@@ -154,20 +154,20 @@ export async function esiUserKillmailWorker() {
         { noAck: false },
       );
 
-      logger.info(`📢 Consumer started`);
-      logger.info(`📊 Ready to process messages from ${QUEUE_NAME}\n`);
+      logger.info(`📢 consumer started`);
+      logger.info(`📊 ready to process messages from ${QUEUE_NAME}\n`);
 
       // Wait indefinitely (until error or shutdown)
       await new Promise(() => {});
     } catch (error) {
       if (isShuttingDown) break;
-      logger.error('💥 Worker connection lost, reconnecting in 5s...', error);
+      logger.error('💥 worker connection lost, reconnecting in 5s...', error);
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 
   // Cleanup
-  logger.info('🧹 Worker cleanup completed');
+  logger.info('🧹 worker cleanup completed');
   await prismaWorker.$disconnect();
 }
 
@@ -181,17 +181,17 @@ async function syncUserKillmailsFromESI(
   try {
     if (lastKillmailId) {
       logger.info(
-        `  📡 [${ctx.characterName}] Fetching NEW killmails from ESI (incremental sync)...`,
+        `  📡 [${ctx.characterName}] fetching new killmails from ESI (incremental sync)...`,
       );
-      logger.info(`     🔍 Will stop at killmail ID: ${lastKillmailId}`);
+      logger.info(`     🔍 will stop at killmail ID: ${lastKillmailId}`);
       logger.info(
-        `     📄 Max pages: 50 (will stop earlier if last synced killmail is found)`,
+        `     📄 max pages: 50 (will stop earlier if last synced killmail is found)`,
       );
     } else {
       logger.info(
-        `  📡 [${ctx.characterName}] Fetching killmails from ESI (full sync)...`,
+        `  📡 [${ctx.characterName}] fetching killmails from ESI (full sync)...`,
       );
-      logger.info(`     📄 Max pages: 50 (2,500 killmails max - 50 per page)`);
+      logger.info(`     📄 max pages: 50 (2,500 killmails max - 50 per page)`);
     }
 
     // Fetch killmail list from ESI (max 50 pages = 2500 killmails, 50 per page)
@@ -212,7 +212,7 @@ async function syncUserKillmailsFromESI(
     );
 
     logger.info(
-      `  📤 Queued ${queued}/${killmailList.length} killmail(s) for detail fetch`,
+      `  📤 queued ${queued}/${killmailList.length} killmail(s) for detail fetch`,
     );
 
     // Bu kullanıcının en son ne zaman ele alındığı — imleç değil. İmleç
@@ -243,7 +243,7 @@ function setupShutdownHandlers() {
       clearInterval(emptyCheckInterval);
       emptyCheckInterval = null;
     }
-    logger.warn('\n⚠️  Received shutdown signal, shutting down gracefully...');
+    logger.warn('\n⚠️  received shutdown signal, shutting down gracefully...');
     await prismaWorker.$disconnect();
     process.exit(0);
   };
@@ -256,7 +256,7 @@ function setupShutdownHandlers() {
 if (require.main === module) {
   setupShutdownHandlers();
   esiUserKillmailWorker().catch((error) => {
-    logger.error('💥 Worker crashed:', error);
+    logger.error('💥 worker crashed:', error);
     process.exit(1);
   });
 }

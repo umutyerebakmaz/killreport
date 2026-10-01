@@ -22,9 +22,9 @@ interface EntityQueueMessage {
 }
 
 async function priceWorker() {
-  logger.info('🏪 Jita Price Worker Started');
-  logger.info(`📦 Queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+  logger.info('🏪 Jita price worker started');
+  logger.info(`📦 queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
   try {
     await ensureAllQueuesExist();
@@ -32,8 +32,8 @@ async function priceWorker() {
 
     channel.prefetch(PREFETCH_COUNT);
 
-    logger.info('✅ Connected to RabbitMQ');
-    logger.info('⏳ Waiting for type IDs...\n');
+    logger.info('✅ connected to RabbitMQ');
+    logger.info('⏳ waiting for type IDs...\n');
 
     let totalProcessed = 0;
     let totalSaved = 0;
@@ -45,12 +45,12 @@ async function priceWorker() {
       const timeSinceLastMessage = Date.now() - lastMessageTime;
       if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
         logger.info('\n' + '━'.repeat(60));
-        logger.info('✅ Queue completed!');
+        logger.info('✅ queue completed!');
         logger.info(
-          `📊 Final: ${totalProcessed} processed (${totalSaved} saved, ${totalErrors} errors)`,
+          `📊 final: ${totalProcessed} processed (${totalSaved} saved, ${totalErrors} errors)`,
         );
         logger.info('━'.repeat(60) + '\n');
-        logger.info('⏳ Waiting for new messages...\n');
+        logger.info('⏳ waiting for new messages...\n');
       }
     }, 5000);
 
@@ -78,11 +78,11 @@ async function priceWorker() {
 
             if (existing) {
               logger.info(
-                `  ✅ [${totalProcessed + 1}] [${typeId}] Buy=${price.buy.toFixed(2)} Sell=${price.sell.toFixed(2)} (updated)`,
+                `  ✅ [${totalProcessed + 1}] [${typeId}] buy=${price.buy.toFixed(2)} sell=${price.sell.toFixed(2)} (updated)`,
               );
             } else {
               logger.info(
-                `  ✅ [${totalProcessed + 1}] [${typeId}] Buy=${price.buy.toFixed(2)} Sell=${price.sell.toFixed(2)} (created)`,
+                `  ✅ [${totalProcessed + 1}] [${typeId}] buy=${price.buy.toFixed(2)} sell=${price.sell.toFixed(2)} (created)`,
               );
             }
             totalSaved++;
@@ -111,19 +111,19 @@ async function priceWorker() {
     // Handle graceful shutdown
     process.on('SIGINT', () => {
       clearInterval(emptyCheckInterval);
-      logger.info('\n👋 Price worker shutting down gracefully...');
+      logger.info('\n👋 price worker shutting down gracefully...');
       channel.close();
       process.exit(0);
     });
 
     process.on('SIGTERM', () => {
       clearInterval(emptyCheckInterval);
-      logger.info('\n👋 Price worker shutting down gracefully...');
+      logger.info('\n👋 price worker shutting down gracefully...');
       channel.close();
       process.exit(0);
     });
   } catch (error) {
-    logger.error('💥 Price worker crashed:', error);
+    logger.error('💥 price worker crashed:', error);
     process.exit(1);
   }
 }

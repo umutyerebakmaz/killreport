@@ -21,9 +21,9 @@ let isShuttingDown = false;
 let emptyCheckInterval: NodeJS.Timeout | null = null;
 
 async function categoryInfoWorker() {
-  logger.info('📦 Category Info Worker Started');
-  logger.info(`📦 Queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+  logger.info('📦 category info worker started');
+  logger.info(`📦 queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
   await ensureAllQueuesExist();
   while (!isShuttingDown) {
@@ -34,7 +34,7 @@ async function categoryInfoWorker() {
 
       // Handle channel errors
       channel.on('error', (err) => {
-        logger.error('❌ Channel error:', err.message);
+        logger.error('❌ channel error:', err.message);
         if (emptyCheckInterval) {
           clearInterval(emptyCheckInterval);
           emptyCheckInterval = null;
@@ -42,15 +42,15 @@ async function categoryInfoWorker() {
       });
 
       channel.on('close', () => {
-        logger.warn('⚠️  Channel closed');
+        logger.warn('⚠️  channel closed');
         if (emptyCheckInterval) {
           clearInterval(emptyCheckInterval);
           emptyCheckInterval = null;
         }
       });
 
-      logger.info('✅ Connected to RabbitMQ');
-      logger.info('⏳ Waiting for categories...\n');
+      logger.info('✅ connected to RabbitMQ');
+      logger.info('⏳ waiting for categories...\n');
 
       let totalProcessed = 0;
       let totalCreated = 0;
@@ -68,12 +68,12 @@ async function categoryInfoWorker() {
         const timeSinceLastMessage = Date.now() - lastMessageTime;
         if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
           logger.info('\n' + '━'.repeat(60));
-          logger.info('✅ Queue completed!');
+          logger.info('✅ queue completed!');
           logger.info(
-            `📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`,
+            `📊 final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`,
           );
           logger.info('━'.repeat(60) + '\n');
-          logger.info('⏳ Waiting for new messages...\n');
+          logger.info('⏳ waiting for new messages...\n');
         }
       }, 5000);
 
@@ -149,11 +149,11 @@ async function categoryInfoWorker() {
       });
     } catch (error: any) {
       if (isShuttingDown) {
-        logger.info('Worker stopped during shutdown');
+        logger.info('worker stopped during shutdown');
         break;
       }
 
-      logger.error('💥 Worker error:', error.message);
+      logger.error('💥 worker error:', error.message);
 
       if (emptyCheckInterval) {
         clearInterval(emptyCheckInterval);
@@ -161,18 +161,18 @@ async function categoryInfoWorker() {
       }
 
       // Wait before reconnecting
-      logger.info('🔄 Reconnecting in 5 seconds...');
+      logger.info('🔄 reconnecting in 5 seconds...');
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 
-  logger.info('Worker stopped');
+  logger.info('worker stopped');
   await prismaWorker.$disconnect();
 }
 
 function setupShutdownHandlers() {
   const shutdown = async () => {
-    logger.warn('\n\n⚠️  Shutting down...');
+    logger.warn('\n\n⚠️  shutting down...');
     isShuttingDown = true;
 
     if (emptyCheckInterval) {

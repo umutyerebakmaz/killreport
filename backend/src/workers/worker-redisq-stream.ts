@@ -40,9 +40,9 @@ import { TypeService } from '@services/type/type.service';
 const ENABLE_ENRICHMENT = process.env.REDISQ_ENABLE_ENRICHMENT !== 'false';
 
 // Debug: Verify pubsub is loaded
-logger.debug('Debug: pubsub type: ' + typeof pubsub);
+logger.debug('debug: pubsub type: ' + typeof pubsub);
 if (!pubsub) {
-  logger.error('CRITICAL: pubsub is not defined at module load time!');
+  logger.error('critical: pubsub is not defined at module load time!');
   process.exit(1);
 }
 
@@ -110,14 +110,14 @@ let stats = {
  */
 export async function redisQStreamWorker() {
   while (!isShuttingDown) {
-    logger.info('🌊 R2Z2 Stream Worker Started');
-    logger.info(`📡 Endpoint: ${R2Z2_BASE}/{sequence}.json`);
+    logger.info('🌊 R2Z2 stream worker started');
+    logger.info(`📡 endpoint: ${R2Z2_BASE}/{sequence}.json`);
     logger.info(
-      `⏱️  Poll Rate: ${BACKLOG_DELAY}ms while draining (~${Math.floor(1000 / BACKLOG_DELAY)} req/sec, limit 15)`,
+      `⏱️  poll rate: ${BACKLOG_DELAY}ms while draining (~${Math.floor(1000 / BACKLOG_DELAY)} req/sec, limit 15)`,
     );
-    logger.info(`⏳ Idle wait: ${EMPTY_DELAY}ms on 404 (no new killmail)`);
+    logger.info(`⏳ idle wait: ${EMPTY_DELAY}ms on 404 (no new killmail)`);
     logger.info(
-      `🔧 Enrichment: ${ENABLE_ENRICHMENT ? 'ENABLED' : 'DISABLED'}\n`,
+      `🔧 enrichment: ${ENABLE_ENRICHMENT ? 'enabled' : 'disabled'}\n`,
     );
     logger.info('━'.repeat(60));
 
@@ -127,7 +127,7 @@ export async function redisQStreamWorker() {
     }
 
     logger.info(
-      `🎯 Listening for killmails from sequence ${currentSequence}...\n`,
+      `🎯 listening for killmails from sequence ${currentSequence}...\n`,
     );
 
     let consecutiveErrors = 0;
@@ -151,14 +151,14 @@ export async function redisQStreamWorker() {
           consecutiveErrors++;
           stats.errors++;
           logger.error(
-            `❌ Error in main loop (${consecutiveErrors} consecutive):`,
+            `❌ error in main loop (${consecutiveErrors} consecutive):`,
             error,
           );
 
           // If too many consecutive errors, back off longer
           if (consecutiveErrors >= 5) {
             logger.warn(
-              `⚠️  Too many errors, backing off for ${RETRY_DELAY}ms...`,
+              `⚠️  too many errors, backing off for ${RETRY_DELAY}ms...`,
             );
             await sleep(RETRY_DELAY);
             consecutiveErrors = 0;
@@ -169,13 +169,13 @@ export async function redisQStreamWorker() {
       }
     } catch (error) {
       if (isShuttingDown) break;
-      logger.error('💥 Worker connection lost, reconnecting in 5s...', error);
+      logger.error('💥 worker connection lost, reconnecting in 5s...', error);
       await sleep(5000);
     }
   }
 
   // Cleanup
-  logger.info('🧹 Worker cleanup completed');
+  logger.info('🧹 worker cleanup completed');
   await prismaWorker.$disconnect();
 }
 
@@ -199,11 +199,11 @@ async function initSequence(): Promise<void> {
       }
       const data = (await response.json()) as { sequence: number };
       currentSequence = data.sequence;
-      logger.info(`📍 Starting sequence: ${currentSequence}`);
+      logger.info(`📍 starting sequence: ${currentSequence}`);
       return;
     } catch (error) {
       logger.warn(
-        `⚠️  Failed to fetch starting sequence (attempt ${attempt}/${MAX_RETRIES}): ${error}`,
+        `⚠️  failed to fetch starting sequence (attempt ${attempt}/${MAX_RETRIES}): ${error}`,
       );
       if (attempt < MAX_RETRIES) await sleep(RETRY_DELAY);
     }
@@ -261,7 +261,7 @@ async function pollR2Z2(): Promise<RedisQPackage | null> {
     if (!response.ok) {
       if (response.status === 429 || response.status === 403) {
         logger.warn(
-          `⚠️  Rate limited by R2Z2 (${response.status}), backing off...`,
+          `⚠️  rate limited by R2Z2 (${response.status}), backing off...`,
         );
         await sleep(RETRY_DELAY);
         return null; // don't advance sequence; retry same one next loop
@@ -296,12 +296,12 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
     let killmail: KillmailDetail;
     if (pkg.esi) {
       logger.info(
-        `📥 From payload: ${killID} (${formatISK(zkb.totalValue)} ISK)`,
+        `📥 from payload: ${killID} (${formatISK(zkb.totalValue)} ISK)`,
       );
       killmail = pkg.esi;
     } else {
       logger.info(
-        `📥 Fetching from ESI: ${killID} (${formatISK(zkb.totalValue)} ISK)`,
+        `📥 fetching from ESI: ${killID} (${formatISK(zkb.totalValue)} ISK)`,
       );
       killmail = await KillmailService.getKillmailDetail(killID, zkb.hash);
     }
@@ -309,7 +309,7 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
     // Debug: Log items count
     const itemCount = killmail.victim.items?.length || 0;
     if (itemCount > 0) {
-      logger.debug(`   📦 Items found: ${itemCount}`);
+      logger.debug(`   📦 items found: ${itemCount}`);
     }
 
     // 🚀 YENİ: Killmail'i kaydetmeden önce eksik entity'leri ESI'dan çek
@@ -317,7 +317,7 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
     if (ENABLE_ENRICHMENT) {
       await enrichMissingEntities(killmail);
     } else {
-      logger.debug('⚠️  Enrichment disabled (REDISQ_ENABLE_ENRICHMENT=false)');
+      logger.debug('⚠️  enrichment disabled (REDISQ_ENABLE_ENRICHMENT=false)');
     }
 
     // Save to database (upsert handles duplicates)
@@ -325,7 +325,7 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
 
     if (!isNew) {
       stats.skipped++;
-      logger.debug(`⏭️  Skipped: ${killID} (already exists)`);
+      logger.debug(`⏭️  skipped: ${killID} (already exists)`);
       return;
     }
 
@@ -333,14 +333,14 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
 
     const runtime = Math.floor((Date.now() - stats.startTime.getTime()) / 1000);
     logger.info(
-      `✅ Saved: ${killID} | ` +
-        `Stats: ${stats.saved} saved, ${stats.skipped} skipped, ` +
+      `✅ saved: ${killID} | ` +
+        `stats: ${stats.saved} saved, ${stats.skipped} skipped, ` +
         `${stats.enriched} enriched (${stats.enrichmentFailed} failed), ${stats.errors} errors ` +
         `(${runtime}s runtime)`,
     );
   } catch (error: any) {
     stats.errors++;
-    logger.error(`❌ Failed to process killmail ${killID}:`, error);
+    logger.error(`❌ failed to process killmail ${killID}:`, error);
     // Don't re-throw - continue processing next killmail
   }
 }
@@ -389,7 +389,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
   const allCharacterIds = Array.from(characterIds);
 
   logger.debug(
-    `🔍 Checking entities: ${allCharacterIds.length} chars, ${corporationIds.size} corps, ` +
+    `🔍 checking entities: ${allCharacterIds.length} chars, ${corporationIds.size} corps, ` +
       `${allianceIds.size} alliances, ${typeIds.size} types`,
   );
 
@@ -447,12 +447,12 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
     missingTypeIds.length;
 
   if (totalMissing === 0) {
-    logger.info('✅ All entities exist in database');
+    logger.info('✅ all entities exist in database');
     return;
   }
 
   logger.info(
-    `🔧 Enriching ${totalMissing} missing entities: ` +
+    `🔧 enriching ${totalMissing} missing entities: ` +
       `${missingCharIds.length} chars, ${missingCorpIds.length} corps, ` +
       `${missingAllianceIds.length} alliances, ${missingTypeIds.length} types`,
   );
@@ -512,14 +512,14 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
           },
           update: {},
         });
-        logger.info(`  ✓ Alliance ${allianceId} enriched`);
+        logger.info(`  ✓ alliance ${allianceId} enriched`);
         return { success: true };
       } catch (error: any) {
         const statusCode = error?.response?.status || 'unknown';
         const errorMsg =
           error?.response?.data?.error || error?.message || 'Unknown error';
         logger.warn(
-          `  ✗ Alliance ${allianceId} failed (${statusCode}): ${errorMsg}`,
+          `  ✗ alliance ${allianceId} failed (${statusCode}): ${errorMsg}`,
         );
         return { success: false };
       }
@@ -531,10 +531,10 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
   // Corporations (batch processing) - SECOND!
   const corpResults = await processBatch(missingCorpIds, async (corpId) => {
     try {
-      logger.debug(`  🔄 Fetching corporation ${corpId} from ESI...`);
+      logger.debug(`  🔄 fetching corporation ${corpId} from ESI...`);
       const corpInfo = await CorporationService.getCorporationInfo(corpId);
 
-      logger.debug(`  💾 Saving corporation ${corpId} to database...`);
+      logger.debug(`  💾 saving corporation ${corpId} to database...`);
       await prismaWorker.corporation.upsert({
         where: { id: corpId },
         create: {
@@ -553,7 +553,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
         update: {},
       });
       logger.info(
-        `  ✓ Corporation ${corpId} (${corpInfo.name} [${corpInfo.ticker}]) enriched successfully`,
+        `  ✓ corporation ${corpId} (${corpInfo.name} [${corpInfo.ticker}]) enriched successfully`,
       );
       return { success: true };
     } catch (error: any) {
@@ -562,24 +562,24 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
       const errorMsg =
         error?.response?.data?.error || error?.message || 'Unknown error';
 
-      logger.error(`  ✗ Corporation ${corpId} FAILED:`);
-      logger.error(`     Status: ${statusCode}`);
-      logger.error(`     Message: ${errorMsg}`);
+      logger.error(`  ✗ corporation ${corpId} failed:`);
+      logger.error(`     status: ${statusCode}`);
+      logger.error(`     message: ${errorMsg}`);
 
       // Database constraint error'ları için özel handling
       if (error?.code === 'P2003') {
-        logger.error(`     Type: Foreign key constraint violation`);
-        logger.error(`     Meta: ${JSON.stringify(error?.meta || {})}`);
+        logger.error(`     type: foreign key constraint violation`);
+        logger.error(`     meta: ${JSON.stringify(error?.meta || {})}`);
       } else if (error?.code?.startsWith('P')) {
-        logger.error(`     Type: Prisma error (${error.code})`);
-        logger.error(`     Meta: ${JSON.stringify(error?.meta || {})}`);
+        logger.error(`     type: Prisma error (${error.code})`);
+        logger.error(`     meta: ${JSON.stringify(error?.meta || {})}`);
       } else if (error?.response?.status === 404) {
-        logger.error(`     Type: Corporation not found in ESI (deleted/NPC)`);
+        logger.error(`     type: corporation not found in ESI (deleted/NPC)`);
       } else if (error?.response?.status === 429) {
-        logger.error(`     Type: ESI rate limit exceeded`);
+        logger.error(`     type: ESI rate limit exceeded`);
       } else {
-        logger.error(`     Type: Unknown error`);
-        logger.error(`     Stack: ${error?.stack?.split('\n')[0]}`);
+        logger.error(`     type: unknown error`);
+        logger.error(`     stack: ${error?.stack?.split('\n')[0]}`);
       }
       return { success: false };
     }
@@ -606,14 +606,14 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
         },
         update: {},
       });
-      logger.debug(`  ✓ Character ${charId} enriched`);
+      logger.debug(`  ✓ character ${charId} enriched`);
       return { success: true };
     } catch (error: any) {
       const statusCode = error?.response?.status || 'unknown';
       const errorMsg =
         error?.response?.data?.error || error?.message || 'Unknown error';
       logger.warn(
-        `  ✗ Character ${charId} failed (${statusCode}): ${errorMsg}`,
+        `  ✗ character ${charId} failed (${statusCode}): ${errorMsg}`,
       );
       return { success: false };
     }
@@ -639,13 +639,13 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
         },
         update: {},
       });
-      logger.debug(`  ✓ Type ${typeId} enriched`);
+      logger.debug(`  ✓ type ${typeId} enriched`);
       return { success: true };
     } catch (error: any) {
       const statusCode = error?.response?.status || 'unknown';
       const errorMsg =
         error?.response?.data?.error || error?.message || 'Unknown error';
-      logger.warn(`  ✗ Type ${typeId} failed (${statusCode}): ${errorMsg}`);
+      logger.warn(`  ✗ type ${typeId} failed (${statusCode}): ${errorMsg}`);
       return { success: false };
     }
   });
@@ -658,7 +658,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
 
   const enrichmentTime = Date.now() - enrichmentStart;
   logger.info(
-    `✅ Enrichment completed in ${enrichmentTime}ms ` +
+    `✅ enrichment completed in ${enrichmentTime}ms ` +
       `(${enrichedCount} succeeded, ${failedCount} failed)`,
   );
 }
@@ -694,17 +694,17 @@ function setupShutdownHandlers() {
       clearInterval(emptyCheckInterval);
       emptyCheckInterval = null;
     }
-    logger.info('\n\n🛑 Shutting down RedisQ stream worker...');
-    logger.info('\n📊 Final Statistics:');
-    logger.info(`   Received: ${stats.received}`);
-    logger.info(`   Saved: ${stats.saved}`);
-    logger.info(`   Skipped: ${stats.skipped}`);
+    logger.info('\n\n🛑 shutting down RedisQ stream worker...');
+    logger.info('\n📊 final statistics:');
+    logger.info(`   received: ${stats.received}`);
+    logger.info(`   saved: ${stats.saved}`);
+    logger.info(`   skipped: ${stats.skipped}`);
     logger.info(
-      `   Enriched: ${stats.enriched} (${stats.enrichmentFailed} failed)`,
+      `   enriched: ${stats.enriched} (${stats.enrichmentFailed} failed)`,
     );
-    logger.info(`   Errors: ${stats.errors}`);
+    logger.info(`   errors: ${stats.errors}`);
     const runtime = Math.floor((Date.now() - stats.startTime.getTime()) / 1000);
-    logger.info(`   Runtime: ${runtime} seconds`);
+    logger.info(`   runtime: ${runtime} seconds`);
     await prismaWorker.$disconnect();
     process.exit(0);
   };
@@ -717,6 +717,6 @@ setupShutdownHandlers();
 
 // Start the worker
 redisQStreamWorker().catch((error) => {
-  logger.error('💥 Worker crashed:', error);
+  logger.error('💥 worker crashed:', error);
   process.exit(1);
 });

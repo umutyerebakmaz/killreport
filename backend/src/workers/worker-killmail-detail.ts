@@ -50,9 +50,9 @@ export async function processDetailMessage(
  * Usage: yarn worker:killmail-detail
  */
 export async function killmailDetailWorker() {
-  logger.info('🔄 Killmail Detail Worker Started');
-  logger.info(`📦 Queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT}`);
+  logger.info('🔄 killmail detail worker started');
+  logger.info(`📦 queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT}`);
 
   await ensureAllQueuesExist();
   const channel = await getRabbitMQChannel();
@@ -86,12 +86,12 @@ export async function killmailDetailWorker() {
     { noAck: false },
   );
 
-  logger.info(`📊 Ready to process messages from ${QUEUE_NAME}\n`);
+  logger.info(`📊 ready to process messages from ${QUEUE_NAME}\n`);
 }
 
 if (require.main === module) {
   killmailDetailWorker().catch((error) => {
-    logger.error('💥 Worker crashed:', error);
+    logger.error('💥 worker crashed:', error);
     process.exit(1);
   });
 }

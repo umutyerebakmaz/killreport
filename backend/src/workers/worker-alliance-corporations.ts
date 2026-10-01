@@ -33,18 +33,18 @@ interface EntityQueueMessage {
 async function allianceCorporationWorker() {
   await ensureAllQueuesExist();
   while (!isShuttingDown) {
-    logger.info('🤝 Alliance Corporation Worker Started');
-    logger.info(`📦 Input Queue: ${QUEUE_NAME}`);
-    logger.info(`📦 Output Queue: ${CORPORATION_QUEUE}`);
-    logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent\n`);
+    logger.info('🤝 alliance corporation worker started');
+    logger.info(`📦 input queue: ${QUEUE_NAME}`);
+    logger.info(`📦 output queue: ${CORPORATION_QUEUE}`);
+    logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent\n`);
 
     try {
       const channel = await getRabbitMQChannel();
 
       channel.prefetch(PREFETCH_COUNT);
 
-      logger.info('✅ Connected to RabbitMQ');
-      logger.info('⏳ Waiting for alliances...\n');
+      logger.info('✅ connected to RabbitMQ');
+      logger.info('⏳ waiting for alliances...\n');
 
       let totalProcessed = 0;
       let totalCorporationsQueued = 0;
@@ -61,25 +61,25 @@ async function allianceCorporationWorker() {
         const timeSinceLastMessage = Date.now() - lastMessageTime;
         if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
           logger.info('\n' + '━'.repeat(60));
-          logger.info('✅ Queue completed!');
+          logger.info('✅ queue completed!');
           logger.info(
-            `📊 Final: ${totalProcessed} alliances processed, ${totalCorporationsQueued} corporations queued, ${totalErrors} errors`,
+            `📊 final: ${totalProcessed} alliances processed, ${totalCorporationsQueued} corporations queued, ${totalErrors} errors`,
           );
           logger.info('━'.repeat(60) + '\n');
-          logger.info('⏳ Waiting for new messages...\n');
+          logger.info('⏳ waiting for new messages...\n');
         }
       }, 5000);
 
       // Add channel error handlers
       channel.on('error', (err) => {
         if (!isShuttingDown) {
-          logger.error('💥 Channel error:', err);
+          logger.error('💥 channel error:', err);
         }
       });
 
       channel.on('close', () => {
         if (!isShuttingDown) {
-          logger.warn('⚠️  Channel closed unexpectedly');
+          logger.warn('⚠️  channel closed unexpectedly');
         }
       });
 
@@ -110,7 +110,7 @@ async function allianceCorporationWorker() {
 
             if (corporationIds.length === 0) {
               logger.info(
-                `  ⚠️  [${totalProcessed + 1}][${allianceId}] ${allianceName} [${allianceTicker}] - No corporations`,
+                `  ⚠️  [${totalProcessed + 1}][${allianceId}] ${allianceName} [${allianceTicker}] - no corporations`,
               );
               channel.ack(msg);
               totalProcessed++;
@@ -142,7 +142,7 @@ async function allianceCorporationWorker() {
             totalProcessed++;
 
             logger.debug(
-              `  ✅ [${totalProcessed}][${allianceId}] ${allianceName} [${allianceTicker}] - Queued ${queuedCount} corps`,
+              `  ✅ [${totalProcessed}][${allianceId}] ${allianceName} [${allianceTicker}] - queued ${queuedCount} corps`,
             );
 
             channel.ack(msg);
@@ -165,13 +165,13 @@ async function allianceCorporationWorker() {
       await new Promise(() => {});
     } catch (error) {
       if (isShuttingDown) break;
-      logger.error('💥 Worker connection lost, reconnecting in 5s...', error);
+      logger.error('💥 worker connection lost, reconnecting in 5s...', error);
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 
   // Cleanup
-  logger.info('🧹 Worker cleanup completed');
+  logger.info('🧹 worker cleanup completed');
   if (emptyCheckInterval) {
     clearInterval(emptyCheckInterval);
     emptyCheckInterval = null;
@@ -189,7 +189,7 @@ function setupShutdownHandlers() {
       clearInterval(emptyCheckInterval);
       emptyCheckInterval = null;
     }
-    logger.warn('\n⚠️  Received shutdown signal, shutting down gracefully...');
+    logger.warn('\n⚠️  received shutdown signal, shutting down gracefully...');
     await prismaWorker.$disconnect();
     process.exit(0);
   };

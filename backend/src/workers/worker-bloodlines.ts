@@ -19,14 +19,14 @@ interface ESIBloodline {
 
 async function fetchAndSaveBloodlines() {
   try {
-    logger.info('🚀 Starting bloodline sync...');
+    logger.info('🚀 starting bloodline sync...');
 
     const response = await axios.get<ESIBloodline[]>(
       'https://esi.evetech.net/latest/universe/bloodlines/',
     );
 
     const bloodlines = response.data;
-    logger.info(`✓ Fetched ${bloodlines.length} bloodlines from ESI`);
+    logger.info(`✓ fetched ${bloodlines.length} bloodlines from ESI`);
 
     for (const bloodline of bloodlines) {
       try {
@@ -44,19 +44,19 @@ async function fetchAndSaveBloodlines() {
             race_id: bloodline.race_id,
           },
         });
-        logger.debug(`  ✓ Saved: ${bloodline.name}`);
+        logger.debug(`  ✓ saved: ${bloodline.name}`);
       } catch (error: any) {
         logger.error(
-          `  ❌ Error saving bloodline ${bloodline.bloodline_id}:`,
+          `  ❌ error saving bloodline ${bloodline.bloodline_id}:`,
           error.message,
         );
       }
     }
 
-    logger.info(`✅ Bloodline sync completed! Total: ${bloodlines.length}`);
+    logger.info(`✅ bloodline sync completed! total: ${bloodlines.length}`);
     process.exit(0);
   } catch (error: any) {
-    logger.error('❌ Error fetching bloodlines:', error.message);
+    logger.error('❌ error fetching bloodlines:', error.message);
     process.exit(1);
   }
 }

@@ -15,9 +15,9 @@ let emptyCheckInterval: NodeJS.Timeout | null = null;
  * Processes messages from esi_item_group_info_queue
  */
 async function itemGroupInfoWorker() {
-  logger.info('🚀 Starting Item Group Info Worker...');
-  logger.info(`📥 Queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT}\n`);
+  logger.info('🚀 starting item group info worker...');
+  logger.info(`📥 queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT}\n`);
 
   let totalProcessed = 0;
   let totalCreated = 0;
@@ -34,7 +34,7 @@ async function itemGroupInfoWorker() {
 
       // Handle channel errors
       channel.on('error', (err) => {
-        logger.error('❌ Channel error:', err.message);
+        logger.error('❌ channel error:', err.message);
         if (emptyCheckInterval) {
           clearInterval(emptyCheckInterval);
           emptyCheckInterval = null;
@@ -42,14 +42,14 @@ async function itemGroupInfoWorker() {
       });
 
       channel.on('close', () => {
-        logger.warn('⚠️  Channel closed');
+        logger.warn('⚠️  channel closed');
         if (emptyCheckInterval) {
           clearInterval(emptyCheckInterval);
           emptyCheckInterval = null;
         }
       });
 
-      logger.info('✅ Worker ready. Waiting for messages...\n');
+      logger.info('✅ worker ready. waiting for messages...\n');
 
       let lastMessageTime = Date.now();
 
@@ -63,12 +63,12 @@ async function itemGroupInfoWorker() {
         const timeSinceLastMessage = Date.now() - lastMessageTime;
         if (timeSinceLastMessage > 5000 && totalProcessed > 0) {
           logger.info('\n' + '━'.repeat(60));
-          logger.info('✅ Queue completed!');
+          logger.info('✅ queue completed!');
           logger.info(
-            `📊 Final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`,
+            `📊 final: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)`,
           );
           logger.info('━'.repeat(60) + '\n');
-          logger.info('⏳ Waiting for new messages...\n');
+          logger.info('⏳ waiting for new messages...\n');
         }
       }, 5000);
 
@@ -131,7 +131,7 @@ async function itemGroupInfoWorker() {
             // Progress her 100 mesajda bir
             if (totalProcessed % 100 === 0) {
               logger.info(
-                `\n📊 Progress: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)\n`,
+                `\n📊 progress: ${totalProcessed} processed (${totalCreated} created, ${totalUpdated} updated, ${totalErrors} errors)\n`,
               );
             }
           } catch (error) {
@@ -158,11 +158,11 @@ async function itemGroupInfoWorker() {
       });
     } catch (error: any) {
       if (isShuttingDown) {
-        logger.info('Worker stopped during shutdown');
+        logger.info('worker stopped during shutdown');
         break;
       }
 
-      logger.error('💥 Worker error:', error.message);
+      logger.error('💥 worker error:', error.message);
 
       if (emptyCheckInterval) {
         clearInterval(emptyCheckInterval);
@@ -170,18 +170,18 @@ async function itemGroupInfoWorker() {
       }
 
       // Wait before reconnecting
-      logger.info('🔄 Reconnecting in 5 seconds...');
+      logger.info('🔄 reconnecting in 5 seconds...');
       await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 
-  logger.info('Worker stopped');
+  logger.info('worker stopped');
   await prismaWorker.$disconnect();
 }
 
 function setupShutdownHandlers() {
   const shutdown = async () => {
-    logger.warn('\n\n⚠️  Shutting down...');
+    logger.warn('\n\n⚠️  shutting down...');
     isShuttingDown = true;
 
     if (emptyCheckInterval) {

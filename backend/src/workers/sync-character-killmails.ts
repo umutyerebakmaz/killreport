@@ -14,11 +14,11 @@ async function syncCharacterKillmails() {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
-    logger.info('❌ Usage: yarn sync:character <characterId> [maxPages]');
-    logger.info('\nExamples:');
-    logger.info('  yarn sync:character 123456789           # Default 50 pages');
-    logger.info('  yarn sync:character 123456789 10        # Only 10 pages');
-    logger.info('  yarn sync:character 123456789 999       # ALL history\n');
+    logger.info('❌ usage: yarn sync:character <characterId> [maxPages]');
+    logger.info('\nexamples:');
+    logger.info('  yarn sync:character 123456789           # default 50 pages');
+    logger.info('  yarn sync:character 123456789 10        # only 10 pages');
+    logger.info('  yarn sync:character 123456789 999       # all history\n');
     process.exit(1);
   }
 
@@ -26,31 +26,31 @@ async function syncCharacterKillmails() {
   const maxPages = args[1] ? parseInt(args[1]) : MAX_PAGES;
 
   if (isNaN(characterId)) {
-    logger.error('❌ Invalid character ID');
+    logger.error('❌ invalid character ID');
     process.exit(1);
   }
 
-  logger.info('🚀 Character Killmail Sync Started');
+  logger.info('🚀 character killmail sync started');
   logger.info('==================================');
-  logger.info(`📝 Character ID: ${characterId}`);
-  logger.info(`📄 Max Pages: ${maxPages} (${maxPages * 200} killmails max)\n`);
+  logger.info(`📝 character ID: ${characterId}`);
+  logger.info(`📄 max pages: ${maxPages} (${maxPages * 200} killmails max)\n`);
 
   const startTime = Date.now();
 
   try {
     // Fetch killmails from zKillboard
-    logger.info(`📡 Fetching killmails from zKillboard...\n`);
+    logger.info(`📡 fetching killmails from zKillboard...\n`);
     const zkillmails = await getCharacterKillmailsFromZKill(characterId, {
       maxPages,
       characterName: `Character_${characterId}`,
     });
 
     if (zkillmails.length === 0) {
-      logger.warn('⚠️  No killmails found for this character\n');
+      logger.warn('⚠️  no killmails found for this character\n');
       process.exit(0);
     }
 
-    logger.info(`\n📋 Listing ${zkillmails.length} killmails...\n`);
+    logger.info(`\n📋 listing ${zkillmails.length} killmails...\n`);
 
     // Publish etmeden önce kuyruğun var olduğundan emin ol. sendToQueue
     // default exchange'e yazar; kuyruk yoksa broker mesajı hatasız düşürür ve
@@ -70,14 +70,14 @@ async function syncCharacterKillmails() {
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
     logger.info('\n' + '='.repeat(60));
-    logger.info('🎉 SYNC COMPLETED!');
+    logger.info('🎉 sync completed!');
     logger.info('='.repeat(60));
-    logger.info(`📤 Queued for detail fetch: ${queued}`);
-    logger.info(`⏭️  Already stored: ${zkillmails.length - queued}`);
-    logger.info(`📊 Listed: ${zkillmails.length}`);
-    logger.info(`⏱️  Duration: ${duration}s`);
+    logger.info(`📤 queued for detail fetch: ${queued}`);
+    logger.info(`⏭️  already stored: ${zkillmails.length - queued}`);
+    logger.info(`📊 listed: ${zkillmails.length}`);
+    logger.info(`⏱️  duration: ${duration}s`);
     logger.info('='.repeat(60) + '\n');
-    logger.info('Now run the worker to write them:');
+    logger.info('now run the worker to write them:');
     logger.info('  yarn worker:killmail-detail\n');
 
     // Close the channel before exiting. sendToQueue buffers, and
@@ -90,7 +90,7 @@ async function syncCharacterKillmails() {
     await prismaWorker.$disconnect();
     process.exit(0);
   } catch (error) {
-    logger.error('\n❌ Fatal error:', error);
+    logger.error('\n❌ fatal error:', error);
     await prismaWorker.$disconnect();
     process.exit(1);
   }

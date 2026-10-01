@@ -12,10 +12,10 @@ import { FactionService } from '@services/faction/faction.service';
 
 async function fetchAndSaveFactions() {
   try {
-    logger.info('🚀 Starting faction sync...');
+    logger.info('🚀 starting faction sync...');
 
     const factions = await FactionService.getFactions();
-    logger.info(`✓ Fetched ${factions.length} factions from ESI`);
+    logger.info(`✓ fetched ${factions.length} factions from ESI`);
 
     for (const faction of factions) {
       try {
@@ -33,19 +33,19 @@ async function fetchAndSaveFactions() {
           create: { id: faction.faction_id, ...data },
           update: data,
         });
-        logger.debug(`  ✓ Saved: ${faction.name}`);
+        logger.debug(`  ✓ saved: ${faction.name}`);
       } catch (error: any) {
         logger.error(
-          `  ❌ Error saving faction ${faction.faction_id}:`,
+          `  ❌ error saving faction ${faction.faction_id}:`,
           error.message,
         );
       }
     }
 
-    logger.info(`✅ Faction sync completed! Total: ${factions.length}`);
+    logger.info(`✅ faction sync completed! total: ${factions.length}`);
     process.exit(0);
   } catch (error: any) {
-    logger.error('❌ Error fetching factions:', error.message);
+    logger.error('❌ error fetching factions:', error.message);
     process.exit(1);
   }
 }

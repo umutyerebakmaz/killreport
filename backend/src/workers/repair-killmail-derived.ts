@@ -149,7 +149,7 @@ async function main() {
 
   const pending = await findUnrepaired(BATCH_SIZE);
   logger.info(
-    `Killmails with no killmail_filters row: ${pending.length}${
+    `killmails with no killmail_filters row: ${pending.length}${
       pending.length === BATCH_SIZE ? ` (batch limit, run again after)` : ''
     }`,
   );
@@ -165,7 +165,7 @@ async function main() {
         `  would repair ${km.killmail_id} (${km.killmail_time.toISOString()})`,
       );
     }
-    logger.info('Report only. Re-run with --apply to write.');
+    logger.info('report only. re-run with --apply to write.');
     await prismaWorker.$disconnect();
     return;
   }
@@ -183,13 +183,13 @@ async function main() {
     }
   }
 
-  logger.info(`Repaired ${repaired}, skipped ${skipped}`);
+  logger.info(`repaired ${repaired}, skipped ${skipped}`);
   await prismaWorker.$disconnect();
 }
 
 if (require.main === module) {
   main().catch(async (error) => {
-    logger.error('Repair failed', error);
+    logger.error('repair failed', error);
     await prismaWorker.$disconnect();
     process.exit(1);
   });

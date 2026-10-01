@@ -32,10 +32,10 @@ interface BackfillMessage {
 }
 
 async function backfillValuesWorker() {
-  logger.info('💰 Backfill Killmail Values Worker Started');
-  logger.info(`📦 Queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent`);
-  logger.info(`📊 Stats interval: Every ${STATS_INTERVAL} killmails\n`);
+  logger.info('💰 backfill killmail values worker started');
+  logger.info(`📦 queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent`);
+  logger.info(`📊 stats interval: every ${STATS_INTERVAL} killmails\n`);
 
   let totalProcessed = 0;
   let totalUpdated = 0;
@@ -50,8 +50,8 @@ async function backfillValuesWorker() {
 
     channel.prefetch(PREFETCH_COUNT);
 
-    logger.info('✅ Connected to RabbitMQ');
-    logger.info('⏳ Waiting for killmails...\n');
+    logger.info('✅ connected to RabbitMQ');
+    logger.info('⏳ waiting for killmails...\n');
 
     // Check if queue is empty periodically
     const emptyCheckInterval = setInterval(async () => {
@@ -61,17 +61,17 @@ async function backfillValuesWorker() {
         const rate = totalProcessed / elapsedSeconds;
 
         logger.info('\n' + '━'.repeat(60));
-        logger.info('✅ Queue completed!');
-        logger.info(`📊 Total: ${totalProcessed.toLocaleString()} processed`);
-        logger.info(`   ✓ Updated: ${totalUpdated.toLocaleString()}`);
-        logger.info(`   - Skipped: ${totalSkipped.toLocaleString()}`);
-        logger.info(`   ✗ Errors: ${totalErrors.toLocaleString()}`);
-        logger.info(`⏱️  Rate: ${rate.toFixed(2)} killmails/sec`);
+        logger.info('✅ queue completed!');
+        logger.info(`📊 total: ${totalProcessed.toLocaleString()} processed`);
+        logger.info(`   ✓ updated: ${totalUpdated.toLocaleString()}`);
+        logger.info(`   - skipped: ${totalSkipped.toLocaleString()}`);
+        logger.info(`   ✗ errors: ${totalErrors.toLocaleString()}`);
+        logger.info(`⏱️  rate: ${rate.toFixed(2)} killmails/sec`);
         logger.info(
-          `🕐 Time: ${Math.floor(elapsedSeconds / 60)}m ${Math.floor(elapsedSeconds % 60)}s`,
+          `🕐 time: ${Math.floor(elapsedSeconds / 60)}m ${Math.floor(elapsedSeconds % 60)}s`,
         );
         logger.info('━'.repeat(60) + '\n');
-        logger.info('⏳ Waiting for new messages...\n');
+        logger.info('⏳ waiting for new messages...\n');
       }
     }, 5000);
 
@@ -85,7 +85,7 @@ async function backfillValuesWorker() {
       // Validate killmailId
       if (!killmailId || typeof killmailId !== 'number') {
         logger.warn(
-          `⚠️  Invalid killmailId in message: ${JSON.stringify(message)}`,
+          `⚠️  invalid killmailId in message: ${JSON.stringify(message)}`,
         );
         totalErrors++;
         totalProcessed++;
@@ -112,7 +112,7 @@ async function backfillValuesWorker() {
 
         if (!killmail) {
           logger.warn(
-            `⚠️  [${totalProcessed + 1}] Killmail ${killmailId} not found`,
+            `⚠️  [${totalProcessed + 1}] killmail ${killmailId} not found`,
           );
           totalSkipped++;
           totalProcessed++;
@@ -122,7 +122,7 @@ async function backfillValuesWorker() {
 
         if (!killmail.victim) {
           logger.warn(
-            `⚠️  [${totalProcessed + 1}] Killmail ${killmailId} has no victim`,
+            `⚠️  [${totalProcessed + 1}] killmail ${killmailId} has no victim`,
           );
           totalSkipped++;
           totalProcessed++;
@@ -144,7 +144,7 @@ async function backfillValuesWorker() {
         // Log calculated values for debugging
         if (totalProcessed % 10 === 0) {
           logger.info(
-            `💰 [${totalProcessed + 1}] KM ${killmailId}: Total=${values.totalValue.toFixed(2)}, Destroyed=${values.destroyedValue.toFixed(2)}, Dropped=${values.droppedValue.toFixed(2)}`,
+            `💰 [${totalProcessed + 1}] KM ${killmailId}: total=${values.totalValue.toFixed(2)}, destroyed=${values.destroyedValue.toFixed(2)}, dropped=${values.droppedValue.toFixed(2)}`,
           );
         }
 
@@ -155,7 +155,7 @@ async function backfillValuesWorker() {
           values.droppedValue === 0
         ) {
           logger.warn(
-            `⚠️  [${totalProcessed + 1}] Killmail ${killmailId} has zero values - skipping update`,
+            `⚠️  [${totalProcessed + 1}] killmail ${killmailId} has zero values - skipping update`,
           );
           totalSkipped++;
           totalProcessed++;
@@ -184,7 +184,7 @@ async function backfillValuesWorker() {
         // Verify the update
         if (updated.total_value !== values.totalValue) {
           logger.error(
-            `❌ [${totalProcessed + 1}] Killmail ${killmailId} update FAILED! Expected ${values.totalValue}, got ${updated.total_value}`,
+            `❌ [${totalProcessed + 1}] killmail ${killmailId} update failed! expected ${values.totalValue}, got ${updated.total_value}`,
           );
           totalErrors++;
         } else {
@@ -198,8 +198,8 @@ async function backfillValuesWorker() {
         if (totalProcessed % STATS_INTERVAL === 0) {
           const rate = totalProcessed / ((Date.now() - startTime) / 1000);
           logger.info(
-            `📊 [${totalProcessed}] Rate: ${rate.toFixed(2)}/sec | ` +
-              `Updated: ${totalUpdated} | Skipped: ${totalSkipped} | Errors: ${totalErrors}`,
+            `📊 [${totalProcessed}] rate: ${rate.toFixed(2)}/sec | ` +
+              `updated: ${totalUpdated} | skipped: ${totalSkipped} | errors: ${totalErrors}`,
           );
         }
       } catch (error) {
@@ -216,14 +216,14 @@ async function backfillValuesWorker() {
 
     // Graceful shutdown
     process.on('SIGINT', async () => {
-      logger.info('\n🛑 Shutting down gracefully...');
+      logger.info('\n🛑 shutting down gracefully...');
       clearInterval(emptyCheckInterval);
       await channel.close();
       await prismaWorker.$disconnect();
       process.exit(0);
     });
   } catch (error) {
-    logger.error('Worker failed to start', { error });
+    logger.error('worker failed to start', { error });
     await prismaWorker.$disconnect();
     process.exit(1);
   }

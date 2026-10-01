@@ -49,9 +49,9 @@ const IDLE_EXIT_MS = 5000;
 let emptyCheckInterval: NodeJS.Timeout | null = null;
 
 async function planetsWorker() {
-  logger.info('🚀 Planet Worker Started');
-  logger.info(`📦 Queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent`);
+  logger.info('🚀 planet worker started');
+  logger.info(`📦 queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent`);
   logger.info(
     `🚦 ESI ceiling: ${config.esi.maxRequestsPerSecond} req/sec (ESI_MAX_RPS)\n`,
   );
@@ -64,7 +64,7 @@ async function planetsWorker() {
 
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
     logger.info(
-      `📊 Queue status: ${queueInfo.messageCount} messages waiting\n`,
+      `📊 queue status: ${queueInfo.messageCount} messages waiting\n`,
     );
 
     let processed = 0;
@@ -82,7 +82,7 @@ async function planetsWorker() {
         // Already closing; nothing to do.
       }
       await prismaWorker.$disconnect();
-      logger.info('✅ Worker stopped gracefully');
+      logger.info('✅ worker stopped gracefully');
       process.exit(code);
     };
 
@@ -95,17 +95,17 @@ async function planetsWorker() {
       if (inFlight > 0 || Date.now() - lastMessageTime <= IDLE_EXIT_MS) return;
 
       if (processed + errors === 0) {
-        logger.info('💤 Nothing to do: the queue was already empty.');
+        logger.info('💤 nothing to do: the queue was already empty.');
       } else {
         const duration = ((Date.now() - startTime) / 1000).toFixed(2);
         logger.info('\n' + '='.repeat(60));
-        logger.info('🎉 ALL TASKS COMPLETED!');
+        logger.info('🎉 all tasks completed!');
         logger.info(
-          `✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`,
+          `✅ processed: ${processed}   ❌ errors: ${errors}   ⏱️  ${duration}s`,
         );
         logger.info('='.repeat(60));
         logger.info(
-          '\n💡 Moons and asteroid belts are queued now - run their workers next.\n',
+          '\n💡 moons and asteroid belts are queued now - run their workers next.\n',
         );
       }
 
@@ -123,7 +123,7 @@ async function planetsWorker() {
           const payload = parseTopologyMessage<PlanetMessage>(msg);
 
           if (!payload || typeof payload.planetId !== 'number') {
-            logger.error('❌ Invalid planet message:', msg.content.toString());
+            logger.error('❌ invalid planet message:', msg.content.toString());
             errors++;
             channel.ack(msg);
             return;
@@ -192,12 +192,12 @@ async function planetsWorker() {
 
             processed++;
             logger.info(
-              `  ✅ [${processed}] Planet ${planetId} - ${data.name ?? '(unnamed)'} ` +
+              `  ✅ [${processed}] planet ${planetId} - ${data.name ?? '(unnamed)'} ` +
                 `(${moonIds?.length ?? 0} moons, ${asteroidBeltIds?.length ?? 0} belts queued)`,
             );
             if (processed % 100 === 0) {
               logger.info(
-                `📊 Progress: ${processed} processed, ${errors} errors`,
+                `📊 progress: ${processed} processed, ${errors} errors`,
               );
             }
             channel.ack(msg);
@@ -206,7 +206,7 @@ async function planetsWorker() {
             if (error.response?.status === 404) {
               // A dead ID at the ESI step. The row and the chain already exist, so
               // ack: the row keeps its NULL name and shows up in the repair scan.
-              logger.warn(`⚠️  Planet ${planetId} not found (404)`);
+              logger.warn(`⚠️  planet ${planetId} not found (404)`);
               channel.ack(msg);
             } else {
               // 404, the 420 backoff and the attempt count all live in the
@@ -233,7 +233,7 @@ async function planetsWorker() {
       });
     }
   } catch (error) {
-    logger.error('❌ Failed to start planet worker:', error);
+    logger.error('❌ failed to start planet worker:', error);
     process.exit(1);
   }
 }

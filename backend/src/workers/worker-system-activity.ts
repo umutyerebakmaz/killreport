@@ -33,13 +33,13 @@ async function snapshotSystemActivity() {
   const startTime = Date.now();
   const snapshotTime = hourSnapshotTime(new Date());
 
-  logger.info('📸 Starting system activity snapshot collection...');
-  logger.info(`   • Snapshot time: ${snapshotTime.toISOString()}`);
+  logger.info('📸 starting system activity snapshot collection...');
+  logger.info(`   • snapshot time: ${snapshotTime.toISOString()}`);
 
   try {
     // Both requests together: one row carries both halves, so there is nothing
     // to gain by serialising them. `esiRateLimiter` governs the dispatch.
-    logger.info('📡 Fetching system kills and jumps from ESI...');
+    logger.info('📡 fetching system kills and jumps from ESI...');
     const [killData, jumpData]: [EsiSystemKills[], EsiSystemJumps[]] =
       await Promise.all([
         SolarSystemService.getSystemKills(),
@@ -54,12 +54,12 @@ async function snapshotSystemActivity() {
     const jumps = jumpData ?? [];
 
     if (kills.length === 0 && jumps.length === 0) {
-      logger.warn('⚠️  No activity data returned from ESI');
+      logger.warn('⚠️  no activity data returned from ESI');
       return;
     }
 
     logger.info(
-      `✓ Received kills for ${kills.length} systems, jumps for ${jumps.length}`,
+      `✓ received kills for ${kills.length} systems, jumps for ${jumps.length}`,
     );
 
     const snapshotRecords = mergeSystemActivity(kills, jumps, snapshotTime);
@@ -70,20 +70,20 @@ async function snapshotSystemActivity() {
     const totalNpcKills = kills.reduce((sum, s) => sum + s.npc_kills, 0);
     const totalShipJumps = jumps.reduce((sum, s) => sum + s.ship_jumps, 0);
 
-    logger.info(`📊 Activity Statistics:`);
-    logger.info(`   • Total ship kills: ${totalShipKills.toLocaleString()}`);
-    logger.info(`   • Total pod kills: ${totalPodKills.toLocaleString()}`);
-    logger.info(`   • Total NPC kills: ${totalNpcKills.toLocaleString()}`);
-    logger.info(`   • Total ship jumps: ${totalShipJumps.toLocaleString()}`);
+    logger.info(`📊 activity statistics:`);
+    logger.info(`   • total ship kills: ${totalShipKills.toLocaleString()}`);
+    logger.info(`   • total pod kills: ${totalPodKills.toLocaleString()}`);
+    logger.info(`   • total NPC kills: ${totalNpcKills.toLocaleString()}`);
+    logger.info(`   • total ship jumps: ${totalShipJumps.toLocaleString()}`);
     logger.info(
-      `   • Rows to write: ${snapshotRecords.length.toLocaleString()}`,
+      `   • rows to write: ${snapshotRecords.length.toLocaleString()}`,
     );
 
     // Insert snapshots in batches
     let inserted = 0;
     const BATCH_SIZE = 1000;
 
-    logger.info('💾 Saving snapshots to database...');
+    logger.info('💾 saving snapshots to database...');
 
     for (let i = 0; i < snapshotRecords.length; i += BATCH_SIZE) {
       const batch = snapshotRecords.slice(i, i + BATCH_SIZE);
@@ -101,7 +101,7 @@ async function snapshotSystemActivity() {
         i + BATCH_SIZE >= snapshotRecords.length
       ) {
         logger.info(
-          `  ⏳ Progress: ${Math.min(i + BATCH_SIZE, snapshotRecords.length)}/${
+          `  ⏳ progress: ${Math.min(i + BATCH_SIZE, snapshotRecords.length)}/${
             snapshotRecords.length
           } snapshots processed`,
         );
@@ -110,13 +110,13 @@ async function snapshotSystemActivity() {
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
 
-    logger.info(`✅ Snapshot collection completed successfully!`);
-    logger.info(`   • Snapshots saved: ${inserted.toLocaleString()}`);
-    logger.info(`   • Snapshot timestamp: ${snapshotTime.toISOString()}`);
-    logger.info(`   • Duration: ${duration} seconds`);
-    logger.info(`   • Next snapshot: in 1 hour`);
+    logger.info(`✅ snapshot collection completed successfully!`);
+    logger.info(`   • snapshots saved: ${inserted.toLocaleString()}`);
+    logger.info(`   • snapshot timestamp: ${snapshotTime.toISOString()}`);
+    logger.info(`   • duration: ${duration} seconds`);
+    logger.info(`   • next snapshot: in 1 hour`);
   } catch (error) {
-    logger.error('❌ System activity snapshot failed', { error });
+    logger.error('❌ system activity snapshot failed', { error });
     throw error;
   }
 }
@@ -124,10 +124,10 @@ async function snapshotSystemActivity() {
 // Run the snapshot collection
 snapshotSystemActivity()
   .then(() => {
-    logger.info('👋 Snapshot worker finished');
+    logger.info('👋 snapshot worker finished');
     process.exit(0);
   })
   .catch((error) => {
-    logger.error('💥 Snapshot worker error', { error });
+    logger.error('💥 snapshot worker error', { error });
     process.exit(1);
   });

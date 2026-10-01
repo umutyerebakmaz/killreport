@@ -36,9 +36,9 @@ const IDLE_EXIT_MS = 5000;
 let emptyCheckInterval: NodeJS.Timeout | null = null;
 
 async function stationsWorker() {
-  logger.info('🚀 Station Worker Started');
-  logger.info(`📦 Queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent`);
+  logger.info('🚀 station worker started');
+  logger.info(`📦 queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent`);
   logger.info(
     `🚦 ESI ceiling: ${config.esi.maxRequestsPerSecond} req/sec (ESI_MAX_RPS)\n`,
   );
@@ -51,7 +51,7 @@ async function stationsWorker() {
 
     const queueInfo = await channel.checkQueue(QUEUE_NAME);
     logger.info(
-      `📊 Queue status: ${queueInfo.messageCount} messages waiting\n`,
+      `📊 queue status: ${queueInfo.messageCount} messages waiting\n`,
     );
 
     let processed = 0;
@@ -69,7 +69,7 @@ async function stationsWorker() {
         // Already closing; nothing to do.
       }
       await prismaWorker.$disconnect();
-      logger.info('✅ Worker stopped gracefully');
+      logger.info('✅ worker stopped gracefully');
       process.exit(code);
     };
 
@@ -82,13 +82,13 @@ async function stationsWorker() {
       if (inFlight > 0 || Date.now() - lastMessageTime <= IDLE_EXIT_MS) return;
 
       if (processed + errors === 0) {
-        logger.info('💤 Nothing to do: the queue was already empty.');
+        logger.info('💤 nothing to do: the queue was already empty.');
       } else {
         const duration = ((Date.now() - startTime) / 1000).toFixed(2);
         logger.info('\n' + '='.repeat(60));
-        logger.info('🎉 ALL TASKS COMPLETED!');
+        logger.info('🎉 all tasks completed!');
         logger.info(
-          `✅ Processed: ${processed}   ❌ Errors: ${errors}   ⏱️  ${duration}s`,
+          `✅ processed: ${processed}   ❌ errors: ${errors}   ⏱️  ${duration}s`,
         );
         logger.info('='.repeat(60));
       }
@@ -107,7 +107,7 @@ async function stationsWorker() {
           const payload = parseTopologyMessage<StationMessage>(msg);
 
           if (!payload || typeof payload.stationId !== 'number') {
-            logger.error('❌ Invalid station message:', msg.content.toString());
+            logger.error('❌ invalid station message:', msg.content.toString());
             errors++;
             channel.ack(msg);
             return;
@@ -143,11 +143,11 @@ async function stationsWorker() {
 
             processed++;
             logger.info(
-              `  ✅ [${processed}] Station ${stationId} - ${data.name ?? '(unnamed)'}`,
+              `  ✅ [${processed}] station ${stationId} - ${data.name ?? '(unnamed)'}`,
             );
             if (processed % 100 === 0) {
               logger.info(
-                `📊 Progress: ${processed} processed, ${errors} errors`,
+                `📊 progress: ${processed} processed, ${errors} errors`,
               );
             }
             channel.ack(msg);
@@ -158,7 +158,7 @@ async function stationsWorker() {
               // - is still authoritative, so write the row without a name.
               // services has no default and is String[], so it must be given here.
               logger.warn(
-                `⚠️  Station ${stationId} not found (404), writing row without a name`,
+                `⚠️  station ${stationId} not found (404), writing row without a name`,
               );
               try {
                 await prismaWorker.station.upsert({
@@ -206,7 +206,7 @@ async function stationsWorker() {
       });
     }
   } catch (error) {
-    logger.error('❌ Failed to start station worker:', error);
+    logger.error('❌ failed to start station worker:', error);
     process.exit(1);
   }
 }

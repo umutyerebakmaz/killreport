@@ -37,12 +37,12 @@ interface CorporationSyncContext {
  * Usage: yarn worker:corporation-killmails
  */
 export async function esiCorporationKillmailWorker() {
-  logger.info('🔄 ESI Corporation Killmail Worker Started');
-  logger.info(`📦 Queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ Prefetch: ${PREFETCH_COUNT} concurrent corporations`);
-  logger.info(`🏢 Data Source: ESI API (corporation killmails)`);
+  logger.info('🔄 ESI corporation killmail worker started');
+  logger.info(`📦 queue: ${QUEUE_NAME}`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent corporations`);
+  logger.info(`🏢 data source: ESI API (corporation killmails)`);
   logger.info(
-    `🔐 Required: Director/CEO + esi-killmails.read_corporation_killmails.v1\n`,
+    `🔐 required: Director/CEO + esi-killmails.read_corporation_killmails.v1\n`,
   );
 
   try {
@@ -52,19 +52,19 @@ export async function esiCorporationKillmailWorker() {
     // Set prefetch to limit concurrent processing
     channel.prefetch(PREFETCH_COUNT);
 
-    logger.info('✅ Connected to RabbitMQ');
-    logger.info('⏳ Waiting for corporation killmail jobs...\n');
+    logger.info('✅ connected to RabbitMQ');
+    logger.info('⏳ waiting for corporation killmail jobs...\n');
 
     // Consume messages
     const consumerTag = await channel.consume(
       QUEUE_NAME,
       async (msg) => {
         if (!msg) {
-          logger.info('⚠️  Received null message from RabbitMQ');
+          logger.info('⚠️  received null message from RabbitMQ');
           return;
         }
 
-        logger.info('📨 Received message from queue!');
+        logger.info('📨 received message from queue!');
 
         let message: KillmailSyncMessage | undefined;
 
@@ -72,8 +72,8 @@ export async function esiCorporationKillmailWorker() {
           message = JSON.parse(msg.content.toString()) as KillmailSyncMessage;
 
           logger.info(`\n${'━'.repeat(70)}`);
-          logger.info(`🆔 User ID: ${message.userId}`);
-          logger.info(`📅 Queued at: ${message.queuedAt}`);
+          logger.info(`🆔 user ID: ${message.userId}`);
+          logger.info(`📅 queued at: ${message.queuedAt}`);
           logger.info('━'.repeat(70));
 
           const credentials = await loadUserCredentials(
@@ -87,7 +87,7 @@ export async function esiCorporationKillmailWorker() {
             logger.error(
               `  ❌ ${credentials.reason} for user ${message.userId}`,
             );
-            logger.error(`  ⏭️  Skipping user - requires re-login via SSO`);
+            logger.error(`  ⏭️  skipping user - requires re-login via SSO`);
             channel.ack(msg);
             return;
           }
@@ -113,10 +113,10 @@ export async function esiCorporationKillmailWorker() {
             corporation?.name ?? `Corporation ${user.corporation_id}`;
 
           logger.info(
-            `🏢 Processing: ${corporationName} (ID: ${user.corporation_id})`,
+            `🏢 processing: ${corporationName} (ID: ${user.corporation_id})`,
           );
           logger.info(
-            `👤 User: ${user.character_name} (ID: ${user.character_id})`,
+            `👤 user: ${user.character_name} (ID: ${user.character_id})`,
           );
 
           const lastKillmailId = message.fullSync
@@ -138,7 +138,7 @@ export async function esiCorporationKillmailWorker() {
 
           // Acknowledge message
           channel.ack(msg);
-          logger.info(`✅ Completed: ${corporationName}\n`);
+          logger.info(`✅ completed: ${corporationName}\n`);
         } catch (error) {
           // 403 is this worker's own case and is settled before the shared
           // path sees it; everything else falls through unchanged.
@@ -164,10 +164,10 @@ export async function esiCorporationKillmailWorker() {
       { noAck: false },
     );
 
-    logger.info(`📢 Consumer started with tag: ${consumerTag.consumerTag}`);
-    logger.info(`📊 Ready to process messages from ${QUEUE_NAME}\n`);
+    logger.info(`📢 consumer started with tag: ${consumerTag.consumerTag}`);
+    logger.info(`📊 ready to process messages from ${QUEUE_NAME}\n`);
   } catch (error) {
-    logger.error('💥 Worker failed to start:', error);
+    logger.error('💥 worker failed to start:', error);
     process.exit(1);
   }
 }
@@ -214,7 +214,7 @@ export async function settleForbidden(
   }
 
   logger.warn(
-    `  ! user ${userId}: ESI returned 403 - not a Director/CEO, or missing esi-killmails.read_corporation_killmails.v1. Skipping.`,
+    `  ! user ${userId}: ESI returned 403 - not a Director/CEO, or missing esi-killmails.read_corporation_killmails.v1. skipping.`,
   );
   channel.ack(msg);
   return true;
@@ -230,17 +230,17 @@ async function syncCorporationKillmailsFromESI(
   try {
     if (lastKillmailId) {
       logger.info(
-        `  📡 [${ctx.corporationName}] Fetching NEW corporation killmails from ESI (incremental sync)...`,
+        `  📡 [${ctx.corporationName}] fetching new corporation killmails from ESI (incremental sync)...`,
       );
-      logger.info(`     🔍 Will stop at killmail ID: ${lastKillmailId}`);
+      logger.info(`     🔍 will stop at killmail ID: ${lastKillmailId}`);
       logger.info(
-        `     📄 Max pages: 50 (will stop earlier if last synced killmail is found)`,
+        `     📄 max pages: 50 (will stop earlier if last synced killmail is found)`,
       );
     } else {
       logger.info(
-        `  📡 [${ctx.corporationName}] Fetching corporation killmails from ESI (full sync)...`,
+        `  📡 [${ctx.corporationName}] fetching corporation killmails from ESI (full sync)...`,
       );
-      logger.info(`     📄 Max pages: 50 (2,500 killmails max - 50 per page)`);
+      logger.info(`     📄 max pages: 50 (2,500 killmails max - 50 per page)`);
     }
 
     // Fetch killmail list from ESI (max 50 pages = 2500 killmails, 50 per page)
@@ -252,19 +252,19 @@ async function syncCorporationKillmailsFromESI(
       lastKillmailId, // Stop when we hit this ID (incremental sync)
     );
 
-    logger.info(`  📥 Total killmails found from ESI: ${killmailList.length}`);
+    logger.info(`  📥 total killmails found from ESI: ${killmailList.length}`);
 
     if (killmailList.length > 0) {
       logger.info(
-        `  📄 First killmail: ID ${killmailList[0].killmail_id}, Hash ${killmailList[0].killmail_hash.substring(0, 10)}...`,
+        `  📄 first killmail: ID ${killmailList[0].killmail_id}, hash ${killmailList[0].killmail_hash.substring(0, 10)}...`,
       );
       logger.info(
-        `  📄 Last killmail: ID ${killmailList[killmailList.length - 1].killmail_id}, Hash ${killmailList[killmailList.length - 1].killmail_hash.substring(0, 10)}...`,
+        `  📄 last killmail: ID ${killmailList[killmailList.length - 1].killmail_id}, hash ${killmailList[killmailList.length - 1].killmail_hash.substring(0, 10)}...`,
       );
     }
 
     if (killmailList.length === 0) {
-      logger.info(`  ℹ️  No killmails found for this corporation`);
+      logger.info(`  ℹ️  no killmails found for this corporation`);
       return;
     }
 
@@ -277,7 +277,7 @@ async function syncCorporationKillmailsFromESI(
     );
 
     logger.info(
-      `  📤 Queued ${queued}/${killmailList.length} killmail(s) for detail fetch`,
+      `  📤 queued ${queued}/${killmailList.length} killmail(s) for detail fetch`,
     );
 
     // Bu kullanıcının en son ne zaman ele alındığı — imleç değil. İmleç
@@ -303,12 +303,12 @@ async function syncCorporationKillmailsFromESI(
  */
 function setupShutdownHandlers() {
   process.on('SIGINT', () => {
-    logger.info('\n⚠️  Received SIGINT, shutting down gracefully...');
+    logger.info('\n⚠️  received SIGINT, shutting down gracefully...');
     process.exit(0);
   });
 
   process.on('SIGTERM', () => {
-    logger.info('\n⚠️  Received SIGTERM, shutting down gracefully...');
+    logger.info('\n⚠️  received SIGTERM, shutting down gracefully...');
     process.exit(0);
   });
 }
@@ -317,7 +317,7 @@ function setupShutdownHandlers() {
 if (require.main === module) {
   setupShutdownHandlers();
   esiCorporationKillmailWorker().catch((error) => {
-    logger.error('💥 Worker crashed:', error);
+    logger.error('💥 worker crashed:', error);
     process.exit(1);
   });
 }
