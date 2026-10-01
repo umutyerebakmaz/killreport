@@ -1,4 +1,8 @@
 import DataLoader from 'dataloader';
+import {
+  getKillmailLocations,
+  type KillmailLocation,
+} from './killmail/killmail-location.service';
 import logger from './logger';
 import prisma from './prisma';
 
@@ -446,6 +450,7 @@ export interface DataLoaderContext {
     moonsByPlanet: DataLoader<number, any[]>;
     asteroidBeltsByPlanet: DataLoader<number, any[]>;
     planet: DataLoader<number, any>;
+    killmailLocation: DataLoader<number, KillmailLocation | null>;
   };
 }
 
@@ -490,6 +495,7 @@ export const createDataLoaders = (): DataLoaderContext => ({
     moonsByPlanet: createMoonsByPlanetLoader(),
     asteroidBeltsByPlanet: createAsteroidBeltsByPlanetLoader(),
     planet: createPlanetLoader(),
+    killmailLocation: createKillmailLocationLoader(),
   },
 });
 
@@ -1261,6 +1267,15 @@ export const createAsteroidBeltsByPlanetLoader = () => {
 /**
  * Single Planet DataLoader - used by Moon.planet and AsteroidBelt.planet
  */
+/**
+ * Where each killmail's victim died, relative to the nearest celestial. The
+ * service batches the lookup into one query and caches per killmail.
+ */
+export const createKillmailLocationLoader = () =>
+  new DataLoader<number, KillmailLocation | null>((killmailIds) =>
+    getKillmailLocations(killmailIds),
+  );
+
 export const createPlanetLoader = () => {
   return new DataLoader<number, any>(async (planetIds) => {
     console.log(`🔄 DataLoader: batching ${planetIds.length} planet queries`);

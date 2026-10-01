@@ -6,6 +6,8 @@ import {
 } from '@generated-types';
 import { DataLoaderContext } from '@app-types/context';
 import { organizeFitting } from '@helpers/fitting-helper';
+import { CELESTIAL_KIND } from '@resolvers/universe-map/queries';
+import type { KillmailLocation } from '@services/killmail/killmail-location.service';
 
 // Capsule (pod) type_id - special handling for value calculations
 const CAPSULE_TYPE_ID = 670;
@@ -82,6 +84,15 @@ export const killmailFields: KillmailResolvers = {
       return null;
     }
     return victim;
+  },
+
+  location: async (parent, _, context) => {
+    const killmailId =
+      typeof parent.id === 'string' ? parseInt(parent.id, 10) : parent.id;
+    const location: KillmailLocation | null =
+      await context.loaders.killmailLocation.load(killmailId);
+    if (!location) return null;
+    return { ...location, kind: CELESTIAL_KIND[location.kind] };
   },
 
   attackers: async (parent: any, _, context) => {

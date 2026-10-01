@@ -643,6 +643,8 @@ export type Killmail = {
   items: Array<KillmailItem>;
   killmailHash: Scalars['String']['output'];
   killmailTime: Scalars['String']['output'];
+  /** The celestial the victim died nearest to. Null when ESI gave no position. */
+  location?: Maybe<KillmailLocation>;
   npc: Scalars['Boolean']['output'];
   solarSystem: SolarSystem;
   solo: Scalars['Boolean']['output'];
@@ -693,6 +695,21 @@ export type KillmailItem = {
   quantityDestroyed?: Maybe<Scalars['Int']['output']>;
   quantityDropped?: Maybe<Scalars['Int']['output']>;
   singleton: Scalars['Int']['output'];
+};
+
+/**
+ * The nearest of the system's star, planets, moons, asteroid belts, NPC stations
+ * and stargates to where the victim died. Player-owned structures are never
+ * among them, so a kill beside a citadel reads as its distance to the nearest
+ * of these.
+ */
+export type KillmailLocation = {
+  __typename?: 'KillmailLocation';
+  /** Metres from the victim to the celestial. */
+  distance: Scalars['Float']['output'];
+  id: Scalars['Int']['output'];
+  kind: MapCelestialKind;
+  name?: Maybe<Scalars['String']['output']>;
 };
 
 export enum KillmailOrderBy {
@@ -2616,6 +2633,7 @@ export type ResolversTypes = {
   KillmailDateCount: ResolverTypeWrapper<KillmailDateCount>;
   KillmailFilter: KillmailFilter;
   KillmailItem: ResolverTypeWrapper<KillmailItem>;
+  KillmailLocation: ResolverTypeWrapper<KillmailLocation>;
   KillmailOrderBy: KillmailOrderBy;
   KillmailsResponse: ResolverTypeWrapper<KillmailsResponse>;
   LeaderboardPeriod: LeaderboardPeriod;
@@ -2784,6 +2802,7 @@ export type ResolversParentTypes = {
   KillmailDateCount: KillmailDateCount;
   KillmailFilter: KillmailFilter;
   KillmailItem: KillmailItem;
+  KillmailLocation: KillmailLocation;
   KillmailsResponse: KillmailsResponse;
   MapBounds: MapBounds;
   MapCelestial: MapCelestial;
@@ -3281,6 +3300,7 @@ export type KillmailResolvers<ContextType = any, ParentType extends ResolversPar
   items?: Resolver<Array<ResolversTypes['KillmailItem']>, ParentType, ContextType>;
   killmailHash?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   killmailTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  location?: Resolver<Maybe<ResolversTypes['KillmailLocation']>, ParentType, ContextType>;
   npc?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   solarSystem?: Resolver<ResolversTypes['SolarSystem'], ParentType, ContextType>;
   solo?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
@@ -3300,6 +3320,13 @@ export type KillmailItemResolvers<ContextType = any, ParentType extends Resolver
   quantityDestroyed?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   quantityDropped?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   singleton?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
+export type KillmailLocationResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailLocation'] = ResolversParentTypes['KillmailLocation']> = {
+  distance?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  kind?: Resolver<ResolversTypes['MapCelestialKind'], ParentType, ContextType>;
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type KillmailsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillmailsResponse'] = ResolversParentTypes['KillmailsResponse']> = {
@@ -4090,6 +4117,7 @@ export type Resolvers<ContextType = any> = {
   Killmail?: KillmailResolvers<ContextType>;
   KillmailDateCount?: KillmailDateCountResolvers<ContextType>;
   KillmailItem?: KillmailItemResolvers<ContextType>;
+  KillmailLocation?: KillmailLocationResolvers<ContextType>;
   KillmailsResponse?: KillmailsResponseResolvers<ContextType>;
   MapBounds?: MapBoundsResolvers<ContextType>;
   MapCelestial?: MapCelestialResolvers<ContextType>;

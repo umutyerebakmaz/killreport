@@ -711,6 +711,7 @@ describe('createDataLoaders', () => {
         'marketPrice',
         'moonsByPlanet',
         'planet',
+        'killmailLocation',
         'planetsBySystem',
         'race',
         'region',

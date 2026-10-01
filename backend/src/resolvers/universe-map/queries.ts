@@ -22,7 +22,7 @@ import {
  * without a cast: add a kind to the service and this stops compiling, which is
  * exactly what a cast would have hidden.
  */
-const CELESTIAL_KIND: Record<ServiceCelestialKind, MapCelestialKind> = {
+export const CELESTIAL_KIND: Record<ServiceCelestialKind, MapCelestialKind> = {
   STAR: MapCelestialKind.Star,
   PLANET: MapCelestialKind.Planet,
   MOON: MapCelestialKind.Moon,
