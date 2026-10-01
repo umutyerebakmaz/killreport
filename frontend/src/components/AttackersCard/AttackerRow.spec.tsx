@@ -20,11 +20,15 @@ const attacker = (overrides: Partial<Attacker> = {}): Attacker => ({
   ...overrides,
 });
 
-const renderRow = (a: Attacker, flags: Record<string, boolean> = {}) =>
+const renderRow = (
+  a: Attacker,
+  flags: Record<string, boolean> = {},
+  km: { solo: boolean; npc: boolean } = killmail,
+) =>
   render(
     <AttackerRow
       attacker={a}
-      killmail={killmail}
+      killmail={km}
       totalDamage={10000}
       isFinalBlow={flags.isFinalBlow ?? false}
       isTopDamage={flags.isTopDamage ?? false}
@@ -81,5 +85,34 @@ describe('AttackerRow', () => {
     const column = badge.closest('div')?.parentElement;
     expect(column?.textContent).toContain('1,234');
     expect(badge.closest('.relative')).toBeNull();
+  });
+
+  // The table and the card header's rule (attackerBadge): one marker per
+  // killmail, never SOLO and NPC side by side.
+  it.each([
+    ['a lone NPC', 'NPC', { solo: true, npc: true }],
+    ['NPCs in a fight', 'NPC', { solo: false, npc: true }],
+    ['a lone player', 'SOLO', { solo: true, npc: false }],
+  ])('marks %s with %s alone', (_, marker, km) => {
+    renderRow(attacker(), {}, km);
+
+    expect(screen.getByText(marker)).toBeInTheDocument();
+    expect(screen.queryByText(marker === 'NPC' ? 'SOLO' : 'NPC')).toBeNull();
+  });
+
+  it('marks players in a fight with neither', () => {
+    renderRow(attacker(), {}, { solo: false, npc: false });
+
+    expect(screen.queryByText('SOLO')).toBeNull();
+    expect(screen.queryByText('NPC')).toBeNull();
+  });
+
+  it('puts SOLO where the final blow mark goes, in the same type', () => {
+    renderRow(attacker(), {}, { solo: true, npc: false });
+
+    const solo = screen.getByText('SOLO');
+    expect(solo).toHaveClass('font-light');
+    expect(solo).not.toHaveClass('tag');
+    expect(solo.closest('div')?.parentElement?.textContent).toContain('1,234');
   });
 });

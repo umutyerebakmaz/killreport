@@ -1,3 +1,5 @@
+import { formatPercent } from '@/utils/formatPercent';
+import { attackerBadge } from '../KillmailsTable/attackerBadge';
 import { KillmailQuery } from '@/generated/graphql';
 import { getShipTier } from '@/utils/shipTier';
 import { QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
@@ -27,14 +29,16 @@ export default function AttackerRow({
   isTopDamage,
   killmail,
 }: AttackerProps) {
-  const damagePercentage =
-    totalDamage > 0
-      ? ((attacker.damageDone / totalDamage) * 100).toFixed(1)
-      : '0.0';
+  const damagePercentage = formatPercent(attacker.damageDone, totalDamage);
 
   // Use backend-computed fields
   const isSolo = killmail.solo;
-  const isNpcAttackers = killmail.npc;
+  // The table's and the card header's rule (attackerBadge): one marker per
+  // killmail. A lone NPC is NPC, not SOLO and NPC side by side; NPCs in a
+  // fight are NPC too; players in a fight get none.
+  const badge = attackerBadge({ solo: killmail.solo, npc: killmail.npc });
+  const killmailMarker =
+    badge === 'solo' ? 'SOLO' : badge === 'count' ? null : 'NPC';
 
   return (
     <div className="p-3 transition-colors duration-100 bg-surface hover:bg-surface-inset">
@@ -148,17 +152,6 @@ export default function AttackerRow({
         <div className="flex justify-between w-full">
           {/* Character Name, Corporation, Alliance */}
           <div className="flex flex-col leading-tight space-y-0.5">
-            {/* SOLO and NPC stay here: unlike the two above they are facts
-                about the killmail, not about this attacker. */}
-            <div className="flex gap-2 mb-1">
-              {isSolo && (
-                <span className="tag text-dropped bg-dropped/10">SOLO</span>
-              )}
-              {isNpcAttackers && (
-                <span className="tag text-destroyed bg-destroyed/10">NPC</span>
-              )}
-            </div>
-
             {attacker.character?.id ? (
               /* No ship name here: the ship is already in the slot beside the
                  portrait, with its name in that slot's tooltip. Printing it
@@ -223,15 +216,29 @@ export default function AttackerRow({
                 <span className="text-destroyed">
                   {attacker.damageDone.toLocaleString()}
                 </span>
-                <span className="text-ink-muted">{damagePercentage}%</span>
+                <span className="text-ink-muted">{damagePercentage}</span>
               </>
             )}
 
             {/* Plain text rather than `.tag`: a badge's ground and padding
-                made two more boxes in a column that already has a figure and
-                a percentage. Both can be true of one attacker, so they sit
-                side by side. */}
+                made more boxes in a column that already has a figure and a
+                percentage. SOLO and NPC are facts about the killmail rather
+                than this attacker, but they sit here too, in the same type, so
+                every marker on a row is in one place — they used to be tags
+                above the pilot's name. Several can be true at once, so they
+                sit side by side. */}
             <div className="flex gap-2">
+              {killmailMarker && (
+                <span
+                  className={`text-xs font-light whitespace-nowrap ${
+                    killmailMarker === 'SOLO'
+                      ? 'text-dropped'
+                      : 'text-destroyed'
+                  }`}
+                >
+                  {killmailMarker}
+                </span>
+              )}
               {isFinalBlow && !isSolo && (
                 <span className="text-xs font-light text-destroyed whitespace-nowrap">
                   FINAL BLOW
