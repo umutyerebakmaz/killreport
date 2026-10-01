@@ -30,7 +30,7 @@ export const corporationFields: CorporationResolvers = {
     const prismaCorp = parent as any;
     if (!prismaCorp.alliance_id) return null;
 
-    // DataLoader kullan - otomatik batch yapacak
+    // Use the DataLoader - it batches automatically
     const alliance = await context.loaders.alliance.load(
       prismaCorp.alliance_id,
     );
@@ -40,14 +40,14 @@ export const corporationFields: CorporationResolvers = {
     return {
       ...alliance,
       date_founded: alliance.date_founded.toISOString(),
-      corporations: [], // Circular reference'ı önlemek için boş array
+      corporations: [], // Empty array to avoid a circular reference
     };
   },
 
   ceo: async (parent, _args, context) => {
     // Cast to any to access Prisma model fields
     const prismaCorp = parent as any;
-    // DataLoader kullan - otomatik batch yapacak
+    // Use the DataLoader - it batches automatically
     const character = await context.loaders.character.load(prismaCorp.ceo_id);
 
     if (!character) return null;
@@ -61,7 +61,7 @@ export const corporationFields: CorporationResolvers = {
   creator: async (parent, _args, context) => {
     // Cast to any to access Prisma model fields
     const prismaCorp = parent as any;
-    // DataLoader kullan - otomatik batch yapacak
+    // Use the DataLoader - it batches automatically
     const character = await context.loaders.character.load(
       prismaCorp.creator_id,
     );
@@ -80,7 +80,7 @@ export const corporationFields: CorporationResolvers = {
     const date7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const date30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Mevcut member count değerini al
+    // Current member count
     const currentMemberCount = parent.member_count;
 
     // Use DataLoader to batch snapshot queries
@@ -99,7 +99,7 @@ export const corporationFields: CorporationResolvers = {
       }),
     ]);
 
-    // Delta hesaplamaları
+    // Deltas
     const memberCountDelta1d = snapshot1d
       ? currentMemberCount - snapshot1d.member_count
       : null;
@@ -110,7 +110,7 @@ export const corporationFields: CorporationResolvers = {
       ? currentMemberCount - snapshot30d.member_count
       : null;
 
-    // Growth rate hesaplamaları (yüzde)
+    // Growth rates (percent)
     const memberCountGrowthRate1d =
       snapshot1d && snapshot1d.member_count > 0
         ? ((currentMemberCount - snapshot1d.member_count) /
@@ -154,7 +154,7 @@ export const corporationFields: CorporationResolvers = {
     });
 
     return snapshots.map((s) => ({
-      date: s.snapshot_date.toISOString().split('T')[0], // YYYY-MM-DD formatında
+      date: s.snapshot_date.toISOString().split('T')[0], // YYYY-MM-DD
       memberCount: s.member_count,
     }));
   },

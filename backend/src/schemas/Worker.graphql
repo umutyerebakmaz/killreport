@@ -119,8 +119,8 @@ type QueueStatus {
   workerName: String
 
   """
-  Kuyruğun kendi sayılarından çıkan durumu. STALLED = mesaj var, tüketici yok.
-  `killreport.wait` ve `killreport.parking` muaf: işleri mesaj tutmak.
+  The queue's health, derived from its own counts. STALLED = messages, no consumer.
+  `killreport.wait` and `killreport.parking` are exempt: holding messages is their job.
   """
   health: QueueHealth!
 }
@@ -147,7 +147,7 @@ type StandaloneWorkerStatus {
   description: String!
 }
 
-"Bir kuyruğun sayılarından okunabilen durumu."
+"A queue's health as read from its counts."
 enum QueueHealth {
   OK
   STALLED

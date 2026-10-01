@@ -268,7 +268,7 @@ export default function AllianceDetailPage({
     );
   }
 
-  // Delta verilerini al (haftalık değişim)
+  // Member deltas (weekly change)
   const memberDelta7d = alliance.metrics?.memberCountDelta7d ?? null;
   const memberGrowthRate7d = alliance.metrics?.memberCountGrowthRate7d ?? null;
 

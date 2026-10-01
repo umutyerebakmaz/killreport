@@ -1,4 +1,4 @@
-// Temel konfigürasyon
+// Base configuration
 generator client {
   provider = "prisma-client"
   output   = "../../src/generated/prisma"

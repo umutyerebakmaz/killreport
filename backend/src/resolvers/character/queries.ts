@@ -38,7 +38,7 @@ export const characterQueries: QueryResolvers = {
     const currentPage = filter?.page ?? 1;
     const skip = (currentPage - 1) * take;
 
-    // Filter koşullarını oluştur
+    // Build the filter conditions
     const where: any = {};
     if (filter) {
       if (filter.search) {

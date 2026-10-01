@@ -12,21 +12,21 @@ import { handleWorkerError } from './worker-error';
 const QUEUE_NAME = KILLMAIL_DETAIL_QUEUE;
 
 /**
- * Kaç mesajın aynı anda elde tutulacağı.
+ * How many messages to hold at once.
  *
- * `ESI_PREFETCH` bilerek okunmuyor. O knob ESI hız tavanı için var ve
- * `config.ts`'te varsayılanı 100; bu worker'ı sınırlayan şey ESI değil,
- * worker'ların 2 bağlantılık Prisma havuzu (`prisma-worker.ts`). Prefetch
- * kadar mesaj aynı anda yazmaya kalkar, 100 eşzamanlı yazma o havuzda
- * 10 saniyelik bağlantı zaman aşımına düşer.
+ * `ESI_PREFETCH` is deliberately not read. That knob exists for the ESI rate
+ * ceiling and defaults to 100 in `config.ts`; what limits this worker is not ESI
+ * but the workers' 2-connection Prisma pool (`prisma-worker.ts`). Every prefetched
+ * message tries to write at once, and 100 concurrent writes on that pool hit
+ * the 10-second connection timeout.
  */
 const PREFETCH_COUNT = 10;
 
 /**
- * Tek mesaj: public detay ucundan çek, yazıcıya ver.
+ * One message: fetch from the public detail endpoint, hand it to the writer.
  *
- * Dönüş, yazıcının dönüşüdür — `false` "zaten vardı" demektir ve bir hata
- * değildir: aynı killmail'i iki kaynak birden bulabilir.
+ * Returns whatever the writer returns — `false` means "already there" and is
+ * not an error: two sources can find the same killmail.
  */
 export async function processDetailMessage(
   message: KillmailDetailMessage,
@@ -42,10 +42,10 @@ export async function processDetailMessage(
 }
 
 /**
- * Killmail detay worker'ı.
+ * Killmail detail worker.
  *
- * Kaynaktan bağımsızdır: mesajı hangi liste aşamasının yayınladığını bilmez.
- * Kimlik bilgisi taşımaz, çünkü `/killmails/{id}/{hash}/` public bir uçtur.
+ * Source-agnostic: it does not know which list stage published the message.
+ * It carries no credentials, because `/killmails/{id}/{hash}/` is public.
  *
  * Usage: yarn worker:killmail-detail
  */

@@ -2,7 +2,7 @@ model AsteroidBelt {
   id              Int     @id @map("asteroid_belt_id")
   name            String?
   solar_system_id Int
-  /// Zorunlu; Moon.planet_id ile aynı gerekçe.
+  /// Required; same reasoning as Moon.planet_id.
   planet_id       Int
   orbit_index     Int?
   position_x      Float?
@@ -10,8 +10,8 @@ model AsteroidBelt {
   position_z      Float?
 
   solar_system SolarSystem @relation(fields: [solar_system_id], references: [id], onDelete: Cascade)
-  /// Moon.planet ile aynı gerekçe: kuşağın sistemi, gezegeninin sistemiyle
-  /// aynı olmak zorunda.
+  /// Same reasoning as Moon.planet: a belt's system must match its planet's
+  /// system.
   planet       Planet      @relation(fields: [planet_id, solar_system_id], references: [id, solar_system_id], onDelete: Cascade)
 
   @@index([solar_system_id])

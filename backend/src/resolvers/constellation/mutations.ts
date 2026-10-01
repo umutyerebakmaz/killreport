@@ -21,7 +21,7 @@ export const constellationMutations: MutationResolvers = {
       logger.info(`✓ found ${constellationIds.length} constellations`);
       logger.info(`📤 publishing to queue...`);
 
-      // RabbitMQ'ya ekle
+      // Add to RabbitMQ
       const channel = await getRabbitMQChannel();
       const QUEUE_NAME = 'esi_constellations_queue';
 

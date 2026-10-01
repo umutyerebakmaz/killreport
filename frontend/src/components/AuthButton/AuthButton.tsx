@@ -32,7 +32,7 @@ export default function AuthButton({
         },
       });
       if (data?.login?.url) {
-        // Kullanıcıyı Eve SSO'ya yönlendir
+        // Redirect the user to EVE SSO
         window.location.href = data.login.url;
       }
     } catch (error) {

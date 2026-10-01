@@ -19,7 +19,7 @@ export const typeMutations: MutationResolvers = {
       logger.info(`✓ found ${typeIds.length} types`);
       logger.info(`📤 publishing to queue...`);
 
-      // RabbitMQ'ya ekle
+      // Add to RabbitMQ
       const channel = await getRabbitMQChannel();
       const QUEUE_NAME = 'esi_type_info_queue';
 

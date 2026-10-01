@@ -95,7 +95,7 @@ async function characterInfoWorker() {
               where: { id: characterId },
             });
 
-            // Fetch from ESI (her zaman güncel bilgiyi al)
+            // Fetch from ESI (always take the latest info)
             const charInfo =
               await CharacterService.getCharacterInfo(characterId);
 
@@ -106,7 +106,7 @@ async function characterInfoWorker() {
                 id: characterId,
                 name: charInfo.name,
                 corporation_id: charInfo.corporation_id,
-                alliance_id: charInfo.alliance_id, // ESI'den gelen değer direkt
+                alliance_id: charInfo.alliance_id, // value straight from ESI
                 birthday: new Date(charInfo.birthday),
                 bloodline_id: charInfo.bloodline_id,
                 race_id: charInfo.race_id,
@@ -117,7 +117,7 @@ async function characterInfoWorker() {
                 faction_id: charInfo.faction_id,
               },
               update: {
-                // Güncellenebilir alanlar
+                // Mutable fields
                 corporation_id: charInfo.corporation_id,
                 // ESI omits the key when there is none; undefined would leave the old value
                 alliance_id: charInfo.alliance_id ?? null,
@@ -125,7 +125,7 @@ async function characterInfoWorker() {
                 description: charInfo.description,
                 title: charInfo.title,
                 faction_id: charInfo.faction_id ?? null,
-                // name, birthday, bloodline_id, race_id, gender değişmez
+                // name, birthday, bloodline_id, race_id and gender never change
               },
             });
 

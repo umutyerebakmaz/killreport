@@ -3,7 +3,7 @@ model Planet {
   name            String?
   solar_system_id Int
   type_id         Int?
-  /// ESI'nın planets[] dizisindeki 1 tabanlı sıra.
+  /// 1-based position in ESI's planets[] array.
   orbit_index     Int?
   position_x      Float?
   position_y      Float?
@@ -13,11 +13,11 @@ model Planet {
   moons          Moon[]
   asteroid_belts AsteroidBelt[]
 
-  /// Bileşik FK'nin hedefi: moons ve asteroid_belts (planet_id, solar_system_id)
-  /// ikilisiyle buraya bağlanır. Aynı zamanda indeks olarak da hizmet eder.
+  /// Target of the composite FK: moons and asteroid_belts reference it through the
+  /// (planet_id, solar_system_id) pair. Also serves as an index.
   @@unique([id, solar_system_id])
   /// planetsBySystem: WHERE solar_system_id IN (...) ORDER BY orbit_index, id.
-  /// counts sayımı da bu indeksin soldan önekiyle karşılanır.
+  /// The counts query is served by this index's left prefix as well.
   @@index([solar_system_id, orbit_index, id])
   @@map("planets")
 }

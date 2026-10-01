@@ -9,7 +9,7 @@ export const itemGroupFields: ItemGroupResolvers = {
   category: async (parent, _, context) => {
     // Cast to any to access Prisma model fields
     const prismaGroup = parent as any;
-    // DataLoader ile N+1 problem'ini çöz
+    // DataLoader avoids N+1
     const category = await context.loaders.category.load(
       prismaGroup.category_id,
     );

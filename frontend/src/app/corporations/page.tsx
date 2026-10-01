@@ -36,7 +36,7 @@ function CorporationsContent() {
     },
   });
 
-  // URL'deki parametreler değiştiğinde state'i güncelle
+  // Update state when the URL parameters change
   useEffect(() => {
     const urlPage = Number(searchParams.get('page')) || 1;
     const urlOrderBy = searchParams.get('orderBy') || 'memberCountDesc';
@@ -48,7 +48,7 @@ function CorporationsContent() {
     }
   }, [searchParams]);
 
-  // currentPage veya orderBy değiştiğinde URL'i güncelle
+  // Update the URL when currentPage or orderBy changes
   useEffect(() => {
     const urlPage = Number(searchParams.get('page')) || 1;
     const urlOrderBy = searchParams.get('orderBy') || 'memberCountDesc';

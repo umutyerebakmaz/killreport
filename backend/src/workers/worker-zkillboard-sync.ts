@@ -173,7 +173,7 @@ async function syncUserKillmails(message: QueueMessage): Promise<void> {
 
     logger.info(`  📥 found ${zkillPackages.length} killmails`);
 
-    // Liste aşaması: detayı çekmez, eksik olanları kuyruğa koyar.
+    // List stage: does not fetch details, queues the missing ones.
     const queued = await publishKillmailDetails(
       zkillPackages.map((p) => ({
         killmail_id: p.killmail_id,

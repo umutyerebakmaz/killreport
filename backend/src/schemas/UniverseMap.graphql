@@ -1,37 +1,37 @@
-# Faz 1: galaksi katmanı. mapCelestials, mapActivity ve mapSovereignty
-# sırasıyla faz 2 ve faz 4'te bu dosyaya ekleniyor.
+# Phase 1: the galaxy layer. mapCelestials, mapActivity and mapSovereignty
+# are added to this file in phases 2 and 4 respectively.
 #
-# Tüm koordinatlar METRE. Işık yılına çeviri yalnızca gösterim kenarında
-# (ölçek çubuğu) yapılıyor; ara birim yok.
+# All coordinates are in METRES. Conversion to light years happens only at the
+# display edge (the scale bar); there is no intermediate unit.
 
-"Çizilebilir bir sahne. Abyssal, Proving ve GPMR-01 burada yok: içlerinde sıfır gezegen, ay ve istasyon var."
+"A drawable scene. Abyssal, Proving and GPMR-01 are not here: they contain zero planets, moons and stations."
 enum MapScope {
   NEW_EDEN
   POCHVEN
   WORMHOLE
 }
 
-"Bir sistem, galaktik konumunda. Koordinatlar 1e9 m'ye yuvarlanmış ve asla ham GPU'ya gitmez."
+"A system at its galactic position. Coordinates are rounded to 1e9 m and never reach the GPU raw."
 type MapNode {
   systemId: Int!
   name: String!
   x: Float!
   z: Float!
-  "x/z düzlemindeki en uzak celestial'a mesafe, metre. Nokta bu yarıçapta diske dönüşüyor."
+  "Distance to the farthest celestial in the x/z plane, in metres. The dot turns into a disc at this radius."
   radius: Float!
-  "İki ondalığa KESİLMİŞ, yuvarlanmamış: yuvarlama 14 sistemi highsec'e taşıyor."
+  "TRUNCATED to two decimals, not rounded: rounding moves 14 systems into highsec."
   securityStatus: Float!
   constellationId: Int!
   regionId: Int!
 }
 
-"Bir geçit çifti. Her çift bir kez, from < to."
+"A gate pair. Each pair appears once, from < to."
 type MapEdge {
   from: Int!
   to: Int!
 }
 
-"Sahnedeki düğümlerin sınırları, metre. Kameranın autofit'i buradan geliyor."
+"Bounds of the nodes in the scene, in metres. The camera's autofit comes from here."
 type MapBounds {
   minX: Float!
   maxX: Float!
@@ -46,7 +46,7 @@ type MapGeometry {
   bounds: MapBounds!
 }
 
-"Sistem içindeki çizilebilir nesnenin türü."
+"The kind of drawable object inside a system."
 enum MapCelestialKind {
   STAR
   PLANET
@@ -57,9 +57,9 @@ enum MapCelestialKind {
 }
 
 """
-Sistemin içindeki tek bir nesne. Koordinat **sistemin merkezine göre**, metre,
-ve düğümlerin aksine **yuvarlanmamış**: en iç gezegenin yörüngesi 2,4145e10 m,
-1e9'luk ızgara onu %4 kaydırırdı.
+A single object inside a system. Coordinates are **relative to the system centre**,
+in metres, and unlike the nodes **not rounded**: the innermost planet orbits at
+2.4145e10 m, and a 1e9 grid would shift it by 4%.
 """
 type MapCelestial {
   id: Int!
@@ -68,105 +68,105 @@ type MapCelestial {
   kind: MapCelestialKind!
   x: Float!
   z: Float!
-  "ESI'nın 1 tabanlı sırası; gezegen, ay ve kuşakta dolu, diğerlerinde null."
+  "ESI's 1-based position; set for planets, moons and belts, null for the rest."
   orbitIndex: Int
-  "Ay ve kuşağın bağlı olduğu gezegen; diğerlerinde null."
+  "The planet a moon or belt belongs to; null for the rest."
   planetId: Int
-  "Yalnızca GATE'te dolu: hattın öteki ucundaki sistem. Gate ucunun çapalanması buna dayanıyor."
+  "Set only on GATE: the system at the other end of the line. Anchoring the gate end relies on it."
   destinationSystemId: Int
 }
 
-"Bir etiketin kademesi. Sistem adları mapGeometry'den geldiği için burada yok."
+"A label's tier. System names are not here because they come from mapGeometry."
 enum MapLabelKind {
   REGION
   CONSTELLATION
 }
 
 """
-Haritada bir isim. Koordinat **galaktik metre**, düğümlerle aynı uzayda.
-Bölgede konum yok ve sahnenin çizdiği sistemlerin medoidinden hesaplanıyor;
-takımyıldızda constellations.position_x/z doğrudan kullanılıyor.
+A name on the map. Coordinates are in **galactic metres**, the same space as the nodes.
+A region has no position, so it is computed from the medoid of the systems the scene
+draws; a constellation uses constellations.position_x/z directly.
 """
 type MapLabel {
-  "Bölgede region_id, takımyıldızda constellation_id. Bantlar çakışmıyor ama tek anahtar isteyen bir tüketici kind ile birlikte anahtarlamalı."
+  "region_id for a region, constellation_id for a constellation. The ranges do not overlap, but a consumer that wants a single key should key on it together with kind."
   id: Int!
   name: String!
   kind: MapLabelKind!
   x: Float!
   z: Float!
-  "Yalnızca REGION: ismin çapalandığı medoid sistemi. Yarıçapı istemci mapGeometry'den okur."
+  "REGION only: the medoid system the name is anchored to. The client reads its radius from mapGeometry."
   systemId: Int
-  "Yalnızca REGION: bölgenin çizilen sistemlerinin sınırları. İsmin görünürlük eşiği buradan."
+  "REGION only: bounds of the region's drawn systems. The name's visibility threshold comes from here."
   bounds: MapBounds
 }
 
 """
-Bir sistemin popup'ının gösterdiği her şey, tek sorguda.
+Everything a system's popup shows, in one query.
 
-Neden `solarSystem(id)` değil, oradan hepsi okunabilirken: o koordinat response
-cache'te **365 gün** duruyor (`config/cache.ts`, `STATIC_GAME_DATA`) ve içinden
-okunan saatlik veri bir yıl boyunca donar. Detay sayfasının kendi "2 saat önce"
-satırı bugün bu yüzden donuyor; buraya taşınmıyor.
+Why not `solarSystem(id)`, when all of it could be read from there: that coordinate
+stays in the response cache for **365 days** (`config/cache.ts`, `STATIC_GAME_DATA`),
+so hourly data read through it freezes for a year. The detail page's own "2 hours ago"
+line freezes today for exactly this reason; that is not carried over here.
 """
 type MapSystemDetails {
   systemId: Int!
   name: String!
-  "İki ondalığa KESİLMİŞ, MapNode.securityStatus ile aynı: yuvarlama 14 sistemi highsec'e taşıyor."
+  "TRUNCATED to two decimals, same as MapNode.securityStatus: rounding moves 14 systems into highsec."
   securityStatus: Float
   constellationName: String!
   regionName: String!
-  "Sistemi tutan taraf. Talep edilmemiş uzayda null, yani New Eden'in çoğunda."
+  "Whoever holds the system. Null in unclaimed space, which is most of New Eden."
   owner: MapSystemOwner
   """
-  `stargates` tablosundan gerçek liste. `mapGeometry.edges`'ten türetmek EKSİK
-  kalır: orada bir kenarın iki ucu da scope içinde olmak zorunda, yani scope
-  dışına çıkan kapı hiç görünmez. Sayı ayrıca taşınmıyor — listenin uzunluğu
-  zaten o, ve tek sayının iki kaynağı zamanla ayrışır.
+  The real list from the `stargates` table. Deriving it from `mapGeometry.edges`
+  comes up SHORT: there both ends of an edge must be inside the scope, so a gate
+  leading out of the scope never shows. The count is not carried separately — the
+  list's length already is that, and two sources for one number drift apart.
   """
   stargates: [MapSystemStargate!]!
-  "Son anlık görüntü. Sistemin hiç satırı yoksa dördü de null."
+  "The latest snapshot. All four are null if the system has no row at all."
   shipKills: Int
   podKills: Int
   npcKills: Int
-  "Satır varken de null olabilir: ESI jumps listesinde o sistemi bildirmediyse. 0 ise bildirdi ve atlama yoktu."
+  "Can be null even when a row exists: if ESI left the system out of the jumps list. 0 means it reported it and there were no jumps."
   shipJumps: Int
-  "Anlık görüntünün saati, ISO. Dört sayı null ise bu da null."
+  "The snapshot time, ISO. Null when all four numbers are null."
   snapshotAt: String
 }
 
 """
-Tek bir sistemin sahibi. `mapSovereignty` ile AYNI COALESCE kuralından çıkıyor:
-SQL parçaları `map-sovereignty.service`'ten paylaşılıyor, yani popup altındaki
-rengin anlattığı sahiple çelişemiyor.
+The owner of a single system. It comes from the SAME COALESCE rule as `mapSovereignty`:
+the SQL fragments are shared from `map-sovereignty.service`, so the popup cannot
+contradict the owner the colour beneath it shows.
 """
 type MapSystemOwner {
   ownerId: Int!
   kind: MapOwnerKind!
   name: String!
-  "Faction'da null: factions tablosunda ticker sütunu yok."
+  "Null for a faction: the factions table has no ticker column."
   ticker: String
 }
 
 """
-Sistemden çıkan tek bir geçit ve açıldığı yer.
+A single gate leading out of the system, and where it opens.
 
-Ad olarak HEDEF sistemin adı taşınıyor, geçidin kendi adı değil: veritabanındaki
-ad zaten `Stargate (Perimeter)`, ve başlığı Stargates olan bir listede sekiz
-satırın sekizinde "Stargate" sözcüğünü tekrarlamanın bilgisi yok.
+The name carried is the DESTINATION system's, not the gate's own: the name in the
+database is already `Stargate (Perimeter)`, and repeating "Stargate" on eight of
+eight rows in a list headed Stargates tells the reader nothing.
 """
 type MapSystemStargate {
   stargateId: Int!
   destinationSystemId: Int!
   destinationName: String!
   """
-  Hedefin güvenlik durumu, `MapSystemDetails.securityStatus` ile AYNI kuralla
-  iki ondalığa KESİLMİŞ. Nullable, çünkü sütun nullable — ölçüldü 2026-09-20:
-  13.978 hedefin hepsinde dolu, yani bugün hiç null dönmüyor.
+  The destination's security status, TRUNCATED to two decimals by the SAME rule
+  as `MapSystemDetails.securityStatus`. Nullable because the column is — measured
+  2026-09-20: set on all 13,978 destinations, so it never returns null today.
   """
   destinationSecurityStatus: Float
 }
 
-"Bir sistemi tutan şeyin türü. Satırda alliance varsa sahip odur; corporation yalnızca alliance yokken sahiptir."
+"The kind of thing that holds a system. If the row has an alliance, that is the owner; a corporation owns only when there is no alliance."
 enum MapOwnerKind {
   ALLIANCE
   FACTION
@@ -174,19 +174,19 @@ enum MapOwnerKind {
 }
 
 """
-Sahnede toprağı olan tek bir sahip. `systems` içinde adı tekrarlanmıyor;
-iki liste `ownerId` üzerinden birleşiyor.
+A single owner holding territory in the scene. Its name is not repeated in
+`systems`; the two lists join on `ownerId`.
 """
 type MapSovOwner {
   ownerId: Int!
   kind: MapOwnerKind!
   name: String!
-  "Faction'da null: factions tablosunda ticker sütunu yok."
+  "Null for a faction: the factions table has no ticker column."
   ticker: String
   systemCount: Int!
 }
 
-"Tek bir sahiplik çifti. NEW_EDEN'da 5.383 satır."
+"A single ownership pair. 5,383 rows in NEW_EDEN."
 type MapSovSystem {
   systemId: Int!
   ownerId: Int!
@@ -196,44 +196,45 @@ type MapSovereignty {
   scope: MapScope!
   owners: [MapSovOwner!]!
   systems: [MapSovSystem!]!
-  "Anlık görüntünün tazeliği, ISO. Hiç satır yoksa null."
+  "How fresh the snapshot is, ISO. Null when there are no rows."
   updatedAt: String
 }
 
 extend type Query {
   """
-  Statik evren verisi. Servis Redis'te 86400 s tutuyor, ama API'den görünen
-  tazelik response cache'in STATIC_GAME_DATA'sı: 365 gün. Bir evren backfill'i
-  haritaya önbellek temizlenmeden gelmez.
+  Static universe data. The service keeps it in Redis for 86400 s, but the
+  freshness seen through the API is the response cache's STATIC_GAME_DATA: 365
+  days. A universe backfill does not reach the map until the cache is cleared.
   """
   mapGeometry(scope: MapScope! = NEW_EDEN): MapGeometry!
 
   """
-  Verilen sistemlerin içi. En fazla **16 sistem**; fazlası reddediliyor,
-  sessizce kesilmiyor — kısaltılmış bir liste delikli bir sahne çizer.
-  Önbellek sistem başına, 86400 s.
+  The insides of the given systems. At most **16 systems**; more are rejected,
+  not silently truncated — a shortened list draws a scene with holes.
+  Cached per system, 86400 s.
   """
   mapCelestials(systemIds: [Int!]!): [MapCelestial!]!
 
   """
-  Verilen sahnenin bir kademesinin adları. Statik evren verisi; servis Redis'te
-  86400 s tutuyor, API'den görünen tazelik response cache'in STATIC_GAME_DATA'sı.
+  The names of one tier of the given scene. Static universe data; the service keeps
+  it in Redis for 86400 s, and the freshness seen through the API is the response
+  cache's STATIC_GAME_DATA.
   """
   mapLabels(scope: MapScope! = NEW_EDEN, kind: MapLabelKind!): [MapLabel!]!
 
   """
-  Popup'ın okuduğu tek sorgu. Önbellek sistem başına 300 s — içindeki en kısa
-  ömürlü parça saat başı değişen aktivite.
+  The single query the popup reads. Cached per system for 300 s — the shortest-lived
+  part of it is the activity, which changes every hour.
   """
   mapSystemDetails(systemId: Int!): MapSystemDetails
 
   """
-  Sahnenin sovereignty katmanı. Servis Redis'te 900 s tutuyor.
+  The scene's sovereignty layer. The service keeps it in Redis for 900 s.
 
-  Response cache'e **bilerek** alınmadı: `PUBLIC_CACHE_QUERIES`'e eklenirse
-  TTL'i `TTL_PER_SCHEMA_COORDINATE`'a da girmek zorunda kalır, ve servisin
-  kendi Redis anahtarı zaten işi görürken ikinci katman yalnızca bayatlığı
-  ikiye katlar.
+  Left out of the response cache **on purpose**: added to `PUBLIC_CACHE_QUERIES`,
+  its TTL would also have to go into `TTL_PER_SCHEMA_COORDINATE`, and with the
+  service's own Redis key already doing the job a second layer would only double
+  the staleness.
   """
   mapSovereignty(scope: MapScope! = NEW_EDEN): MapSovereignty!
 }

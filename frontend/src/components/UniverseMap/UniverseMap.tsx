@@ -234,7 +234,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // A boolean, not the zoom: this is what the logo pass keys on, so the
   // threshold fires once on the way in and once on the way out instead of on
   // every wheel tick — 5,241 texture writes a tick is exactly what the spec's
-  // "eşik geçişi yalnızca bir kez" line is about.
+  // "the threshold is crossed only once" line is about.
   const showLogos = camera ? layer.usesLogos(camera.zoom) : false;
 
   // Hoisted out of the label effect below: it would otherwise re-map all

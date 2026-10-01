@@ -10,14 +10,14 @@ map $http_upgrade $connection_upgrade {
 server {
     server_name api.killreport.com;
 
-    # Client body size (GraphQL mutations için)
+    # Client body size (for GraphQL mutations)
     client_max_body_size 10M;
 
-    # Streaming/WebSocket için buffering ve cache kapalı
+    # Buffering and cache off for streaming/WebSocket
     proxy_buffering off;
     proxy_cache off;
 
-    # Gzip kapalı (streaming yanıtlar için)
+    # Gzip off (for streaming responses)
     gzip off;
 
     # GraphQL endpoint (HTTP queries/mutations + WebSocket subscriptions via graphql-ws)
@@ -33,10 +33,10 @@ server {
         proxy_set_header Cache-Control 'no-cache';
         proxy_set_header X-Accel-Buffering 'no';
 
-        # Response buffering devre dışı
+        # Response buffering disabled
         proxy_request_buffering off;
 
-        # Backend'e encoding isteği gönderme
+        # Don't ask the backend for an encoding
         proxy_set_header Accept-Encoding "";
 
         # CORS is handled by GraphQL Yoga - don't override here!
@@ -56,10 +56,10 @@ server {
         add_header X-RateLimit-Remaining $upstream_http_x_ratelimit_remaining always;
         add_header X-RateLimit-Reset $upstream_http_x_ratelimit_reset always;
 
-        # Timeout'ları artır (WebSocket connection'lar uzun süreli)
+        # Raise the timeouts (WebSocket connections are long-lived)
         proxy_connect_timeout 300s;
-        proxy_send_timeout 86400s;    # 24 saat
-        proxy_read_timeout 86400s;    # 24 saat
+        proxy_send_timeout 86400s;    # 24 hours
+        proxy_read_timeout 86400s;    # 24 hours
     }
 
     # EVE SSO callback

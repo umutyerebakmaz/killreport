@@ -94,7 +94,7 @@ async function allianceInfoWorker() {
               where: { id: allianceId },
             });
 
-            // Fetch from ESI (her zaman güncel bilgiyi al)
+            // Fetch from ESI (always take the latest info)
             const allianceInfo =
               await AllianceService.getAllianceInfo(allianceId);
 
@@ -112,13 +112,13 @@ async function allianceInfoWorker() {
                 faction_id: allianceInfo.faction_id,
               },
               update: {
-                // Güncellenebilir alanlar
+                // Mutable fields
                 name: allianceInfo.name,
                 ticker: allianceInfo.ticker,
                 executor_corporation_id: allianceInfo.executor_corporation_id,
                 // ESI omits the key when there is none; undefined would leave the old value
                 faction_id: allianceInfo.faction_id ?? null,
-                // date_founded, creator_* değişmez
+                // date_founded and creator_* never change
               },
             });
 

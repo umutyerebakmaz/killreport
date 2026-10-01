@@ -37,7 +37,7 @@ export const categoryQueries: QueryResolvers = {
     const currentPage = filter?.page ?? 1;
     const skip = (currentPage - 1) * take;
 
-    // Filter koşullarını oluştur
+    // Build the filter conditions
     const where: any = {};
     if (filter) {
       if (filter.search) {
@@ -52,7 +52,7 @@ export const categoryQueries: QueryResolvers = {
     const totalCount = await prisma.category.count({ where });
     const totalPages = Math.ceil(totalCount / take);
 
-    // Fetch data - alfabetik sıralama
+    // Fetch data - alphabetical order
     const categories = await prisma.category.findMany({
       where,
       skip,

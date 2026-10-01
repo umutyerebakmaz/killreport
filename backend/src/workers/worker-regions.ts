@@ -55,7 +55,7 @@ async function processRegion(regionId: number): Promise<boolean> {
 
   logger.debug(`✅ saved region ${regionId} - ${data.name}`);
 
-  // Short wait for rate limiting - sadece başarılı ESI çağrılarında bekle
+  // Short wait for rate limiting - only after successful ESI calls
   await sleep(RATE_LIMIT_DELAY);
   return true;
 }

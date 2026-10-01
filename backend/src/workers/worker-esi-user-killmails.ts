@@ -215,11 +215,11 @@ async function syncUserKillmailsFromESI(
       `  📤 queued ${queued}/${killmailList.length} killmail(s) for detail fetch`,
     );
 
-    // Bu kullanıcının en son ne zaman ele alındığı — imleç değil. İmleç
-    // `lastStoredKillmailId` ile killmail_filters'tan türetiliyor; oradaki
-    // uyarıyı oku, kendi kendini onarmıyor. Bu damgaya bakan şey
-    // killmail-sync-cron'un 15 dakikalık penceresi, ve null olması "hiç sync
-    // olmadı" demek: cron onu tam sync olarak yayınlıyor.
+    // When this user was last handled — not the cursor. The cursor is derived
+    // from killmail_filters via `lastStoredKillmailId`; read the warning there,
+    // it does not repair itself. What reads this stamp is killmail-sync-cron's
+    // 15-minute window, and null means "never synced": the cron publishes it
+    // as a full sync.
     await prismaWorker.user.update({
       where: { id: ctx.userId },
       data: { last_killmail_sync_at: new Date() },

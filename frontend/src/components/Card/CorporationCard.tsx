@@ -8,7 +8,7 @@ import MemberDeltaBadge from '../MemberDeltaBadge/MemberDeltaBadge';
 import TotalMemberBadge from '../TotalMemberBadge/TotalMemberBadge';
 import EveImage from '../ui/EveImage';
 
-// useCorporationsQuery'nin döndüğü Corporation type'ını extract et
+// Extract the Corporation type returned by useCorporationsQuery
 type Corporation = CorporationsQuery['corporations']['items'][number];
 
 type CorporationCardProps = {
@@ -18,18 +18,18 @@ type CorporationCardProps = {
 export default function CorporationCard({ corporation }: CorporationCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Delta verilerini al (haftalık değişim)
+  // Member deltas (weekly change)
   const memberDelta7d = corporation.metrics?.memberCountDelta7d ?? null;
   const memberGrowthRate7d =
     corporation.metrics?.memberCountGrowthRate7d ?? null;
 
-  // Delta rengi belirle (currently unused — see MemberDeltaBadge for the live
+  // Pick the delta colour (currently unused — see MemberDeltaBadge for the live
   // version of this same pattern; this Card is also bg-surface, where EVE's
   // red measures 3.93:1, accepted per the spec).
   const deltaColor =
     memberDelta7d && memberDelta7d >= 0 ? 'text-success' : 'text-red-400';
 
-  // Tooltip içeriği
+  // Tooltip content
   const tooltipContent =
     memberDelta7d !== null
       ? `Member Change (7 Days): ${
@@ -43,7 +43,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
         }`
       : 'No data available';
 
-  // Date founded'ı formatla
+  // Format the founding date
   const foundedDate = corporation.date_founded
     ? new Date(corporation.date_founded).toLocaleDateString('en-US', {
         year: 'numeric',

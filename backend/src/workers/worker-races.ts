@@ -1,7 +1,7 @@
 /**
- * Race Worker - ESI'den race bilgilerini çeker ve veritabanına kaydeder
+ * Race Worker - fetches race info from ESI and saves it to the database
  *
- * Bu worker EVE Online'daki tüm ırkların bilgilerini çeker.
+ * Fetches every race in EVE Online.
  */
 
 import logger from '@services/logger';

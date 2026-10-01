@@ -24,7 +24,7 @@ export const allianceFields: AllianceResolvers = {
   executor: async (parent, _args, context) => {
     // Cast to any to access Prisma model fields
     const prismaAlliance = parent as any;
-    // DataLoader kullanarak executor corporation'ı getir
+    // Fetch the executor corporation through the DataLoader
     const corporation = await context.loaders.corporation.load(
       prismaAlliance.executor_corporation_id,
     );
@@ -40,7 +40,7 @@ export const allianceFields: AllianceResolvers = {
   createdByCorporation: async (parent, _args, context) => {
     // Cast to any to access Prisma model fields
     const prismaAlliance = parent as any;
-    // DataLoader kullanarak executor corporation'ı getir
+    // Fetch the executor corporation through the DataLoader
     const corporation = await context.loaders.corporation.load(
       prismaAlliance.creator_corporation_id,
     );
@@ -56,7 +56,7 @@ export const allianceFields: AllianceResolvers = {
   createdBy: async (parent, _args, context) => {
     // Cast to any to access Prisma model fields
     const prismaAlliance = parent as any;
-    // DataLoader kullanarak executor corporation'ı getir
+    // Fetch the executor corporation through the DataLoader
     const character = await context.loaders.character.load(
       prismaAlliance.creator_id,
     );
@@ -70,12 +70,12 @@ export const allianceFields: AllianceResolvers = {
   },
 
   corporations: async (parent, _args, context) => {
-    // DataLoader kullan - N+1 problem çözümü
+    // Use the DataLoader to avoid N+1
     const corporations = await context.loaders.corporationsByAlliance.load(
       parent.id,
     );
 
-    // Client-side sorting (database'den batch query aldık)
+    // Sort in memory (the batch query already came from the database)
     const sorted = [...corporations].sort(
       (a, b) => b.member_count - a.member_count,
     );
@@ -83,12 +83,12 @@ export const allianceFields: AllianceResolvers = {
     return sorted.map((corp: any) => ({
       ...corp,
       date_founded: corp.date_founded?.toISOString() || null,
-      alliance: null, // Circular reference'ı önlemek için null
+      alliance: null, // null to avoid a circular reference
     }));
   },
 
   corporationCount: async (parent, _args, context) => {
-    // Önce parent'ta varsa kullan (DB'den gelmiş olabilir)
+    // Use the parent's value first if present (it may have come from the DB)
     const prismaAlliance = parent as any;
     if (
       prismaAlliance.corporation_count !== undefined &&
@@ -97,7 +97,7 @@ export const allianceFields: AllianceResolvers = {
       return prismaAlliance.corporation_count;
     }
 
-    // Yoksa DataLoader kullan - N+1 problem çözümü
+    // Otherwise use the DataLoader to avoid N+1
     const corporations = await context.loaders.corporationsByAlliance.load(
       parent.id,
     );
@@ -105,7 +105,7 @@ export const allianceFields: AllianceResolvers = {
   },
 
   memberCount: async (parent, _args, context) => {
-    // Önce parent'ta varsa kullan (DB'den gelmiş olabilir)
+    // Use the parent's value first if present (it may have come from the DB)
     const prismaAlliance = parent as any;
     if (
       prismaAlliance.member_count !== undefined &&
@@ -114,7 +114,7 @@ export const allianceFields: AllianceResolvers = {
       return prismaAlliance.member_count;
     }
 
-    // Yoksa DataLoader kullan - N+1 problem çözümü
+    // Otherwise use the DataLoader to avoid N+1
     const corporations = await context.loaders.corporationsByAlliance.load(
       parent.id,
     );
@@ -133,20 +133,20 @@ export const allianceFields: AllianceResolvers = {
     const date7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const date30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    // Mevcut değerleri al - eğer parent'ta varsa kullan, yoksa hesapla
-    // Bu sayede aynı query'de hem memberCount hem metrics istenirse tek hesaplama yapılır
-    // Not: Prisma'dan gelen data snake_case kullanıyor (member_count, corporation_count)
+    // Current values: use the parent's if present, otherwise compute them
+    // so a query asking for both memberCount and metrics computes them only once
+    // Note: data from Prisma is snake_case (member_count, corporation_count)
     let currentMemberCount = (parent as any).member_count;
     let currentCorpCount = (parent as any).corporation_count;
 
-    // Eğer parent'ta member_count veya corporation_count yoksa, hesapla
+    // Compute member_count or corporation_count if the parent lacks them
     if (
       currentMemberCount === undefined ||
       currentMemberCount === null ||
       currentCorpCount === undefined ||
       currentCorpCount === null
     ) {
-      // Parent'ta yoksa hesapla
+      // Compute it if the parent lacks it
       const [corpCount, memberResult] = await Promise.all([
         prisma.corporation.count({
           where: { alliance_id: parent.id },
@@ -176,7 +176,7 @@ export const allianceFields: AllianceResolvers = {
       }),
     ]);
 
-    // Delta hesaplamaları
+    // Deltas
     const memberCountDelta1d = snapshot1d
       ? currentMemberCount - snapshot1d.member_count
       : null;
@@ -196,7 +196,7 @@ export const allianceFields: AllianceResolvers = {
       ? currentCorpCount - snapshot30d.corporation_count
       : null;
 
-    // Growth rate hesaplamaları (yüzde)
+    // Growth rates (percent)
     const memberCountGrowthRate1d =
       snapshot1d && snapshot1d.member_count > 0
         ? ((currentMemberCount - snapshot1d.member_count) /
@@ -264,7 +264,7 @@ export const allianceFields: AllianceResolvers = {
     });
 
     return snapshots.map((s: any) => ({
-      date: s.snapshot_date.toISOString().split('T')[0], // YYYY-MM-DD formatında
+      date: s.snapshot_date.toISOString().split('T')[0], // YYYY-MM-DD
       memberCount: s.member_count,
       corporationCount: s.corporation_count,
     }));

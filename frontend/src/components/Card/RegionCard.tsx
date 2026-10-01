@@ -5,7 +5,7 @@ import Tooltip from '@/components/Tooltip/Tooltip';
 import { RegionsQuery } from '@/generated/graphql';
 import Link from 'next/link';
 
-// useRegionsQuery'nin döndüğü Region type'ını extract et
+// Extract the Region type returned by useRegionsQuery
 type Region = RegionsQuery['regions']['items'][number];
 
 type RegionCardProps = {

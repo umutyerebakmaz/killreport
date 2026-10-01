@@ -10,12 +10,12 @@ export default function MemberDeltaBadge({
   memberDelta,
   memberGrowthRate,
 }: MemberDeltaBadgeProps) {
-  // Delta rengi belirle
+  // Pick the delta colour
   // Every caller renders this inside a .card (bg-surface): EVE's red measures
   // 3.93:1 there, under the 4.5 body-text floor, accepted per the spec.
   const deltaColor =
     memberDelta && memberDelta >= 0 ? 'text-success' : 'text-red-400';
-  // Tooltip içeriği
+  // Tooltip content
   const tooltipContent =
     memberDelta !== null
       ? `Member Change (7 Days): ${memberDelta >= 0 ? '+' : ''}${memberDelta}${

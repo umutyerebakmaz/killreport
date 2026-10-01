@@ -1,9 +1,9 @@
 /**
- * Bloodline Info Worker - ESI'den bloodline bilgilerini çeker ve veritabanına kaydeder
+ * Bloodline Info Worker - fetches bloodline info from ESI and saves it to the database
  *
  * ESI endpoint: https://esi.evetech.net/latest/universe/bloodlines/
  *
- * Bu worker EVE Online'daki tüm bloodline'ların bilgilerini çeker.
+ * Fetches every bloodline in EVE Online.
  */
 
 import logger from '@services/logger';

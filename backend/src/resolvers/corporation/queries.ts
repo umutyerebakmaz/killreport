@@ -22,11 +22,11 @@ export const corporationQueries: QueryResolvers = {
 
     if (!corp) return null;
 
-    // Field resolver'lar eksik field'ları otomatik doldurur
+    // Field resolvers fill in the missing fields
     const result = {
       ...corp,
       date_founded: corp.date_founded?.toISOString() || null,
-      // BigInt'i String'e dönüştür (JSON.stringify BigInt'i serialize edemez)
+      // Convert BigInt to String (JSON.stringify cannot serialize BigInt)
       shares: corp.shares ? corp.shares.toString() : null,
     } as any;
 
@@ -113,9 +113,9 @@ export const corporationQueries: QueryResolvers = {
     const items = corporations.map((corp: any) => ({
       ...corp,
       date_founded: corp.date_founded?.toISOString() || null,
-      // BigInt'i String'e dönüştür (JSON.stringify BigInt'i serialize edemez)
+      // Convert BigInt to String (JSON.stringify cannot serialize BigInt)
       shares: corp.shares ? corp.shares.toString() : null,
-    })) as any[]; // Field resolver'lar eksik field'ları otomatik doldurur
+    })) as any[]; // Field resolvers fill in the missing fields
 
     const totalPages = Math.ceil(totalCount / limit);
 

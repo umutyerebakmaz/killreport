@@ -229,8 +229,8 @@ describe('data ESI really sends', () => {
   });
 
   it('refuses a killmail with no attackers', async () => {
-    // attacker_count 0 yazmak ve kimseyi saymamak, sessizce yanlış bir
-    // killmail üretir; kaynağın onu yeniden çekmesi gerekir.
+    // Writing attacker_count 0 and counting nobody silently produces a wrong
+    // killmail; the source has to fetch it again.
     await expect(saveKillmail(detail({ attackers: [] }), HASH)).rejects.toThrow(
       /no attackers/i,
     );
@@ -252,7 +252,7 @@ describe('the publish option', () => {
     await saveKillmail(detail(), HASH, { publish: false });
 
     expect(publish).not.toHaveBeenCalled();
-    // Yazma yolu aynen işler; sessiz olan yalnızca duyuru.
+    // The write path runs unchanged; only the announcement is silent.
     expect(txMock.killmail.create).toHaveBeenCalled();
     expect(insertKillmailFilter).toHaveBeenCalled();
   });

@@ -1,12 +1,12 @@
 /**
- * `esi_killmail_detail_queue`'nun taşıdığı mesaj.
+ * The message carried by `esi_killmail_detail_queue`.
  *
- * Bir killmail'i adlandırır ve başka hiçbir şey söylemez. Detay ucu
- * (`/killmails/{id}/{hash}/`) public olduğu için worker'ın token'a ihtiyacı
- * yoktur; token gerektiren liste çağrısı yayıncıda kalır (#238).
+ * It names a killmail and says nothing else. The detail endpoint
+ * (`/killmails/{id}/{hash}/`) is public, so the worker needs no token; the
+ * list call that does need one stays with the publisher (#238).
  *
- * `announce` bir politika taşır, kimlik değil: yayını yapıp yapmama kararını
- * yayıncı verir (toplu backfill vermez), ama çağrıyı yapan worker'dır.
+ * `announce` carries a policy, not an identity: the publisher decides whether
+ * to announce (bulk backfill does not), but the worker makes the call.
  */
 export const KILLMAIL_DETAIL_QUEUE = 'esi_killmail_detail_queue';
 

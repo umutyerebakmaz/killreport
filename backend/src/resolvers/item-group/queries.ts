@@ -37,7 +37,7 @@ export const itemGroupQueries: QueryResolvers = {
     const currentPage = filter?.page ?? 1;
     const skip = (currentPage - 1) * take;
 
-    // Filter koşullarını oluştur
+    // Build the filter conditions
     const where: any = {};
     if (filter) {
       if (filter.search) {
@@ -55,7 +55,7 @@ export const itemGroupQueries: QueryResolvers = {
     const totalCount = await prisma.itemGroup.count({ where });
     const totalPages = Math.ceil(totalCount / take);
 
-    // Fetch data - alfabetik sıralama
+    // Fetch data - alphabetical order
     const itemGroups = await prisma.itemGroup.findMany({
       where,
       skip,

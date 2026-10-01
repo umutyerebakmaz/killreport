@@ -153,7 +153,7 @@ export function useAuth() {
       const userData = localStorage.getItem('eve_user');
       const expiryTime = localStorage.getItem('eve_token_expiry');
 
-      // Token var mı ve geçerli mi?
+      // Is there a token, and is it still valid?
       if (token && userData && expiryTime) {
         const expiry = parseInt(expiryTime);
         const now = Date.now();
@@ -223,7 +223,7 @@ export function useAuth() {
       checkAuth();
     }
 
-    // Auth değişikliklerini dinle
+    // Listen for auth changes
     const handleAuthChange = () => {
       checkAuth();
     };

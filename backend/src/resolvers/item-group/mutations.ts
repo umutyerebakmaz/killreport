@@ -17,7 +17,7 @@ export const itemGroupMutations: MutationResolvers = {
       console.log(`✓ found ${itemGroupIds.length} item groups`);
       console.log(`📤 publishing to queue...`);
 
-      // RabbitMQ'ya ekle
+      // Add to RabbitMQ
       const channel = await getRabbitMQChannel();
       const QUEUE_NAME = 'esi_item_group_info_queue';
 

@@ -41,14 +41,14 @@ export interface SyncJob {
   /** Background work yields to anything a person is waiting on. */
   priority: number;
   /**
-   * İşin gerçekte biriktiği kuyruk.
+   * The queue where the work actually piles up.
    *
-   * Liste aşaması kendi kuyruğunu saniyeler içinde boşaltıyor — tek yaptığı
-   * ESI'den listeyi alıp yayınlamak. Backlog `esi_killmail_detail_queue`'da
-   * oluşuyor, ve orası tıkalıyken yayına devam etmek her turda ESI listesini
-   * yeniden çekip henüz yazılmamış her killmail'i yeniden yayınlamak demek:
-   * kuyruk kopyalarla sınırsız büyür. #237'nin back-pressure kontrolü bu
-   * yüzden iki kuyruğa birden bakar.
+   * The list stage drains its own queue within seconds — all it does is fetch
+   * the list from ESI and publish it. The backlog builds in
+   * `esi_killmail_detail_queue`, and publishing on while that is blocked means
+   * refetching the ESI list every round and republishing every killmail not
+   * yet written: the queue grows without bound on duplicates. That is why
+   * #237's back-pressure check looks at both queues.
    */
   downstreamQueue: string;
 }
@@ -142,11 +142,11 @@ export class KillmailSyncCron {
 
       const channel = await getRabbitMQChannel();
       for (const user of users) {
-        // Hiç sync olmamış kullanıcı tam sync alır. Artımlı imleç
-        // `killmail_filters` üzerinden MAX(killmail_id) ve o tabloyu her
-        // yazıcı besliyor — RedisQ bütün EVE'i yazıyor. Yani yeni bir
-        // kullanıcının veritabanında zaten bir killmail'i olur, ESI listesi
-        // onun üzerinde ilk sırada durur ve geçmişi hiç çekilmez.
+        // A user who has never synced gets a full sync. The incremental
+        // cursor is MAX(killmail_id) over `killmail_filters`, and every writer
+        // feeds that table — RedisQ writes all of EVE. So a new user already
+        // has a killmail in the database, the ESI list stops on it at the
+        // first row, and the history is never fetched.
         const neverSynced = user[this.job.sinceField] === null;
 
         channel.sendToQueue(

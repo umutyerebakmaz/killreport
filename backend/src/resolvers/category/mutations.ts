@@ -17,7 +17,7 @@ export const categoryMutations: MutationResolvers = {
       console.log(`✓ found ${categoryIds.length} categories`);
       console.log(`📤 publishing to queue...`);
 
-      // RabbitMQ'ya ekle
+      // Add to RabbitMQ
       const channel = await getRabbitMQChannel();
       const QUEUE_NAME = 'esi_category_info_queue';
 

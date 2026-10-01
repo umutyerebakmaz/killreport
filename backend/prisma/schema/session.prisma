@@ -1,5 +1,5 @@
-// Tarayıcı oturumu. Çerez ham değeri taşır, burada yalnızca SHA-256 özeti
-// durur: veritabanı sızarsa oradaki değerlerle hiçbir oturum açılamaz.
+// A browser session. The cookie carries the raw value; only its SHA-256 hash
+// is stored here, so a leaked database cannot be used to open any session.
 model Session {
   id           String    @id @default(uuid())
   token_hash   String    @unique

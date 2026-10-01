@@ -95,7 +95,7 @@ async function corporationInfoWorker() {
               where: { id: corporationId },
             });
 
-            // Fetch from ESI (her zaman güncel bilgiyi al)
+            // Fetch from ESI (always take the latest info)
             const corpInfo =
               await CorporationService.getCorporationInfo(corporationId);
 
@@ -113,7 +113,7 @@ async function corporationInfoWorker() {
                   ? new Date(corpInfo.date_founded)
                   : null,
                 description: corpInfo.description,
-                alliance_id: corpInfo.alliance_id, // ESI'den gelen değer direkt
+                alliance_id: corpInfo.alliance_id, // value straight from ESI
                 faction_id: corpInfo.faction_id,
                 home_station_id: corpInfo.home_station_id,
                 shares: corpInfo.shares,
@@ -121,7 +121,7 @@ async function corporationInfoWorker() {
                 url: corpInfo.url,
               },
               update: {
-                // ✅ Güncel bilgileri güncelle
+                // ✅ Update the mutable fields
                 name: corpInfo.name,
                 ticker: corpInfo.ticker,
                 member_count: corpInfo.member_count,
@@ -132,7 +132,7 @@ async function corporationInfoWorker() {
                 tax_rate: corpInfo.tax_rate,
                 description: corpInfo.description,
                 url: corpInfo.url,
-                // date_founded, creator_id değişmez, güncellemeye gerek yok
+                // date_founded and creator_id never change, no need to update them
               },
             });
 
