@@ -6,6 +6,7 @@ import {
 } from '@generated-types';
 import { DataLoaderContext } from '@app-types/context';
 import { organizeFitting } from '@helpers/fitting-helper';
+import { hasFittingSlots } from '@helpers/fitting-slots';
 import { CELESTIAL_KIND } from '@resolvers/universe-map/queries';
 import type { KillmailLocation } from '@services/killmail/killmail-location.service';
 
@@ -337,24 +338,14 @@ export const killmailFields: KillmailResolvers = {
       // Check if this is a Capsule (group_id = 29)
       isCapsule = groupId === 29;
 
-      // Group IDs that should not show fitting slots
-      // 29: Capsule (Pod) - only has implants
-      // 31: Shuttle
-      // 361: Mobile Warp Disruptor
-      // 1025: Orbital Infrastructure (Customs Office)
-      // 1246: Mobile Tractor Unit
-      // 1247: Mobile Depot
-      // 1249: Mobile Cynosural Inhibitor
-      // 1250: Mobile Jump Disruptor
-      // 1272: Mobile Micro Jump Unit
-      // 4810: Mercenary Den
-      // 1282: Compression Array
-      const noFittingGroupIds = [
-        29, 31, 361, 1025, 1246, 1247, 1249, 1250, 1272, 4810, 1282,
-      ];
-      const shouldHaveFitting = groupId
-        ? !noFittingGroupIds.includes(groupId)
-        : true;
+      // Only ships and Upwell structures are fitted (helpers/fitting-slots).
+      const group = groupId
+        ? await context.loaders.itemGroup.load(groupId)
+        : null;
+      const category = group?.category_id
+        ? await context.loaders.category.load(group.category_id)
+        : null;
+      const shouldHaveFitting = hasFittingSlots(category?.name, groupId);
 
       // If ship shouldn't have fitting (including Capsules), return empty fitting with 0 slots
       if (!shouldHaveFitting) {
