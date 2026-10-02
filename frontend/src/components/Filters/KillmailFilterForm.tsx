@@ -1,5 +1,6 @@
 'use client';
 
+import { ShipTierFilter } from '@/generated/graphql';
 import RadioGroup from '@/components/RadioGroup/RadioGroup';
 import FilterBar from '@/components/ui/FilterBar';
 import FilterDialog from '@/components/ui/FilterDialog';
@@ -26,6 +27,7 @@ interface KillmailFilterFormProps {
   onFilterChange: (filters: {
     shipTypeId?: number;
     shipGroupIds?: number[];
+    shipTier?: ShipTierFilter;
     characterId?: number;
     systemId?: number;
     constellationId?: number;
@@ -44,6 +46,7 @@ interface KillmailFilterFormProps {
   onClearFilters: () => void;
   initialShipTypeId?: number;
   initialShipGroupIds?: number[];
+  initialShipTier?: ShipTierFilter;
   initialCharacterId?: number;
   initialSystemId?: number;
   initialConstellationId?: number;
@@ -64,6 +67,7 @@ export default function KillmailFilterForm({
   onClearFilters,
   initialShipTypeId,
   initialShipGroupIds,
+  initialShipTier,
   initialCharacterId,
   initialSystemId,
   initialConstellationId,
@@ -106,6 +110,9 @@ export default function KillmailFilterForm({
   );
   const [maxValue, setMaxValue] = useState(
     initialMaxValue ? String(initialMaxValue) : '',
+  );
+  const [shipTier, setShipTier] = useState<ShipTierFilter | undefined>(
+    initialShipTier,
   );
   const [shipRole, setShipRole] = useState<'all' | 'victim' | 'attacker'>(
     initialShipRole,
@@ -351,6 +358,15 @@ export default function KillmailFilterForm({
     if (initialShipGroupIds !== undefined) setShipGroupIds(initialShipGroupIds);
   }, [initialShipGroupIds]);
 
+  // Follow the URL's tier when it changes (back/forward, a shared link). Set
+  // during render rather than in an effect, as React recommends for state
+  // that tracks a prop; the older fields above still use effects.
+  const [syncedShipTier, setSyncedShipTier] = useState(initialShipTier);
+  if (initialShipTier !== syncedShipTier) {
+    setSyncedShipTier(initialShipTier);
+    setShipTier(initialShipTier);
+  }
+
   useEffect(() => {
     setCharacterId(initialCharacterId);
     // Clear name when characterId is undefined
@@ -533,29 +549,33 @@ export default function KillmailFilterForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    // The victim / attacker role applies to any ship filter, a tier included.
+    const hasShipFilter = Boolean(
+      shipTypeId || shipGroupIds.length > 0 || shipTier,
+    );
+
     const filterData = {
       shipTypeId,
       shipGroupIds: shipGroupIds.length > 0 ? shipGroupIds : undefined,
+      shipTier,
       characterId,
       systemId,
       constellationId,
       regionId,
-      victim:
-        shipTypeId || shipGroupIds.length > 0
-          ? shipRole === 'victim'
-            ? true
-            : shipRole === 'attacker'
-              ? false
-              : undefined
-          : undefined,
-      attacker:
-        shipTypeId || shipGroupIds.length > 0
-          ? shipRole === 'attacker'
-            ? true
-            : shipRole === 'victim'
-              ? false
-              : undefined
-          : undefined,
+      victim: hasShipFilter
+        ? shipRole === 'victim'
+          ? true
+          : shipRole === 'attacker'
+            ? false
+            : undefined
+        : undefined,
+      attacker: hasShipFilter
+        ? shipRole === 'attacker'
+          ? true
+          : shipRole === 'victim'
+            ? false
+            : undefined
+        : undefined,
       characterVictim: characterId
         ? characterRole === 'victim'
           ? true
@@ -589,6 +609,7 @@ export default function KillmailFilterForm({
     setGroupSearch('');
     setShipGroupIds([]);
     setShipGroupNames(new Map());
+    setShipTier(undefined);
     setPilotSearch('');
     setCharacterId(undefined);
     setCharacterName('');
@@ -615,6 +636,7 @@ export default function KillmailFilterForm({
   const activeFilterCount = [
     shipTypeId,
     shipGroupIds.length > 0,
+    shipTier,
     characterId,
     systemId,
     constellationId,
@@ -1039,6 +1061,51 @@ export default function KillmailFilterForm({
                 </div>
               </div>
             )}
+          </FilterField>
+
+          {/* Ship Tier: narrows the chosen ship or groups, or stands alone.
+              Each tier in its own colour; the role choice follows when no
+              ship or group carries one already. */}
+          <FilterField label="Ship Tier">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <RadioGroup
+                name="ship-tier"
+                value={shipTier ?? 'all'}
+                onChange={(v) =>
+                  setShipTier(v === 'all' ? undefined : (v as ShipTierFilter))
+                }
+                options={[
+                  { value: 'all', label: 'All' },
+                  {
+                    value: ShipTierFilter.Tech2,
+                    label: 'Tech2',
+                    className: 'text-amber-400',
+                  },
+                  {
+                    value: ShipTierFilter.Tech3,
+                    label: 'Tech3',
+                    className: 'text-orange-500',
+                  },
+                  {
+                    value: ShipTierFilter.Faction,
+                    label: 'Faction',
+                    className: 'text-green-600',
+                  },
+                ]}
+              />
+              {shipTier && !shipTypeId && shipGroupIds.length === 0 && (
+                <RadioGroup
+                  name="ship-tier-role"
+                  value={shipRole}
+                  onChange={setShipRole}
+                  options={[
+                    { value: 'all', label: 'All' },
+                    { value: 'victim', label: 'Victim' },
+                    { value: 'attacker', label: 'Attacker' },
+                  ]}
+                />
+              )}
+            </div>
           </FilterField>
 
           {/* Solar System Search */}

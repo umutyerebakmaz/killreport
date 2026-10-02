@@ -1,10 +1,15 @@
+import { ShipTierFilter } from '@/generated/graphql';
+
 /**
  * Utility functions for handling killmail filter URL parameters
  */
 
+const SHIP_TIERS = Object.values(ShipTierFilter);
+
 export interface KillmailFilters {
   shipTypeId?: number;
   shipGroupIds?: number[];
+  shipTier?: ShipTierFilter;
   characterId?: number;
   victim?: boolean;
   attacker?: boolean;
@@ -44,6 +49,11 @@ export function parseKillmailFiltersFromUrl(
   const shipGroupIdsFromUrl = searchParams.get('shipGroupIds')
     ? searchParams.get('shipGroupIds')!.split(',').map(Number)
     : undefined;
+
+  // Lower case in the URL (?shipTier=faction), the enum's upper case in the
+  // filter; anything else is ignored rather than sent to the API.
+  const shipTierParam = searchParams.get('shipTier')?.toUpperCase();
+  const shipTierFromUrl = SHIP_TIERS.find((tier) => tier === shipTierParam);
 
   const characterIdFromUrl = searchParams.get('characterId')
     ? Number(searchParams.get('characterId'))
@@ -98,11 +108,19 @@ export function parseKillmailFiltersFromUrl(
   const warRelatedFromUrl =
     searchParams.get('warRelated') === 'true' ? true : undefined;
 
+  // The ship role applies to any ship filter: a ship, ship groups or a tier.
+  const hasShipFilter = Boolean(
+    shipTypeIdFromUrl ||
+    (shipGroupIdsFromUrl && shipGroupIdsFromUrl.length > 0) ||
+    shipTierFromUrl,
+  );
+
   // Build filters object
   const filters: KillmailFilters = {
     warRelated: warRelatedFromUrl,
     shipTypeId: shipTypeIdFromUrl,
     shipGroupIds: shipGroupIdsFromUrl,
+    shipTier: shipTierFromUrl,
     characterId: characterIdFromUrl,
     systemId: systemIdFromUrl,
     constellationId: constellationIdFromUrl,
@@ -114,23 +132,15 @@ export function parseKillmailFiltersFromUrl(
     minValue: minValueFromUrl,
     maxValue: maxValueFromUrl,
     victim:
-      (shipTypeIdFromUrl ||
-        (shipGroupIdsFromUrl && shipGroupIdsFromUrl.length > 0)) &&
-      shipTypeRoleFromUrl === 'victim'
+      hasShipFilter && shipTypeRoleFromUrl === 'victim'
         ? true
-        : (shipTypeIdFromUrl ||
-              (shipGroupIdsFromUrl && shipGroupIdsFromUrl.length > 0)) &&
-            shipTypeRoleFromUrl === 'attacker'
+        : hasShipFilter && shipTypeRoleFromUrl === 'attacker'
           ? false
           : undefined,
     attacker:
-      (shipTypeIdFromUrl ||
-        (shipGroupIdsFromUrl && shipGroupIdsFromUrl.length > 0)) &&
-      shipTypeRoleFromUrl === 'attacker'
+      hasShipFilter && shipTypeRoleFromUrl === 'attacker'
         ? true
-        : (shipTypeIdFromUrl ||
-              (shipGroupIdsFromUrl && shipGroupIdsFromUrl.length > 0)) &&
-            shipTypeRoleFromUrl === 'victim'
+        : hasShipFilter && shipTypeRoleFromUrl === 'victim'
           ? false
           : undefined,
     characterVictim:
@@ -157,6 +167,30 @@ export function parseKillmailFiltersFromUrl(
 }
 
 /**
+ * Every filter the URL carries, without the page and the role fields the form
+ * keeps for itself. The page used to copy the filters out field by field, and
+ * a new filter (the ship tier) was left out of that copy: it sat in the URL and
+ * never reached the query.
+ */
+export function killmailFiltersOf(parsed: ParsedUrlFilters): KillmailFilters {
+  const filters: KillmailFilters & Partial<ParsedUrlFilters> = { ...parsed };
+  delete filters.page;
+  delete filters.shipTypeRole;
+  delete filters.characterRole;
+  delete filters.securitySpaceRole;
+  return filters;
+}
+
+/** Whether any filter is set: an empty list, false or undefined is none. */
+export function hasActiveKillmailFilters(filters: KillmailFilters): boolean {
+  return Object.values(filters).some((value) =>
+    Array.isArray(value)
+      ? value.length > 0
+      : value !== undefined && value !== false,
+  );
+}
+
+/**
  * Build URL search parameters from current page and filters
  */
 export function buildKillmailFiltersUrl(
@@ -169,23 +203,26 @@ export function buildKillmailFiltersUrl(
 
   if (filters.shipTypeId) {
     params.set('shipTypeId', filters.shipTypeId.toString());
-    if (filters.victim === true && filters.attacker === false) {
-      params.set('shipTypeRole', 'victim');
-    } else if (filters.attacker === true && filters.victim === false) {
-      params.set('shipTypeRole', 'attacker');
-    }
   }
 
   if (filters.shipGroupIds && filters.shipGroupIds.length > 0) {
     params.set('shipGroupIds', filters.shipGroupIds.join(','));
-    // Ship group role uses the same victim/attacker logic as shipTypeId
-    if (!filters.shipTypeId) {
-      // Only set role if no individual ship is selected
-      if (filters.victim === true && filters.attacker === false) {
-        params.set('shipTypeRole', 'victim');
-      } else if (filters.attacker === true && filters.victim === false) {
-        params.set('shipTypeRole', 'attacker');
-      }
+  }
+
+  if (filters.shipTier) {
+    params.set('shipTier', filters.shipTier.toLowerCase());
+  }
+
+  // One victim / attacker role for whichever ship filters are set.
+  if (
+    filters.shipTypeId ||
+    (filters.shipGroupIds && filters.shipGroupIds.length > 0) ||
+    filters.shipTier
+  ) {
+    if (filters.victim === true && filters.attacker === false) {
+      params.set('shipTypeRole', 'victim');
+    } else if (filters.attacker === true && filters.victim === false) {
+      params.set('shipTypeRole', 'attacker');
     }
   }
 
