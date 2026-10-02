@@ -36,6 +36,7 @@ query FactionTopShips($factionId: Int!, $filter: TopTargetFilter) {
     shipType {
       id
       name
+      metaGroupId
       dogmaAttributes(ids: [422, 1692]) {
         attribute_id
         value
@@ -60,6 +61,7 @@ query FactionTopShipTargets($factionId: Int!, $filter: TopTargetFilter) {
     shipType {
       id
       name
+      metaGroupId
       dogmaAttributes(ids: [422, 1692]) {
         attribute_id
         value

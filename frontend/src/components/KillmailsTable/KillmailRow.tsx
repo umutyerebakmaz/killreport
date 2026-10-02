@@ -28,7 +28,7 @@ export default function KillmailRow({
     allianceId,
   });
 
-  const shipTier = getShipTier(km.victim?.shipType?.dogmaAttributes);
+  const shipTier = getShipTier(km.victim?.shipType);
 
   return (
     <tr

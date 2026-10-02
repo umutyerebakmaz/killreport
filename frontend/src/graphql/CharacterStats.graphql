@@ -35,6 +35,7 @@ query CharacterTopShipTargets($characterId: Int!, $filter: TopTargetFilter) {
     shipType {
       id
       name
+      metaGroupId
       dogmaAttributes(ids: [422, 1692]) {
         attribute_id
         value
@@ -49,6 +50,7 @@ query CharacterTopShips($characterId: Int!, $filter: TopTargetFilter) {
     shipType {
       id
       name
+      metaGroupId
       dogmaAttributes(ids: [422, 1692]) {
         attribute_id
         value

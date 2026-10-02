@@ -53,7 +53,7 @@ export default function KillmailCard({
   killmail: km,
   rank,
 }: KillmailCardProps) {
-  const shipTier = getShipTier(km.victim?.shipType?.dogmaAttributes);
+  const shipTier = getShipTier(km.victim?.shipType);
   const shipTypeId = km.victim?.shipType?.id;
 
   return (

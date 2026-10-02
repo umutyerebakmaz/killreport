@@ -1937,6 +1937,14 @@ type Type {
   """Jita market price (cached, updates every 4 hours)"""
   jitaPrice: JitaPrice
   mass: Float
+
+  """
+  The type's meta group: 1 Tech I, 2 Tech II, 3 Storyline, 4 Faction,
+  5 Officer, 6 Deadspace, 14 Tech III, and so on. From CCP's Static Data
+  Export rather than ESI, which does not carry it; null for a type with none,
+  or one added since `yarn sde:meta-groups` last ran.
+  """
+  metaGroupId: Int
   name: String!
   published: Boolean!
   updated_at: String!

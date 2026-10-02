@@ -62,6 +62,7 @@ query FactionKillmails($filter: KillmailFilter) {
           group {
             name
           }
+          metaGroupId
           dogmaAttributes(ids: [422, 1692]) {
             attribute_id
             value

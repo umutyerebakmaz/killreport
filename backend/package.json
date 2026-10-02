@@ -26,6 +26,7 @@
     "rabbitmq:purge": "rabbitmqctl list_queues -q --no-table-headers name | xargs -n1 rabbitmqctl purge_queue",
     "rabbitmq:reset": "bash scripts/reset-rabbitmq.sh",
     "render:region-maps": "tsx src/scripts/render-region-maps.ts",
+    "sde:meta-groups": "curl -fsSL https://developers.eveonline.com/static-data/eve-online-static-data-latest-jsonl.zip -o /tmp/killreport-sde.zip && unzip -p /tmp/killreport-sde.zip types.jsonl | tsx src/scripts/import-sde-meta-groups.ts",
     "render:constellation-maps": "tsx src/scripts/render-constellation-maps.ts",
     "render:solar-system-maps": "tsx src/scripts/render-solar-system-maps.ts",
     "render:maps": "yarn render:region-maps && yarn render:constellation-maps && yarn render:solar-system-maps",
