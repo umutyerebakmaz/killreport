@@ -85,6 +85,7 @@ export const killmailQueries: QueryResolvers = {
     const hasKillmailFiltersCompatibleFilter =
       args.filter?.shipTypeId ||
       args.filter?.shipGroupIds?.length ||
+      args.filter?.shipTier ||
       args.filter?.characterId ||
       args.filter?.corporationId ||
       args.filter?.allianceId ||
@@ -444,6 +445,7 @@ export const killmailQueries: QueryResolvers = {
     const hasKillmailFiltersCompatibleFilter =
       args.filter?.shipTypeId ||
       args.filter?.shipGroupIds?.length ||
+      args.filter?.shipTier ||
       args.filter?.characterId ||
       args.filter?.corporationId ||
       args.filter?.allianceId ||

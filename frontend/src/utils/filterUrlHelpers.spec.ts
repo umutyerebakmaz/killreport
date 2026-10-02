@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
+import { ShipTierFilter } from '@/generated/graphql';
 import {
   buildKillmailFiltersUrl,
+  hasActiveKillmailFilters,
+  killmailFiltersOf,
   parseKillmailFiltersFromUrl,
 } from './filterUrlHelpers';
 
@@ -311,5 +314,103 @@ describe('buildKillmailFiltersUrl', () => {
 
     expect(parsed.page).toBe(4);
     expect(parsed).toMatchObject(filters);
+  });
+});
+
+describe('shipTier', () => {
+  const parse = (query: string) =>
+    parseKillmailFiltersFromUrl(new URLSearchParams(query));
+
+  it('reads the tier from the URL in lower case and sends it upper case', () => {
+    expect(parse('shipTier=tech2').shipTier).toBe('TECH2');
+    expect(parse('shipTier=tech3').shipTier).toBe('TECH3');
+    expect(parse('shipTier=faction').shipTier).toBe('FACTION');
+  });
+
+  it('ignores a tier it does not know', () => {
+    expect(parse('shipTier=officer').shipTier).toBeUndefined();
+    expect(parse('').shipTier).toBeUndefined();
+  });
+
+  it('applies the ship role to a tier on its own', () => {
+    const victimOnly = parse('shipTier=faction&shipTypeRole=victim');
+    expect(victimOnly.victim).toBe(true);
+    expect(victimOnly.attacker).toBe(false);
+
+    const attackerOnly = parse('shipTier=faction&shipTypeRole=attacker');
+    expect(attackerOnly.victim).toBe(false);
+    expect(attackerOnly.attacker).toBe(true);
+  });
+
+  it('writes the tier and its role back to the URL', () => {
+    const url = new URLSearchParams(
+      buildKillmailFiltersUrl(1, {
+        shipTier: ShipTierFilter.Faction,
+        victim: true,
+        attacker: false,
+      }),
+    );
+    expect(url.get('shipTier')).toBe('faction');
+    expect(url.get('shipTypeRole')).toBe('victim');
+  });
+
+  it('round-trips a tier together with a ship group', () => {
+    const query = buildKillmailFiltersUrl(1, {
+      shipGroupIds: [27],
+      shipTier: ShipTierFilter.Tech2,
+      victim: false,
+      attacker: true,
+    });
+    const parsed = parse(query);
+    expect(parsed.shipGroupIds).toEqual([27]);
+    expect(parsed.shipTier).toBe('TECH2');
+    expect(parsed.attacker).toBe(true);
+    // The role goes into the URL once, not once per ship filter.
+    expect(new URLSearchParams(query).getAll('shipTypeRole')).toEqual([
+      'attacker',
+    ]);
+  });
+});
+
+describe('killmailFiltersOf', () => {
+  it('keeps every filter and drops the page and the UI-only roles', () => {
+    const parsed = parseKillmailFiltersFromUrl(
+      new URLSearchParams(
+        'page=3&shipGroupIds=26&shipTier=tech2&shipTypeRole=victim&securitySpace=lowsec',
+      ),
+    );
+    const filters = killmailFiltersOf(parsed);
+
+    expect(filters).toMatchObject({
+      shipGroupIds: [26],
+      shipTier: 'TECH2',
+      victim: true,
+      attacker: false,
+      securitySpace: 'lowsec',
+    });
+    expect(filters).not.toHaveProperty('page');
+    expect(filters).not.toHaveProperty('shipTypeRole');
+    expect(filters).not.toHaveProperty('characterRole');
+    expect(filters).not.toHaveProperty('securitySpaceRole');
+  });
+});
+
+describe('hasActiveKillmailFilters', () => {
+  const active = (query: string) =>
+    hasActiveKillmailFilters(
+      killmailFiltersOf(
+        parseKillmailFiltersFromUrl(new URLSearchParams(query)),
+      ),
+    );
+
+  it('is false with nothing but a page', () => {
+    expect(active('page=2')).toBe(false);
+    expect(active('page=1&securitySpace=all')).toBe(false);
+  });
+
+  it('is true for any filter, a ship tier on its own included', () => {
+    expect(active('shipTier=faction')).toBe(true);
+    expect(active('regionId=10000070')).toBe(true);
+    expect(active('warRelated=true')).toBe(true);
   });
 });

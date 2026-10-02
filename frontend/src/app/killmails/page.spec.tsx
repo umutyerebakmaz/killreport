@@ -22,13 +22,18 @@ type KillmailsQueryOptions = { variables: { filter: Record<string, unknown> } };
 const useKillmailsQuery = vi.fn<(options: KillmailsQueryOptions) => unknown>(
   () => ({ data: undefined, loading: false, error: undefined }),
 );
+const useNewKillmailSubscription = vi.fn<
+  (options: { skip: boolean }) => unknown
+>(() => ({}));
 
 vi.mock('@/generated/graphql', () => ({
   KillmailOrderBy: { TimeDesc: 'timeDesc' },
+  ShipTierFilter: { Tech2: 'TECH2', Tech3: 'TECH3', Faction: 'FACTION' },
   useKillmailsQuery: (options: KillmailsQueryOptions) =>
     useKillmailsQuery(options),
   useKillmailsDateCountsQuery: () => ({ data: undefined }),
-  useNewKillmailSubscription: () => ({}),
+  useNewKillmailSubscription: (options: { skip: boolean }) =>
+    useNewKillmailSubscription(options),
 }));
 
 vi.mock('@/components/Filters/KillmailFilterForm', () => ({
@@ -93,5 +98,34 @@ describe('killmails page URL filters', () => {
     rerender(<KillmailsPage />);
 
     expect(lastFilter().securitySpace).toBeUndefined();
+  });
+
+  it('sends a ship tier together with the ship group it narrows', () => {
+    // Cruiser + Tech2: the tier used to stay in the URL and never reach the
+    // query, so the page listed the Cruiser group's kills on their own.
+    searchParams = new URLSearchParams('page=1&shipGroupIds=26&shipTier=tech2');
+    render(<KillmailsPage />);
+
+    expect(lastFilter().shipGroupIds).toEqual([26]);
+    expect(lastFilter().shipTier).toBe('TECH2');
+  });
+
+  it('stops the live feed while only a ship tier is set', () => {
+    // The feed runs only unfiltered: a live killmail is not checked against
+    // the filter, so a tier the feed did not know about let any kill in.
+    searchParams = new URLSearchParams('page=1&shipTier=faction');
+    useNewKillmailSubscription.mockClear();
+    render(<KillmailsPage />);
+
+    const calls = useNewKillmailSubscription.mock.calls;
+    expect(calls[calls.length - 1][0].skip).toBe(true);
+  });
+
+  it('keeps the live feed on the unfiltered first page', () => {
+    useNewKillmailSubscription.mockClear();
+    render(<KillmailsPage />);
+
+    const calls = useNewKillmailSubscription.mock.calls;
+    expect(calls[calls.length - 1][0].skip).toBe(false);
   });
 });

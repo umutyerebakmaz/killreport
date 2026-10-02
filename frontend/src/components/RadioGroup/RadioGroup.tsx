@@ -2,6 +2,8 @@ interface RadioOption<T extends string> {
   value: T;
   label: string;
   disabled?: boolean;
+  /** A colour of its own for the label text, e.g. a ship tier's. */
+  className?: string;
 }
 
 interface RadioGroupProps<T extends string> {
@@ -41,7 +43,11 @@ export default function RadioGroup<T extends string>({
             onChange={() => onChange(option.value)}
             className="sr-only"
           />
-          {option.label}
+          {option.className ? (
+            <span className={option.className}>{option.label}</span>
+          ) : (
+            option.label
+          )}
         </label>
       ))}
     </div>

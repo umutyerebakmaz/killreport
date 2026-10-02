@@ -1,5 +1,16 @@
-import { KillmailFilter } from '@generated-types';
+import { KillmailFilter, ShipTierFilter } from '@generated-types';
 import prisma from '@services/prisma';
+
+/** The meta groups each filter tier covers — the ones the tier badge draws. */
+const TIER_META_GROUPS: Record<ShipTierFilter, number[]> = {
+  [ShipTierFilter.Tech2]: [2],
+  [ShipTierFilter.Tech3]: [14],
+  [ShipTierFilter.Faction]: [3, 4],
+};
+
+/** EVE's Ship category: a meta group also covers modules, which no killmail
+ *  flies, so the tier's list is kept to hulls (126 Tech2, 9 Tech3, 153 faction). */
+const SHIP_CATEGORY_ID = 6;
 
 /**
  * Build WHERE clause using Pre-computed Table
@@ -24,6 +35,7 @@ export async function filtersMaterialized(
   const {
     shipTypeId,
     shipGroupIds,
+    shipTier,
     victim,
     attacker,
     regionId,
@@ -85,8 +97,31 @@ export async function filtersMaterialized(
     allShipTypeIds.slice(0, 10),
   );
 
+  // A tier narrows the chosen ship or groups to its own types, or stands as
+  // the ship filter on its own. An empty result still applies: "Frigate +
+  // Tech3" has no hull, and it must match nothing rather than everything.
+  let applyShipFilter = allShipTypeIds.length > 0;
+  if (shipTier) {
+    const shipGroups = await prisma.itemGroup.findMany({
+      where: { category_id: SHIP_CATEGORY_ID },
+      select: { id: true },
+    });
+    const tierTypes = await prisma.type.findMany({
+      where: {
+        meta_group_id: { in: TIER_META_GROUPS[shipTier] },
+        group_id: { in: shipGroups.map((group) => group.id) },
+      },
+      select: { id: true },
+    });
+    const tierIds = new Set(tierTypes.map((type) => type.id));
+    allShipTypeIds = applyShipFilter
+      ? allShipTypeIds.filter((id) => tierIds.has(id))
+      : [...tierIds];
+    applyShipFilter = true;
+  }
+
   // Ship type filter: respects victim / attacker checkboxes
-  if (allShipTypeIds.length > 0) {
+  if (applyShipFilter) {
     const onlyVictim = victim === true && !attacker;
     const onlyAttacker = attacker === true && !victim;
 

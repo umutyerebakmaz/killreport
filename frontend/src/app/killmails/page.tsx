@@ -17,6 +17,8 @@ import {
 } from '@/generated/graphql';
 import {
   buildKillmailFiltersUrl,
+  hasActiveKillmailFilters,
+  killmailFiltersOf,
   parseKillmailFiltersFromUrl,
   type KillmailFilters,
 } from '@/utils/filterUrlHelpers';
@@ -85,25 +87,9 @@ function KillmailsContent() {
   // only the query string changes — state seeded from the URL on mount would
   // never see those links.
   const currentPage = urlFilters.page;
+  // Every filter the URL carries; see killmailFiltersOf for why not a copy.
   const filters = useMemo<KillmailFilters>(
-    () => ({
-      characterId: urlFilters.characterId,
-      shipTypeId: urlFilters.shipTypeId,
-      shipGroupIds: urlFilters.shipGroupIds,
-      regionId: urlFilters.regionId,
-      systemId: urlFilters.systemId,
-      constellationId: urlFilters.constellationId,
-      securitySpace: urlFilters.securitySpace,
-      minAttackers: urlFilters.minAttackers,
-      maxAttackers: urlFilters.maxAttackers,
-      minValue: urlFilters.minValue,
-      maxValue: urlFilters.maxValue,
-      victim: urlFilters.victim,
-      attacker: urlFilters.attacker,
-      characterVictim: urlFilters.characterVictim,
-      characterAttacker: urlFilters.characterAttacker,
-      warRelated: urlFilters.warRelated,
-    }),
+    () => killmailFiltersOf(urlFilters),
     [urlFilters],
   );
 
@@ -121,25 +107,7 @@ function KillmailsContent() {
   // A live killmail may not match an active filter, so the feed only runs on
   // the unfiltered first page.
   const hasActiveFilters = useMemo(
-    () =>
-      !!(
-        filters.shipTypeId ||
-        filters.shipGroupIds?.length ||
-        filters.characterId ||
-        filters.victim ||
-        filters.attacker ||
-        filters.characterVictim ||
-        filters.characterAttacker ||
-        filters.regionId ||
-        filters.constellationId ||
-        filters.systemId ||
-        filters.securitySpace ||
-        filters.minAttackers ||
-        filters.maxAttackers ||
-        filters.minValue ||
-        filters.maxValue ||
-        filters.warRelated
-      ),
+    () => hasActiveKillmailFilters(filters),
     [filters],
   );
 
@@ -219,48 +187,14 @@ function KillmailsContent() {
         page: currentPage,
         limit: pageSize,
         orderBy: KillmailOrderBy.TimeDesc,
-        shipTypeId: filters.shipTypeId,
-        shipGroupIds: filters.shipGroupIds,
-        characterId: filters.characterId,
-        victim: filters.victim,
-        attacker: filters.attacker,
-        characterVictim: filters.characterVictim,
-        characterAttacker: filters.characterAttacker,
-        regionId: filters.regionId,
-        constellationId: filters.constellationId,
-        systemId: filters.systemId,
-        securitySpace: filters.securitySpace,
-        minAttackers: filters.minAttackers,
-        maxAttackers: filters.maxAttackers,
-        minValue: filters.minValue,
-        maxValue: filters.maxValue,
-        warRelated: filters.warRelated,
+        ...filters,
       },
     },
   });
 
   // Fetch date counts for correct totals per date
   const { data: dateCountsData } = useKillmailsDateCountsQuery({
-    variables: {
-      filter: {
-        shipTypeId: filters.shipTypeId,
-        shipGroupIds: filters.shipGroupIds,
-        characterId: filters.characterId,
-        victim: filters.victim,
-        attacker: filters.attacker,
-        characterVictim: filters.characterVictim,
-        characterAttacker: filters.characterAttacker,
-        regionId: filters.regionId,
-        constellationId: filters.constellationId,
-        systemId: filters.systemId,
-        securitySpace: filters.securitySpace,
-        minAttackers: filters.minAttackers,
-        maxAttackers: filters.maxAttackers,
-        minValue: filters.minValue,
-        maxValue: filters.maxValue,
-        warRelated: filters.warRelated,
-      },
-    },
+    variables: { filter: filters },
   });
 
   // Live arrivals first, then the fetched page — minus anything the query has
@@ -344,6 +278,7 @@ function KillmailsContent() {
           onClearFilters={handleClearFilters}
           initialShipTypeId={urlFilters.shipTypeId}
           initialShipGroupIds={urlFilters.shipGroupIds}
+          initialShipTier={urlFilters.shipTier}
           initialCharacterId={urlFilters.characterId}
           initialSystemId={urlFilters.systemId}
           initialConstellationId={urlFilters.constellationId}

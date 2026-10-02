@@ -680,6 +680,12 @@ export type KillmailFilter = {
   search?: InputMaybe<Scalars['String']['input']>;
   securitySpace?: InputMaybe<Scalars['String']['input']>;
   shipGroupIds?: InputMaybe<Array<Scalars['Int']['input']>>;
+  /**
+   * Only ships of this tier, from types.meta_group_id. Combined with shipTypeId
+   * or shipGroupIds it narrows them, and it follows the same victim / attacker
+   * choice.
+   */
+  shipTier?: InputMaybe<ShipTierFilter>;
   shipTypeId?: InputMaybe<Scalars['Int']['input']>;
   startDate?: InputMaybe<Scalars['String']['input']>;
   systemId?: InputMaybe<Scalars['Int']['input']>;
@@ -1826,6 +1832,17 @@ export type Session = {
   lastSeenAt: Scalars['String']['output'];
   userAgent?: Maybe<Scalars['String']['output']>;
 };
+
+/**
+ * A ship tier for the killmail filter, by the type's meta group: TECH2 is 2,
+ * TECH3 is 14, FACTION is 3 and 4 (Storyline and Faction/Navy/Fleet), the
+ * groups the ship tier badge draws.
+ */
+export enum ShipTierFilter {
+  Faction = 'FACTION',
+  Tech2 = 'TECH2',
+  Tech3 = 'TECH3'
+}
 
 export type ShipTopKill = {
   __typename?: 'ShipTopKill';
