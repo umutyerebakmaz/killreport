@@ -49,6 +49,7 @@ query Killmail($id: ID!) {
         id
         name
         description
+        metaGroupId
         dogmaAttributes(ids: [422, 1692]) {
           attribute_id
           value
@@ -85,6 +86,7 @@ query Killmail($id: ID!) {
       shipType {
         id
         name
+        metaGroupId
         dogmaAttributes(ids: [422, 1692]) {
           attribute_id
           value

@@ -7,6 +7,10 @@ import prisma from '@services/prisma';
  * Uses DataLoaders to prevent N+1 queries
  */
 export const typeFields: TypeResolvers = {
+  metaGroupId: (parent) =>
+    (parent as unknown as { meta_group_id: number | null }).meta_group_id ??
+    null,
+
   group: async (parent, _, context) => {
     // Cast to any to access Prisma model fields
     const prismaType = parent as any;

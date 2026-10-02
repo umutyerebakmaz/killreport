@@ -1,6 +1,12 @@
 /**
- * EVE Online ship tier detection via dogma attributes
+ * EVE Online ship tier, from the type's meta group.
  *
+ * The meta group comes from CCP's Static Data Export (types.meta_group_id,
+ * filled by `yarn sde:meta-groups` in the backend) and is read first: ESI's
+ * own metaGroupID dogma attribute is missing on many types, recent faction
+ * hulls such as Phoenix Navy Issue among them, so those came out untiered.
+ *
+ * A type the import has not reached yet falls back to the dogma attributes:
  * Attribute ID 422  = techLevel     (1=T1, 2=T2, 3=T3)
  * Attribute ID 1692 = metaGroupID   (1=T1, 2=T2, 3=Storyline, 4=Faction/Navy/Fleet, 5=Officer, 6=Deadspace)
  */
@@ -12,9 +18,29 @@ interface DogmaAttr {
   value: number;
 }
 
-export function getShipTier(
-  dogmaAttributes: DogmaAttr[] | null | undefined,
-): ShipTier {
+interface TieredType {
+  metaGroupId?: number | null;
+  dogmaAttributes?: DogmaAttr[] | null;
+}
+
+/** Meta groups with a badge; every other group (Tech I, Abyssal, …) has none. */
+const BY_META_GROUP: Record<number, ShipTier> = {
+  2: 'T2',
+  14: 'T3',
+  3: 'faction', // Storyline
+  4: 'faction', // Faction / Navy / Fleet
+  5: 'officer',
+  6: 'officer', // Deadspace
+};
+
+export function getShipTier(type: TieredType | null | undefined): ShipTier {
+  if (!type) return null;
+
+  if (type.metaGroupId != null) {
+    return BY_META_GROUP[type.metaGroupId] ?? null;
+  }
+
+  const dogmaAttributes = type.dogmaAttributes;
   if (!dogmaAttributes || dogmaAttributes.length === 0) return null;
 
   const techLevel =

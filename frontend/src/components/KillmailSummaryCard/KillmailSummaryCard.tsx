@@ -202,10 +202,10 @@ export default function KillmailSummaryCard({
             </div>
             <div className="flex items-center gap-3 px-2 py-2 transition-colors hover:bg-destroyed-fill/50 bg-destroyed-fill/40">
               <div className="relative shrink-0">
-                {getShipTier(victim.shipType.dogmaAttributes) && (
+                {getShipTier(victim.shipType) && (
                   <div className="absolute top-0 left-0 z-20">
                     <ShipTierBadge
-                      tier={getShipTier(victim.shipType.dogmaAttributes)}
+                      tier={getShipTier(victim.shipType)}
                       className="size-5"
                     />
                   </div>

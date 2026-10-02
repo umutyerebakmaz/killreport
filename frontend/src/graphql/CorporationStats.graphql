@@ -44,6 +44,7 @@ query CorporationTopShipTargets(
     shipType {
       id
       name
+      metaGroupId
       dogmaAttributes(ids: [422, 1692]) {
         attribute_id
         value
@@ -58,6 +59,7 @@ query CorporationTopShips($corporationId: Int!, $filter: TopTargetFilter) {
     shipType {
       id
       name
+      metaGroupId
       dogmaAttributes(ids: [422, 1692]) {
         attribute_id
         value

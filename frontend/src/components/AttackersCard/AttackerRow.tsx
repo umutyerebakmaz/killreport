@@ -101,15 +101,14 @@ export default function AttackerRow({
         <div className="flex flex-col pr-4 shrink-0">
           <Tooltip content={attacker.shipType?.name || 'Unknown Ship'}>
             <div className="relative">
-              {attacker.shipType?.id &&
-                getShipTier(attacker.shipType?.dogmaAttributes) && (
-                  <div className="absolute top-0 left-0 z-20">
-                    <ShipTierBadge
-                      tier={getShipTier(attacker.shipType?.dogmaAttributes)}
-                      className="size-4"
-                    />
-                  </div>
-                )}
+              {attacker.shipType?.id && getShipTier(attacker.shipType) && (
+                <div className="absolute top-0 left-0 z-20">
+                  <ShipTierBadge
+                    tier={getShipTier(attacker.shipType)}
+                    className="size-4"
+                  />
+                </div>
+              )}
               {attacker.shipType?.id ? (
                 <EveImage
                   kind="ship"

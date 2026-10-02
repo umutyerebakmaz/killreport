@@ -58,7 +58,7 @@ export default function TopShipsCard({
       ) : (
         <div className="flex flex-col divide-y divide-white/5">
           {ships.map((ship, index) => {
-            const shipTier = getShipTier(ship.dogmaAttributes);
+            const shipTier = getShipTier(ship);
 
             return (
               <div key={ship.id} className="card-row">

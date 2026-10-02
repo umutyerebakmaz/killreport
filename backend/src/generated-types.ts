@@ -2400,6 +2400,13 @@ export type Type = {
   /** Jita market price (cached, updates every 4 hours) */
   jitaPrice?: Maybe<JitaPrice>;
   mass?: Maybe<Scalars['Float']['output']>;
+  /**
+   * The type's meta group: 1 Tech I, 2 Tech II, 3 Storyline, 4 Faction,
+   * 5 Officer, 6 Deadspace, 14 Tech III, and so on. From CCP's Static Data
+   * Export rather than ESI, which does not carry it; null for a type with none,
+   * or one added since `yarn sde:meta-groups` last ran.
+   */
+  metaGroupId?: Maybe<Scalars['Int']['output']>;
   name: Scalars['String']['output'];
   published: Scalars['Boolean']['output'];
   updated_at: Scalars['String']['output'];
@@ -4014,6 +4021,7 @@ export type TypeResolvers<ContextType = any, ParentType extends ResolversParentT
   id?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   jitaPrice?: Resolver<Maybe<ResolversTypes['JitaPrice']>, ParentType, ContextType>;
   mass?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
+  metaGroupId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   published?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   updated_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
