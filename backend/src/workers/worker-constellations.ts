@@ -45,17 +45,17 @@ async function processConstellation(constellationId: number): Promise<boolean> {
     update: {
       name: data.name,
       region_id: data.region_id || null,
-      position_x: data.position?.x || null,
-      position_y: data.position?.y || null,
-      position_z: data.position?.z || null,
+      position_x: data.position?.x ?? null,
+      position_y: data.position?.y ?? null,
+      position_z: data.position?.z ?? null,
     },
     create: {
       id: constellationId,
       name: data.name,
       region_id: data.region_id || null,
-      position_x: data.position?.x || null,
-      position_y: data.position?.y || null,
-      position_z: data.position?.z || null,
+      position_x: data.position?.x ?? null,
+      position_y: data.position?.y ?? null,
+      position_z: data.position?.z ?? null,
     },
   });
 

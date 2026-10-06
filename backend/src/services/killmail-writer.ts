@@ -82,9 +82,9 @@ export async function saveKillmail(
           alliance_id: victim.alliance_id || null,
           ship_type_id: victim.ship_type_id,
           damage_taken: victim.damage_taken,
-          position_x: victim.position?.x || null,
-          position_y: victim.position?.y || null,
-          position_z: victim.position?.z || null,
+          position_x: victim.position?.x ?? null,
+          position_y: victim.position?.y ?? null,
+          position_z: victim.position?.z ?? null,
           faction_id: victim.faction_id ?? null,
         },
       });
