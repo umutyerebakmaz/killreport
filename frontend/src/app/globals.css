@@ -101,6 +101,12 @@
      hues taken down to the lightness the Tailwind 700s sat at. */
   --color-destroyed-fill: var(--color-red-700);
   --color-dropped-fill: #008425;
+
+  /* Ship tiers — each one is the fill of its own icon in public/icons/, so
+     the corner on a ship render and the badge sitting in it agree. */
+  --color-tier-faction: #02542d;
+  --color-tier-t2: #db7c28;
+  --color-tier-t3: #c00f0c;
 }
 
 html,
