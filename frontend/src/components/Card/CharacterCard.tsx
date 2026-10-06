@@ -34,7 +34,7 @@ export default function CharacterCard({ character }: CharacterCardProps) {
               kind="character"
               id={character.id}
               name={character.name}
-              size={512}
+              size={256}
               className="object-cover size-full"
             />
           </Link>

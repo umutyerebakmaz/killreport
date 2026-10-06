@@ -5,6 +5,7 @@ import KillmailsTable from '@/components/KillmailsTable';
 import { Loader } from '@/components/Loader/Loader';
 import Paginator from '@/components/Paginator/Paginator';
 import Tooltip from '@/components/Tooltip/Tooltip';
+import MembershipLink from '@/components/ui/MembershipLink';
 import TopShipsCard from '@/components/TopShipsCard';
 import TopTargetsCard from '@/components/TopTargetsCard';
 import {
@@ -19,7 +20,6 @@ import {
 import { useTabList } from '@/hooks/useTabList';
 import { calculateAge, humanReadableDate } from '@/utils/date';
 import { getSecurityStatusColor } from '@/utils/securityStatus';
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import EveImage from '@/components/ui/EveImage';
@@ -221,115 +221,67 @@ export default function CharacterDetailPage({
 
   return (
     <main>
-      <div className="card p-6 flex flex-col">
-        {/* Portrait and Character Name */}
-        <div className="flex items-center justify-center">
-          <EveImage
-            kind="character"
-            id={character.id}
-            name={character.name}
-            size={128}
-            className="shadow-md"
-          />
+      {/* The portrait sits flush against the card's top, left and bottom
+          edges; only the text beside it gets the card's padding. 256px drawn;
+          EveImage fetches 512 for retina. */}
+      <div className="card flex flex-col overflow-hidden sm:flex-row">
+        <EveImage
+          kind="character"
+          id={character.id}
+          name={character.name}
+          size={256}
+          className="flex-none object-cover size-64"
+        />
 
-          {/* Alliance & Corporation Logos - Bottom Right */}
-          <div className="flex flex-col">
-            {/* Corporation Logo */}
-            {character.corporation?.id && (
-              <Tooltip
-                content={`Corporation: ${
-                  character.corporation?.name || 'Unknown'
-                }`}
-              >
-                <EveImage
-                  kind="corporation"
-                  id={character.corporation?.id ?? 0}
-                  name={character.corporation?.name || 'Corporation'}
-                  size={64}
-                  className="shadow-md"
-                />
-              </Tooltip>
-            )}
+        <div className="flex flex-col justify-center flex-1 min-w-0 gap-1 p-6">
+          {character.title && (
+            <EveHtmlRenderer
+              html={character.title}
+              className="text-sm font-medium"
+            />
+          )}
+          <h1 className="text-4xl font-bold truncate">{character.name}</h1>
 
-            {/* Alliance Logo */}
-            {character.alliance?.id && (
-              <Tooltip
-                content={`Alliance: ${character.alliance?.name || 'Unknown'}`}
-              >
-                <EveImage
-                  kind="alliance"
-                  id={character.alliance?.id ?? 0}
-                  name={character.alliance?.name || 'Alliance'}
-                  size={64}
-                  className="shadow-md"
-                />
-              </Tooltip>
-            )}
-          </div>
-
-          <div className="flex-1 min-w-0 pl-6">
-            {character.title && (
-              <div className="col-span-2">
-                <div className="mt-2">
-                  <EveHtmlRenderer
-                    html={character.title}
-                    className="text-sm font-medium"
+          {(character.corporation || character.alliance) && (
+            <div className="flex items-center min-w-0 gap-3">
+              {character.corporation && (
+                <Tooltip content="Show Corporation Info" className="min-w-0">
+                  <MembershipLink
+                    kind="corporation"
+                    logoSize={32}
+                    entity={character.corporation}
+                    prefetch={false}
                   />
-                </div>
-              </div>
-            )}
-            <h1 className="text-4xl font-bold truncate">{character.name}</h1>
-
-            {/* Corporation */}
-            {character.corporation && (
-              <div className="min-w-0">
-                <Tooltip content="Corporation" position="top">
-                  <Link
-                    href={`/corporations/${character.corporation.id}`}
-                    prefetch={false}
-                    className="inline-flex items-center max-w-full min-w-0 gap-2 hover:text-gray-300"
-                  >
-                    <span className="text-base truncate">
-                      {`Member of ${character.corporation.name} [${character.corporation.ticker}]`}
-                    </span>
-                  </Link>
                 </Tooltip>
-              </div>
-            )}
-
-            {/* Alliance */}
-            {character.alliance && (
-              <div className="min-w-0">
-                <Tooltip content="Alliance" position="top">
-                  <Link
-                    href={`/alliances/${character.alliance.id}`}
+              )}
+              {character.alliance && (
+                <Tooltip content="Show Alliance Info" className="min-w-0">
+                  <MembershipLink
+                    kind="alliance"
+                    logoSize={32}
+                    entity={character.alliance}
                     prefetch={false}
-                    className="inline-flex items-center max-w-full min-w-0 gap-2 text-yellow-400 hover:text-yellow-300"
-                  >
-                    <span className="text-base truncate">
-                      {character.alliance.name}
-                    </span>
-                  </Link>
+                  />
                 </Tooltip>
-              </div>
-            )}
-
-            {/* Age */}
-            <div>
-              <span className="text-sm text-ink-muted">{age}</span>
+              )}
             </div>
+          )}
 
-            {/* Security Status */}
-            {character.securityStatus && (
-              <div>
-                <span
-                  className={`text-sm font-medium ${getSecurityStatusColor(character.securityStatus)}`}
-                >
-                  {character.securityStatus.toFixed(1)}
-                </span>
-              </div>
-            )}
+          {/* Age */}
+          <div>
+            <span className="text-sm text-ink-muted">{age}</span>
           </div>
+
+          {/* Security Status */}
+          {character.securityStatus && (
+            <div>
+              <span
+                className={`text-sm font-medium ${getSecurityStatusColor(character.securityStatus)}`}
+              >
+                {character.securityStatus.toFixed(1)}
+              </span>
+            </div>
+          )}
         </div>
       </div>
 

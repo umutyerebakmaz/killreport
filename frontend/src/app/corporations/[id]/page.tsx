@@ -328,17 +328,19 @@ export default function CorporationDetailPage({
 
   return (
     <main>
-      <div className="card p-6 flex flex-col">
-        {/* Logo and Corporation Name */}
-        <div className="flex flex-row items-center justify-between">
-          <div className="flex items-center justify-center gap-6">
-            <EveImage
-              kind="corporation"
-              id={corporation.id}
-              name={corporation.name}
-              size={128}
-              className="shadow-md"
-            />
+      {/* The logo sits flush against the card's top, left and bottom edges,
+          as on the character page; only what is beside it gets the padding.
+          256px drawn; EveImage fetches 512 for retina. */}
+      <div className="card flex flex-col overflow-hidden sm:flex-row">
+        <EveImage
+          kind="corporation"
+          id={corporation.id}
+          name={corporation.name}
+          size={256}
+          className="flex-none object-cover size-64"
+        />
+        <div className="flex flex-row items-center justify-between flex-1 min-w-0 gap-6 p-6">
+          <div className="flex items-center gap-6">
             <div className="flex-1">
               <h1 className="text-4xl font-bold">{corporation.name}</h1>
               <div className="mt-2">
