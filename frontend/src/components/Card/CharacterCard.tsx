@@ -16,7 +16,8 @@ export default function CharacterCard({ character }: CharacterCardProps) {
   return (
     // The killmail's victim card: the portrait as wide as the card and
     // square, the name and memberships over its darkened bottom band.
-    <Card className="overflow-hidden">
+    // On hover the border lightens, as on CorporationCard.
+    <Card className="overflow-hidden transition-colors duration-200 hover:border-white/25">
       <div className="relative w-full overflow-hidden aspect-square bg-surface-inset">
         {/* tooltip.css is unlayered, so its fit-content width beats a plain
             utility; the ! is what lets the trigger fill the portrait. */}

@@ -1,5 +1,6 @@
 'use client';
 
+import CardLogoBackdrop from '@/components/Card/CardLogoBackdrop';
 import CharactersTable from '@/components/CharactersTable/CharactersTable';
 import CorporationGrowthChart from '@/components/CorporationGrowthChart/CorporationGrowthChart';
 import KillmailsTable from '@/components/KillmailsTable';
@@ -330,16 +331,23 @@ export default function CorporationDetailPage({
     <main>
       {/* The logo sits flush against the card's top, left and bottom edges,
           as on the character page; only what is beside it gets the padding.
-          256px drawn; EveImage fetches 512 for retina. */}
-      <div className="card flex flex-col overflow-hidden sm:flex-row">
+          256px drawn; EveImage fetches 512 for retina. Under both, the logo
+          blurred into glass, as on CorporationCard. */}
+      <div className="card relative flex flex-col overflow-hidden sm:flex-row">
+        <CardLogoBackdrop
+          kind="corporation"
+          id={corporation.id}
+          name={corporation.name}
+          size={256}
+        />
         <EveImage
           kind="corporation"
           id={corporation.id}
           name={corporation.name}
           size={256}
-          className="flex-none object-cover size-64"
+          className="relative flex-none object-cover size-64"
         />
-        <div className="flex flex-row items-center justify-between flex-1 min-w-0 gap-6 p-6">
+        <div className="relative flex flex-row items-center justify-between flex-1 min-w-0 gap-6 p-6">
           <div className="flex items-center gap-6">
             <div className="flex-1">
               <h1 className="text-4xl font-bold">{corporation.name}</h1>

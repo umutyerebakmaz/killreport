@@ -1,5 +1,4 @@
 import Tooltip from '@/components/Tooltip/Tooltip';
-import Card from '@/components/ui/Card';
 import { CorporationsQuery } from '@/generated/graphql';
 import { BuildingOffice2Icon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
@@ -8,6 +7,7 @@ import { useState, type MouseEvent } from 'react';
 import MemberDeltaBadge from '../MemberDeltaBadge/MemberDeltaBadge';
 import TotalMemberBadge from '../TotalMemberBadge/TotalMemberBadge';
 import EveImage from '../ui/EveImage';
+import CardLogoBackdrop from './CardLogoBackdrop';
 
 // Extract the Corporation type returned by useCorporationsQuery
 type Corporation = CorporationsQuery['corporations']['items'][number];
@@ -64,82 +64,86 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
     : 'Unknown';
 
   return (
-    // Only the metrics and the founding date sit on a card; the logo, name,
-    // ticker and alliance stand above it on the page's own ground. The same
-    // layout as AllianceCard.
+    // FactionCard's layout: one card surface under everything, the metrics
+    // and the founding date set off by their own top borders, over the
+    // entity's own logo blurred into glass. The div is .card rather than
+    // <Card> because it takes the click.
     <div
-      className="flex flex-col items-center gap-4 pt-8 cursor-pointer"
+      className="relative overflow-hidden transition-colors duration-200 cursor-pointer card group hover:border-white/25"
       onClick={openDetail}
     >
-      <div className="relative w-32 h-32">
-        {!imageLoaded && (
-          <div className="absolute inset-0 animate-pulse bg-surface-inset/50">
-            <div className="flex items-center justify-center w-full h-full">
-              <BuildingOffice2Icon className="w-12 h-12 text-gray-700" />
+      <CardLogoBackdrop
+        kind="corporation"
+        id={corporation.id}
+        name={corporation.name}
+      />
+      <div className="relative flex flex-col items-center gap-4 px-4 py-5 sm:p-6">
+        <div className="relative w-32 h-32">
+          {!imageLoaded && (
+            <div className="absolute inset-0 animate-pulse bg-surface-inset/50">
+              <div className="flex items-center justify-center w-full h-full">
+                <BuildingOffice2Icon className="w-12 h-12 text-gray-700" />
+              </div>
             </div>
-          </div>
-        )}
-        <EveImage
-          kind="corporation"
-          id={corporation.id}
-          name={corporation.name}
-          size={128}
-          className={`transition-opacity duration-300 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
-          onLoad={() => setImageLoaded(true)}
-        />
-      </div>
-
-      {/* The name row and the alliance row as one group, so the card's
-          gap-4 falls around the pair rather than between them. */}
-      <div className="flex flex-col items-center w-full">
-        {/* Name and ticker on one line, as on AllianceCard. A long name
-            truncates; the ticker never does. */}
-        <div className="flex items-center justify-center w-full min-w-0 gap-2">
-          <Tooltip content="Show Corporation Info" className="min-w-0">
-            <Link
-              href={href}
-              className="block text-base font-medium text-gray-200 truncate hover:text-accent-link"
-              prefetch={false}
-            >
-              {corporation.name}
-            </Link>
-          </Tooltip>
-          <Tooltip
-            content="Corporation Ticker"
-            position="top"
-            className="flex-none"
-          >
-            <span className="text-base font-bold text-gray-200">
-              [{corporation.ticker}]
-            </span>
-          </Tooltip>
+          )}
+          <EveImage
+            kind="corporation"
+            id={corporation.id}
+            name={corporation.name}
+            size={128}
+            className={`transition-opacity duration-300 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            onLoad={() => setImageLoaded(true)}
+          />
         </div>
 
-        {/* The alliance name in the standard text colour. The h-5 row stays
-            when there is no alliance, so the cards keep one height. */}
-        <div className="h-5 max-w-full">
-          {corporation.alliance && (
-            <Tooltip content="Show Alliance Info" position="top">
+        {/* The name row and the alliance row as one group, so the card's
+            gap-4 falls around the pair rather than between them. */}
+        <div className="flex flex-col items-center w-full">
+          {/* Name and ticker on one line, as on AllianceCard. A long name
+              truncates; the ticker never does. */}
+          <div className="flex items-center justify-center w-full min-w-0 gap-2">
+            <Tooltip content="Show Corporation Info" className="min-w-0">
               <Link
-                href={`/alliances/${corporation.alliance.id}`}
-                className="flex items-center gap-2 text-gray-200 hover:text-accent-link"
+                href={href}
+                className="block text-base font-medium text-gray-200 truncate hover:text-accent-link"
                 prefetch={false}
               >
-                <span className="text-base line-clamp-1">
-                  {corporation.alliance.name}
-                </span>
+                {corporation.name}
               </Link>
             </Tooltip>
-          )}
-        </div>
-      </div>
+            <Tooltip
+              content="Corporation Ticker"
+              position="top"
+              className="flex-none"
+            >
+              <span className="text-base font-bold text-gray-200">
+                [{corporation.ticker}]
+              </span>
+            </Tooltip>
+          </div>
 
-      <Card className="flex flex-col w-full gap-3 px-4 py-3 sm:px-6">
-        {/* Not .card-metrics: its top border and padding separate it from
-            what is above, and here the card's own edge already does. */}
-        <div className="flex items-center justify-between w-full gap-4">
+          {/* The alliance name in the standard text colour. The h-5 row stays
+              when there is no alliance, so the cards keep one height. */}
+          <div className="h-5 max-w-full">
+            {corporation.alliance && (
+              <Tooltip content="Show Alliance Info" position="top">
+                <Link
+                  href={`/alliances/${corporation.alliance.id}`}
+                  className="flex items-center gap-2 text-gray-200 hover:text-accent-link"
+                  prefetch={false}
+                >
+                  <span className="text-base line-clamp-1">
+                    {corporation.alliance.name}
+                  </span>
+                </Link>
+              </Tooltip>
+            )}
+          </div>
+        </div>
+
+        <div className="card-metrics">
           {/* Member count */}
           <TotalMemberBadge count={corporation.member_count} />
           {/* Member delta 7d */}
@@ -155,7 +159,7 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
             <div className="text-xs text-ink-muted">{foundedDate}</div>
           </Tooltip>
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

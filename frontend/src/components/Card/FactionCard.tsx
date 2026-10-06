@@ -1,11 +1,13 @@
 import Tooltip from '@/components/Tooltip/Tooltip';
-import Card from '@/components/ui/Card';
 import { FactionsQuery } from '@/generated/graphql';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import type { MouseEvent } from 'react';
 import SovSystemBadge from '../SovSystemBadge/SovSystemBadge';
 import TotalCorporationBadge from '../TotalCorporationMember/TotalCorporationBadge';
 import TotalMemberBadge from '../TotalMemberBadge/TotalMemberBadge';
 import EveImage from '../ui/EveImage';
+import CardLogoBackdrop from './CardLogoBackdrop';
 
 type Faction = FactionsQuery['factions'][number];
 
@@ -14,11 +16,31 @@ type FactionCardProps = {
 };
 
 export default function FactionCard({ faction }: FactionCardProps) {
+  const router = useRouter();
+  const href = `/factions/${faction.id}?tab=killmails`;
+
+  // The whole card opens the detail page, as on AllianceCard and
+  // CorporationCard. A click that landed on a link is left to the link.
+  const openDetail = (e: MouseEvent<HTMLDivElement>) => {
+    if ((e.target as Element).closest('a')) return;
+    router.push(href);
+  };
+
   return (
-    <Card>
-      <div className="px-4 py-5 sm:p-6">
+    // The emblem blurred into glass under the whole card, and the Most
+    // Valuable card's hover, as on AllianceCard and CorporationCard.
+    <div
+      className="relative overflow-hidden transition-colors duration-200 cursor-pointer card group hover:border-white/25"
+      onClick={openDetail}
+    >
+      {/* Faction emblems are served from the corporation path; see TopFactionsCard. */}
+      <CardLogoBackdrop
+        kind="corporation"
+        id={faction.id}
+        name={faction.name}
+      />
+      <div className="relative px-4 py-5 sm:p-6">
         <div className="flex flex-col items-center gap-4">
-          {/* Faction emblems are served from the corporation path; see TopFactionsCard. */}
           <EveImage
             kind="corporation"
             id={faction.id}
@@ -26,11 +48,7 @@ export default function FactionCard({ faction }: FactionCardProps) {
             size={128}
           />
           <Tooltip content="Show Faction Info">
-            <Link
-              href={`/factions/${faction.id}?tab=killmails`}
-              className="alliance-name"
-              prefetch={false}
-            >
+            <Link href={href} className="alliance-name" prefetch={false}>
               {faction.name}
             </Link>
           </Tooltip>
@@ -42,6 +60,6 @@ export default function FactionCard({ faction }: FactionCardProps) {
           </div>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
