@@ -14,8 +14,16 @@ export const CACHE_TTL = {
   /** Static game data (types, categories, groups, dogma attributes) - never changes */
   STATIC_GAME_DATA: 31536000_000, // 365 days (1 year)
 
-  /** Character/Corporation/Alliance info (rarely changes) */
-  ENTITY_INFO: 31536000_000, // 365 days (1 year)
+  /** Character/Corporation/Alliance info: corporation, alliance, title,
+   *  member counts and sovereignty all move, so a refresh by the info
+   *  workers shows up within two hours. */
+  ENTITY_INFO: 7_200_000, // 2 hours
+
+  /** Sovereignty holders: worker-sov-map refreshes every 30 minutes */
+  SOVEREIGNTY: 1_800_000, // 30 minutes
+
+  /** Jita prices: queue-prices refreshes them once a day */
+  MARKET_PRICE: 3_600_000, // 1 hour
 
   /** Killmails list - first pages (new killmails arrive frequently) */
   KILLMAIL_LIST_FIRST_PAGES: 60_000, // 1 minute
@@ -132,6 +140,15 @@ export const TTL_PER_SCHEMA_COORDINATE: Record<string, number> = {
   // hourly activity snapshot. Query.solarSystem's 365 days over the same
   // numbers is exactly the bug this query exists to avoid.
   'Query.mapSystemDetails': CACHE_TTL.LIVE_SYSTEM_DATA,
+
+  // Live fields reachable from the long-lived queries above. useResponseCache
+  // takes the shortest TTL of every coordinate a query selects, so without
+  // these a region page would hold its sovereignty holder, a system page its
+  // hourly activity and a type page its Jita price for a year.
+  'SolarSystem.latestActivity': CACHE_TTL.LIVE_SYSTEM_DATA,
+  'Region.sovereignty': CACHE_TTL.SOVEREIGNTY,
+  'Constellation.sovereignty': CACHE_TTL.SOVEREIGNTY,
+  'Type.jitaPrice': CACHE_TTL.MARKET_PRICE,
 
   // Per-user, never cached: a shared bucket would serve one user's data to another.
   'Query.me': 0,

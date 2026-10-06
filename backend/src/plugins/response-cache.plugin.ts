@@ -81,23 +81,14 @@ export function createResponseCachePlugin() {
         }
       },
 
-      set: async (key, value, ttl) => {
+      // useResponseCache calls set(id, data, entities, ttl). This used to
+      // take three parameters, so the entity list arrived as `ttl`, was never
+      // a number, and every response fell back to REDIS_DEFAULT — none of
+      // TTL_PER_SCHEMA_COORDINATE ever applied.
+      set: async (key, value, _entities, ttl) => {
         try {
-          // Handle TTL (can be number, Map iterator, or undefined)
-          let ttlValue = CACHE_TTL.REDIS_DEFAULT;
-
-          if (ttl !== undefined && ttl !== null) {
-            if (typeof ttl === 'object' && Symbol.iterator in Object(ttl)) {
-              // Extract from iterator
-              const iterator = ttl[Symbol.iterator]();
-              const first = iterator.next();
-              if (!first.done && typeof first.value === 'number') {
-                ttlValue = first.value;
-              }
-            } else if (typeof ttl === 'number') {
-              ttlValue = ttl;
-            }
-          }
+          const ttlValue =
+            typeof ttl === 'number' ? ttl : CACHE_TTL.REDIS_DEFAULT;
 
           // Convert to seconds
           const ttlInSeconds = Math.ceil(ttlValue / 1000);
