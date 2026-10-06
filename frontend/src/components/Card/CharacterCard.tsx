@@ -1,10 +1,8 @@
 import Tooltip from '@/components/Tooltip/Tooltip';
 import Card from '@/components/ui/Card';
+import MembershipLink from '@/components/ui/MembershipLink';
 import { CharactersQuery } from '@/generated/graphql';
-import { getSecurityStatusColor } from '@/utils/securityStatus';
-import { ShieldCheckIcon, UserIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { useState } from 'react';
 import EveImage from '../ui/EveImage';
 
 // Extract the Character type returned by useCharactersQuery
@@ -15,89 +13,69 @@ type CharacterCardProps = {
 };
 
 export default function CharacterCard({ character }: CharacterCardProps) {
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-  const securityStatus = character.securityStatus?.toFixed(1) ?? 'N/A';
-  const securityColor = getSecurityStatusColor(character.securityStatus);
-
   return (
-    <Card>
-      <div className="px-4 py-5 sm:p-6">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative w-24 h-24">
-            {!imageLoaded && (
-              <div className="absolute inset-0 animate-pulse bg-surface-inset/50">
-                <div className="flex items-center justify-center w-full h-full">
-                  <UserIcon className="w-12 h-12 text-gray-700" />
-                </div>
-              </div>
-            )}
+    // The killmail's victim card: the portrait as wide as the card and
+    // square, the name and memberships over its darkened bottom band.
+    <Card className="overflow-hidden">
+      <div className="relative w-full overflow-hidden aspect-square bg-surface-inset">
+        {/* tooltip.css is unlayered, so its fit-content width beats a plain
+            utility; the ! is what lets the trigger fill the portrait. */}
+        <Tooltip
+          content="Show Character Info"
+          position="top-right"
+          className="block! size-full!"
+        >
+          <Link
+            href={`/characters/${character.id}`}
+            className="block size-full"
+            prefetch={false}
+          >
             <EveImage
               kind="character"
               id={character.id}
               name={character.name}
-              size={96}
-              className={`transition-opacity duration-300 ${
-                imageLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-              onLoad={() => setImageLoaded(true)}
+              size={512}
+              className="object-cover size-full"
             />
-          </div>
-          <Link
-            href={`/characters/${character.id}`}
-            className="character-name"
-            prefetch={false}
-          >
-            {character.name}
           </Link>
-
-          <div className="flex flex-col items-center w-full gap-2 min-h-11">
-            {/* Corporation — green-400 is the affiliation-label colour here, not dropped's */}
-            <div className="h-5">
+        </Tooltip>
+        <div className="absolute inset-x-0 bottom-0 h-24 pointer-events-none bg-linear-to-t from-black/95 via-black/70 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 p-3 space-y-1.5">
+          {/* The trigger is inline-block and as wide as its content; max-w-full
+              keeps it inside the card so truncate still has an edge to cut at. */}
+          <Tooltip content="Show Character Info" className="max-w-full">
+            <Link
+              href={`/characters/${character.id}`}
+              className="block text-[2rem] font-medium text-white truncate transition-colors hover:text-accent-link"
+              prefetch={false}
+            >
+              {character.name}
+            </Link>
+          </Tooltip>
+          {(character.corporation || character.alliance) && (
+            <div className="flex items-center gap-3">
               {character.corporation && (
-                <Tooltip content="Corporation" position="top">
-                  <Link
-                    href={`/corporations/${character.corporation.id}`}
-                    className="flex items-center gap-2 hover:text-accent-link"
+                <Tooltip content="Show Corporation Info" className="min-w-0">
+                  <MembershipLink
+                    kind="corporation"
+                    logoSize={32}
+                    entity={character.corporation}
                     prefetch={false}
-                  >
-                    <span className="text-base text-green-400 line-clamp-1">
-                      {character.corporation.name}
-                    </span>
-                  </Link>
+                  />
                 </Tooltip>
               )}
-            </div>
-
-            {/* Alliance name, not isk's — same affiliation-label colour scheme as Corporation above */}
-            <div className="h-5">
               {character.alliance && (
-                <Tooltip content="Alliance" position="top">
-                  <Link
-                    href={`/alliances/${character.alliance.id}`}
-                    className="flex items-center gap-2 hover:text-accent-link"
+                <Tooltip content="Show Alliance Info" className="min-w-0">
+                  <MembershipLink
+                    kind="alliance"
+                    logoSize={32}
+                    entity={character.alliance}
                     prefetch={false}
-                  >
-                    <span className="text-base text-yellow-400 line-clamp-1">
-                      {character.alliance.name}
-                    </span>
-                  </Link>
+                  />
                 </Tooltip>
               )}
             </div>
-          </div>
-
-          <div className="flex items-center justify-center w-full pt-3 border-t border-white/10">
-            {/* Security Status */}
-            <Tooltip content="Security Status" position="top">
-              <div className="flex items-center gap-2">
-                <ShieldCheckIcon className={`w-5 h-5 ${securityColor}`} />
-                <span className={`text-sm font-medium ${securityColor}`}>
-                  {securityStatus}
-                </span>
-              </div>
-            </Tooltip>
-          </div>
+          )}
         </div>
       </div>
     </Card>
