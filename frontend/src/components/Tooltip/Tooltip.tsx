@@ -2,7 +2,7 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import './tooltip.css';
 
-type TooltipPosition = 'top' | 'bottom' | 'left' | 'right';
+type TooltipPosition = 'top' | 'bottom' | 'left' | 'right' | 'top-right';
 
 interface TooltipProps {
   content: ReactNode;
@@ -59,6 +59,12 @@ export default function Tooltip({
           top =
             triggerRect.top + triggerRect.height / 2 - tooltipRect.height / 2;
           left = triggerRect.right + 8;
+          break;
+        case 'top-right':
+          // Inside the trigger's top-right corner, for a large one such as a
+          // portrait, where the edge midpoints sit far from the pointer.
+          top = triggerRect.top + 8;
+          left = triggerRect.right - tooltipRect.width - 8;
           break;
       }
 
