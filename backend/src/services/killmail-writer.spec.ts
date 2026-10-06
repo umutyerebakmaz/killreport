@@ -228,6 +228,53 @@ describe('data ESI really sends', () => {
     );
   });
 
+  it('keeps a victim coordinate of exactly 0 rather than nulling it', async () => {
+    await saveKillmail(
+      detail({
+        victim: {
+          character_id: 95465499,
+          corporation_id: 98000001,
+          ship_type_id: 670,
+          damage_taken: 1200,
+          position: { x: 0, y: -1.5e11, z: 4.2e10 },
+          items: [],
+        },
+      }),
+      HASH,
+    );
+
+    expect(txMock.victim.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        position_x: 0,
+        position_y: -1.5e11,
+        position_z: 4.2e10,
+      }),
+    });
+  });
+
+  it('stores no position when ESI sends none', async () => {
+    await saveKillmail(
+      detail({
+        victim: {
+          character_id: 95465499,
+          corporation_id: 98000001,
+          ship_type_id: 670,
+          damage_taken: 1200,
+          items: [],
+        },
+      }),
+      HASH,
+    );
+
+    expect(txMock.victim.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        position_x: null,
+        position_y: null,
+        position_z: null,
+      }),
+    });
+  });
+
   it('refuses a killmail with no attackers', async () => {
     // Writing attacker_count 0 and counting nobody silently produces a wrong
     // killmail; the source has to fetch it again.
