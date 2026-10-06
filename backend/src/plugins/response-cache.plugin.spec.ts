@@ -26,7 +26,12 @@ type Options = {
   includeExtensionMetadata: boolean;
   cache: {
     get: (key: string) => Promise<unknown>;
-    set: (key: string, value: unknown, ttl?: unknown) => Promise<void>;
+    set: (
+      key: string,
+      value: unknown,
+      entities: Iterable<unknown>,
+      ttl?: number | null,
+    ) => Promise<void>;
     invalidate: (
       entities: Array<{ typename: string; id?: string | number }>,
     ) => Promise<void>;
@@ -144,29 +149,34 @@ describe('cache.get', () => {
 });
 
 describe('cache.set', () => {
+  // useResponseCache calls set(id, data, entities, ttl). The entity list is
+  // what the old three-argument signature read as its TTL, which sent every
+  // response to the 60-second default.
+  const entities = [{ typename: 'Character', id: 1 }];
+
   it('stores the serialised value with the TTL converted from ms to whole seconds', async () => {
     const { cache } = pluginOptions();
 
-    await cache.set('k', { data: 1 }, 120_000);
-    await cache.set('k2', { data: 2 }, 1_500);
+    await cache.set('k', { data: 1 }, entities, 120_000);
+    await cache.set('k2', { data: 2 }, entities, 1_500);
 
     expect(redisCache.setex).toHaveBeenNthCalledWith(1, 'k', 120, '{"data":1}');
     expect(redisCache.setex).toHaveBeenNthCalledWith(2, 'k2', 2, '{"data":2}');
   });
 
-  it('reads the first entry when the TTL arrives as an iterator', async () => {
+  it('takes the TTL from the fourth argument, not the entity list', async () => {
     const { cache } = pluginOptions();
 
-    await cache.set('k', { data: 1 }, new Set([5_000, 9_000]).values());
+    await cache.set('k', { data: 1 }, new Set([5_000]).values(), 7_200_000);
 
-    expect(redisCache.setex).toHaveBeenCalledWith('k', 5, '{"data":1}');
+    expect(redisCache.setex).toHaveBeenCalledWith('k', 7_200, '{"data":1}');
   });
 
   it('uses the Redis default when no TTL is given', async () => {
     const { cache } = pluginOptions();
 
-    await cache.set('k', { data: 1 });
-    await cache.set('k2', { data: 2 }, null);
+    await cache.set('k', { data: 1 }, entities);
+    await cache.set('k2', { data: 2 }, entities, null);
 
     expect(redisCache.setex).toHaveBeenNthCalledWith(1, 'k', 60, '{"data":1}');
     expect(redisCache.setex).toHaveBeenNthCalledWith(2, 'k2', 60, '{"data":2}');
@@ -175,8 +185,8 @@ describe('cache.set', () => {
   it('clamps a zero or oversized TTL to 60 seconds with a warning', async () => {
     const { cache } = pluginOptions();
 
-    await cache.set('zero', { data: 1 }, 0);
-    await cache.set('huge', { data: 2 }, 31_536_001_000);
+    await cache.set('zero', { data: 1 }, entities, 0);
+    await cache.set('huge', { data: 2 }, entities, 31_536_001_000);
 
     expect(redisCache.setex).toHaveBeenNthCalledWith(
       1,
@@ -198,7 +208,9 @@ describe('cache.set', () => {
     const failure = new Error('OOM');
     redisCache.setex.mockRejectedValueOnce(failure);
 
-    await expect(cache.set('k', { data: 1 }, 1_000)).resolves.toBeUndefined();
+    await expect(
+      cache.set('k', { data: 1 }, entities, 1_000),
+    ).resolves.toBeUndefined();
     expect(logger.error).toHaveBeenCalledWith('cache set error:', failure);
   });
 });
