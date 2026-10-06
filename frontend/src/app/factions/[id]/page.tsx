@@ -1,5 +1,6 @@
 'use client';
 
+import CardLogoBackdrop from '@/components/Card/CardLogoBackdrop';
 import CorporationTable from '@/components/CorporationsTable/CorporationsTable';
 import KillmailsTable from '@/components/KillmailsTable';
 import { Loader } from '@/components/Loader/Loader';
@@ -262,8 +263,14 @@ export default function FactionDetailPage({ params }: FactionDetailPageProps) {
 
   return (
     <main>
-      <div className="card p-6 flex flex-col">
-        <div className="flex flex-row items-center justify-between">
+      {/* The emblem blurred into glass under the card, as on FactionCard. */}
+      <div className="card relative overflow-hidden p-6 flex flex-col">
+        <CardLogoBackdrop
+          kind="corporation"
+          id={faction.id}
+          name={faction.name}
+        />
+        <div className="relative flex flex-row items-center justify-between">
           <div className="flex items-center justify-center gap-6">
             {/* Faction emblems are served from the corporation path; see TopFactionsCard. */}
             <EveImage

@@ -1,6 +1,7 @@
 'use client';
 
 import AllianceGrowthChart from '@/components/AllianceGrowthChart/AllianceGrowthChart';
+import CardLogoBackdrop from '@/components/Card/CardLogoBackdrop';
 import CorporationTable from '@/components/CorporationsTable/CorporationsTable';
 import KillmailsTable from '@/components/KillmailsTable';
 import { Loader } from '@/components/Loader/Loader';
@@ -331,16 +332,23 @@ export default function AllianceDetailPage({
     <main>
       {/* The logo sits flush against the card's top, left and bottom edges,
           as on the character page; only what is beside it gets the padding.
-          256px drawn; EveImage fetches 512 for retina. */}
-      <div className="card flex flex-col overflow-hidden sm:flex-row">
+          256px drawn; EveImage fetches 512 for retina. Under both, the logo
+          blurred into glass, as on AllianceCard. */}
+      <div className="card relative flex flex-col overflow-hidden sm:flex-row">
+        <CardLogoBackdrop
+          kind="alliance"
+          id={alliance.id}
+          name={alliance.name}
+          size={256}
+        />
         <EveImage
           kind="alliance"
           id={alliance.id}
           name={alliance.name}
           size={256}
-          className="flex-none object-cover size-64"
+          className="relative flex-none object-cover size-64"
         />
-        <div className="flex flex-row items-center justify-between flex-1 min-w-0 gap-6 p-6">
+        <div className="relative flex flex-row items-center justify-between flex-1 min-w-0 gap-6 p-6">
           <div className="flex items-center gap-6">
             <div className="flex-1">
               <h1 className="text-4xl font-bold">{alliance.name}</h1>

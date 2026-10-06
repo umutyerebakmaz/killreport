@@ -1,5 +1,6 @@
 'use client';
 
+import CardLogoBackdrop from '@/components/Card/CardLogoBackdrop';
 import EveHtmlRenderer from '@/components/EveHtmlRenderer';
 import KillmailsTable from '@/components/KillmailsTable';
 import { Loader } from '@/components/Loader/Loader';
@@ -223,17 +224,24 @@ export default function CharacterDetailPage({
     <main>
       {/* The portrait sits flush against the card's top, left and bottom
           edges; only the text beside it gets the card's padding. 256px drawn;
-          EveImage fetches 512 for retina. */}
-      <div className="card flex flex-col overflow-hidden sm:flex-row">
+          EveImage fetches 512 for retina. Under both, the portrait blurred
+          into glass, as on the entity list cards. */}
+      <div className="card relative flex flex-col overflow-hidden sm:flex-row">
+        <CardLogoBackdrop
+          kind="character"
+          id={character.id}
+          name={character.name}
+          size={256}
+        />
         <EveImage
           kind="character"
           id={character.id}
           name={character.name}
           size={256}
-          className="flex-none object-cover size-64"
+          className="relative flex-none object-cover size-64"
         />
 
-        <div className="flex flex-col justify-center flex-1 min-w-0 gap-1 p-6">
+        <div className="relative flex flex-col justify-center flex-1 min-w-0 gap-1 p-6">
           {character.title && (
             <EveHtmlRenderer
               html={character.title}
