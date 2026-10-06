@@ -415,10 +415,6 @@ export default function CorporationDetailPage({
             <h2 className="mb-4 text-2xl font-bold">Attributes</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <span className="text-ink-muted">Corporation Name</span>
-                <span className="ml-2 font-medium">{corporation.name}</span>
-              </div>
-              <div>
                 <span className="text-ink-muted">Ticker</span>
                 <span className="ml-2 font-medium">{corporation.ticker}</span>
               </div>
