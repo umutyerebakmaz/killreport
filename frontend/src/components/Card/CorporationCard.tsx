@@ -3,7 +3,8 @@ import Card from '@/components/ui/Card';
 import { CorporationsQuery } from '@/generated/graphql';
 import { BuildingOffice2Icon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { useState, type MouseEvent } from 'react';
 import MemberDeltaBadge from '../MemberDeltaBadge/MemberDeltaBadge';
 import TotalMemberBadge from '../TotalMemberBadge/TotalMemberBadge';
 import EveImage from '../ui/EveImage';
@@ -17,6 +18,16 @@ type CorporationCardProps = {
 
 export default function CorporationCard({ corporation }: CorporationCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const router = useRouter();
+  const href = `/corporations/${corporation.id}`;
+
+  // The whole card opens the detail page. A link inside it — the name, or
+  // another entity — keeps its own destination, so a click that landed on
+  // one is left alone. Keyboard users reach the page through the name link.
+  const openDetail = (e: MouseEvent<HTMLDivElement>) => {
+    if ((e.target as Element).closest('a')) return;
+    router.push(href);
+  };
 
   // Member deltas (weekly change)
   const memberDelta7d = corporation.metrics?.memberCountDelta7d ?? null;
@@ -53,78 +64,98 @@ export default function CorporationCard({ corporation }: CorporationCardProps) {
     : 'Unknown';
 
   return (
-    <Card>
-      <div className="px-4 py-5 sm:p-6">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative w-32 h-32">
-            {!imageLoaded && (
-              <div className="absolute inset-0 animate-pulse bg-surface-inset/50">
-                <div className="flex items-center justify-center w-full h-full">
-                  <BuildingOffice2Icon className="w-12 h-12 text-gray-700" />
-                </div>
-              </div>
-            )}
-            <EveImage
-              kind="corporation"
-              id={corporation.id}
-              name={corporation.name}
-              size={128}
-              className={`transition-opacity duration-300 ${
-                imageLoaded ? 'opacity-100' : 'opacity-0'
-              }`}
-              onLoad={() => setImageLoaded(true)}
-            />
-          </div>
-          <Link
-            href={`/corporations/${corporation.id}`}
-            className="corporation-name"
-            prefetch={false}
-          >
-            {corporation.name}
-          </Link>
-
-          {/* Ticker Badge */}
-          <Tooltip content="Corporation Ticker" position="top">
-            <div className="corporation-ticker">[{corporation.ticker}]</div>
-          </Tooltip>
-
-          {/* Alliance name, not isk's — the affiliation-label colour, same as CharacterCard's */}
-          <div className="flex flex-col items-center w-full gap-2 min-h-5">
-            <div className="h-5">
-              {corporation.alliance && (
-                <Tooltip content="Alliance" position="top">
-                  <Link
-                    href={`/alliances/${corporation.alliance.id}`}
-                    className="flex items-center gap-2 hover:text-accent-link"
-                    prefetch={false}
-                  >
-                    <span className="text-base text-yellow-400 line-clamp-1">
-                      {corporation.alliance.name}
-                    </span>
-                  </Link>
-                </Tooltip>
-              )}
+    // Only the metrics and the founding date sit on a card; the logo, name,
+    // ticker and alliance stand above it on the page's own ground. The same
+    // layout as AllianceCard.
+    <div
+      className="flex flex-col items-center gap-4 pt-8 cursor-pointer"
+      onClick={openDetail}
+    >
+      <div className="relative w-32 h-32">
+        {!imageLoaded && (
+          <div className="absolute inset-0 animate-pulse bg-surface-inset/50">
+            <div className="flex items-center justify-center w-full h-full">
+              <BuildingOffice2Icon className="w-12 h-12 text-gray-700" />
             </div>
           </div>
+        )}
+        <EveImage
+          kind="corporation"
+          id={corporation.id}
+          name={corporation.name}
+          size={128}
+          className={`transition-opacity duration-300 ${
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
+          onLoad={() => setImageLoaded(true)}
+        />
+      </div>
 
-          <div className="card-metrics">
-            {/* Member count */}
-            <TotalMemberBadge count={corporation.member_count} />
-            {/* Member delta 7d */}
-            <MemberDeltaBadge
-              memberDelta={memberDelta7d}
-              memberGrowthRate={memberGrowthRate7d}
-            />
-          </div>
+      {/* The name row and the alliance row as one group, so the card's
+          gap-4 falls around the pair rather than between them. */}
+      <div className="flex flex-col items-center w-full">
+        {/* Name and ticker on one line, as on AllianceCard. A long name
+            truncates; the ticker never does. */}
+        <div className="flex items-center justify-center w-full min-w-0 gap-2">
+          <Tooltip content="Show Corporation Info" className="min-w-0">
+            <Link
+              href={href}
+              className="block text-base font-medium text-gray-200 truncate hover:text-accent-link"
+              prefetch={false}
+            >
+              {corporation.name}
+            </Link>
+          </Tooltip>
+          <Tooltip
+            content="Corporation Ticker"
+            position="top"
+            className="flex-none"
+          >
+            <span className="text-base font-bold text-gray-200">
+              [{corporation.ticker}]
+            </span>
+          </Tooltip>
+        </div>
 
-          <div className="date-founded-section">
-            {/* Founded date */}
-            <Tooltip content="Date Founded" position="top">
-              <div className="text-xs text-ink-muted">{foundedDate}</div>
+        {/* The alliance name in the standard text colour. The h-5 row stays
+            when there is no alliance, so the cards keep one height. */}
+        <div className="h-5 max-w-full">
+          {corporation.alliance && (
+            <Tooltip content="Show Alliance Info" position="top">
+              <Link
+                href={`/alliances/${corporation.alliance.id}`}
+                className="flex items-center gap-2 text-gray-200 hover:text-accent-link"
+                prefetch={false}
+              >
+                <span className="text-base line-clamp-1">
+                  {corporation.alliance.name}
+                </span>
+              </Link>
             </Tooltip>
-          </div>
+          )}
         </div>
       </div>
-    </Card>
+
+      <Card className="flex flex-col w-full gap-3 px-4 py-3 sm:px-6">
+        {/* Not .card-metrics: its top border and padding separate it from
+            what is above, and here the card's own edge already does. */}
+        <div className="flex items-center justify-between w-full gap-4">
+          {/* Member count */}
+          <TotalMemberBadge count={corporation.member_count} />
+          {/* Member delta 7d */}
+          <MemberDeltaBadge
+            memberDelta={memberDelta7d}
+            memberGrowthRate={memberGrowthRate7d}
+          />
+        </div>
+
+        <div className="date-founded-section">
+          {/* Founded date */}
+          <Tooltip content="Date Founded" position="top">
+            <div className="text-xs text-ink-muted">{foundedDate}</div>
+          </Tooltip>
+        </div>
+      </Card>
+    </div>
   );
 }

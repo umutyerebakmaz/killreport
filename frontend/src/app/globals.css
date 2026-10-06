@@ -238,15 +238,9 @@ body {
 }
 
 .alliance-name,
-.corporation-name,
-.character-name,
 .constellation-name,
 .system-name {
   @apply flex items-center justify-center h-12 font-medium text-center text-gray-200 text-base hover:text-accent-link line-clamp-2;
-}
-
-.alliance-ticker {
-  @apply px-3 py-1 text-base font-bold text-yellow-400;
 }
 
 .card-metrics {
@@ -255,10 +249,6 @@ body {
 
 .date-founded-section {
   @apply flex flex-col items-center justify-center w-full gap-3 pt-3 border-t border-white/10;
-}
-
-.corporation-ticker {
-  @apply px-3 py-1 text-base font-bold text-green-500;
 }
 
 .detail-tab-content {
