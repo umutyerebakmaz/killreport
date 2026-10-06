@@ -115,8 +115,9 @@ async function allianceInfoWorker() {
                 // Mutable fields
                 name: allianceInfo.name,
                 ticker: allianceInfo.ticker,
-                executor_corporation_id: allianceInfo.executor_corporation_id,
                 // ESI omits the key when there is none; undefined would leave the old value
+                executor_corporation_id:
+                  allianceInfo.executor_corporation_id ?? null,
                 faction_id: allianceInfo.faction_id ?? null,
                 // date_founded and creator_* never change
               },
