@@ -2,6 +2,7 @@
 
 import SecurityStatus from '@/components/SecurityStatus/SecurityStatus';
 import ShipTierBadge from '@/components/ShipTierBadge/ShipTierBadge';
+import ShipTierCorner from '@/components/ShipTierCorner/ShipTierCorner';
 import SolarSystemMap from '@/components/SolarSystemMap/SolarSystemMap';
 import Tooltip from '@/components/Tooltip/Tooltip';
 import { formatKillmailDate, formatKillmailDateTime } from '@/utils/date';
@@ -75,6 +76,11 @@ export default function KillmailCard({
 
       {/* Keeps the text legible over whatever the render happens to be. */}
       <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/70 to-transparent" />
+
+      <ShipTierCorner
+        tier={shipTier}
+        className="transition-opacity duration-200 opacity-0 group-hover:opacity-100"
+      />
 
       {shipTier && (
         <div className="absolute z-10 top-3 left-3 drop-shadow-lg">
