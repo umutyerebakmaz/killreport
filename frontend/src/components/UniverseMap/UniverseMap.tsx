@@ -27,7 +27,7 @@ import {
   ringMarks,
   withoutChippedNames,
 } from '@/utils/map/campaignMarks';
-import { framingFor } from '@/utils/map/framing';
+import { framingFor, ownerCamera } from '@/utils/map/framing';
 import { labelCandidates, placeLabels } from '@/utils/map/labels';
 import {
   groupSegmentsByTint,
@@ -84,7 +84,7 @@ import { useMapSovereignty } from './useMapSovereignty';
 import { useNow } from './useNow';
 import { useSovCampaigns } from './useSovCampaigns';
 import MapLayerSwitch from './MapLayerSwitch';
-import SovLegend from './SovLegend';
+import SovPanel from './SovPanel';
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -207,6 +207,8 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     layer: layerId,
     onLayerChange: setLayerId,
     owner: isolatedOwner,
+    onOwnerChange: setIsolatedOwner,
+    jumpTo,
   } = useMapCamera(scope, framing ?? fit);
 
   const bucket = camera ? lodBucket(camera.zoom) : 'galaxy';
@@ -826,6 +828,53 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // levels under *that* would forbid zooming back out to the galaxy at all.
   const limits = fit ? zoomLimits(fit.zoom) : null;
 
+  // A panel row's "go there": the camera and the popup in one write. A system
+  // the scene does not hold — a campaign seen from the POCHVEN map — has
+  // nowhere to fly to, so only the focus is written: no camera move, and no
+  // popup, since there is no dot to anchor one to.
+  const focusSystem = useCallback(
+    (systemId: number) => {
+      const target = geometry
+        ? framingFor(
+            { kind: 'system', id: systemId },
+            geometry.nodes,
+            size.width,
+            size.height,
+          )
+        : null;
+      if (target) jumpTo(target, systemId);
+      else setSelected(systemId);
+    },
+    [geometry, size.width, size.height, jumpTo, setSelected],
+  );
+
+  const frameOwner = useCallback(
+    (ownerId: number) => {
+      if (!geometry || !sovIndex) return;
+      const target = ownerCamera(
+        ownerId,
+        sovIndex.ownerBySystem,
+        geometry.nodes,
+        size.width,
+        size.height,
+      );
+      if (target) jumpTo(target);
+    },
+    [geometry, sovIndex, size.width, size.height, jumpTo],
+  );
+
+  const shareUrlFor = useCallback(
+    (systemId: number) =>
+      sharedMapUrl({
+        origin: window.location.origin,
+        scope,
+        focus: systemId,
+        layer: layerId,
+        owner: isolatedOwner,
+      }),
+    [scope, layerId, isolatedOwner],
+  );
+
   // Rebuilt whenever the camera or the viewport moves, which is correct: the
   // projection these close over has changed. useMapPointer holds them in a ref,
   // so a new identity does not rebind the five listeners.
@@ -927,7 +976,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     >
       {/* Over the canvas and out of the pointer's way. `data-map-overlay` is
           not decoration: the pan and zoom listeners are on the host and this
-          is a child of it, so without the mark a wheel over the legend zooms
+          is a child of it, so without the mark a wheel over the panel zooms
           the map instead of scrolling the list, and dragging its scrollbar
           pans the galaxy. Same mechanism SystemPopup uses. */}
       <div
@@ -935,13 +984,23 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         // Height comes from the content, not from the viewport: `bottom-3`
         // here stretched the panel to the full height whatever was in it, and
         // `items-start` keeps the switch its own width instead of the
-        // legend's. The two caps are what stop a 98-row list and a 49-
+        // panel's. The two caps are what stop a 98-row list and a 49-
         // character alliance name from growing the document itself — past
-        // them the legend scrolls and the names truncate.
+        // them the panel scrolls and the names truncate.
         className="absolute top-3 left-3 z-10 flex max-h-[calc(100%-1.5rem)] max-w-[calc(100%-1.5rem)] flex-col items-start gap-y-2"
       >
         <MapLayerSwitch value={layerId} onChange={setLayerId} />
-        {layer.legend.kind === 'owners' && <SovLegend owners={sovOwners} />}
+        {layer.legend.kind === 'owners' && (
+          <SovPanel
+            owners={sovOwners}
+            campaigns={campaigns}
+            isolatedOwner={isolatedOwner}
+            onIsolate={setIsolatedOwner}
+            onFrameOwner={frameOwner}
+            onFocusSystem={focusSystem}
+            shareUrlFor={shareUrlFor}
+          />
+        )}
       </div>
 
       {/* No tip over the selected system: the popup already says its name, and
@@ -978,13 +1037,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
           viewportHeight={size.height}
           onClose={() => setSelected(null)}
           campaign={selectedCampaign}
-          shareUrl={sharedMapUrl({
-            origin: window.location.origin,
-            scope,
-            focus: selectedNode.systemId,
-            layer: layerId,
-            owner: isolatedOwner,
-          })}
+          shareUrl={shareUrlFor(selectedNode.systemId)}
         />
       )}
     </div>

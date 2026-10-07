@@ -28,10 +28,10 @@ const NEUTRAL = `#${SOV_UNOWNED_TINT.toString(16).padStart(6, '0')}`;
 /**
  * The crest's drawn size, square, on a 26 px disc.
  *
- * Bigger than the legend's 18 on 20, and deliberately: the legend is a list of
- * up to 98 rows where the crest is a lookup key, and this is the one owner the
- * reader is actually asking about. What the two share is the 1 px rim of owner
- * colour around the artwork — that ratio is the mark, not the size.
+ * Bigger than the panel's owner list's 18 on 20, and deliberately: that list
+ * is up to 98 rows where the crest is a lookup key, and this is the one owner
+ * the reader is actually asking about. What the two share is the 1 px rim of
+ * owner colour around the artwork — that ratio is the mark, not the size.
  */
 const CREST_PX = 24;
 const CREST_DISC_PX = CREST_PX + 2;
@@ -42,9 +42,9 @@ type Stargate = Details['stargates'][number];
 
 /**
  * The owner's crest on a disc of its colour — the same mark the map draws past
- * `SOV_LOGO_ZOOM` and the same one the legend lists, so the popup identifies
- * the system's holder with the mark the reader has already learned rather than
- * with a second vocabulary.
+ * `SOV_LOGO_ZOOM` and the same one the panel's owner list shows, so the popup
+ * identifies the system's holder with the mark the reader has already learned
+ * rather than with a second vocabulary.
  */
 function OwnerCrest({ owner }: { owner: Owner }) {
   return (
