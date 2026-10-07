@@ -37,6 +37,11 @@ export interface SovIndex {
 
 export interface MapLayerData {
   sovereignty: SovIndex | null;
+  /**
+   * The one owner left in colour, or null/absent for all of them. Read by the
+   * sovereignty layer only — the security layer has no owners to isolate.
+   */
+  isolatedOwner?: number | null;
 }
 
 /**
@@ -74,13 +79,42 @@ export function buildSovIndex(sov: {
   return { ownerBySystem, tintByOwner };
 }
 
-/** The owner's colour, or null for unheld, uncoloured, or no data at all. */
+/**
+ * The owner's colour, or null for unheld, uncoloured, dimmed by an isolation,
+ * or no data at all.
+ */
 function ownerTint(systemId: number, data: MapLayerData): number | null {
   const sov = data.sovereignty;
   if (!sov) return null;
   const ownerId = sov.ownerBySystem.get(systemId);
   if (ownerId === undefined) return null;
+  if (data.isolatedOwner != null && ownerId !== data.isolatedOwner) return null;
   return sov.tintByOwner.get(ownerId) ?? null;
+}
+
+/** Stable empty lookup, so a map with no sovereignty data allocates nothing. */
+const NO_OWNERS = new Map<number, number>();
+
+/**
+ * The owner map the logo pass reads. With an owner isolated only its own
+ * systems may show a crest: a dimmed system wearing someone's crest would
+ * still say whose it is, which is the one thing the isolation took away.
+ *
+ * Returns the index's own map, not a copy, when nothing is isolated — the
+ * logo effect keys on its identity.
+ */
+export function logoOwners(
+  sov: SovIndex | null,
+  isolatedOwner: number | null,
+): Map<number, number> {
+  if (!sov) return NO_OWNERS;
+  if (isolatedOwner === null) return sov.ownerBySystem;
+
+  const only = new Map<number, number>();
+  for (const [systemId, ownerId] of sov.ownerBySystem) {
+    if (ownerId === isolatedOwner) only.set(systemId, ownerId);
+  }
+  return only;
 }
 
 /**
@@ -115,6 +149,9 @@ export const MAP_LAYERS: Record<MapLayerId, MapColorLayer> = {
       const from = sov.ownerBySystem.get(edge.from);
       const to = sov.ownerBySystem.get(edge.to);
       if (from === undefined || from !== to) return null;
+      if (data.isolatedOwner != null && from !== data.isolatedOwner) {
+        return null;
+      }
       return sov.tintByOwner.get(from) ?? null;
     },
     usesLogos: (zoom) => zoom >= SOV_LOGO_ZOOM,

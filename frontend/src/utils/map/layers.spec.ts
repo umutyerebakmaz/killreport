@@ -5,6 +5,7 @@ import type { EdgeSegment } from './edges';
 import {
   buildSovIndex,
   groupSegmentsByTint,
+  logoOwners,
   MAP_LAYERS,
   SOV_LOGO_ZOOM,
   type MapLayerData,
@@ -166,5 +167,49 @@ describe('groupSegmentsByTint', () => {
   it('emits no empty group', () => {
     const groups = groupSegmentsByTint([], MAP_LAYERS.sovereignty, DATA);
     expect(groups).toEqual([]);
+  });
+});
+
+describe('isolating an owner', () => {
+  const FIRST = OWNED;
+  const SECOND = Number(Object.keys(SOV_COLORS)[1]);
+  const sovereignty = buildSovIndex({
+    systems: [
+      { systemId: 1, ownerId: FIRST },
+      { systemId: 2, ownerId: FIRST },
+      { systemId: 3, ownerId: SECOND },
+    ],
+  });
+  const layer = MAP_LAYERS.sovereignty;
+
+  it('keeps the isolated owner in its colour and dims everyone else', () => {
+    const data = { sovereignty, isolatedOwner: FIRST };
+    expect(layer.tint(node(1), data)).toBe(sovTint(FIRST));
+    expect(layer.tint(node(3), data)).toBe(SOV_UNOWNED_TINT);
+  });
+
+  it('colours only the isolated owner’s own gates', () => {
+    const other = { sovereignty, isolatedOwner: SECOND };
+    expect(layer.edgeTint({ from: 1, to: 2 }, other)).toBeNull();
+    const own = { sovereignty, isolatedOwner: FIRST };
+    expect(layer.edgeTint({ from: 1, to: 2 }, own)).toBe(sovTint(FIRST));
+  });
+
+  it('changes nothing when no owner is isolated', () => {
+    const data = { sovereignty, isolatedOwner: null };
+    expect(layer.tint(node(3), data)).toBe(sovTint(SECOND));
+    expect(layer.edgeTint({ from: 1, to: 2 }, data)).toBe(sovTint(FIRST));
+  });
+
+  it('lets only the isolated owner’s systems show a crest', () => {
+    expect([...logoOwners(sovereignty, FIRST).keys()]).toEqual([1, 2]);
+  });
+
+  it('hands the logo pass every owner when none is isolated', () => {
+    expect(logoOwners(sovereignty, null)).toBe(sovereignty.ownerBySystem);
+  });
+
+  it('hands it nothing when there is no sovereignty data yet', () => {
+    expect(logoOwners(null, FIRST).size).toBe(0);
   });
 });

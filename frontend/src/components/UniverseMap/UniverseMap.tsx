@@ -26,6 +26,7 @@ import {
   groupSegmentsByTint,
   MAP_LAYERS,
   type MapLayerData,
+  logoOwners,
 } from '@/utils/map/layers';
 import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
 import { createLabelMeasurer, whenLabelFontsReady } from '@/utils/map/measure';
@@ -67,9 +68,6 @@ import { useMapPointer, type MapPick } from './useMapPointer';
 import { useMapSovereignty } from './useMapSovereignty';
 import MapLayerSwitch from './MapLayerSwitch';
 import SovLegend from './SovLegend';
-
-/** Stable empty lookup, so a map with no sovereignty data allocates nothing. */
-const EMPTY_OWNERS = new Map<number, number>();
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -189,6 +187,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     onFocusChange: setSelected,
     layer: layerId,
     onLayerChange: setLayerId,
+    owner: isolatedOwner,
   } = useMapCamera(scope, framing ?? fit);
 
   const bucket = camera ? lodBucket(camera.zoom) : 'galaxy';
@@ -225,10 +224,15 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   );
 
   // One object for both the marks and the mesh, so the two can never be
-  // reading different sovereignty.
+  // reading different sovereignty — or a different isolation.
   const layerData = useMemo<MapLayerData>(
-    () => ({ sovereignty: sovIndex }),
-    [sovIndex],
+    () => ({ sovereignty: sovIndex, isolatedOwner }),
+    [sovIndex, isolatedOwner],
+  );
+
+  const crestOwners = useMemo(
+    () => logoOwners(sovIndex, isolatedOwner),
+    [sovIndex, isolatedOwner],
   );
 
   // A boolean, not the zoom: this is what the logo pass keys on, so the
@@ -595,10 +599,18 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       scene.current.dot,
       atlas.current,
       showLogos,
-      sovIndex?.ownerBySystem ?? EMPTY_OWNERS,
+      crestOwners,
       cameraScale.current,
     );
-  }, [sceneReady, geometry, layer, layerData, showLogos, atlasReady, sovIndex]);
+  }, [
+    sceneReady,
+    geometry,
+    layer,
+    layerData,
+    showLogos,
+    atlasReady,
+    crestOwners,
+  ]);
 
   // What the pointer is resting on, at whichever tier it found something.
   //
