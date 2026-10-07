@@ -343,12 +343,15 @@ export default function SovPanel({
                         {formatTimeAgo(change.detectedAt, true)}
                       </span>
                     </span>
-                    <span className="flex min-w-0 items-center gap-x-1.5 text-ink-muted">
+                    {/* Two equal halves whatever the names, the swords in the
+                        gutter between them: the old owners line up in one
+                        column down the list and the new owners in another. */}
+                    <span className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-1.5 text-ink-muted">
                       <ChangeSide
                         ownerId={change.previousOwnerId}
                         name={change.previousOwnerName}
                       />
-                      <SwordsIcon className="size-3.5 shrink-0 text-ink-faint" />
+                      <SwordsIcon className="size-3.5 text-ink-faint" />
                       <span className="sr-only">to</span>
                       <ChangeSide
                         ownerId={change.newOwnerId}
