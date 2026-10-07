@@ -266,4 +266,56 @@ describe('useMapCamera', () => {
 
     expect(result.current.layer).toBe('sovereignty');
   });
+
+  // The router commits a replace some time after it is asked to. A pan that
+  // pauses twice puts two writes in flight, and the first one landing after
+  // the second has gone out is still this hook's own — taking it for a
+  // foreign change snapped the camera back to where it had been a moment ago.
+  it('keeps the camera when an older write of its own lands late', () => {
+    vi.useFakeTimers();
+    const { result, rerender } = renderHook(() =>
+      useMapCamera(MapScope.NewEden, FIT),
+    );
+
+    act(() => result.current.onCameraChange({ x: 1e9, z: 1e9, zoom: -45 }));
+    act(() => {
+      vi.advanceTimersByTime(URL_DEBOUNCE_MS);
+    });
+    const first = replace.mock.calls.at(-1)?.[0] as string;
+
+    act(() => result.current.onCameraChange({ x: 2e9, z: 0, zoom: -44 }));
+    act(() => {
+      vi.advanceTimersByTime(URL_DEBOUNCE_MS);
+    });
+    const second = replace.mock.calls.at(-1)?.[0] as string;
+
+    searchParams = new URLSearchParams(first.slice(1));
+    rerender();
+    expect(result.current.camera).toEqual({ x: 2e9, z: 0, zoom: -44 });
+
+    searchParams = new URLSearchParams(second.slice(1));
+    rerender();
+    expect(result.current.camera).toEqual({ x: 2e9, z: 0, zoom: -44 });
+  });
+
+  // What the pending list must not swallow: once its own writes have landed,
+  // a URL it did not write — the back button — still moves the camera.
+  it('still follows the back button after its own writes have landed', () => {
+    vi.useFakeTimers();
+    const { result, rerender } = renderHook(() =>
+      useMapCamera(MapScope.NewEden, FIT),
+    );
+
+    act(() => result.current.onCameraChange({ x: 1e9, z: 1e9, zoom: -45 }));
+    act(() => {
+      vi.advanceTimersByTime(URL_DEBOUNCE_MS);
+    });
+    const first = replace.mock.calls.at(-1)?.[0] as string;
+    searchParams = new URLSearchParams(first.slice(1));
+    rerender();
+
+    searchParams = new URLSearchParams('scope=NEW_EDEN&x=0&z=0&zoom=-50.00');
+    rerender();
+    expect(result.current.camera).toEqual({ x: 0, z: 0, zoom: -50 });
+  });
 });

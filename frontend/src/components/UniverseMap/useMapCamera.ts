@@ -19,6 +19,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  */
 const URL_DEBOUNCE_MS = 250;
 
+/** Own writes remembered while in flight; far more than a pan ever has. */
+const MAX_PENDING = 8;
+
 /**
  * One write of the URL: everything this hook owns there.
  *
@@ -55,8 +58,16 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
     parseOwner(searchParams),
   );
 
-  /** The last URL this hook wrote, so its own writes are recognisable. */
-  const lastWritten = useRef<WrittenUrl | null>(null);
+  /**
+   * The URLs this hook has written that the router has not handed back yet,
+   * oldest first, so its own writes are recognisable when they land.
+   *
+   * A list, not the last write alone: `router.replace` commits some time after
+   * it is called, and a pan that pauses twice has two writes in flight. With
+   * only the latest remembered, the older one landing after it read as a
+   * foreign URL and snapped the camera back to where it had been.
+   */
+  const pending = useRef<string[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // The autofit is not known until the geometry lands, so until the pointer has
@@ -73,8 +84,11 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
     (next: WrittenUrl, immediate: boolean) => {
       if (timer.current) clearTimeout(timer.current);
       const run = () => {
-        lastWritten.current = next;
-        router.replace(`?${queryOf(scope, next)}`, { scroll: false });
+        const query = queryOf(scope, next);
+        // Bounded: a write the router never hands back — superseded before
+        // it rendered — would otherwise stay here for the session.
+        pending.current = [...pending.current, query].slice(-MAX_PENDING);
+        router.replace(`?${query}`, { scroll: false });
       };
       // A pan is a stream of events and is debounced. A click is one event:
       // waiting out the debounce to put the popup in the URL would lose it to a
@@ -90,64 +104,63 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
   // mounted across a query string change, so reading once on mount would
   // swallow all three.
   //
-  // Telling its own writes apart is a comparison of one pure function's output
-  // against itself.
+  // Its own writes are recognised by comparing one pure function's output
+  // against itself, and left alone entirely: the state already holds the
+  // newest write, and an older one landing late must not drag the camera, the
+  // focus, the layer or the owner back to it. Every write older than the one
+  // that landed is dropped with it — the router will not hand those back now.
   //
   // The camera is applied through a functional update rather than `setCamera
   // (fromUrl)`: parseCamera allocates a fresh object every call, so a plain set
   // can never bail out on equality and every URL change would re-render whether
   // the frame moved or not. Returning `current` when the two agree is what makes
-  // the no-op actually free — and is what react-hooks' set-state-in-effect rule
-  // is asking for.
+  // the no-op actually free.
+  //
+  // The focus, the layer and the owner are primitives, so setting one to the
+  // value it already holds costs nothing, and they are read even when the URL
+  // carries no camera: a `?focus=` link has no x/z/zoom.
+  //
+  // Deliberately not guarded against the current state, and the state is
+  // deliberately not a dependency. The URL is an external store and this effect
+  // is the subscription to it — the use react-hooks' set-state-in-effect rule's
+  // own documentation allows, which it cannot recognise here because
+  // `searchParams` reaches the hook as a value rather than through a callback.
+  // A guard against the state would be wrong: between a write and the router
+  // committing it, the stale searchParams would revert the change the user just
+  // made. With `[searchParams]` alone the effect does not run in that window.
   useEffect(() => {
     const fromUrl = parseCamera(searchParams);
-    if (!fromUrl) return;
+    const nextFocus = parseFocus(searchParams);
+    const nextLayer = parseLayer(searchParams);
+    const nextOwner = parseOwner(searchParams);
 
-    const written = lastWritten.current;
-    if (
-      written &&
-      cameraQuery(
-        scope,
-        fromUrl,
-        parseFocus(searchParams),
-        parseLayer(searchParams),
-        parseOwner(searchParams),
-      ) === queryOf(scope, written)
-    ) {
-      return;
+    if (fromUrl) {
+      const own = pending.current.indexOf(
+        cameraQuery(scope, fromUrl, nextFocus, nextLayer, nextOwner),
+      );
+      if (own !== -1) {
+        pending.current = pending.current.slice(own + 1);
+        return;
+      }
     }
+    pending.current = [];
 
-    setCamera((current) =>
-      current &&
-      current.x === fromUrl.x &&
-      current.z === fromUrl.z &&
-      current.zoom === fromUrl.zoom
-        ? current
-        : fromUrl,
-    );
-  }, [searchParams, scope]);
-
-  // The focus, the layer and the owner are primitives, so setting one to the
-  // value it already holds costs nothing. Their own effect rather than the
-  // camera's: a `?focus=` link carries no x/z/zoom, and behind that effect's
-  // early return none of the three would ever reach state.
-  //
-  // Deliberately unguarded, and the three are deliberately not dependencies.
-  // The URL is an external store and this effect is the subscription to it —
-  // the use the rule's own documentation allows, which it cannot recognise
-  // here because `searchParams` reaches the hook as a value rather than through
-  // a callback. Comparing against the current state is what a guard would
-  // mean, and it would be wrong: between a write and the router committing it,
-  // the stale searchParams would revert the change the user just made. With
-  // `[searchParams]` alone the effect simply does not run in that window, and
-  // the write path is what keeps the two in agreement.
-  useEffect(() => {
     /* eslint-disable react-hooks/set-state-in-effect */
-    setFocus(parseFocus(searchParams));
-    setLayer(parseLayer(searchParams));
-    setOwner(parseOwner(searchParams));
+    if (fromUrl) {
+      setCamera((current) =>
+        current &&
+        current.x === fromUrl.x &&
+        current.z === fromUrl.z &&
+        current.zoom === fromUrl.zoom
+          ? current
+          : fromUrl,
+      );
+    }
+    setFocus(nextFocus);
+    setLayer(nextLayer);
+    setOwner(nextOwner);
     /* eslint-enable react-hooks/set-state-in-effect */
-  }, [searchParams]);
+  }, [searchParams, scope]);
 
   const onCameraChange = useCallback(
     (next: MapCamera) => {
