@@ -1,6 +1,12 @@
+import { MapOwnerKind } from '@/generated/graphql';
 import { describe, expect, it } from 'vitest';
 import { hexToTint } from './colors';
-import { SOV_COLORS, SOV_UNOWNED_TINT, sovTint } from './sovColors';
+import {
+  ownerKindOf,
+  SOV_COLORS,
+  SOV_UNOWNED_TINT,
+  sovTint,
+} from './sovColors';
 
 describe('SOV_COLORS', () => {
   it('holds a valid six-digit hex for every owner it names', () => {
@@ -32,5 +38,18 @@ describe('sovTint', () => {
 describe('SOV_UNOWNED_TINT', () => {
   it('is darker than the gate line, so owned colour stays the loud thing', () => {
     expect(SOV_UNOWNED_TINT).toBe(0x475569);
+  });
+});
+
+// A territory change names its owners by id alone. NPC factions are the
+// 500000 block — Amarr is 500003 — and every alliance id is far above it.
+describe('ownerKindOf', () => {
+  it.each([
+    [500003, MapOwnerKind.Faction],
+    [500027, MapOwnerKind.Faction],
+    [99003581, MapOwnerKind.Alliance],
+    [1354830081, MapOwnerKind.Alliance],
+  ])('reads %i as %s', (id, kind) => {
+    expect(ownerKindOf(id)).toBe(kind);
   });
 });

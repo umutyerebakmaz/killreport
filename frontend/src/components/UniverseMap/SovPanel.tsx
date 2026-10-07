@@ -11,7 +11,11 @@ import {
   isStale,
   latestUpdate,
 } from '@/utils/map/countdown';
-import { SOV_COLORS, SOV_UNOWNED_TINT } from '@/utils/map/sovColors';
+import {
+  ownerKindOf,
+  SOV_COLORS,
+  SOV_UNOWNED_TINT,
+} from '@/utils/map/sovColors';
 import {
   ChevronDownIcon,
   ChevronRightIcon,
@@ -20,6 +24,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useMemo, useState } from 'react';
 import { useCopyLink } from './useCopyLink';
+import SwordsIcon from './SwordsIcon';
 import { useNow } from './useNow';
 import type { SovCampaign } from './useSovCampaigns';
 import { useSovChanges } from './useSovChanges';
@@ -56,7 +61,11 @@ function startsOpen(): boolean {
  * swatch beside a name — so a reader looking from the list to the galaxy is
  * matching the same mark in both places.
  */
-function OwnerMark({ owner }: { owner: Owner }) {
+function OwnerMark({
+  owner,
+}: {
+  owner: Pick<Owner, 'ownerId' | 'kind' | 'name'>;
+}) {
   return (
     <span
       data-testid={`sov-owner-disc-${owner.ownerId}`}
@@ -73,6 +82,27 @@ function OwnerMark({ owner }: { owner: Owner }) {
         name={owner.name}
         size={CREST_PX}
       />
+    </span>
+  );
+}
+
+/**
+ * One side of a territory change: the owner's mark and name, or "Unclaimed"
+ * with no mark. The row carries no kind, so it is read from the id.
+ */
+function ChangeSide({
+  ownerId,
+  name,
+}: {
+  ownerId: number | null | undefined;
+  name: string | null | undefined;
+}) {
+  if (ownerId == null) return <span className="shrink-0">Unclaimed</span>;
+  const label = name ?? String(ownerId);
+  return (
+    <span className="flex min-w-0 items-center gap-x-1">
+      <OwnerMark owner={{ ownerId, kind: ownerKindOf(ownerId), name: label }} />
+      <span className="truncate">{label}</span>
     </span>
   );
 }
@@ -313,9 +343,17 @@ export default function SovPanel({
                         {formatTimeAgo(change.detectedAt, true)}
                       </span>
                     </span>
-                    <span className="truncate text-left text-ink-muted">
-                      {change.previousOwnerName ?? 'Unclaimed'} →{' '}
-                      {change.newOwnerName ?? 'Unclaimed'}
+                    <span className="flex min-w-0 items-center gap-x-1.5 text-ink-muted">
+                      <ChangeSide
+                        ownerId={change.previousOwnerId}
+                        name={change.previousOwnerName}
+                      />
+                      <SwordsIcon className="size-3.5 shrink-0 text-ink-faint" />
+                      <span className="sr-only">to</span>
+                      <ChangeSide
+                        ownerId={change.newOwnerId}
+                        name={change.newOwnerName}
+                      />
                     </span>
                   </button>
                 ))

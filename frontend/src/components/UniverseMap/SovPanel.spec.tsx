@@ -23,9 +23,9 @@ vi.mock('@/generated/graphql', () => ({
                   id: 'c1',
                   solarSystemId: 30004759,
                   solarSystemName: '1DQ1-A',
-                  previousOwnerId: 1,
+                  previousOwnerId: 500003,
                   previousOwnerName: 'Old Holder',
-                  newOwnerId: 2,
+                  newOwnerId: 99003581,
                   newOwnerName: 'New Holder',
                   changeType: 'gained',
                   detectedAt: new Date(Date.now() - 3_600_000).toISOString(),
@@ -256,6 +256,29 @@ describe('SovPanel', () => {
     const row = screen.getByRole('button', { name: /1DQ1-A/ });
     expect(within(row).getByText(/Old Holder/)).toBeInTheDocument();
     expect(within(row).getByText(/New Holder/)).toBeInTheDocument();
+  });
+
+  // The same crest-on-disc the Owners tab draws, for both sides; a faction's
+  // crest down the corporation path, as everywhere else on the map.
+  it('shows both owners crests on a change row', async () => {
+    render(
+      <SovPanel
+        owners={owners}
+        campaigns={campaigns}
+        isolatedOwner={null}
+        {...handlers()}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Changes' }));
+
+    const row = screen.getByRole('button', { name: /1DQ1-A/ });
+    expect(
+      within(row).getByRole('img', { name: 'Old Holder' }).getAttribute('src'),
+    ).toContain('/corporations/500003/');
+    expect(
+      within(row).getByRole('img', { name: 'New Holder' }).getAttribute('src'),
+    ).toContain('/alliances/99003581/');
   });
 
   // The empty-state line is a claim; while the query is in flight it is not

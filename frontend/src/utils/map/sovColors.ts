@@ -1,3 +1,4 @@
+import { MapOwnerKind } from '@/generated/graphql';
 import { hexToTint } from './colors';
 
 /**
@@ -135,4 +136,18 @@ export const SOV_UNOWNED_TINT = 0x475569;
 export function sovTint(ownerId: number): number | null {
   const hex = SOV_COLORS[ownerId];
   return hex === undefined ? null : hexToTint(hex);
+}
+
+/**
+ * An owner's kind from its id alone, for rows that carry no kind — a
+ * territory change names both owners by id and name only.
+ *
+ * NPC factions are EVE's 500000 block (Amarr is 500003, the last is in the
+ * 500020s); alliance ids start in the 99 millions. The kind decides which
+ * image path the crest comes down — see logoUrl.
+ */
+export function ownerKindOf(ownerId: number): MapOwnerKind {
+  return ownerId >= 500_000 && ownerId < 1_000_000
+    ? MapOwnerKind.Faction
+    : MapOwnerKind.Alliance;
 }
