@@ -6,13 +6,11 @@ import {
 import type { Graphics } from 'pixi.js';
 
 /**
- * `--color-ink-muted` in globals.css: a timer that has not opened yet. The
- * map's neutral light ink, so only a live timer carries a colour.
+ * `--color-destroyed` in globals.css, EVE's red — the same ink the sidebar's
+ * attacker names take. Every ring, opened or not: the spin is what marks a
+ * campaign on the map, and the panel and the popup say whether it is live.
  */
-export const RING_UPCOMING_TINT = 0xb0b0b0;
-
-/** `--color-destroyed` (red-400) in globals.css: a timer that is live. */
-export const RING_LIVE_TINT = 0xf87171;
+export const RING_TINT = 0xfe3743;
 
 /**
  * Clears and redraws every ring as its arcs, turned by `angle` (radians,
@@ -39,7 +37,7 @@ export function drawRings(
     }
     target.stroke({
       width: RING_STROKE_PX,
-      color: ring.live ? RING_LIVE_TINT : RING_UPCOMING_TINT,
+      color: RING_TINT,
       alpha: 1,
     });
   }
