@@ -231,14 +231,24 @@ export function labelCandidates({
       // The logo lift likewise only where there is a mark to clear. A centroid
       // tier has nothing drawn at it, so a logo elsewhere on the map is no
       // reason to move a region's name.
-      const lift =
-        source.radius === undefined
-          ? lineHeight
-          : systemLabelLift(
-              lineHeight,
-              systemRadiusPx(source.radius, transform.scaleX, floorPx),
-              logos,
-            );
+      let lift = lineHeight;
+      if (source.radius !== undefined) {
+        const dotPx = systemRadiusPx(source.radius, transform.scaleX, floorPx);
+        if (tier === 'region') {
+          // A region's mark is its medoid, a system with a name of its own in
+          // the slot just above the dot. Taking that slot hid the system name
+          // under it — the region wins collisions on tier priority — so the
+          // region name stacks on top of it instead: the system name's lift,
+          // then half its line and half the region's, edge to edge.
+          const systemLine = labelLineHeight('system');
+          lift =
+            systemLabelLift(systemLine, dotPx, logos) +
+            systemLine / 2 +
+            lineHeight / 2;
+        } else {
+          lift = systemLabelLift(lineHeight, dotPx, logos);
+        }
+      }
 
       const textWidth = measure(tier, source.name);
       const halfWidth = textWidth / 2;

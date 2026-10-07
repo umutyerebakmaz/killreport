@@ -79,6 +79,40 @@ describe('labelCandidates', () => {
     expect(new Set(candidates.map((c) => c.screenY)).size).toBe(3);
   });
 
+  // A region name is anchored to its medoid, a real system — Perrigen Falls to
+  // SR-10Z. Lifted only to clear the medoid's dot, it took the very slot the
+  // medoid's own name sits in, won that collision on tier priority, and the
+  // system's name was never drawn. It stacks above that name instead.
+  it.each([false, true])(
+    'stacks a region name above its medoid system name (logos: %s)',
+    (logos) => {
+      const at = { x: 0, z: 0, radius: 5e14 };
+      const candidates = labelCandidates({
+        tiers: ['region', 'system'],
+        regions: [{ id: 10000066, name: 'Perrigen Falls', ...at }],
+        constellations: [],
+        systems: [{ id: 30005141, name: 'SR-10Z', ...at }],
+        measure,
+        transform,
+        width: W,
+        height: H,
+        logos,
+      });
+      const region = candidates.find((c) => c.tier === 'region')!;
+      const system = candidates.find((c) => c.tier === 'system')!;
+
+      // Above it, and clear of it: the region's bottom edge is no lower than
+      // the system name's top edge, so placeLabels keeps both.
+      expect(region.screenY + region.halfHeight).toBeLessThanOrEqual(
+        system.screenY - system.halfHeight,
+      );
+      expect(placeLabels(candidates).map((c) => c.tier)).toEqual([
+        'region',
+        'system',
+      ]);
+    },
+  );
+
   it('puts a larger z higher on screen, not lower', () => {
     // +z is up. Getting this backwards is the one mistake that makes the map
     // disagree with the region thumbnails shipped elsewhere in the app.
