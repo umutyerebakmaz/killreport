@@ -113,6 +113,27 @@ describe('labelCandidates', () => {
     },
   );
 
+  // The security is drawn with every system name, so the box the collision
+  // filter reserves has to hold it too, or a neighbour's name lands on it.
+  it('measures a system name together with its security', () => {
+    const [jita, wormhole] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [
+        { ...source(30000142, 'Jita', 0, 0), securityStatus: 0.94 },
+        { ...source(31000005, 'J1', 3e16, 0), securityStatus: null },
+      ],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(jita.halfWidth).toBe(measure('system', 'Jita 0.9') / 2);
+    expect(wormhole.halfWidth).toBe(measure('system', 'J1') / 2);
+  });
+
   it('puts a larger z higher on screen, not lower', () => {
     // +z is up. Getting this backwards is the one mistake that makes the map
     // disagree with the region thumbnails shipped elsewhere in the app.

@@ -1,4 +1,5 @@
 import type { CameraTransform } from './camera';
+import { formatSecurityStatus } from '@/utils/security';
 import { labelLineHeight } from './labelStyle';
 import type { LabelMeasure } from './measure';
 import { systemFloorPx, systemRadiusPx } from './marks';
@@ -159,6 +160,30 @@ export function offScreen(
   );
 }
 
+/**
+ * The security drawn after a system's name, or null for none.
+ *
+ * Null for a system with no security too: it is drawn with every name, and
+ * on the wormhole map every name would repeat "W-Space". The hover tip still
+ * says it.
+ */
+export function systemLabelSecurity(
+  securityStatus: number | null | undefined,
+): string | null {
+  return securityStatus === null || securityStatus === undefined
+    ? null
+    : formatSecurityStatus(securityStatus);
+}
+
+/**
+ * The text a label's collision box is measured from: the name, and for a
+ * system its security after one space — the same space labelLayer writes.
+ */
+function measuredText(source: LabelSource): string {
+  const security = systemLabelSecurity(source.securityStatus);
+  return security === null ? source.name : `${source.name} ${security}`;
+}
+
 const TIER_SOURCES = ['region', 'constellation', 'system'] as const;
 
 /**
@@ -250,7 +275,7 @@ export function labelCandidates({
         }
       }
 
-      const textWidth = measure(tier, source.name);
+      const textWidth = measure(tier, measuredText(source));
       const halfWidth = textWidth / 2;
 
       let screenX = projectX(transform, source.x);

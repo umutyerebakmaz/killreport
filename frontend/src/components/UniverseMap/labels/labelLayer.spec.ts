@@ -220,12 +220,21 @@ describe('the security beside a system name', () => {
     expect(sec.parentElement!.dataset.mapSystem).toBe('30000142');
   });
 
-  it('says W-Space for a system with no security', () => {
+  // Shown with every name now, and every system on the wormhole map would
+  // repeat it; the hover tip still says it.
+  it('writes nothing for a system with no security', () => {
     drawLabels(layer, [candidate({ securityStatus: null })]);
 
-    expect(layer.root.querySelector('.map-label__sec')!.textContent).toBe(
-      'W-Space',
-    );
+    expect(layer.root.querySelector('.map-label__sec')).toBeNull();
+    expect(layer.root.querySelector('span')!.textContent).toBe('Jita');
+  });
+
+  // A real space, not a margin: the collision box is measured from the text
+  // `Jita 0.5`, and a margin would make the drawn width disagree with it.
+  it('separates it from the name with the space the measurer counted', () => {
+    drawLabels(layer, [candidate({ securityStatus: 0.5 })]);
+
+    expect(layer.root.querySelector('span')!.textContent).toBe('Jita 0.5');
   });
 
   it('keeps the name itself as the first text the element holds', () => {

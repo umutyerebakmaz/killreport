@@ -62,7 +62,7 @@
 
 /* The hovered system's name is its title, so it steps past the :hover lift:
    full white and a second, wider halo that lifts it off whatever it crosses,
-   and above its neighbours where its security overhangs one. Paint only —
+   and above its neighbours. Paint only —
    size, weight and spacing are metrics the collision box was built from.
    Written by markHoveredLabel from the map's own hover state, because a dot
    on the canvas is hovered as often as the name and no selector sees it. */
@@ -74,22 +74,12 @@
     0 0 8px rgb(0 0 0 / 0.8);
 }
 
-/* The security beside the name, written once and shown only under the hover.
-   Absolute, so it hangs past the name's right edge without widening the box
-   the browser lays out — that box is the one the collision filter measured.
-   Out of the pointer's way for the same reason: the hit area stays the name.
-   The colour comes from the class labelLayer writes, the site's own. */
+/* The security after a system's name, always drawn with it. Inline, after a
+   real space, so the browser lays out exactly the text the collision box was
+   measured from. Its colour comes from the class labelLayer writes, the site's
+   own. */
 .map-label__sec {
-  display: none;
-  position: absolute;
-  top: 0;
-  left: 100%;
-  margin-left: 0.35em;
   pointer-events: none;
-}
-
-.map-label.is-hovered .map-label__sec {
-  display: inline;
 }
 
 .map-label:not(.is-visible) {
