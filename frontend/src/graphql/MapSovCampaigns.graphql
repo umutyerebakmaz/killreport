@@ -1,0 +1,23 @@
+# Named MapSovCampaigns on purpose: the backend's response cache finds public
+# queries by operation name in PUBLIC_CACHE_QUERIES (backend/src/config/cache.ts),
+# and its 60 s TTL is set on Query.sovereigntyActiveCampaigns there. Renaming
+# the operation drops it to a per-token entry.
+#
+# limit: the resolver's default is 100, newest first; 200 is room for a war
+# without a cap that would silently cut the oldest live timers.
+query MapSovCampaigns {
+  sovereigntyActiveCampaigns(limit: 200) {
+    campaignId
+    eventType
+    solarSystemId
+    solarSystemName
+    regionName
+    defenderId
+    defenderName
+    defenderTicker
+    defenderScore
+    attackersScore
+    startTime
+    updatedAt
+  }
+}
