@@ -92,6 +92,9 @@ export const POPUP_BASE_HEIGHT_PX = 161;
 /** The owner's crest and name, shown only when the system is held. */
 export const POPUP_OWNER_LINE_PX = 30;
 
+/** The campaign line — event and countdown — shown only while one is active. */
+export const POPUP_CAMPAIGN_LINE_PX = 20;
+
 /** The "Stargates" heading and its `mt-3`, present only with chips under it. */
 export const POPUP_STARGATE_HEADING_PX = 28;
 
@@ -112,13 +115,16 @@ export const STARGATE_CHIPS_PER_ROW = 2;
 export function popupHeightPx({
   stargateCount,
   hasOwner,
+  hasCampaign,
 }: {
   stargateCount: number;
   hasOwner: boolean;
+  hasCampaign: boolean;
 }): number {
   return (
     POPUP_BASE_HEIGHT_PX +
     (hasOwner ? POPUP_OWNER_LINE_PX : 0) +
+    (hasCampaign ? POPUP_CAMPAIGN_LINE_PX : 0) +
     // A system with no stargates draws no heading either — there is nothing
     // for it to head, and "Stargates" over an empty space reads as a failure
     // to load rather than as a wormhole.

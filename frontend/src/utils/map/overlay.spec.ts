@@ -4,6 +4,7 @@ import {
   clampOverlay,
   popupHeightPx,
   POPUP_BASE_HEIGHT_PX,
+  POPUP_CAMPAIGN_LINE_PX,
   POPUP_OWNER_LINE_PX,
   POPUP_STARGATE_HEADING_PX,
   POPUP_STARGATE_ROW_PX,
@@ -92,21 +93,23 @@ describe('clampOverlay, above the anchor', () => {
 describe('popupHeightPx', () => {
   it('is the bare panel for a system with no owner and no gates', () => {
     // A wormhole: nothing holds it and nothing leads out of it by gate.
-    expect(popupHeightPx({ stargateCount: 0, hasOwner: false })).toBe(
-      POPUP_BASE_HEIGHT_PX,
-    );
+    expect(
+      popupHeightPx({ stargateCount: 0, hasOwner: false, hasCampaign: false }),
+    ).toBe(POPUP_BASE_HEIGHT_PX);
   });
 
   it('adds the owner line only when the system is held', () => {
-    expect(popupHeightPx({ stargateCount: 0, hasOwner: true })).toBe(
-      POPUP_BASE_HEIGHT_PX + POPUP_OWNER_LINE_PX,
-    );
+    expect(
+      popupHeightPx({ stargateCount: 0, hasOwner: true, hasCampaign: false }),
+    ).toBe(POPUP_BASE_HEIGHT_PX + POPUP_OWNER_LINE_PX);
   });
 
   it('adds the heading once and a row per chipful of destinations', () => {
     // Jita's seven, the busiest list the data holds short of the eight-gate
     // maximum measured on 2026-09-20. Four rows at two chips a row.
-    expect(popupHeightPx({ stargateCount: 7, hasOwner: true })).toBe(
+    expect(
+      popupHeightPx({ stargateCount: 7, hasOwner: true, hasCampaign: false }),
+    ).toBe(
       POPUP_BASE_HEIGHT_PX +
         POPUP_OWNER_LINE_PX +
         POPUP_STARGATE_HEADING_PX +
@@ -119,20 +122,43 @@ describe('popupHeightPx', () => {
     const full = popupHeightPx({
       stargateCount: STARGATE_CHIPS_PER_ROW,
       hasOwner: false,
+      hasCampaign: false,
     });
     const oneMore = popupHeightPx({
       stargateCount: STARGATE_CHIPS_PER_ROW + 1,
       hasOwner: false,
+      hasCampaign: false,
     });
     expect(oneMore - full).toBe(POPUP_STARGATE_ROW_PX);
   });
 
   it('does not grow inside a row', () => {
-    const one = popupHeightPx({ stargateCount: 1, hasOwner: false });
+    const one = popupHeightPx({
+      stargateCount: 1,
+      hasOwner: false,
+      hasCampaign: false,
+    });
     const two = popupHeightPx({
       stargateCount: STARGATE_CHIPS_PER_ROW,
       hasOwner: false,
+      hasCampaign: false,
     });
     expect(two).toBe(one);
+  });
+});
+
+describe('popupHeightPx with a campaign', () => {
+  it('grows by one line when the system has a live campaign', () => {
+    const without = popupHeightPx({
+      stargateCount: 0,
+      hasOwner: true,
+      hasCampaign: false,
+    });
+    const withOne = popupHeightPx({
+      stargateCount: 0,
+      hasOwner: true,
+      hasCampaign: true,
+    });
+    expect(withOne - without).toBe(POPUP_CAMPAIGN_LINE_PX);
   });
 });

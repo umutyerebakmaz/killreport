@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 type DetailsResult = {
@@ -81,7 +82,17 @@ function loaded(over: Record<string, unknown> = {}) {
   });
 }
 
-function renderPopup(onClose = vi.fn()) {
+const SHARE_URL = 'https://killreport.com/map?focus=30000142';
+
+function renderPopup(
+  onClose = vi.fn(),
+  extra: {
+    campaign?: {
+      eventType: string;
+      startTime: string;
+    } | null;
+  } = {},
+) {
   const utils = render(
     <SystemPopup
       systemId={30000142}
@@ -89,6 +100,8 @@ function renderPopup(onClose = vi.fn()) {
       screenY={100}
       anchorRadius={1.5}
       onClose={onClose}
+      shareUrl={SHARE_URL}
+      {...extra}
       {...VIEWPORT}
     />,
   );
@@ -231,6 +244,41 @@ describe('SystemPopup', () => {
     expect(
       screen.getByRole('link', { name: /Open the system/ }),
     ).toHaveAttribute('href', '/solar-systems/30000142');
+  });
+
+  it('shows the system’s campaign with its countdown', () => {
+    loaded({ owner: null, stargates: [] });
+    renderPopup(vi.fn(), {
+      campaign: {
+        eventType: 'ihub_defense',
+        startTime: new Date(Date.now() + 3 * 3_600_000 + 60_000).toISOString(),
+      },
+    });
+
+    const line = screen.getByTestId('popup-campaign');
+    expect(line).toHaveTextContent('IHub defense');
+    expect(line).toHaveTextContent(/3h 0[01]m/);
+  });
+
+  it('shows no campaign line for a quiet system', () => {
+    loaded({ owner: null, stargates: [] });
+    renderPopup();
+
+    expect(screen.queryByTestId('popup-campaign')).toBeNull();
+  });
+
+  it('copies the system’s link', async () => {
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.assign(navigator, { clipboard: { writeText } });
+    loaded({ owner: null, stargates: [] });
+    renderPopup();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Copy link' }));
+
+    expect(writeText).toHaveBeenCalledWith(SHARE_URL);
+    expect(
+      await screen.findByRole('button', { name: 'Copied' }),
+    ).toBeInTheDocument();
   });
 
   it('closes on Escape', () => {

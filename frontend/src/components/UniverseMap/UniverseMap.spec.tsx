@@ -45,6 +45,8 @@ vi.mock('@/generated/graphql', () => ({
     sovQueries.push({ skip: !!options.skip });
     return { data: undefined };
   },
+  // Skipped for the same reason as the sovereignty query above.
+  useMapSovCampaignsQuery: () => ({ data: undefined }),
   useMapCelestialsQuery: () => ({ data: { mapCelestials: [] } }),
   useMapLabelsQuery: (options: {
     variables: { kind: string };

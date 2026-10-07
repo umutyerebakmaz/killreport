@@ -10,6 +10,7 @@ import {
   cameraTransform,
   fitCamera,
   parseFraming,
+  sharedMapUrl,
   zoomLimits,
   zoomToScale,
 } from '@/utils/map/camera';
@@ -66,6 +67,7 @@ import { useMapCelestials } from './useMapCelestials';
 import { useMapLabels } from './useMapLabels';
 import { useMapPointer, type MapPick } from './useMapPointer';
 import { useMapSovereignty } from './useMapSovereignty';
+import { useSovCampaigns } from './useSovCampaigns';
 import MapLayerSwitch from './MapLayerSwitch';
 import SovLegend from './SovLegend';
 
@@ -222,6 +224,8 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     scope,
     layerId === 'sovereignty',
   );
+
+  const campaigns = useSovCampaigns(layerId === 'sovereignty');
 
   // One object for both the marks and the mesh, so the two can never be
   // reading different sovereignty — or a different isolation.
@@ -777,6 +781,10 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   const selectedNode = selected
     ? (geometry.nodes.find((node) => node.systemId === selected) ?? null)
     : null;
+  const selectedCampaign = selected
+    ? (campaigns.find((campaign) => campaign.solarSystemId === selected) ??
+      null)
+    : null;
   return (
     <div
       ref={attachHost}
@@ -846,6 +854,14 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
           viewportWidth={size.width}
           viewportHeight={size.height}
           onClose={() => setSelected(null)}
+          campaign={selectedCampaign}
+          shareUrl={sharedMapUrl({
+            origin: window.location.origin,
+            scope,
+            focus: selectedNode.systemId,
+            layer: layerId,
+            owner: isolatedOwner,
+          })}
         />
       )}
     </div>

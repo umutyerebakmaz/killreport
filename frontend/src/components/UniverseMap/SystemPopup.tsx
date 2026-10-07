@@ -7,12 +7,15 @@ import {
   type MapSystemDetailsQuery,
 } from '@/generated/graphql';
 import { formatTimeAgo } from '@/utils/date';
+import { countdownText, eventLabel, isLive } from '@/utils/map/countdown';
 import { clampOverlay, popupHeightPx } from '@/utils/map/overlay';
 import { SOV_COLORS, SOV_UNOWNED_TINT } from '@/utils/map/sovColors';
 import { formatSecurityStatus, getSecurityColor } from '@/utils/security';
 import { ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useEffect } from 'react';
+import { useCopyLink } from './useCopyLink';
+import { useNow } from './useNow';
 
 /** How far the panel's top edge clears the system's own disc. */
 const POPUP_GAP_PX = 12;
@@ -181,6 +184,8 @@ export default function SystemPopup({
   viewportWidth,
   viewportHeight,
   onClose,
+  campaign,
+  shareUrl,
 }: {
   systemId: number;
   screenX: number;
@@ -190,10 +195,21 @@ export default function SystemPopup({
   viewportWidth: number;
   viewportHeight: number;
   onClose: () => void;
+  /** The system's active sovereignty campaign, if it has one. */
+  campaign?: {
+    eventType: string;
+    startTime: string;
+    defenderScore?: number | null;
+    attackersScore?: number | null;
+  } | null;
+  /** The link "Copy link" puts on the clipboard. */
+  shareUrl: string;
 }) {
   const { data, loading, error } = useMapSystemDetailsQuery({
     variables: { systemId },
   });
+  const now = useNow(1_000, Boolean(campaign));
+  const { copied, copy } = useCopyLink();
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -220,6 +236,7 @@ export default function SystemPopup({
     overlayHeight: popupHeightPx({
       stargateCount: details?.stargates.length ?? 0,
       hasOwner: Boolean(details?.owner),
+      hasCampaign: Boolean(campaign),
     }),
     viewportWidth,
     viewportHeight,
@@ -288,6 +305,27 @@ export default function SystemPopup({
             </div>
           )}
 
+          {/* The timer, under the holder it threatens. Its colour is its state:
+              accent while it waits, danger once it is live — the ring on the
+              map says the same thing the same way. */}
+          {campaign && (
+            <div
+              data-testid="popup-campaign"
+              className="flex items-center justify-between mt-1 text-xs gap-x-3"
+            >
+              <span className="text-ink-muted">
+                {eventLabel(campaign.eventType)} defense
+              </span>
+              <span
+                className={`font-medium tabular-nums ${
+                  isLive(campaign, now) ? 'text-danger' : 'text-accent'
+                }`}
+              >
+                {countdownText(campaign, now)}
+              </span>
+            </div>
+          )}
+
           <div className="grid grid-cols-4 gap-2 mt-3">
             <Box label="Ship" value={details.shipKills ?? null} />
             <Box label="Pod" value={details.podKills ?? null} />
@@ -327,14 +365,24 @@ export default function SystemPopup({
             </div>
           )}
 
-          {/* The one thing the panel is FOR, so the vocabulary's primary, and
-              full width because there is nothing to sit beside it. */}
-          <Link
-            href={`/solar-systems/${details.systemId}`}
-            className="mt-3 button button-primary button-sm button-block"
-          >
-            Open the system
-          </Link>
+          {/* Two equal halves: the page is still the panel's main way on, and
+              the link is what a fleet commander pastes into a ping. Side by
+              side so the panel does not grow a line. */}
+          <div className="grid grid-cols-2 gap-2 mt-3">
+            <Link
+              href={`/solar-systems/${details.systemId}`}
+              className="button button-primary button-sm"
+            >
+              Open the system
+            </Link>
+            <button
+              type="button"
+              className="button button-outline button-sm"
+              onClick={() => copy('popup', shareUrl)}
+            >
+              {copied === 'popup' ? 'Copied' : 'Copy link'}
+            </button>
+          </div>
         </>
       )}
     </div>
