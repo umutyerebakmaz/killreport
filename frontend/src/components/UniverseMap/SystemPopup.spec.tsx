@@ -260,6 +260,21 @@ describe('SystemPopup', () => {
     expect(line).toHaveTextContent(/3h 0[01]m/);
   });
 
+  // A freeport is not a defense; only the `*_defense` event types say so.
+  it('names a freeport without calling it a defense', () => {
+    loaded({ owner: null, stargates: [] });
+    renderPopup(vi.fn(), {
+      campaign: {
+        eventType: 'station_freeport',
+        startTime: new Date(Date.now() + 3_600_000).toISOString(),
+      },
+    });
+
+    const line = screen.getByTestId('popup-campaign');
+    expect(line).toHaveTextContent('Freeport');
+    expect(line).not.toHaveTextContent('defense');
+  });
+
   it('shows no campaign line for a quiet system', () => {
     loaded({ owner: null, stargates: [] });
     renderPopup();

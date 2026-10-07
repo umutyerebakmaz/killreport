@@ -87,6 +87,8 @@ export interface RingMark {
  * `drawsLogo` is asked per system, not per layer: with crests on, a system
  * whose owner is not the isolated one, or whose logo has not loaded, is still
  * a dot, and its ring hugs the dot rather than a disc that is not there.
+ *
+ * Live rings come last in the result, which is draw order.
  */
 export function ringMarks({
   sources,
@@ -125,7 +127,13 @@ export function ringMarks({
     rings.push({ x, y, radius, live: isLive(source, now) });
   }
 
-  return rings;
+  // Live rings last, so they are drawn on top: two campaigns in one system
+  // give two rings of one size, and the upcoming one must not hide the live
+  // one. A stable partition, so each group keeps its soonest-first order.
+  return [
+    ...rings.filter((ring) => !ring.live),
+    ...rings.filter((ring) => ring.live),
+  ];
 }
 
 export interface ChipBox {

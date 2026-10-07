@@ -45,8 +45,9 @@ export interface MapLayerData {
 }
 
 /**
- * What the legend under the switch draws. No row cap: the panel is as tall as
- * the map and scrolls, so the owner legend lists every owner.
+ * What the panel under the switch draws: nothing for security, the
+ * sovereignty panel (timers, owners, changes) for owners. No row cap: the
+ * panel scrolls, so its Owners tab lists every owner.
  */
 export type LegendSpec = { kind: 'security' } | { kind: 'owners' };
 
@@ -115,6 +116,25 @@ export function logoOwners(
     if (ownerId === isolatedOwner) only.set(systemId, ownerId);
   }
   return only;
+}
+
+/**
+ * The isolated owner, if it still holds anything.
+ *
+ * An `owner` in the URL outlives the owner's territory: a pasted link whose
+ * alliance has since lost its last system would grey every system and drop
+ * every crest, and no Owners row would be pressed to undo it. Once the owner
+ * list is loaded, an owner it does not hold counts as no isolation. `null`
+ * owners means "not loaded yet", and the owner is kept until it is.
+ *
+ * Derived, never written back: the URL keeps what it was given.
+ */
+export function presentOwner(
+  owner: number | null,
+  owners: readonly { ownerId: number }[] | null,
+): number | null {
+  if (owner === null || owners === null) return owner;
+  return owners.some((row) => row.ownerId === owner) ? owner : null;
 }
 
 /**

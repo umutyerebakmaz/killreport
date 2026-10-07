@@ -15,6 +15,7 @@ import {
   parseScope,
   scopeForRegionId,
   sharedMapUrl,
+  shareScopeFor,
   zoomCameraAt,
   zoomLimits,
   zoomToScale,
@@ -511,5 +512,26 @@ describe('sharedMapUrl', () => {
         owner: null,
       }),
     ).toBe('https://killreport.com/map?scope=POCHVEN&focus=30000021');
+  });
+});
+
+describe('shareScopeFor', () => {
+  const pochven = [{ systemId: 30000021 }, { systemId: 30001372 }];
+
+  it('keeps the current scope for a system in its scene', () => {
+    expect(shareScopeFor(MapScope.Pochven, 30000021, pochven)).toBe(
+      MapScope.Pochven,
+    );
+  });
+
+  it('falls back to New Eden for a system the scene does not hold', () => {
+    // A sovereignty timer copied from the Pochven map: the campaign's system
+    // is a nullsec one, and a link naming Pochven would open without it.
+    expect(shareScopeFor(MapScope.Pochven, 30004759, pochven)).toBe(
+      MapScope.NewEden,
+    );
+    expect(shareScopeFor(MapScope.Wormhole, 30004759, [])).toBe(
+      MapScope.NewEden,
+    );
   });
 });

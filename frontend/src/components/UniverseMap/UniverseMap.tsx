@@ -11,6 +11,7 @@ import {
   fitCamera,
   parseFraming,
   sharedMapUrl,
+  shareScopeFor,
   zoomLimits,
   zoomToScale,
 } from '@/utils/map/camera';
@@ -32,6 +33,7 @@ import { labelCandidates, placeLabels } from '@/utils/map/labels';
 import {
   groupSegmentsByTint,
   MAP_LAYERS,
+  presentOwner,
   type MapLayerData,
   logoOwners,
 } from '@/utils/map/layers';
@@ -206,7 +208,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     onFocusChange: setSelected,
     layer: layerId,
     onLayerChange: setLayerId,
-    owner: isolatedOwner,
+    owner: urlOwner,
     onOwnerChange: setIsolatedOwner,
     jumpTo,
   } = useMapCamera(scope, framing ?? fit);
@@ -244,10 +246,14 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     layerId === 'sovereignty',
   );
 
+  // The URL's owner only while it still holds something: everything below —
+  // the marks, the crests, the panel, the shared link — reads this one.
+  const isolatedOwner = presentOwner(urlOwner, sovIndex ? sovOwners : null);
+
   const campaigns = useSovCampaigns(layerId === 'sovereignty');
 
-  // The clock the rings read to turn red when a timer opens. Fifteen seconds is
-  // close enough for a colour; the chips count the seconds themselves, from an
+  // The tick that re-runs the ring pass so a ring turns red when its timer
+  // opens. Fifteen seconds is close enough for a colour; the chips count the seconds themselves, from an
   // interval of their own, so the map is not re-rendered every second.
   const ringNow = useNow(15_000, campaigns.length > 0);
 
@@ -724,7 +730,11 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
             width: size.width,
             height: size.height,
             drawsLogo,
-            now: ringNow,
+            // Read here, not from ringNow: that value is set at mount and
+            // can be up to a tick stale when the layer is switched on, which
+            // would draw a live timer's ring as upcoming beside a LIVE chip.
+            // ringNow stays in the dependencies as the re-run trigger.
+            now: Date.now(),
           })
         : [],
     );
@@ -867,12 +877,12 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     (systemId: number) =>
       sharedMapUrl({
         origin: window.location.origin,
-        scope,
+        scope: shareScopeFor(scope, systemId, geometry?.nodes ?? []),
         focus: systemId,
         layer: layerId,
         owner: isolatedOwner,
       }),
-    [scope, layerId, isolatedOwner],
+    [scope, geometry, layerId, isolatedOwner],
   );
 
   // Rebuilt whenever the camera or the viewport moves, which is correct: the

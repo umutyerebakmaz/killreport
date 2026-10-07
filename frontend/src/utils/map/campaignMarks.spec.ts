@@ -120,6 +120,27 @@ describe('ringMarks', () => {
     expect(ring.live).toBe(true);
   });
 
+  // Two campaigns in one system draw two rings of one size, and the last one
+  // drawn is the one seen. Soonest first puts the live one first, so without
+  // the ordering the upcoming ring painted over it.
+  it('draws live rings last, over an upcoming ring in the same system', () => {
+    const live = source(1, 300, 200, -1);
+    const upcoming = { ...source(2, 300, 200, HOUR), systemId: live.systemId };
+    const elsewhere = source(3, 600, 200, 2 * HOUR);
+    const rings = ringMarks({
+      sources: [live, upcoming, elsewhere],
+      transform: TRANSFORM,
+      ...VIEW,
+      drawsLogo: NO_LOGOS,
+      now: NOW,
+    });
+
+    expect(rings.map((ring) => ring.live)).toEqual([false, false, true]);
+    expect(rings[2].x).toBeCloseTo(300);
+    expect(rings[0].x).toBeCloseTo(300);
+    expect(rings[1].x).toBeCloseTo(600);
+  });
+
   it('clears the logo disc rather than the dot where a crest is drawn', () => {
     const [logo] = ringMarks({
       sources: [source(1, 300, 200, HOUR)],

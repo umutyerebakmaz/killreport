@@ -324,6 +324,24 @@ export function sharedMapUrl({
 }
 
 /**
+ * The scope a shared link to `systemId` should name.
+ *
+ * The current scope when its scene holds the system, New Eden otherwise:
+ * sovereignty timers and changes are New Eden systems, and the panel lists
+ * them on the Pochven and wormhole maps too. A link copied there naming the
+ * current scope would open a map without the system in it.
+ */
+export function shareScopeFor(
+  scope: MapScope,
+  systemId: number,
+  nodes: readonly { systemId: number }[],
+): MapScope {
+  return nodes.some((node) => node.systemId === systemId)
+    ? scope
+    : DEFAULT_SCOPE;
+}
+
+/**
  * Which scene a region belongs to.
  *
  * This mirrors the backend's own rule — `scopePredicate` in

@@ -314,7 +314,9 @@ export default function SystemPopup({
               className="flex items-center justify-between mt-1 text-xs gap-x-3"
             >
               <span className="text-ink-muted">
-                {eventLabel(campaign.eventType)} defense
+                {eventLabel(campaign.eventType)}
+                {/* Only ESI's `*_defense` types are one; a freeport is not. */}
+                {campaign.eventType.endsWith('_defense') && ' defense'}
               </span>
               <span
                 className={`font-medium tabular-nums ${

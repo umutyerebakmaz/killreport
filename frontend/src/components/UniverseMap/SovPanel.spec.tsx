@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 let changesSkipped: boolean[] = [];
+let changesLoading = false;
 vi.mock('@/generated/graphql', () => ({
   MapOwnerKind: {
     Alliance: 'ALLIANCE',
@@ -12,24 +13,25 @@ vi.mock('@/generated/graphql', () => ({
   useMapSovChangesQuery: (options: { skip?: boolean }) => {
     changesSkipped.push(!!options.skip);
     return {
-      loading: false,
-      data: options.skip
-        ? undefined
-        : {
-            recentTerritoryChanges: [
-              {
-                id: 'c1',
-                solarSystemId: 30004759,
-                solarSystemName: '1DQ1-A',
-                previousOwnerId: 1,
-                previousOwnerName: 'Old Holder',
-                newOwnerId: 2,
-                newOwnerName: 'New Holder',
-                changeType: 'gained',
-                detectedAt: new Date(Date.now() - 3_600_000).toISOString(),
-              },
-            ],
-          },
+      loading: changesLoading,
+      data:
+        options.skip || changesLoading
+          ? undefined
+          : {
+              recentTerritoryChanges: [
+                {
+                  id: 'c1',
+                  solarSystemId: 30004759,
+                  solarSystemName: '1DQ1-A',
+                  previousOwnerId: 1,
+                  previousOwnerName: 'Old Holder',
+                  newOwnerId: 2,
+                  newOwnerName: 'New Holder',
+                  changeType: 'gained',
+                  detectedAt: new Date(Date.now() - 3_600_000).toISOString(),
+                },
+              ],
+            },
     };
   },
 }));
@@ -83,6 +85,7 @@ const handlers = () => ({
 
 beforeEach(() => {
   changesSkipped = [];
+  changesLoading = false;
 });
 
 describe('SovPanel', () => {
@@ -255,6 +258,41 @@ describe('SovPanel', () => {
     expect(within(row).getByText(/New Holder/)).toBeInTheDocument();
   });
 
+  // The empty-state line is a claim; while the query is in flight it is not
+  // true yet.
+  it('says the changes are loading rather than that there are none', async () => {
+    changesLoading = true;
+    render(
+      <SovPanel
+        owners={owners}
+        campaigns={campaigns}
+        isolatedOwner={null}
+        {...handlers()}
+      />,
+    );
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Changes' }));
+
+    expect(screen.getByText('Loading changes...')).toBeInTheDocument();
+    expect(screen.queryByText('No recent changes')).not.toBeInTheDocument();
+  });
+
+  it('counts the timers in the header, in the plural past one', () => {
+    const two = [
+      ...(campaigns as unknown as object[]),
+      { ...(campaigns as unknown as object[])[0], campaignId: 2 },
+    ] as never;
+    render(
+      <SovPanel
+        owners={owners}
+        campaigns={two}
+        isolatedOwner={null}
+        {...handlers()}
+      />,
+    );
+    expect(screen.getByText('2 timers')).toBeInTheDocument();
+  });
+
   it('shows the owner crest from the corporation path for a faction', async () => {
     render(
       <SovPanel
@@ -345,7 +383,7 @@ describe('SovPanel', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByText('1DQ1-A')).not.toBeInTheDocument();
     expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
-    expect(screen.getByText('1 timers')).toBeInTheDocument();
+    expect(screen.getByText('1 timer')).toBeInTheDocument();
 
     await userEvent.click(toggle);
 

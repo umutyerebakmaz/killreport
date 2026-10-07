@@ -116,7 +116,7 @@ export default function SovPanel({
 
   const now = useNow(1_000, open && tab === 'timers' && campaigns.length > 0);
   const { copied, copy } = useCopyLink();
-  const { changes } = useSovChanges(changesWanted);
+  const { changes, loading: changesLoading } = useSovChanges(changesWanted);
 
   const byHoldings = useMemo(
     () => [...owners].sort((a, b) => b.systemCount - a.systemCount),
@@ -155,7 +155,9 @@ export default function SovPanel({
           <ChevronRightIcon className="size-4" />
         )}
         <span className="flex-1 text-left">Sovereignty</span>
-        <span className="tabular-nums">{campaigns.length} timers</span>
+        <span className="tabular-nums">
+          {campaigns.length} {campaigns.length === 1 ? 'timer' : 'timers'}
+        </span>
       </button>
 
       {open && (
@@ -292,7 +294,9 @@ export default function SovPanel({
 
             {tab === 'changes' &&
               (changes.length === 0 ? (
-                <p className="text-ink-muted">No recent changes</p>
+                <p className="text-ink-muted">
+                  {changesLoading ? 'Loading changes...' : 'No recent changes'}
+                </p>
               ) : (
                 changes.map((change) => (
                   <button

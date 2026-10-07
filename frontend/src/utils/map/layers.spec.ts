@@ -7,6 +7,7 @@ import {
   groupSegmentsByTint,
   logoOwners,
   MAP_LAYERS,
+  presentOwner,
   SOV_LOGO_ZOOM,
   type MapLayerData,
 } from './layers';
@@ -211,5 +212,32 @@ describe('isolating an owner', () => {
 
   it('hands it nothing when there is no sovereignty data yet', () => {
     expect(logoOwners(null, FIRST).size).toBe(0);
+  });
+});
+
+describe('presentOwner', () => {
+  const owners = [{ ownerId: 99003581 }, { ownerId: 99001317 }];
+
+  it('keeps an owner the loaded list holds', () => {
+    expect(presentOwner(99003581, owners)).toBe(99003581);
+  });
+
+  it('drops an owner the loaded list does not hold', () => {
+    // A pasted link whose owner has since lost its last system: isolating it
+    // would grey the whole map with no row in the panel to undo it.
+    expect(presentOwner(123, owners)).toBeNull();
+  });
+
+  it('keeps the owner while the list is not loaded yet', () => {
+    expect(presentOwner(123, null)).toBe(123);
+  });
+
+  it('drops any owner from a loaded scene that has no owners', () => {
+    expect(presentOwner(123, [])).toBeNull();
+  });
+
+  it('passes "no isolation" through', () => {
+    expect(presentOwner(null, owners)).toBeNull();
+    expect(presentOwner(null, null)).toBeNull();
   });
 });
