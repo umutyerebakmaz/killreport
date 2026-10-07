@@ -1257,8 +1257,6 @@ export type Query = {
   sovereigntyActiveCampaigns: Array<SovereigntyCampaign>;
   /** Resolved (ended) campaigns, newest-ended first, paginated. */
   sovereigntyCampaignHistory: SovereigntyCampaignHistoryPage;
-  /** All sov-held systems with coordinates, for the territory map (filter by region client-side). */
-  sovereigntyMapPoints: Array<SovMapPoint>;
   /** Distribution of resolved campaign outcomes. */
   sovereigntyOutcomeStats: SovereigntyOutcomeStats;
   /** Summary counts for the current sovereignty state. */
@@ -1926,22 +1924,6 @@ export type SolarSystemsResponse = {
   __typename?: 'SolarSystemsResponse';
   items: Array<SolarSystem>;
   pageInfo: PageInfo;
-};
-
-/**
- * A sov-held solar system plotted on the territory map (position in light-years,
- * galactic x/z projected to 2D).
- */
-export type SovMapPoint = {
-  __typename?: 'SovMapPoint';
-  allianceId?: Maybe<Scalars['Int']['output']>;
-  allianceName?: Maybe<Scalars['String']['output']>;
-  allianceTicker?: Maybe<Scalars['String']['output']>;
-  regionName?: Maybe<Scalars['String']['output']>;
-  systemId: Scalars['Int']['output'];
-  systemName?: Maybe<Scalars['String']['output']>;
-  x: Scalars['Float']['output'];
-  y: Scalars['Float']['output'];
 };
 
 /** A real-time sovereignty alert pushed over SSE when a worker detects an event. */
@@ -2706,7 +2688,6 @@ export type ResolversTypes = {
   SolarSystemOrderBy: SolarSystemOrderBy;
   SolarSystemStats: ResolverTypeWrapper<SolarSystemStats>;
   SolarSystemsResponse: ResolverTypeWrapper<SolarSystemsResponse>;
-  SovMapPoint: ResolverTypeWrapper<SovMapPoint>;
   SovereigntyAlert: ResolverTypeWrapper<SovereigntyAlert>;
   SovereigntyCampaign: ResolverTypeWrapper<SovereigntyCampaign>;
   SovereigntyCampaignHistoryPage: ResolverTypeWrapper<SovereigntyCampaignHistoryPage>;
@@ -2865,7 +2846,6 @@ export type ResolversParentTypes = {
   SolarSystemFilter: SolarSystemFilter;
   SolarSystemStats: SolarSystemStats;
   SolarSystemsResponse: SolarSystemsResponse;
-  SovMapPoint: SovMapPoint;
   SovereigntyAlert: SovereigntyAlert;
   SovereigntyCampaign: SovereigntyCampaign;
   SovereigntyCampaignHistoryPage: SovereigntyCampaignHistoryPage;
@@ -3592,7 +3572,6 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   solarSystems?: Resolver<ResolversTypes['SolarSystemsResponse'], ParentType, ContextType, Partial<QuerySolarSystemsArgs>>;
   sovereigntyActiveCampaigns?: Resolver<Array<ResolversTypes['SovereigntyCampaign']>, ParentType, ContextType, Partial<QuerySovereigntyActiveCampaignsArgs>>;
   sovereigntyCampaignHistory?: Resolver<ResolversTypes['SovereigntyCampaignHistoryPage'], ParentType, ContextType, Partial<QuerySovereigntyCampaignHistoryArgs>>;
-  sovereigntyMapPoints?: Resolver<Array<ResolversTypes['SovMapPoint']>, ParentType, ContextType>;
   sovereigntyOutcomeStats?: Resolver<ResolversTypes['SovereigntyOutcomeStats'], ParentType, ContextType>;
   sovereigntyOverview?: Resolver<ResolversTypes['SovereigntyOverview'], ParentType, ContextType>;
   sovereigntyStructures?: Resolver<Array<ResolversTypes['SovereigntyStructureInfo']>, ParentType, ContextType, Partial<QuerySovereigntyStructuresArgs>>;
@@ -3730,17 +3709,6 @@ export type SolarSystemStatsResolvers<ContextType = any, ParentType extends Reso
 export type SolarSystemsResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['SolarSystemsResponse'] = ResolversParentTypes['SolarSystemsResponse']> = {
   items?: Resolver<Array<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
   pageInfo?: Resolver<ResolversTypes['PageInfo'], ParentType, ContextType>;
-};
-
-export type SovMapPointResolvers<ContextType = any, ParentType extends ResolversParentTypes['SovMapPoint'] = ResolversParentTypes['SovMapPoint']> = {
-  allianceId?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  allianceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  allianceTicker?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  regionName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  systemId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  systemName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  x?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
-  y?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
 };
 
 export type SovereigntyAlertResolvers<ContextType = any, ParentType extends ResolversParentTypes['SovereigntyAlert'] = ResolversParentTypes['SovereigntyAlert']> = {
@@ -4180,7 +4148,6 @@ export type Resolvers<ContextType = any> = {
   SolarSystemCounts?: SolarSystemCountsResolvers<ContextType>;
   SolarSystemStats?: SolarSystemStatsResolvers<ContextType>;
   SolarSystemsResponse?: SolarSystemsResponseResolvers<ContextType>;
-  SovMapPoint?: SovMapPointResolvers<ContextType>;
   SovereigntyAlert?: SovereigntyAlertResolvers<ContextType>;
   SovereigntyCampaign?: SovereigntyCampaignResolvers<ContextType>;
   SovereigntyCampaignHistoryPage?: SovereigntyCampaignHistoryPageResolvers<ContextType>;

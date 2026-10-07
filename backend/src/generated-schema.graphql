@@ -1170,11 +1170,6 @@ type Query {
   """Resolved (ended) campaigns, newest-ended first, paginated."""
   sovereigntyCampaignHistory(limit: Int, offset: Int): SovereigntyCampaignHistoryPage!
 
-  """
-  All sov-held systems with coordinates, for the territory map (filter by region client-side).
-  """
-  sovereigntyMapPoints: [SovMapPoint!]!
-
   """Distribution of resolved campaign outcomes."""
   sovereigntyOutcomeStats: SovereigntyOutcomeStats!
 
@@ -1448,21 +1443,6 @@ type SolarSystemStats {
 type SolarSystemsResponse {
   items: [SolarSystem!]!
   pageInfo: PageInfo!
-}
-
-"""
-A sov-held solar system plotted on the territory map (position in light-years,
-galactic x/z projected to 2D).
-"""
-type SovMapPoint {
-  allianceId: Int
-  allianceName: String
-  allianceTicker: String
-  regionName: String
-  systemId: Int!
-  systemName: String
-  x: Float!
-  y: Float!
 }
 
 """
