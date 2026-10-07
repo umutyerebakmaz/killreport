@@ -59,16 +59,17 @@ src/
 
 ### Routes
 
-| Route                                                                                                          | Purpose                                       |
-| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| `/killmails`, `/killmails/[id]`                                                                                | Killmail list and detail                      |
-| `/characters/[id]`, `/corporations/[id]`, `/alliances/[id]`                                                    | Entity profiles and stats                     |
-| `/regions/[id]`, `/constellations/[id]`, `/solar-systems/[id]`                                                 | Universe browsing                             |
-| `/leaderboards`                                                                                                | Top pilots, corporations, alliances and ships |
-| `/sovereignty`, `/sovereignty/map`, `/sovereignty/history`, `/sovereignty/hotspots`, `/sovereignty/structures` | Sovereignty tracking                          |
-| `/workers`                                                                                                     | Live background worker and queue status       |
-| `/auth/callback`, `/auth/success`                                                                              | EVE SSO login flow                            |
-| `/legal`, `/privacy`, `/terms`, `/changelog`                                                                   | Static pages                                  |
+| Route                                                                                      | Purpose                                                                                                 |
+| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `/killmails`, `/killmails/[id]`                                                            | Killmail list and detail                                                                                |
+| `/characters/[id]`, `/corporations/[id]`, `/alliances/[id]`                                | Entity profiles and stats                                                                               |
+| `/regions/[id]`, `/constellations/[id]`, `/solar-systems/[id]`                             | Universe browsing                                                                                       |
+| `/leaderboards`                                                                            | Top pilots, corporations, alliances and ships                                                           |
+| `/sovereignty`, `/sovereignty/history`, `/sovereignty/hotspots`, `/sovereignty/structures` | Sovereignty tracking                                                                                    |
+| `/map`                                                                                     | Universe map, security and sovereignty layers; `/sovereignty/map` redirects to `/map?layer=sovereignty` |
+| `/workers`                                                                                 | Live background worker and queue status                                                                 |
+| `/auth/callback`, `/auth/success`                                                          | EVE SSO login flow                                                                                      |
+| `/legal`, `/privacy`, `/terms`, `/changelog`                                               | Static pages                                                                                            |
 
 ## GraphQL Workflow
 
