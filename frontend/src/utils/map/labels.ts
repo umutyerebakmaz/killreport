@@ -124,10 +124,9 @@ export function projectZ(transform: CameraTransform, z: number): number {
 /**
  * How far above its system a box `lineHeight` tall is centred: one line, or
  * enough to clear the dot by LABEL_DOT_GAP_PX if that is more, plus the logo
- * lift while crests are drawn. The system name and the campaign chip that
- * replaces it share this, so a chip sits exactly where the name would have.
+ * lift while crests are drawn.
  */
-export function systemLabelLift(
+function systemLabelLift(
   lineHeight: number,
   dotRadiusPx: number,
   logos: boolean,
@@ -313,7 +312,7 @@ export function labelCandidates({
   return candidates;
 }
 
-export function overlaps(a: LabelBox, b: LabelBox): boolean {
+function overlaps(a: LabelBox, b: LabelBox): boolean {
   // Strict: boxes that exactly touch are clear. Rejecting those would thin the
   // map for nothing.
   return (
@@ -324,9 +323,6 @@ export function overlaps(a: LabelBox, b: LabelBox): boolean {
 
 /** Shared empty set, so the default argument mints nothing per frame. */
 const EMPTY_STICKY: ReadonlySet<string> = new Set();
-
-/** Shared empty list, for the same reason. */
-const NO_RESERVED: readonly LabelBox[] = [];
 
 /**
  * Greedy, in the order given, with the previous frame's survivors going first.
@@ -350,17 +346,11 @@ const NO_RESERVED: readonly LabelBox[] = [];
 export function placeLabels(
   candidates: LabelCandidate[],
   sticky: ReadonlySet<string> = EMPTY_STICKY,
-  /**
-   * Boxes already taken before any name is placed — the campaign chips. They
-   * do not count toward MAX_VISIBLE_LABELS and are not returned.
-   */
-  reserved: readonly LabelBox[] = NO_RESERVED,
 ): LabelCandidate[] {
   const placed: LabelCandidate[] = [];
 
   const consider = (candidate: LabelCandidate) => {
     if (placed.length >= MAX_VISIBLE_LABELS) return;
-    if (reserved.some((box) => overlaps(candidate, box))) return;
     if (placed.some((other) => overlaps(candidate, other))) return;
     placed.push(candidate);
   };

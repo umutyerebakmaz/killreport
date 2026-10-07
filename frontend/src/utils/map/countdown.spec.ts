@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   byStartTime,
-  chipPrefix,
-  chipText,
   countdownText,
   eventLabel,
   eveTimestamp,
@@ -96,33 +94,9 @@ describe('eventLabel', () => {
   });
 });
 
-describe('chip text', () => {
-  const campaign = {
-    campaignId: 1,
-    solarSystemId: 30004759,
-    solarSystemName: '1DQ1-A',
-    eventType: 'ihub_defense',
-    startTime: at(2 * HOUR + 14 * MINUTE),
-  };
-
-  it('is the system, the event and the countdown', () => {
-    expect(chipText(campaign, NOW)).toBe('1DQ1-A · IHub · 2h 14m');
-  });
-
-  it('has a prefix that does not change while the clock runs', () => {
-    expect(chipPrefix(campaign)).toBe('1DQ1-A · IHub · ');
-  });
-
-  it('falls back to the system id when the name is missing', () => {
-    expect(chipPrefix({ ...campaign, solarSystemName: null })).toBe(
-      '30004759 · IHub · ',
-    );
-  });
-});
-
 describe('byStartTime', () => {
   // Live timers started earlier than any upcoming one, so one ascending sort
-  // puts them first — the order the panel and the chip priority both want.
+  // puts them first — the order the panel wants.
   it('puts the live ones first and then the soonest', () => {
     const sorted = byStartTime([
       { id: 'later', startTime: at(3 * HOUR) },

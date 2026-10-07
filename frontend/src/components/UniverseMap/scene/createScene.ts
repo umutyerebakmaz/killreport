@@ -28,7 +28,8 @@ export interface MapScene {
    * The campaign rings, in SCREEN space on the stage rather than in the
    * world: a ring's stroke has to stay one width at every zoom, and screen
    * coordinates are small enough for float32 where galactic metres are not.
-   * Redrawn on every camera change — a few dozen circles.
+   * Redrawn on every camera change, and every frame while useRingSpin turns
+   * them — a few dozen rings of arcs.
    */
   rings: Graphics;
   dot: Texture;

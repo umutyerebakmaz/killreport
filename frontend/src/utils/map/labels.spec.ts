@@ -842,21 +842,3 @@ describe('viewport clamping', () => {
     expect(c.screenX).toBeGreaterThanOrEqual(c.halfWidth);
   });
 });
-
-describe('placeLabels with reserved boxes', () => {
-  it('keeps a name off a box already taken by a chip', () => {
-    const name = {
-      key: 'system:1',
-      name: 'Jita',
-      tier: 'system' as const,
-      screenX: 100,
-      screenY: 100,
-      halfWidth: 20,
-      halfHeight: 7,
-    };
-    const chip = { screenX: 110, screenY: 100, halfWidth: 40, halfHeight: 9 };
-
-    expect(placeLabels([name], undefined, [chip])).toEqual([]);
-    expect(placeLabels([name])).toEqual([name]);
-  });
-});

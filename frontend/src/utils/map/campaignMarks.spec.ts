@@ -2,21 +2,16 @@ import { describe, expect, it } from 'vitest';
 import type { CameraTransform } from './camera';
 import {
   campaignSources,
-  CHIP_COUNTDOWN_RESERVE_PX,
-  CHIP_HEIGHT_PX,
-  CHIP_PAD_X_PX,
-  placeChips,
+  RING_ARC_COUNT,
+  RING_ARC_GAP_RAD,
   RING_GAP_PX,
+  RING_SPIN_PERIOD_MS,
+  ringArcs,
   ringMarks,
-  withoutChippedNames,
+  ringSpinAngle,
+  shouldSpinRings,
   type CampaignSource,
-  type ChipBox,
 } from './campaignMarks';
-import {
-  LABEL_LOGO_LIFT_PX,
-  labelCandidates,
-  type LabelCandidate,
-} from './labels';
 import { systemFloorPx, systemRadiusPx } from './marks';
 import { discRadiusPx, LOGO_MIN_RADIUS_PX } from './sovLogos';
 
@@ -45,21 +40,16 @@ const worldAt = (sx: number, sy: number) => ({
 });
 
 const source = (
-  campaignId: number,
+  id: number,
   sx: number,
   sy: number,
   startIn: number,
 ): CampaignSource => ({
-  campaignId,
-  systemId: 30000000 + campaignId,
+  systemId: 30000000 + id,
   ...worldAt(sx, sy),
   radius: 1e12,
   startTime: at(startIn),
-  prefix: `SYS${campaignId} · IHub · `,
 });
-
-/** Every prefix measures 10 px per character. */
-const measure = (text: string) => text.length * 10;
 
 describe('campaignSources', () => {
   const campaign = (campaignId: number, solarSystemId: number) => ({
@@ -74,13 +64,11 @@ describe('campaignSources', () => {
   it('places a campaign on its system', () => {
     expect(campaignSources([campaign(1, 30000001)], nodes)).toEqual([
       {
-        campaignId: 1,
         systemId: 30000001,
         x: 1,
         z: 2,
         radius: 3,
         startTime: at(HOUR),
-        prefix: 'S1 · IHub · ',
       },
     ]);
   });
@@ -185,164 +173,85 @@ describe('ringMarks', () => {
   });
 });
 
-describe('placeChips', () => {
-  it('sizes the box from the prefix plus the countdown reserve', () => {
-    const [chip] = placeChips({
-      sources: [source(1, 300, 300, HOUR)],
-      measure,
-      transform: TRANSFORM,
-      ...VIEW,
-      logos: false,
-    });
-    const prefixWidth = 'SYS1 · IHub · '.length * 10;
-    expect(chip.halfWidth).toBe(
-      (prefixWidth + CHIP_COUNTDOWN_RESERVE_PX + 2 * CHIP_PAD_X_PX) / 2,
+describe('ringSpinAngle', () => {
+  it('turns once per period, starting from zero', () => {
+    expect(ringSpinAngle(0)).toBe(0);
+    expect(ringSpinAngle(RING_SPIN_PERIOD_MS / 4)).toBeCloseTo(Math.PI / 2);
+    expect(ringSpinAngle(RING_SPIN_PERIOD_MS / 2)).toBeCloseTo(Math.PI);
+  });
+
+  // From the clock, so a long-open tab does not grow the angle without bound.
+  it('wraps into [0, 2π)', () => {
+    expect(ringSpinAngle(RING_SPIN_PERIOD_MS)).toBe(0);
+    expect(ringSpinAngle(10 * RING_SPIN_PERIOD_MS + 1_500)).toBeCloseTo(
+      ringSpinAngle(1_500),
     );
-    expect(chip.halfHeight).toBe(CHIP_HEIGHT_PX / 2);
-    expect(chip.screenX).toBeCloseTo(300);
-    // Above the system, where its name would have been.
-    expect(chip.screenY).toBeLessThan(300);
+    expect(ringSpinAngle(-1_500)).toBeCloseTo(ringSpinAngle(4_500));
   });
 
-  // The chip takes the name's place, so it is lifted by the very rule that
-  // lifts the name: the dot's clearance, plus the logo lift while crests are on.
-  it('sits on the system label lift, logo lift included', () => {
-    const chipY = (logos: boolean) =>
-      placeChips({
-        sources: [source(1, 300, 300, HOUR)],
-        measure,
-        transform: TRANSFORM,
-        ...VIEW,
-        logos,
-      })[0].screenY;
-    const dot = systemRadiusPx(1e12, SCALE, systemFloorPx(Math.log2(SCALE)));
-
-    expect(300 - chipY(false)).toBeCloseTo(
-      Math.max(CHIP_HEIGHT_PX, CHIP_HEIGHT_PX / 2 + dot + 7),
-    );
-    expect(chipY(false) - chipY(true)).toBeCloseTo(LABEL_LOGO_LIFT_PX);
-  });
-
-  it('clears the ring around the mark it sits above', () => {
-    for (const logos of [false, true]) {
-      const [chip] = placeChips({
-        sources: [source(1, 300, 300, HOUR)],
-        measure,
-        transform: TRANSFORM,
-        ...VIEW,
-        logos,
-      });
-      const [ring] = ringMarks({
-        sources: [source(1, 300, 300, HOUR)],
-        transform: TRANSFORM,
-        ...VIEW,
-        drawsLogo: logos ? ALL_LOGOS : NO_LOGOS,
-        now: NOW,
-      });
-      expect(ring.y - (chip.screenY + chip.halfHeight)).toBeGreaterThan(
-        ring.radius,
-      );
-    }
-  });
-
-  // The order given is the priority — soonest first, live before both.
-  it('keeps the first of two colliding chips and drops the second', () => {
-    const placed = placeChips({
-      sources: [source(1, 300, 300, HOUR), source(2, 310, 302, 2 * HOUR)],
-      measure,
-      transform: TRANSFORM,
-      ...VIEW,
-      logos: false,
-    });
-    expect(placed.map((c) => c.campaignId)).toEqual([1]);
-  });
-
-  it('keeps chips that do not touch', () => {
-    const placed = placeChips({
-      sources: [source(1, 300, 300, HOUR), source(2, 300, 600, 2 * HOUR)],
-      measure,
-      transform: TRANSFORM,
-      ...VIEW,
-      logos: false,
-    });
-    expect(placed.map((c) => c.campaignId)).toEqual([1, 2]);
-  });
-
-  it('places no chip for a system off screen', () => {
-    expect(
-      placeChips({
-        sources: [source(1, 300, 2000, HOUR)],
-        measure,
-        transform: TRANSFORM,
-        ...VIEW,
-        logos: false,
-      }),
-    ).toEqual([]);
-  });
-
-  it('carries the system id, which is what makes a chip clickable', () => {
-    const [chip] = placeChips({
-      sources: [source(1, 300, 300, HOUR)],
-      measure,
-      transform: TRANSFORM,
-      ...VIEW,
-      logos: false,
-    });
-    expect(chip.systemId).toBe(30000001);
+  it('takes the period as a parameter', () => {
+    expect(ringSpinAngle(500, 1_000)).toBeCloseTo(Math.PI);
   });
 });
 
-describe('withoutChippedNames', () => {
-  const name = (tier: LabelCandidate['tier'], id: number): LabelCandidate => ({
-    key: `${tier}:${id}`,
-    name: `N${id}`,
-    tier,
-    screenX: 0,
-    screenY: 0,
-    halfWidth: 10,
-    halfHeight: 6,
-    systemId: tier === 'system' ? id : undefined,
-    regionId: tier === 'region' ? id : undefined,
-  });
-  const chip: ChipBox = {
-    campaignId: 1,
-    systemId: 30000001,
-    screenX: 0,
-    screenY: 0,
-    halfWidth: 50,
-    halfHeight: 9,
-  };
+describe('ringArcs', () => {
+  const step = (2 * Math.PI) / RING_ARC_COUNT;
 
-  it('drops the name of a system whose chip was placed — the chip carries it', () => {
-    const kept = withoutChippedNames(
-      [name('system', 30000001), name('system', 30000002)],
-      [chip],
-    );
-    expect(kept.map((c) => c.key)).toEqual(['system:30000002']);
+  it('draws RING_ARC_COUNT arcs', () => {
+    expect(ringArcs(0)).toHaveLength(RING_ARC_COUNT);
+    expect(ringArcs(0, 4)).toHaveLength(4);
   });
 
-  // Ids are only unique within a tier; a region that happens to share the
-  // number is a different thing and keeps its name.
-  it('touches only the system tier', () => {
-    const region = name('region', 30000001);
-    expect(withoutChippedNames([region], [chip])).toEqual([region]);
+  it('leaves RING_ARC_GAP_RAD between neighbouring arcs, all the way round', () => {
+    const arcs = ringArcs(0);
+    for (let i = 0; i < arcs.length; i++) {
+      const next = arcs[(i + 1) % arcs.length];
+      const nextStart =
+        i + 1 === arcs.length ? next.start + 2 * Math.PI : next.start;
+      expect(nextStart - arcs[i].end).toBeCloseTo(RING_ARC_GAP_RAD);
+      expect(arcs[i].end - arcs[i].start).toBeCloseTo(step - RING_ARC_GAP_RAD);
+    }
   });
 
-  it('returns the list unchanged when no chip was placed', () => {
-    const candidates = [name('system', 30000001)];
-    expect(withoutChippedNames(candidates, [])).toBe(candidates);
-  });
-
-  it('agrees with labelCandidates on what a system name is keyed by', () => {
-    const [candidate] = labelCandidates({
-      tiers: ['system'],
-      regions: [],
-      constellations: [],
-      systems: [{ id: 30000001, name: 'SYS1', x: 0, z: 0, radius: 1e12 }],
-      measure: (_tier, text) => text.length * 10,
-      transform: TRANSFORM,
-      ...VIEW,
+  it('is offset as a whole by the angle', () => {
+    const still = ringArcs(0);
+    const turned = ringArcs(1);
+    turned.forEach((arc, i) => {
+      expect(arc.start - still[i].start).toBeCloseTo(1);
+      expect(arc.end - still[i].end).toBeCloseTo(1);
     });
-    expect(withoutChippedNames([candidate], [chip])).toEqual([]);
+  });
+
+  // Pixi's y points down: a point at angle θ sits at (cos θ, sin θ) on screen,
+  // so a growing angle carries an arc from the right of the centre towards
+  // below it — clockwise as the viewer sees it.
+  it('turns clockwise on screen as time passes', () => {
+    const screen = (angle: number) => ({
+      x: Math.cos(angle),
+      y: Math.sin(angle),
+    });
+    const before = screen(ringArcs(ringSpinAngle(0))[0].start);
+    const after = screen(
+      ringArcs(ringSpinAngle(RING_SPIN_PERIOD_MS / 8))[0].start,
+    );
+    // The first arc starts just past +x (to the right, y slightly down) and
+    // moves further down, i.e. clockwise, an eighth of a turn later.
+    expect(before.x).toBeGreaterThan(0);
+    expect(after.y).toBeGreaterThan(before.y);
+    expect(after.x).toBeLessThan(before.x);
+  });
+});
+
+describe('shouldSpinRings', () => {
+  it('spins while there is a ring to turn', () => {
+    expect(shouldSpinRings(2, false)).toBe(true);
+  });
+
+  it('does not run with nothing to draw', () => {
+    expect(shouldSpinRings(0, false)).toBe(false);
+  });
+
+  it('stands still for a viewer who asked for reduced motion', () => {
+    expect(shouldSpinRings(2, true)).toBe(false);
   });
 });

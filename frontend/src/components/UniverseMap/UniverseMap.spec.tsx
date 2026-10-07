@@ -131,15 +131,6 @@ vi.mock('./labels/labelLayer', () => ({
   destroyLabelLayer: (layer: unknown) => destroyLabelLayer(layer),
   drawLabels: vi.fn(),
 }));
-vi.mock('./labels/chipLayer', () => ({
-  createChipLayer: (host: HTMLElement) => ({
-    root: host,
-    pool: new Map<number, HTMLSpanElement>(),
-  }),
-  destroyChipLayer: vi.fn(),
-  drawChips: vi.fn(),
-  writeChipText: vi.fn(),
-}));
 vi.mock('./scene/campaignRings', () => ({ drawRings: vi.fn() }));
 
 /** A real canvas element, as the component's `resizeTo: host` scene has. */
@@ -157,6 +148,7 @@ function fakeScene() {
         height: VIEWPORT.height * FAKE_RESOLUTION,
       },
       screen: { width: VIEWPORT.width, height: VIEWPORT.height },
+      ticker: { add: vi.fn(), remove: vi.fn() },
     },
     world: { scale: { set: vi.fn() }, position: { set: vi.fn() } },
     edgesGalaxy: { visible: true, clear: vi.fn() },

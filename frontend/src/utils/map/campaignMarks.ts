@@ -1,14 +1,7 @@
 import type { CameraTransform } from './camera';
-import { chipPrefix, isLive, type ChipCampaign } from './countdown';
-import {
-  offScreen,
-  overlaps,
-  projectX,
-  projectZ,
-  systemLabelLift,
-  type LabelCandidate,
-} from './labels';
-import { systemFloorPx, systemRadiusPx } from './marks';
+import { isLive } from './countdown';
+import { offScreen, projectX, projectZ } from './labels';
+import { systemFloorPx } from './marks';
 import { drawnRadiusPx } from './sovLogos';
 
 /** Clear space between a system's drawn mark and the ring around it. */
@@ -17,39 +10,36 @@ export const RING_GAP_PX = 3;
 /** The ring's stroke, in screen pixels at every zoom. */
 export const RING_STROKE_PX = 1.5;
 
-/** A chip's box: one 12 px line plus its border and padding. */
-export const CHIP_HEIGHT_PX = 18;
-
-export const CHIP_PAD_X_PX = 6;
-
 /**
- * The countdown's share of a chip's width, reserved rather than measured: the
- * text changes every second, and a box measured from it would grow and shrink
- * and push its neighbours in and out of view. Wide enough for `LIVE 100–100`
- * and `23h 59m` at 12 px, rounded up — too wide hides a neighbour a little
- * early, too narrow lets two chips overlap.
+ * Each ring is drawn as this many arcs with gaps between them: a plain circle
+ * turning on its centre looks exactly like one standing still, and the gaps
+ * are what make the spin visible. Three reads as a turning marker at the
+ * ring's few-pixel radius; more arcs shrink each one toward a dash.
  */
-export const CHIP_COUNTDOWN_RESERVE_PX = 72;
+export const RING_ARC_COUNT = 3;
+
+/** The gap between two arcs of a ring, in radians (30°). */
+export const RING_ARC_GAP_RAD = Math.PI / 6;
+
+/** One full clockwise turn of every ring, in milliseconds. */
+export const RING_SPIN_PERIOD_MS = 6_000;
 
 /** A campaign with the position of the system it is fought over. */
 export interface CampaignSource {
-  campaignId: number;
   systemId: number;
   x: number;
   z: number;
   radius: number;
   startTime: string;
-  prefix: string;
 }
 
 /**
- * Campaigns joined to the scene's nodes, in the order given — which is the
- * chip priority, so the caller sorts first. A campaign whose system the scene
- * does not hold (every one of them, on the POCHVEN and WORMHOLE maps) is
- * dropped: there is nowhere to draw it.
+ * Campaigns joined to the scene's nodes, in the order given. A campaign whose
+ * system the scene does not hold (every one of them, on the POCHVEN and
+ * WORMHOLE maps) is dropped: there is nowhere to draw it.
  */
 export function campaignSources(
-  campaigns: readonly ChipCampaign[],
+  campaigns: readonly { solarSystemId: number; startTime: string }[],
   nodes: readonly { systemId: number; x: number; z: number; radius: number }[],
 ): CampaignSource[] {
   const byId = new Map(nodes.map((node) => [node.systemId, node]));
@@ -59,13 +49,11 @@ export function campaignSources(
     const node = byId.get(campaign.solarSystemId);
     if (!node) continue;
     sources.push({
-      campaignId: campaign.campaignId,
       systemId: node.systemId,
       x: node.x,
       z: node.z,
       radius: node.radius,
       startTime: campaign.startTime,
-      prefix: chipPrefix(campaign),
     });
   }
 
@@ -136,90 +124,51 @@ export function ringMarks({
   ];
 }
 
-export interface ChipBox {
-  campaignId: number;
-  systemId: number;
-  screenX: number;
-  screenY: number;
-  halfWidth: number;
-  halfHeight: number;
+/**
+ * How far round every ring has turned at `timeMs`, in radians in [0, 2π).
+ * From the clock, not a per-frame step, so the speed is the same at 30 fps
+ * and at 144. Increasing, which on screen is clockwise: Pixi's y points down,
+ * so an angle growing from +x moves towards +y — below the centre.
+ */
+export function ringSpinAngle(
+  timeMs: number,
+  periodMs: number = RING_SPIN_PERIOD_MS,
+): number {
+  const turn = (((timeMs % periodMs) + periodMs) % periodMs) / periodMs;
+  return turn * 2 * Math.PI;
+}
+
+export interface RingArc {
+  start: number;
+  end: number;
 }
 
 /**
- * Greedy, in the order given: the caller sorts soonest first, so in a crowd
- * the timers about to open are the ones that stay. A chip that does not fit
- * is dropped — its ring still marks the system, and the panel lists it.
- *
- * Anchored above the system, where its name would sit, by the same lift the
- * system label uses; the name itself is not drawn under a chip, which carries
- * it — see `withoutChippedNames`.
+ * A ring's arcs, rotated by `angle`: RING_ARC_COUNT evenly spaced arcs with
+ * RING_ARC_GAP_RAD between each pair, start < end, each drawn clockwise from
+ * start to end. Angles are not wrapped; Pixi draws any range.
  */
-export function placeChips({
-  sources,
-  measure,
-  transform,
-  width,
-  height,
-  logos,
-}: {
-  sources: readonly CampaignSource[];
-  measure: (text: string) => number;
-  transform: CameraTransform;
-  width: number;
-  height: number;
-  /** Whether the sovereignty layer is drawing logos, as `labelCandidates` takes it. */
-  logos: boolean;
-}): ChipBox[] {
-  const scale = transform.scaleX;
-  const floorPx = systemFloorPx(Math.log2(scale));
-  const halfHeight = CHIP_HEIGHT_PX / 2;
-  const placed: ChipBox[] = [];
-
-  for (const source of sources) {
-    const lift = systemLabelLift(
-      CHIP_HEIGHT_PX,
-      systemRadiusPx(source.radius, scale, floorPx),
-      logos,
-    );
-
-    const chip: ChipBox = {
-      campaignId: source.campaignId,
-      systemId: source.systemId,
-      screenX: projectX(transform, source.x),
-      screenY: projectZ(transform, source.z) - lift,
-      halfWidth:
-        (measure(source.prefix) +
-          CHIP_COUNTDOWN_RESERVE_PX +
-          2 * CHIP_PAD_X_PX) /
-        2,
-      halfHeight,
-    };
-
-    if (offScreen(chip, width, height)) continue;
-    if (placed.some((other) => overlaps(chip, other))) continue;
-    placed.push(chip);
+export function ringArcs(
+  angle: number,
+  count: number = RING_ARC_COUNT,
+  gap: number = RING_ARC_GAP_RAD,
+): RingArc[] {
+  const step = (2 * Math.PI) / count;
+  const arcs: RingArc[] = [];
+  for (let i = 0; i < count; i++) {
+    const start = angle + i * step + gap / 2;
+    arcs.push({ start, end: start + step - gap });
   }
-
-  return placed;
+  return arcs;
 }
 
 /**
- * The label candidates minus the name of every system that got a chip: the
- * chip already carries the name. Only the system tier — ids are unique within
- * a tier, and a region sharing the number is a different thing.
- *
- * Run before `placeLabels`, so a suppressed name does not take a slot.
+ * Whether the rings spin: only while there is a ring to turn, and never for a
+ * viewer who asked for reduced motion — they get the same arcs, standing still.
  */
-export function withoutChippedNames(
-  candidates: LabelCandidate[],
-  chips: readonly ChipBox[],
-): LabelCandidate[] {
-  if (chips.length === 0) return candidates;
-  const chipped = new Set(chips.map((chip) => chip.systemId));
-  return candidates.filter(
-    (candidate) =>
-      candidate.tier !== 'system' ||
-      candidate.systemId === undefined ||
-      !chipped.has(candidate.systemId),
-  );
+export function shouldSpinRings(
+  ringCount: number,
+  reducedMotion: boolean,
+): boolean {
+  return ringCount > 0 && !reducedMotion;
 }

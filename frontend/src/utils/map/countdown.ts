@@ -1,9 +1,8 @@
 /**
  * What a sovereignty timer says, as text.
  *
- * One function for the chip on the map, the panel's Timers row and the
- * popup's campaign line, so the three can never disagree about how long is
- * left. All of it is pure: the caller passes `now`, which is what makes the
+ * One function for the panel's Timers row and the popup's campaign line, so
+ * the two can never disagree about how long is left. All of it is pure: the caller passes `now`, which is what makes the
  * thresholds testable to the millisecond.
  */
 
@@ -19,13 +18,6 @@ export type CountdownCampaign = {
   startTime: string;
   defenderScore?: number | null;
   attackersScore?: number | null;
-};
-
-export type ChipCampaign = CountdownCampaign & {
-  campaignId: number;
-  solarSystemId: number;
-  solarSystemName?: string | null;
-  eventType: string;
 };
 
 const EVENT_LABEL: Record<string, string> = {
@@ -49,7 +41,7 @@ const pad = (value: number) => String(value).padStart(2, '0');
 
 /**
  * Floors throughout: "00:00" is the last second before the timer opens, and
- * the chip turns LIVE on the second it actually does rather than one early.
+ * the timer reads LIVE on the second it actually does rather than one early.
  * ESI's scores are 0..1; they are shown as whole percentages.
  */
 export function countdownText(
@@ -73,21 +65,6 @@ export function countdownText(
   }
 
   return `${pad(Math.floor(left / MINUTE))}:${pad(Math.floor((left % MINUTE) / SECOND))}`;
-}
-
-/**
- * The part of a chip that does not change while the clock runs. The chip's
- * collision box is measured from this plus a fixed reserve for the countdown,
- * so a box does not grow and shrink every second and push its neighbours
- * around.
- */
-export function chipPrefix(campaign: ChipCampaign): string {
-  const name = campaign.solarSystemName ?? String(campaign.solarSystemId);
-  return `${name} · ${eventLabel(campaign.eventType)} · `;
-}
-
-export function chipText(campaign: ChipCampaign, now: number): string {
-  return chipPrefix(campaign) + countdownText(campaign, now);
 }
 
 /**

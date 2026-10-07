@@ -5,9 +5,8 @@ import { useEffect, useState } from 'react';
 /**
  * The time, refreshed every `intervalMs` while `enabled`.
  *
- * For the React side of the timers — the panel rows and the popup line. The
- * chips on the map do not use it: they rewrite their own text from an
- * interval, so the whole map is not re-rendered once a second.
+ * For the React side of the timers — the panel rows and the popup line — and
+ * the map's slower tick that turns a ring red when its timer opens.
  */
 export function useNow(intervalMs: number, enabled = true): number {
   const [now, setNow] = useState(() => Date.now());
