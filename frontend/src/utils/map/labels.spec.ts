@@ -63,10 +63,10 @@ describe('labelCandidates', () => {
     });
 
     // The two centroid tiers lift by exactly their line height. The system tier
-    // takes the larger of that and the room its dot needs, so it is allowed to
-    // sit higher — never lower.
+    // hangs below its dot by the larger of that and the room the dot needs, so
+    // it is allowed to sit further off — never nearer.
     for (const c of candidates) {
-      const lift = 450 - c.screenY;
+      const lift = Math.abs(450 - c.screenY);
       if (c.tier === 'system') {
         expect(lift).toBeGreaterThanOrEqual(labelLineHeight('system'));
       } else {
@@ -80,11 +80,12 @@ describe('labelCandidates', () => {
   });
 
   // A region name is anchored to its medoid, a real system — Perrigen Falls to
-  // SR-10Z. Lifted only to clear the medoid's dot, it took the very slot the
-  // medoid's own name sits in, won that collision on tier priority, and the
-  // system's name was never drawn. It stacks above that name instead.
+  // SR-10Z. With system names above their dots the two took the same slot and
+  // the region won it on tier priority, so the system's name was never drawn.
+  // System names sit below their dots now, and the region name keeps the slot
+  // above.
   it.each([false, true])(
-    'stacks a region name above its medoid system name (logos: %s)',
+    'puts a region name above its medoid and the system name below it (logos: %s)',
     (logos) => {
       const at = { x: 0, z: 0, radius: 5e14 };
       const candidates = labelCandidates({
@@ -101,17 +102,41 @@ describe('labelCandidates', () => {
       const region = candidates.find((c) => c.tier === 'region')!;
       const system = candidates.find((c) => c.tier === 'system')!;
 
-      // Above it, and clear of it: the region's bottom edge is no lower than
-      // the system name's top edge, so placeLabels keeps both.
-      expect(region.screenY + region.halfHeight).toBeLessThanOrEqual(
-        system.screenY - system.halfHeight,
-      );
+      expect(region.screenY).toBeLessThan(450);
+      expect(system.screenY).toBeGreaterThan(450);
       expect(placeLabels(candidates).map((c) => c.tier)).toEqual([
         'region',
         'system',
       ]);
     },
   );
+
+  // Same gap as above the dot had, mirrored: the name's top edge clears the
+  // dot by the distance its bottom edge used to.
+  it('hangs a system name below its dot by the gap it used to keep above it', () => {
+    const radius = 5e14;
+    const [system] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [{ ...source(30000142, 'Jita', 0, 0), radius }],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+    const line = labelLineHeight('system');
+    const dotPx = systemRadiusPx(
+      radius,
+      transform.scaleX,
+      systemFloorPx(Math.log2(transform.scaleX)),
+    );
+
+    expect(system.screenY - 450).toBeCloseTo(
+      Math.max(line, line / 2 + dotPx + LABEL_DOT_GAP_PX),
+      6,
+    );
+  });
 
   // The security is drawn with every system name, so the box the collision
   // filter reserves has to hold it too, or a neighbour's name lands on it.
@@ -508,11 +533,11 @@ describe('a system name clearing its own dot', () => {
     return c;
   }
 
-  /** How far the glyph box's bottom edge sits above the dot's own edge. */
+  /** How far the glyph box's top edge sits below the dot's own edge. */
   function clearance(c: LabelCandidate, zoom: number, radius: number) {
     const dot = systemRadiusPx(radius, 2 ** zoom, systemFloorPx(zoom));
-    const bottomEdge = c.screenY + c.halfHeight;
-    return 450 - dot - bottomEdge;
+    const topEdge = c.screenY - c.halfHeight;
+    return topEdge - (450 + dot);
   }
 
   // The dots grow with the camera now, and a lift fixed at one line height put
@@ -547,7 +572,7 @@ describe('a system name clearing its own dot', () => {
   // galaxy view is exactly half a line plus the dot's floor plus the gap — and
   // that is the arithmetic a change to any of the three has to move.
   it('is the clearance term, and never less than the line height', () => {
-    const lift = 450 - systemAt(-50, 3.8809e12).screenY;
+    const lift = systemAt(-50, 3.8809e12).screenY - 450;
 
     expect(lift).toBeGreaterThanOrEqual(labelLineHeight('system'));
     expect(lift).toBeCloseTo(
@@ -556,10 +581,10 @@ describe('a system name clearing its own dot', () => {
     );
   });
 
-  it('rises monotonically as the camera comes in', () => {
+  it('moves monotonically further off as the camera comes in', () => {
     let previousLift = 0;
     for (let zoom = -50; zoom <= -36; zoom += 0.5) {
-      const lift = 450 - systemAt(zoom, 3.8809e12).screenY;
+      const lift = systemAt(zoom, 3.8809e12).screenY - 450;
       expect(lift).toBeGreaterThanOrEqual(previousLift);
       previousLift = lift;
     }
@@ -604,7 +629,7 @@ describe('the lift', () => {
         LABEL_DOT_GAP_PX,
     );
 
-    expect(c.screenY).toBeCloseTo(450 - expected, 6);
+    expect(c.screenY).toBeCloseTo(450 + expected, 6);
   });
 
   it('falls to the dot floor for a zero-radius system, not to the line height', () => {
@@ -626,7 +651,7 @@ describe('the lift', () => {
       lineHeight / 2 + floorPx + LABEL_DOT_GAP_PX,
     );
 
-    expect(c.screenY).toBeCloseTo(450 - expected, 6);
+    expect(c.screenY).toBeCloseTo(450 + expected, 6);
   });
 
   it('takes the width from the measurer, not from the name length', () => {
@@ -664,9 +689,9 @@ describe('the logo lift', () => {
     return c;
   }
 
-  it('steps a system name up while a logo is drawn under it', () => {
-    // Up is a SMALLER screen y.
-    expect(jita(false).screenY - jita(true).screenY).toBeCloseTo(
+  it('steps a system name further down while a logo is drawn over its dot', () => {
+    // Down is a LARGER screen y.
+    expect(jita(true).screenY - jita(false).screenY).toBeCloseTo(
       LABEL_LOGO_LIFT_PX,
       6,
     );

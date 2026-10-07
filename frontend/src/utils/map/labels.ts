@@ -17,13 +17,14 @@ export const MAX_VISIBLE_LABELS = 300;
  * Raised from 3 to 7 by eye. At 3 the name cleared the disc arithmetically but
  * still read as attached to it; the gap is what makes the two separate things.
  * Because the clearance term is what wins at every zoom, this constant is
- * exactly how far above its dot a system name sits — change it and they all
+ * exactly how far below its dot a system name hangs — change it and they all
  * move together.
  */
 export const LABEL_DOT_GAP_PX = 7;
 
 /**
- * Extra lift for a system name while the sovereignty logos are on screen.
+ * Extra distance for a system name while the sovereignty logos are on screen —
+ * downwards, since a system name hangs below its mark.
  *
  * The clearance term below is measured from the DOT — `systemFloorPx` tops out
  * at 6 px — while a logo is drawn at LOGO_MIN_RADIUS_PX plus its disc, so a
@@ -131,9 +132,10 @@ export function projectZ(transform: CameraTransform, z: number): number {
 }
 
 /**
- * How far above its system a box `lineHeight` tall is centred: one line, or
- * enough to clear the dot by LABEL_DOT_GAP_PX if that is more, plus the logo
- * lift while crests are drawn.
+ * How far from its system a box `lineHeight` tall is centred — below it for a
+ * system's own name, above it for a region's: one line, or enough to clear the
+ * dot by LABEL_DOT_GAP_PX if that is more, plus the logo lift while crests are
+ * drawn.
  */
 function systemLabelLift(
   lineHeight: number,
@@ -256,30 +258,25 @@ export function labelCandidates({
       // The logo lift likewise only where there is a mark to clear. A centroid
       // tier has nothing drawn at it, so a logo elsewhere on the map is no
       // reason to move a region's name.
-      let lift = lineHeight;
-      if (source.radius !== undefined) {
-        const dotPx = systemRadiusPx(source.radius, transform.scaleX, floorPx);
-        if (tier === 'region') {
-          // A region's mark is its medoid, a system with a name of its own in
-          // the slot just above the dot. Taking that slot hid the system name
-          // under it — the region wins collisions on tier priority — so the
-          // region name stacks on top of it instead: the system name's lift,
-          // then half its line and half the region's, edge to edge.
-          const systemLine = labelLineHeight('system');
-          lift =
-            systemLabelLift(systemLine, dotPx, logos) +
-            systemLine / 2 +
-            lineHeight / 2;
-        } else {
-          lift = systemLabelLift(lineHeight, dotPx, logos);
-        }
-      }
+      const lift =
+        source.radius === undefined
+          ? lineHeight
+          : systemLabelLift(
+              lineHeight,
+              systemRadiusPx(source.radius, transform.scaleX, floorPx),
+              logos,
+            );
+      // A system's name hangs BELOW its dot, by the same gap; every other name
+      // sits above its anchor. A region's anchor is its medoid, a system — so
+      // with both above, the region name took the medoid's own name slot and
+      // won it on tier priority, and that system's name was never drawn.
+      const offset = tier === 'system' ? lift : -lift;
 
       const textWidth = measure(tier, measuredText(source));
       const halfWidth = textWidth / 2;
 
       let screenX = projectX(transform, source.x);
-      let screenY = projectZ(transform, source.z) - lift;
+      let screenY = projectZ(transform, source.z) + offset;
 
       if (source.bounds) {
         // An area name earns its place from the area, not from the zoom: it
