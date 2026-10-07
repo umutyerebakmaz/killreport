@@ -21,6 +21,12 @@ import {
   type MapArea,
   type MapHighlight,
 } from '@/utils/map/edges';
+import {
+  campaignSources,
+  placeChips,
+  ringMarks,
+  withoutChippedNames,
+} from '@/utils/map/campaignMarks';
 import { framingFor } from '@/utils/map/framing';
 import { labelCandidates, placeLabels } from '@/utils/map/labels';
 import {
@@ -39,6 +45,13 @@ import { isWebgl2Available } from '@/utils/map/webgl';
 import { useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  createChipLayer,
+  destroyChipLayer,
+  drawChips,
+  writeChipText,
+  type ChipLayer,
+} from './labels/chipLayer';
+import {
   createLabelLayer,
   destroyLabelLayer,
   drawLabels,
@@ -50,6 +63,7 @@ import {
   setFineVisible,
   type CelestialSprites,
 } from './scene/celestials';
+import { drawRings } from './scene/campaignRings';
 import { createScene, type MapScene } from './scene/createScene';
 import { drawEdgeGroups, drawEdges, drawHighlight } from './scene/edges';
 import { buildLogoAtlas, type LogoAtlas } from './scene/logoAtlas';
@@ -67,6 +81,7 @@ import { useMapCelestials } from './useMapCelestials';
 import { useMapLabels } from './useMapLabels';
 import { useMapPointer, type MapPick } from './useMapPointer';
 import { useMapSovereignty } from './useMapSovereignty';
+import { useNow } from './useNow';
 import { useSovCampaigns } from './useSovCampaigns';
 import MapLayerSwitch from './MapLayerSwitch';
 import SovLegend from './SovLegend';
@@ -100,6 +115,8 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // The overlay the names are written into. A ref for the same reason `scene`
   // is one: it is a long-lived mutable DOM object that no render reads.
   const labelLayer = useRef<LabelLayer | null>(null);
+  // The countdown chips' overlay. A ref for the label layer's reason.
+  const chipLayer = useRef<ChipLayer | null>(null);
   // The keys placed last frame. A ref rather than state: it is read and written
   // inside the label effect and must never itself trigger a render.
   const stickyLabels = useRef<Set<string>>(new Set());
@@ -226,6 +243,18 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   );
 
   const campaigns = useSovCampaigns(layerId === 'sovereignty');
+
+  // The clock the rings read to turn red when a timer opens. Fifteen seconds is
+  // close enough for a colour; the chips count the seconds themselves, from an
+  // interval of their own, so the map is not re-rendered every second.
+  const ringNow = useNow(15_000, campaigns.length > 0);
+
+  // Joined to the scene once per fetch, not per frame. Soonest first, which is
+  // the chips' priority: useSovCampaigns already sorted them.
+  const markSources = useMemo(
+    () => (geometry ? campaignSources(campaigns, geometry.nodes) : []),
+    [campaigns, geometry],
+  );
 
   // One object for both the marks and the mesh, so the two can never be
   // reading different sovereignty — or a different isolation.
@@ -408,6 +437,16 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     };
   }, [host]);
 
+  useEffect(() => {
+    if (!host) return;
+    const layer = createChipLayer(host);
+    chipLayer.current = layer;
+    return () => {
+      destroyChipLayer(layer);
+      chipLayer.current = null;
+    };
+  }, [host]);
+
   // The viewport, kept in step with the host. deck.gl reported its own size
   // through `onResize`; Pixi's `resizeTo: host` keeps the canvas itself correct
   // but tells React nothing, and `size` is what `cameraTransform` centres on
@@ -466,6 +505,25 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     scene.current.world.position.set(transform.x, transform.y);
   }, [sceneReady, transform]);
 
+  // Where the chips go this frame. A memo, not an effect: the label placement
+  // below reads it to keep names off the chips and to leave a chipped system's
+  // own name undrawn, at every zoom — including the galaxy zoom, where no
+  // label tier is open but the chips still are.
+  const placedChips = useMemo(
+    () =>
+      measure && transform && markSources.length > 0
+        ? placeChips({
+            sources: markSources,
+            measure: (text) => measure('system', text),
+            transform,
+            width: size.width,
+            height: size.height,
+            logos: showLogos,
+          })
+        : [],
+    [measure, transform, markSources, size.width, size.height, showLogos],
+  );
+
   // Labels live in screen space, so they re-place on every camera change rather
   // than on a bucket change. Their own effect: the dependencies differ from the
   // camera effect's, and folding them in would re-run the 5,241-sprite
@@ -497,7 +555,12 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       logos: showLogos,
     });
 
-    const placed = placeLabels(candidates, stickyLabels.current);
+    // A system with a chip is named by its chip.
+    const placed = placeLabels(
+      withoutChippedNames(candidates, placedChips),
+      stickyLabels.current,
+      placedChips,
+    );
     stickyLabels.current = new Set(placed.map((candidate) => candidate.key));
     drawLabels(layer, placed);
   }, [
@@ -511,7 +574,28 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     regionSources,
     constellationSources,
     showLogos,
+    placedChips,
   ]);
+
+  // The chips' positions, on every camera change, and their text at once so a
+  // chip never shows empty for the first second.
+  useEffect(() => {
+    const layer = chipLayer.current;
+    if (!layer) return;
+    drawChips(layer, placedChips);
+    writeChipText(layer, campaigns, Date.now());
+  }, [host, placedChips, campaigns]);
+
+  // The countdown itself, once a second while there is anything to count.
+  useEffect(() => {
+    const layer = chipLayer.current;
+    if (!layer || campaigns.length === 0) return;
+    const id = setInterval(
+      () => writeChipText(layer, campaigns, Date.now()),
+      1_000,
+    );
+    return () => clearInterval(id);
+  }, [host, campaigns]);
 
   // The galaxy: 5,241 sprites and the full 6,959-segment mesh, built once per
   // scene. The mesh is scene-centre-local, where float32's step is 0.22 px.
@@ -614,6 +698,45 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     showLogos,
     atlasReady,
     crestOwners,
+  ]);
+
+  // The rings, in screen space, redrawn on every camera change — a few dozen
+  // circles. Empty off the sovereignty layer, which clears them.
+  //
+  // A ring hugs what the logo pass above actually drew: a crest only where the
+  // system's owner survives the isolation and its logo is in the atlas, a dot
+  // everywhere else.
+  useEffect(() => {
+    if (!scene.current) return;
+    const textures = showLogos ? atlas.current?.textureByOwner : undefined;
+    const drawsLogo = (systemId: number) => {
+      const ownerId = crestOwners.get(systemId);
+      return ownerId !== undefined && textures?.has(ownerId) === true;
+    };
+    drawRings(
+      scene.current.rings,
+      transform && layerId === 'sovereignty'
+        ? ringMarks({
+            sources: markSources,
+            transform,
+            width: size.width,
+            height: size.height,
+            drawsLogo,
+            now: ringNow,
+          })
+        : [],
+    );
+  }, [
+    sceneReady,
+    transform,
+    layerId,
+    markSources,
+    size.width,
+    size.height,
+    showLogos,
+    atlasReady,
+    crestOwners,
+    ringNow,
   ]);
 
   // What the pointer is resting on, at whichever tier it found something.

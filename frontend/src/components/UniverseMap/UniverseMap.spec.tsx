@@ -13,6 +13,8 @@ vi.mock('next/navigation', () => ({
 let labelQueries: { kind: string; skip: boolean }[] = [];
 /** Whether the sovereignty query was skipped — it is, until the layer opens. */
 let sovQueries: { skip: boolean }[] = [];
+/** Whether the campaigns query was skipped — it is, off the sovereignty layer. */
+let sovCampaignQueries: { skip: boolean }[] = [];
 /** Which system the popup asked about, which is what picking is judged on. */
 let detailsQueries: number[] = [];
 
@@ -45,8 +47,11 @@ vi.mock('@/generated/graphql', () => ({
     sovQueries.push({ skip: !!options.skip });
     return { data: undefined };
   },
-  // Skipped for the same reason as the sovereignty query above.
-  useMapSovCampaignsQuery: () => ({ data: undefined }),
+  useMapSovCampaignsQuery: (options: { skip?: boolean }) => {
+    sovCampaignQueries.push({ skip: !!options.skip });
+    return { data: undefined };
+  },
+  useMapSovChangesQuery: () => ({ data: undefined, loading: false }),
   useMapCelestialsQuery: () => ({ data: { mapCelestials: [] } }),
   useMapLabelsQuery: (options: {
     variables: { kind: string };
@@ -122,6 +127,16 @@ vi.mock('./labels/labelLayer', () => ({
   destroyLabelLayer: (layer: unknown) => destroyLabelLayer(layer),
   drawLabels: vi.fn(),
 }));
+vi.mock('./labels/chipLayer', () => ({
+  createChipLayer: (host: HTMLElement) => ({
+    root: host,
+    pool: new Map<number, HTMLSpanElement>(),
+  }),
+  destroyChipLayer: vi.fn(),
+  drawChips: vi.fn(),
+  writeChipText: vi.fn(),
+}));
+vi.mock('./scene/campaignRings', () => ({ drawRings: vi.fn() }));
 
 /** A real canvas element, as the component's `resizeTo: host` scene has. */
 type FakeScene = ReturnType<typeof fakeScene>;
@@ -145,6 +160,7 @@ function fakeScene() {
     edgesLocal: { visible: true, clear: vi.fn() },
     systems: { visible: true },
     celestials: { visible: true },
+    rings: {},
     dot: {},
     destroy: vi.fn(),
   };
@@ -224,6 +240,7 @@ beforeEach(() => {
   searchParams = new URLSearchParams('');
   labelQueries = [];
   sovQueries = [];
+  sovCampaignQueries = [];
   detailsQueries = [];
   drawHighlight.mockClear();
 });
@@ -381,6 +398,15 @@ describe('UniverseMap', () => {
     searchParams = new URLSearchParams('layer=sovereignty');
     render(<UniverseMap scope={MapScope.NewEden} />);
     expect(sovQueries.at(-1)?.skip).toBe(false);
+  });
+
+  it('fetches campaigns only on the sovereignty layer', () => {
+    render(<UniverseMap scope={MapScope.NewEden} />);
+    expect(sovCampaignQueries.at(-1)?.skip).toBe(true);
+
+    searchParams = new URLSearchParams('layer=sovereignty');
+    render(<UniverseMap scope={MapScope.NewEden} />);
+    expect(sovCampaignQueries.at(-1)?.skip).toBe(false);
   });
 
   it('always fetches region names, which are 3 KB and wanted on the first frame', () => {

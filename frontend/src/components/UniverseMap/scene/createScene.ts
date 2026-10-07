@@ -24,6 +24,13 @@ export interface MapScene {
   discs: Container;
   systems: Container;
   celestials: Container;
+  /**
+   * The campaign rings, in SCREEN space on the stage rather than in the
+   * world: a ring's stroke has to stay one width at every zoom, and screen
+   * coordinates are small enough for float32 where galactic metres are not.
+   * Redrawn on every camera change — a few dozen circles.
+   */
+  rings: Graphics;
   dot: Texture;
   destroy(): void;
 }
@@ -72,7 +79,8 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
   host.appendChild(app.canvas);
 
   const world = new Container();
-  app.stage.addChild(world);
+  const rings = new Graphics();
+  app.stage.addChild(world, rings);
 
   const edgesGalaxy = new Graphics();
   const edgesHighlight = new Graphics();
@@ -117,6 +125,7 @@ export async function createScene(host: HTMLElement): Promise<MapScene> {
     discs,
     systems,
     celestials,
+    rings,
     dot,
     // `app.destroy`'s texture pass only reaches textures a sprite in the
     // display tree still references. A scene torn down before any sprite is

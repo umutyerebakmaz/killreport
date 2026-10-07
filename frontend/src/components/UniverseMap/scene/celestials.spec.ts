@@ -26,6 +26,7 @@ function fakeScene(): MapScene {
     discs: new Container(),
     systems: new Container(),
     celestials: new Container(),
+    rings: null as unknown as MapScene['rings'],
     dot: Texture.EMPTY,
     destroy: () => {},
   };
