@@ -88,21 +88,30 @@ function OwnerMark({
 
 /**
  * One side of a territory change: the owner's mark and name, or "Unclaimed"
- * with no mark. The row carries no kind, so it is read from the id.
+ * with no mark. The row carries no kind, so it is read from the id. The name
+ * takes its side's colour — red for whoever took the system, blue for whoever
+ * held it.
  */
 function ChangeSide({
   ownerId,
   name,
+  side,
 }: {
   ownerId: number | null | undefined;
   name: string | null | undefined;
+  /** Who took the system, or who held it — the name's colour. */
+  side: 'attacker' | 'defender';
 }) {
   if (ownerId == null) return <span className="shrink-0">Unclaimed</span>;
   const label = name ?? String(ownerId);
   return (
     <span className="flex min-w-0 items-center gap-x-1">
       <OwnerMark owner={{ ownerId, kind: ownerKindOf(ownerId), name: label }} />
-      <span className="truncate">{label}</span>
+      <span
+        className={`truncate ${side === 'attacker' ? 'text-attacker' : 'text-defender'}`}
+      >
+        {label}
+      </span>
     </span>
   );
 }
@@ -350,12 +359,14 @@ export default function SovPanel({
                       <ChangeSide
                         ownerId={change.previousOwnerId}
                         name={change.previousOwnerName}
+                        side="defender"
                       />
                       <SwordsIcon className="size-3.5 text-ink-faint" />
                       <span className="sr-only">to</span>
                       <ChangeSide
                         ownerId={change.newOwnerId}
                         name={change.newOwnerName}
+                        side="attacker"
                       />
                     </span>
                   </button>
