@@ -151,4 +151,119 @@ describe('useMapCamera', () => {
     expect(replace).not.toHaveBeenCalled();
     expect(result.current.focus).toBe(30000142);
   });
+
+  it('reads the layer and the owner out of the URL it was mounted with', () => {
+    searchParams = new URLSearchParams('layer=sovereignty&owner=99003581');
+    const { result } = renderHook(() => useMapCamera(MapScope.NewEden, FIT));
+    expect(result.current.layer).toBe('sovereignty');
+    expect(result.current.owner).toBe(99003581);
+  });
+
+  // An owner in the URL of a security-layer map isolates nothing.
+  it('reports no owner on the security layer, whatever the URL says', () => {
+    searchParams = new URLSearchParams('owner=99003581');
+    const { result } = renderHook(() => useMapCamera(MapScope.NewEden, FIT));
+    expect(result.current.layer).toBe('security');
+    expect(result.current.owner).toBeNull();
+  });
+
+  it('writes a layer change at once, like a selection', () => {
+    const { result } = renderHook(() => useMapCamera(MapScope.NewEden, FIT));
+
+    act(() => result.current.onLayerChange('sovereignty'));
+
+    expect(replace).toHaveBeenCalledWith(
+      '?scope=NEW_EDEN&x=0&z=0&zoom=-50.00&layer=sovereignty',
+      { scroll: false },
+    );
+    expect(result.current.layer).toBe('sovereignty');
+  });
+
+  it('clears the owner on the way back to security', () => {
+    searchParams = new URLSearchParams('layer=sovereignty&owner=99003581');
+    const { result } = renderHook(() => useMapCamera(MapScope.NewEden, FIT));
+
+    act(() => result.current.onLayerChange('security'));
+    act(() => result.current.onLayerChange('sovereignty'));
+
+    expect(result.current.owner).toBeNull();
+    expect(replace).toHaveBeenLastCalledWith(
+      '?scope=NEW_EDEN&x=0&z=0&zoom=-50.00&layer=sovereignty',
+      { scroll: false },
+    );
+  });
+
+  it('writes an isolated owner at once', () => {
+    searchParams = new URLSearchParams('layer=sovereignty');
+    const { result } = renderHook(() => useMapCamera(MapScope.NewEden, FIT));
+
+    act(() => result.current.onOwnerChange(99003581));
+
+    expect(replace).toHaveBeenLastCalledWith(
+      '?scope=NEW_EDEN&x=0&z=0&zoom=-50.00&layer=sovereignty&owner=99003581',
+      { scroll: false },
+    );
+  });
+
+  // The hazard focus already had, now for two more parameters: cameraQuery
+  // rebuilds the URL from nothing, so a pan that did not carry the layer would
+  // drop the reader back onto the security map.
+  it('carries the layer and the owner into a pan', () => {
+    vi.useFakeTimers();
+    searchParams = new URLSearchParams('layer=sovereignty&owner=99003581');
+    const { result } = renderHook(() => useMapCamera(MapScope.NewEden, FIT));
+
+    act(() => result.current.onCameraChange({ x: 1e9, z: 0, zoom: -45 }));
+    act(() => {
+      vi.advanceTimersByTime(URL_DEBOUNCE_MS);
+    });
+
+    expect(replace).toHaveBeenLastCalledWith(
+      '?scope=NEW_EDEN&x=1000000000&z=0&zoom=-45.00&layer=sovereignty&owner=99003581',
+      { scroll: false },
+    );
+  });
+
+  // A panel row moves the camera AND opens the popup. As two calls, the
+  // debounced camera write would land 250 ms later carrying the focus it
+  // closed over — the old one — and close the popup it had just opened.
+  it('jumps the camera and the selection in one immediate write', () => {
+    vi.useFakeTimers();
+    const { result } = renderHook(() => useMapCamera(MapScope.NewEden, FIT));
+
+    act(() => result.current.jumpTo({ x: 2e9, z: 0, zoom: -45.73 }, 30004759));
+    act(() => {
+      vi.advanceTimersByTime(URL_DEBOUNCE_MS);
+    });
+
+    expect(replace).toHaveBeenCalledTimes(1);
+    expect(replace).toHaveBeenCalledWith(
+      '?scope=NEW_EDEN&x=2000000000&z=0&zoom=-45.73&focus=30004759',
+      { scroll: false },
+    );
+    expect(result.current.focus).toBe(30004759);
+    expect(result.current.camera).toEqual({ x: 2e9, z: 0, zoom: -45.73 });
+  });
+
+  it('keeps the selection when a jump names none', () => {
+    const { result } = renderHook(() => useMapCamera(MapScope.NewEden, FIT));
+
+    act(() => result.current.onFocusChange(30000142));
+    act(() => result.current.jumpTo({ x: 2e9, z: 0, zoom: -45 }));
+
+    expect(result.current.focus).toBe(30000142);
+  });
+
+  it('takes a layer that changes in the URL underneath it', () => {
+    const { result, rerender } = renderHook(() =>
+      useMapCamera(MapScope.NewEden, FIT),
+    );
+
+    searchParams = new URLSearchParams(
+      'scope=NEW_EDEN&x=0&z=0&zoom=-50.00&layer=sovereignty',
+    );
+    rerender();
+
+    expect(result.current.layer).toBe('sovereignty');
+  });
 });

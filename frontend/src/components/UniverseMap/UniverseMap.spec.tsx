@@ -375,6 +375,12 @@ describe('UniverseMap', () => {
     expect(constellation?.skip).toBe(true);
   });
 
+  it('opens on the sovereignty layer when the URL names it', () => {
+    searchParams = new URLSearchParams('layer=sovereignty');
+    render(<UniverseMap scope={MapScope.NewEden} />);
+    expect(sovQueries.at(-1)?.skip).toBe(false);
+  });
+
   it('always fetches region names, which are 3 KB and wanted on the first frame', () => {
     searchParams = new URLSearchParams('x=0&z=0&zoom=-50');
     render(<UniverseMap scope={MapScope.NewEden} />);

@@ -5,8 +5,11 @@ import {
   cameraQuery,
   parseCamera,
   parseFocus,
+  parseLayer,
+  parseOwner,
   type MapCamera,
 } from '@/utils/map/camera';
+import type { MapLayerId } from '@/utils/map/layers';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -16,10 +19,23 @@ import { useCallback, useEffect, useRef, useState } from 'react';
  */
 const URL_DEBOUNCE_MS = 250;
 
-/** One write of the URL: the two things this hook owns there. */
+/**
+ * One write of the URL: everything this hook owns there.
+ *
+ * The layer and the owner are here, beside the camera and the focus, because
+ * the URL has to have exactly one writer. Two hooks calling `router.replace`
+ * would each overwrite the other's parameters, and the "is this my own write"
+ * comparison below only works when one serialisation describes the whole URL.
+ */
 interface WrittenUrl {
   camera: MapCamera;
   focus: number | null;
+  layer: MapLayerId;
+  owner: number | null;
+}
+
+function queryOf(scope: MapScope, url: WrittenUrl): string {
+  return cameraQuery(scope, url.camera, url.focus, url.layer, url.owner);
 }
 
 export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
@@ -31,6 +47,12 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
   );
   const [focus, setFocus] = useState<number | null>(() =>
     parseFocus(searchParams),
+  );
+  const [layer, setLayer] = useState<MapLayerId>(() =>
+    parseLayer(searchParams),
+  );
+  const [owner, setOwner] = useState<number | null>(() =>
+    parseOwner(searchParams),
   );
 
   /** The last URL this hook wrote, so its own writes are recognisable. */
@@ -52,9 +74,7 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
       if (timer.current) clearTimeout(timer.current);
       const run = () => {
         lastWritten.current = next;
-        router.replace(`?${cameraQuery(scope, next.camera, next.focus)}`, {
-          scroll: false,
-        });
+        router.replace(`?${queryOf(scope, next)}`, { scroll: false });
       };
       // A pan is a stream of events and is debounced. A click is one event:
       // waiting out the debounce to put the popup in the URL would lose it to a
@@ -71,8 +91,7 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
   // swallow all three.
   //
   // Telling its own writes apart is a comparison of one pure function's output
-  // against itself, which is why the focus came along for free when cameraQuery
-  // took a third argument.
+  // against itself.
   //
   // The camera is applied through a functional update rather than `setCamera
   // (fromUrl)`: parseCamera allocates a fresh object every call, so a plain set
@@ -87,8 +106,13 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
     const written = lastWritten.current;
     if (
       written &&
-      cameraQuery(scope, fromUrl, parseFocus(searchParams)) ===
-        cameraQuery(scope, written.camera, written.focus)
+      cameraQuery(
+        scope,
+        fromUrl,
+        parseFocus(searchParams),
+        parseLayer(searchParams),
+        parseOwner(searchParams),
+      ) === queryOf(scope, written)
     ) {
       return;
     }
@@ -103,31 +127,34 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
     );
   }, [searchParams, scope]);
 
-  // A focus is a number, so setting it to the value it already holds costs
-  // nothing. Its own effect rather than the camera's: a `?focus=` link carries
-  // no x/z/zoom, and behind that effect's early return the selection would
-  // never reach state at all.
+  // The focus, the layer and the owner are primitives, so setting one to the
+  // value it already holds costs nothing. Their own effect rather than the
+  // camera's: a `?focus=` link carries no x/z/zoom, and behind that effect's
+  // early return none of the three would ever reach state.
   //
-  // Deliberately unguarded, and `focus` is deliberately not a dependency. The
-  // URL is an external store and this effect is the subscription to it — the
-  // use the rule's own documentation allows, which it cannot recognise here
-  // because `searchParams` reaches the hook as a value rather than through a
-  // callback. Comparing against the current focus is what a guard would mean,
-  // and it would be wrong: between `onFocusChange` writing the URL and the
-  // router committing it, the stale searchParams would revert the selection the
-  // user just made. With `[searchParams]` alone the effect simply does not run
-  // in that window, and the write path is what keeps the two in agreement.
+  // Deliberately unguarded, and the three are deliberately not dependencies.
+  // The URL is an external store and this effect is the subscription to it —
+  // the use the rule's own documentation allows, which it cannot recognise
+  // here because `searchParams` reaches the hook as a value rather than through
+  // a callback. Comparing against the current state is what a guard would
+  // mean, and it would be wrong: between a write and the router committing it,
+  // the stale searchParams would revert the change the user just made. With
+  // `[searchParams]` alone the effect simply does not run in that window, and
+  // the write path is what keeps the two in agreement.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    /* eslint-disable react-hooks/set-state-in-effect */
     setFocus(parseFocus(searchParams));
+    setLayer(parseLayer(searchParams));
+    setOwner(parseOwner(searchParams));
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [searchParams]);
 
   const onCameraChange = useCallback(
     (next: MapCamera) => {
       setCamera(next);
-      write({ camera: next, focus }, false);
+      write({ camera: next, focus, layer, owner }, false);
     },
-    [write, focus],
+    [write, focus, layer, owner],
   );
 
   const onFocusChange = useCallback(
@@ -135,9 +162,49 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
       setFocus(next);
       // Before the geometry lands there is no frame to write the selection
       // against. The state still moves, so the popup opens either way.
-      if (effective) write({ camera: effective, focus: next }, true);
+      if (effective)
+        write({ camera: effective, focus: next, layer, owner }, true);
     },
-    [write, effective],
+    [write, effective, layer, owner],
+  );
+
+  const onLayerChange = useCallback(
+    (next: MapLayerId) => {
+      // An isolated owner belongs to the sovereignty layer; leaving it drops
+      // the isolation rather than carrying it, invisible, into the next visit.
+      const nextOwner = next === 'sovereignty' ? owner : null;
+      setLayer(next);
+      setOwner(nextOwner);
+      if (effective) {
+        write(
+          { camera: effective, focus, layer: next, owner: nextOwner },
+          true,
+        );
+      }
+    },
+    [write, effective, focus, owner],
+  );
+
+  const onOwnerChange = useCallback(
+    (next: number | null) => {
+      setOwner(next);
+      if (effective)
+        write({ camera: effective, focus, layer, owner: next }, true);
+    },
+    [write, effective, focus, layer],
+  );
+
+  // A camera move and a selection as ONE write. A panel row does both, and as
+  // two calls the debounced camera write would land a moment later carrying the
+  // focus it closed over — the old one — and close the popup it just opened.
+  const jumpTo = useCallback(
+    (nextCamera: MapCamera, nextFocus?: number | null) => {
+      const resolvedFocus = nextFocus === undefined ? focus : nextFocus;
+      setCamera(nextCamera);
+      setFocus(resolvedFocus);
+      write({ camera: nextCamera, focus: resolvedFocus, layer, owner }, true);
+    },
+    [write, focus, layer, owner],
   );
 
   useEffect(
@@ -147,5 +214,17 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
     [],
   );
 
-  return { camera: effective, onCameraChange, focus, onFocusChange };
+  return {
+    camera: effective,
+    onCameraChange,
+    focus,
+    onFocusChange,
+    layer,
+    onLayerChange,
+    // Reported only where it means something; the URL may still carry one the
+    // security layer cannot use.
+    owner: layer === 'sovereignty' ? owner : null,
+    onOwnerChange,
+    jumpTo,
+  };
 }

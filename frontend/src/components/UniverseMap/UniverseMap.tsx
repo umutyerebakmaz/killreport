@@ -26,7 +26,6 @@ import {
   groupSegmentsByTint,
   MAP_LAYERS,
   type MapLayerData,
-  type MapLayerId,
 } from '@/utils/map/layers';
 import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
 import { createLabelMeasurer, whenLabelFontsReady } from '@/utils/map/measure';
@@ -82,10 +81,6 @@ function MapMessage({ children }: { children: React.ReactNode }) {
 
 export default function UniverseMap({ scope }: { scope: MapScope }) {
   const [webgl] = useState(isWebgl2Available);
-  // The layer lives in component state, not the URL: `scope`, the camera and
-  // `?focus=` are all in the URL because they are what a shared link has to
-  // carry, and which colouring the sender happened to be looking at is not.
-  const [layerId, setLayerId] = useState<MapLayerId>('security');
   const [size, setSize] = useState({ width: 0, height: 0 });
   // The host div is held in state, not a ref, because the scene is built from
   // it: it renders behind the loading, error and empty-scene returns below, so
@@ -184,11 +179,16 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // popup is anchored to its dot and follows the camera, so its screen position
   // is recomputed every render — a frozen screenX would tear the popup off its
   // system on the first pan.
+  // The layer is URL state too, since the sovereignty panel: a timer link a
+  // fleet commander pastes has to open on the layer that shows the timer, so
+  // `useMapCamera` — the URL's one writer — owns it with the rest.
   const {
     camera,
     onCameraChange,
     focus: selected,
     onFocusChange: setSelected,
+    layer: layerId,
+    onLayerChange: setLayerId,
   } = useMapCamera(scope, framing ?? fit);
 
   const bucket = camera ? lodBucket(camera.zoom) : 'galaxy';

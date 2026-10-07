@@ -1,4 +1,5 @@
 import { MapScope, type MapBounds } from '@/generated/graphql';
+import type { MapLayerId } from './layers';
 import { MAX_ZOOM } from './lod';
 import { boundsCenter } from './origin';
 
@@ -204,6 +205,23 @@ export function parseFocus(params: URLSearchParams): number | null {
   return parseId(params.get('focus'));
 }
 
+/**
+ * The colouring the URL asks for. Anything but `sovereignty` — its absence
+ * included — is the default, so every link written before layers existed
+ * still opens the map it always did.
+ *
+ * In the URL since the sovereignty panel: a timer link a fleet commander
+ * pastes has to open on the layer that shows the timer.
+ */
+export function parseLayer(params: URLSearchParams): MapLayerId {
+  return params.get('layer') === 'sovereignty' ? 'sovereignty' : 'security';
+}
+
+/** The owner the sovereignty layer isolates, or null. Same rule as every id. */
+export function parseOwner(params: URLSearchParams): number | null {
+  return parseId(params.get('owner'));
+}
+
 /** What the URL asks the camera to look at. */
 export type Framing =
   | { kind: 'system'; id: number }
@@ -241,10 +259,13 @@ function toGrid(value: number): number {
  * The canonical serialisation. useMapCamera also uses it to tell its own writes
  * apart from someone else's, so it has to be a pure function of its arguments.
  *
- * `focus` is the third argument and it is required, not defaulted: a camera
- * write that forgot it would erase the selection from the URL, and the camera
- * is written on every pan. The compiler is what keeps that from happening
- * again.
+ * `focus`, `layer` and `owner` are required, not defaulted: a camera write
+ * that forgot one would erase it from the URL, and the camera is written on
+ * every pan. The compiler is what keeps that from happening.
+ *
+ * `security` is never written, so the default layer leaves the URL exactly as
+ * it was before layers existed. `owner` is written only on the sovereignty
+ * layer: it isolates an owner's colour, which the security layer has none of.
  *
  * `region` and `constellation` are deliberately never written. They are
  * instructions — "set the map up here" — not state, and keeping them would
@@ -255,6 +276,8 @@ export function cameraQuery(
   scope: MapScope,
   camera: MapCamera,
   focus: number | null,
+  layer: MapLayerId,
+  owner: number | null,
 ): string {
   const params = new URLSearchParams();
   params.set('scope', scope);
@@ -262,7 +285,42 @@ export function cameraQuery(
   params.set('z', String(toGrid(camera.z)));
   params.set('zoom', camera.zoom.toFixed(2));
   if (focus !== null) params.set('focus', String(focus));
+  if (layer !== 'security') params.set('layer', layer);
+  if (layer === 'sovereignty' && owner !== null) {
+    params.set('owner', String(owner));
+  }
   return params.toString();
+}
+
+/**
+ * The link a reader copies to hand a system to someone else.
+ *
+ * No camera: the receiver's viewport is not the sender's, and `focus` on its
+ * own frames the system on whatever screen opens it — the same path a
+ * `?focus=` link has taken since phase 1. The scope is named only when it is
+ * not the default, so the common link stays short enough to read in a ping.
+ */
+export function sharedMapUrl({
+  origin,
+  scope,
+  focus,
+  layer,
+  owner,
+}: {
+  origin: string;
+  scope: MapScope;
+  focus: number;
+  layer: MapLayerId;
+  owner: number | null;
+}): string {
+  const params = new URLSearchParams();
+  if (scope !== DEFAULT_SCOPE) params.set('scope', scope);
+  if (layer !== 'security') params.set('layer', layer);
+  params.set('focus', String(focus));
+  if (layer === 'sovereignty' && owner !== null) {
+    params.set('owner', String(owner));
+  }
+  return `${origin}/map?${params.toString()}`;
 }
 
 /**
