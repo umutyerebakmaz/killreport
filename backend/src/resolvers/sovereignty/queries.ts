@@ -221,6 +221,7 @@ type CampaignRow = {
   start_time: Date;
   end_time: Date | null;
   outcome: string | null;
+  updated_at: Date;
 };
 
 /**
@@ -282,6 +283,7 @@ async function enrichCampaigns(campaigns: CampaignRow[]) {
       defenderScore: c.defender_score,
       attackersScore: c.attackers_score,
       startTime: c.start_time.toISOString(),
+      updatedAt: c.updated_at.toISOString(),
       endTime: c.end_time?.toISOString() ?? null,
       outcome: c.outcome,
       durationHours,
@@ -560,61 +562,6 @@ export const sovereigntyQueries: QueryResolvers = {
         regionName: regions.regionName(regionId),
         campaignCount,
       }));
-  },
-
-  sovereigntyMapPoints: async () => {
-    const LIGHT_YEAR_M = 9.4607e15; // meters, for friendlier map coordinates
-
-    const owned = await prisma.sovereigntyMapCurrent.findMany({
-      select: { solar_system_id: true, alliance_id: true },
-    });
-    const allianceBySystem = new Map(
-      owned.map((o) => [o.solar_system_id, o.alliance_id]),
-    );
-
-    const systems = await prisma.solarSystem.findMany({
-      where: {
-        id: { in: owned.map((o) => o.solar_system_id) },
-        position_x: { not: null },
-        position_z: { not: null },
-      },
-      select: {
-        id: true,
-        name: true,
-        position_x: true,
-        position_z: true,
-        constellation_id: true,
-      },
-    });
-
-    const systemInfoMap = new Map(
-      systems.map((s) => [
-        s.id,
-        { name: s.name, constellation_id: s.constellation_id },
-      ]),
-    );
-    const [regions, names] = await Promise.all([
-      resolveRegions(systemInfoMap),
-      allianceNames([...allianceBySystem.values()]),
-    ]);
-
-    const points = [];
-    for (const s of systems) {
-      const rId = regions.regionIdForSystem(s.id);
-      const allianceId = allianceBySystem.get(s.id) ?? null;
-      const a = allianceId != null ? names.get(allianceId) : null;
-      points.push({
-        systemId: s.id,
-        systemName: s.name,
-        x: (s.position_x as number) / LIGHT_YEAR_M,
-        y: (s.position_z as number) / LIGHT_YEAR_M,
-        allianceId,
-        allianceName: a?.name ?? null,
-        allianceTicker: a?.ticker ?? null,
-        regionName: regions.regionName(rId),
-      });
-    }
-    return points;
   },
 
   conflictHotspots: async (_, { limit }) => {

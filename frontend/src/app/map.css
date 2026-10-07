@@ -1,5 +1,7 @@
 /* The label overlay sits above the Pixi canvas and below the hover tip and the
-   popup, which are React nodes in the same host. It owns colour, halo and
+   popup, which are React nodes in the same host. The tip only appears for a
+   hovered system whose name is not on screen; one whose name is showing is
+   titled on that name instead, see `.is-hovered` below. It owns colour, halo and
    transition and nothing else: every metric — family, size, weight, letter
    spacing and the line height the collision box is built from — is written from
    utils/map/labelStyle.ts, so the measurer and the text agree. The family is in
@@ -56,6 +58,28 @@
    way out cannot be pulled back to full by a pointer it drifts under. */
 .map-label.is-visible:hover {
   opacity: 1;
+}
+
+/* The hovered system's name is its title, so it steps past the :hover lift:
+   full white and a second, wider halo that lifts it off whatever it crosses,
+   and above its neighbours. Paint only —
+   size, weight and spacing are metrics the collision box was built from.
+   Written by markHoveredLabel from the map's own hover state, because a dot
+   on the canvas is hovered as often as the name and no selector sees it. */
+.map-label.is-visible.is-hovered {
+  opacity: 1;
+  z-index: 1;
+  text-shadow:
+    0 0 3px rgb(0 0 0 / 0.9),
+    0 0 8px rgb(0 0 0 / 0.8);
+}
+
+/* The security after a system's name, always drawn with it. Inline, after a
+   real space, so the browser lays out exactly the text the collision box was
+   measured from. Its colour comes from the class labelLayer writes, the site's
+   own. */
+.map-label__sec {
+  pointer-events: none;
 }
 
 .map-label:not(.is-visible) {

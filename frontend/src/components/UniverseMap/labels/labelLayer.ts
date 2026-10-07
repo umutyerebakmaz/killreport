@@ -4,7 +4,8 @@ import {
   labelLineHeight,
   labelText,
 } from '@/utils/map/labelStyle';
-import type { LabelCandidate } from '@/utils/map/labels';
+import { systemLabelSecurity, type LabelCandidate } from '@/utils/map/labels';
+import { getSecurityColor } from '@/utils/security';
 
 export interface LabelLayer {
   /** The absolutely positioned overlay, a sibling of the Pixi canvas. */
@@ -19,13 +20,15 @@ export interface LabelLayer {
    * nobody is short of and cost the re-entry it exists to make free.
    */
   pool: Map<string, HTMLSpanElement>;
+  /** The system name carrying `is-hovered`, so moving the mark is O(1). */
+  hovered: HTMLSpanElement | null;
 }
 
 export function createLabelLayer(host: HTMLElement): LabelLayer {
   const root = document.createElement('div');
   root.className = 'map-labels';
   host.appendChild(root);
-  return { root, pool: new Map() };
+  return { root, pool: new Map(), hovered: null };
 }
 
 /**
@@ -80,6 +83,17 @@ export function drawLabels(layer: LabelLayer, placed: LabelCandidate[]): void {
       if (candidate.systemId !== undefined) {
         el.dataset.mapSystem = String(candidate.systemId);
       }
+      // The security after a system's name, written once with the rest of
+      // the element. A child so it can take the site's security colour, after
+      // a real space rather than a margin: labelCandidates measured the box
+      // from `name security`, and the drawn width has to be that text.
+      const security = systemLabelSecurity(candidate.securityStatus);
+      if (security !== null) {
+        const sec = document.createElement('span');
+        sec.className = `map-label__sec ${getSecurityColor(candidate.securityStatus)}`;
+        sec.textContent = security;
+        el.append(' ', sec);
+      }
       // The same stamp at the two area tiers: useMapPointer reads whichever is
       // there to light that area's own mesh while the pointer rests on its
       // name.
@@ -122,7 +136,31 @@ export function drawLabels(layer: LabelLayer, placed: LabelCandidate[]): void {
   }
 }
 
+/**
+ * Marks one system name as hovered, unmarking the last.
+ *
+ * Not CSS `:hover`: a system is hovered from its dot as often as from its name,
+ * and the dot is on the canvas, where no selector can see it. So the hover
+ * state the map already holds is written onto the name as a class, and the
+ * name hover — which sets that same state — is covered by the class too.
+ *
+ * A system with no element yet is left unmarked; the caller marks again when
+ * placement changes, which is when an element can appear.
+ */
+export function markHoveredLabel(
+  layer: LabelLayer,
+  systemId: number | null,
+): void {
+  const el =
+    systemId === null ? null : (layer.pool.get(`system:${systemId}`) ?? null);
+  if (el === layer.hovered) return;
+  layer.hovered?.classList.remove('is-hovered');
+  el?.classList.add('is-hovered');
+  layer.hovered = el;
+}
+
 export function destroyLabelLayer(layer: LabelLayer): void {
   layer.root.remove();
   layer.pool.clear();
+  layer.hovered = null;
 }

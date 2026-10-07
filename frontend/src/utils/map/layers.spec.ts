@@ -5,7 +5,9 @@ import type { EdgeSegment } from './edges';
 import {
   buildSovIndex,
   groupSegmentsByTint,
+  logoOwners,
   MAP_LAYERS,
+  presentOwner,
   SOV_LOGO_ZOOM,
   type MapLayerData,
 } from './layers';
@@ -166,5 +168,76 @@ describe('groupSegmentsByTint', () => {
   it('emits no empty group', () => {
     const groups = groupSegmentsByTint([], MAP_LAYERS.sovereignty, DATA);
     expect(groups).toEqual([]);
+  });
+});
+
+describe('isolating an owner', () => {
+  const FIRST = OWNED;
+  const SECOND = Number(Object.keys(SOV_COLORS)[1]);
+  const sovereignty = buildSovIndex({
+    systems: [
+      { systemId: 1, ownerId: FIRST },
+      { systemId: 2, ownerId: FIRST },
+      { systemId: 3, ownerId: SECOND },
+    ],
+  });
+  const layer = MAP_LAYERS.sovereignty;
+
+  it('keeps the isolated owner in its colour and dims everyone else', () => {
+    const data = { sovereignty, isolatedOwner: FIRST };
+    expect(layer.tint(node(1), data)).toBe(sovTint(FIRST));
+    expect(layer.tint(node(3), data)).toBe(SOV_UNOWNED_TINT);
+  });
+
+  it('colours only the isolated owner’s own gates', () => {
+    const other = { sovereignty, isolatedOwner: SECOND };
+    expect(layer.edgeTint({ from: 1, to: 2 }, other)).toBeNull();
+    const own = { sovereignty, isolatedOwner: FIRST };
+    expect(layer.edgeTint({ from: 1, to: 2 }, own)).toBe(sovTint(FIRST));
+  });
+
+  it('changes nothing when no owner is isolated', () => {
+    const data = { sovereignty, isolatedOwner: null };
+    expect(layer.tint(node(3), data)).toBe(sovTint(SECOND));
+    expect(layer.edgeTint({ from: 1, to: 2 }, data)).toBe(sovTint(FIRST));
+  });
+
+  it('lets only the isolated owner’s systems show a crest', () => {
+    expect([...logoOwners(sovereignty, FIRST).keys()]).toEqual([1, 2]);
+  });
+
+  it('hands the logo pass every owner when none is isolated', () => {
+    expect(logoOwners(sovereignty, null)).toBe(sovereignty.ownerBySystem);
+  });
+
+  it('hands it nothing when there is no sovereignty data yet', () => {
+    expect(logoOwners(null, FIRST).size).toBe(0);
+  });
+});
+
+describe('presentOwner', () => {
+  const owners = [{ ownerId: 99003581 }, { ownerId: 99001317 }];
+
+  it('keeps an owner the loaded list holds', () => {
+    expect(presentOwner(99003581, owners)).toBe(99003581);
+  });
+
+  it('drops an owner the loaded list does not hold', () => {
+    // A pasted link whose owner has since lost its last system: isolating it
+    // would grey the whole map with no row in the panel to undo it.
+    expect(presentOwner(123, owners)).toBeNull();
+  });
+
+  it('keeps the owner while the list is not loaded yet', () => {
+    expect(presentOwner(123, null)).toBe(123);
+  });
+
+  it('drops any owner from a loaded scene that has no owners', () => {
+    expect(presentOwner(123, [])).toBeNull();
+  });
+
+  it('passes "no isolation" through', () => {
+    expect(presentOwner(null, owners)).toBeNull();
+    expect(presentOwner(null, null)).toBeNull();
   });
 });

@@ -5,14 +5,20 @@ const webgl = vi.fn(() => true);
 vi.mock('@/utils/map/webgl', () => ({ isWebgl2Available: () => webgl() }));
 
 let searchParams = new URLSearchParams('');
+/** Every URL write, which is where a focus from the panel is judged. */
+const routerReplace = vi.fn();
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ replace: vi.fn() }),
+  useRouter: () => ({ replace: routerReplace }),
   useSearchParams: () => searchParams,
 }));
 
 let labelQueries: { kind: string; skip: boolean }[] = [];
 /** Whether the sovereignty query was skipped — it is, until the layer opens. */
 let sovQueries: { skip: boolean }[] = [];
+/** Whether the campaigns query was skipped — it is, off the sovereignty layer. */
+let sovCampaignQueries: { skip: boolean }[] = [];
+/** What the campaigns query answers with, once it is not skipped. */
+let sovCampaignData: unknown = undefined;
 /** Which system the popup asked about, which is what picking is judged on. */
 let detailsQueries: number[] = [];
 
@@ -45,6 +51,11 @@ vi.mock('@/generated/graphql', () => ({
     sovQueries.push({ skip: !!options.skip });
     return { data: undefined };
   },
+  useMapSovCampaignsQuery: (options: { skip?: boolean }) => {
+    sovCampaignQueries.push({ skip: !!options.skip });
+    return { data: options.skip ? undefined : sovCampaignData };
+  },
+  useMapSovChangesQuery: () => ({ data: undefined, loading: false }),
   useMapCelestialsQuery: () => ({ data: { mapCelestials: [] } }),
   useMapLabelsQuery: (options: {
     variables: { kind: string };
@@ -119,7 +130,9 @@ vi.mock('./labels/labelLayer', () => ({
   createLabelLayer: (host: HTMLElement) => createLabelLayer(host),
   destroyLabelLayer: (layer: unknown) => destroyLabelLayer(layer),
   drawLabels: vi.fn(),
+  markHoveredLabel: vi.fn(),
 }));
+vi.mock('./scene/campaignRings', () => ({ drawRings: vi.fn() }));
 
 /** A real canvas element, as the component's `resizeTo: host` scene has. */
 type FakeScene = ReturnType<typeof fakeScene>;
@@ -136,6 +149,7 @@ function fakeScene() {
         height: VIEWPORT.height * FAKE_RESOLUTION,
       },
       screen: { width: VIEWPORT.width, height: VIEWPORT.height },
+      ticker: { add: vi.fn(), remove: vi.fn() },
     },
     world: { scale: { set: vi.fn() }, position: { set: vi.fn() } },
     edgesGalaxy: { visible: true, clear: vi.fn() },
@@ -143,6 +157,7 @@ function fakeScene() {
     edgesLocal: { visible: true, clear: vi.fn() },
     systems: { visible: true },
     celestials: { visible: true },
+    rings: {},
     dot: {},
     destroy: vi.fn(),
   };
@@ -222,6 +237,9 @@ beforeEach(() => {
   searchParams = new URLSearchParams('');
   labelQueries = [];
   sovQueries = [];
+  sovCampaignQueries = [];
+  sovCampaignData = undefined;
+  routerReplace.mockClear();
   detailsQueries = [];
   drawHighlight.mockClear();
 });
@@ -373,6 +391,59 @@ describe('UniverseMap', () => {
 
     const constellation = labelQueries.find((q) => q.kind === 'CONSTELLATION');
     expect(constellation?.skip).toBe(true);
+  });
+
+  it('opens on the sovereignty layer when the URL names it', () => {
+    searchParams = new URLSearchParams('layer=sovereignty');
+    render(<UniverseMap scope={MapScope.NewEden} />);
+    expect(sovQueries.at(-1)?.skip).toBe(false);
+  });
+
+  it('fetches campaigns only on the sovereignty layer', () => {
+    render(<UniverseMap scope={MapScope.NewEden} />);
+    expect(sovCampaignQueries.at(-1)?.skip).toBe(true);
+
+    searchParams = new URLSearchParams('layer=sovereignty');
+    render(<UniverseMap scope={MapScope.NewEden} />);
+    expect(sovCampaignQueries.at(-1)?.skip).toBe(false);
+  });
+
+  // The campaigns are every campaign in New Eden whatever the scene, so the
+  // panel can list a system the loaded geometry does not hold.
+  it('focuses a panel timer the scene does not hold without crashing', async () => {
+    searchParams = new URLSearchParams('layer=sovereignty');
+    sovCampaignData = {
+      sovereigntyActiveCampaigns: [
+        {
+          campaignId: 1,
+          eventType: 'ihub_defense',
+          solarSystemId: 30004759,
+          solarSystemName: '1DQ1-A',
+          regionName: 'Delve',
+          defenderId: 99003581,
+          defenderName: 'Fraternity.',
+          defenderTicker: 'FRT',
+          defenderScore: null,
+          attackersScore: null,
+          startTime: new Date(Date.now() + 3_600_000).toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ],
+    };
+    render(<UniverseMap scope={MapScope.Pochven} />);
+    await waitFor(() => expect(createScene).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+    const before = scene.world.position.set.mock.calls.length;
+    routerReplace.mockClear();
+
+    act(() => screen.getByRole('button', { name: /^1DQ1-A/ }).click());
+
+    // The focus is written; the camera stays, since there is nowhere to go.
+    expect(routerReplace).toHaveBeenLastCalledWith(
+      expect.stringContaining('focus=30004759'),
+      { scroll: false },
+    );
+    expect(scene.world.position.set.mock.calls.length).toBe(before);
   });
 
   it('always fetches region names, which are 3 KB and wanted on the first frame', () => {
@@ -587,7 +658,7 @@ describe('UniverseMap', () => {
       expect(screen.getByText('· Kimotoro · The Forge')).toBeInTheDocument();
     });
 
-    it('scrolls the legend rather than zooming the map under it', async () => {
+    it('scrolls the panel rather than zooming the map under it', async () => {
       // The wheel listener is on the host and the panel is a child of it, so
       // without `data-map-overlay` every scroll of the owner list would zoom
       // the galaxy instead.

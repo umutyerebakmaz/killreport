@@ -1258,8 +1258,6 @@ export type Query = {
   sovereigntyActiveCampaigns: Array<SovereigntyCampaign>;
   /** Resolved (ended) campaigns, newest-ended first, paginated. */
   sovereigntyCampaignHistory: SovereigntyCampaignHistoryPage;
-  /** All sov-held systems with coordinates, for the territory map (filter by region client-side). */
-  sovereigntyMapPoints: Array<SovMapPoint>;
   /** Distribution of resolved campaign outcomes. */
   sovereigntyOutcomeStats: SovereigntyOutcomeStats;
   /** Summary counts for the current sovereignty state. */
@@ -1929,22 +1927,6 @@ export type SolarSystemsResponse = {
   pageInfo: PageInfo;
 };
 
-/**
- * A sov-held solar system plotted on the territory map (position in light-years,
- * galactic x/z projected to 2D).
- */
-export type SovMapPoint = {
-  __typename?: 'SovMapPoint';
-  allianceId?: Maybe<Scalars['Int']['output']>;
-  allianceName?: Maybe<Scalars['String']['output']>;
-  allianceTicker?: Maybe<Scalars['String']['output']>;
-  regionName?: Maybe<Scalars['String']['output']>;
-  systemId: Scalars['Int']['output'];
-  systemName?: Maybe<Scalars['String']['output']>;
-  x: Scalars['Float']['output'];
-  y: Scalars['Float']['output'];
-};
-
 /** A real-time sovereignty alert pushed over SSE when a worker detects an event. */
 export type SovereigntyAlert = {
   __typename?: 'SovereigntyAlert';
@@ -1999,6 +1981,8 @@ export type SovereigntyCampaign = {
   solarSystemName?: Maybe<Scalars['String']['output']>;
   startTime: Scalars['String']['output'];
   structureId: Scalars['String']['output'];
+  /** When the campaign worker last wrote this row. The map reads the newest one to say how fresh its timers are. */
+  updatedAt: Scalars['String']['output'];
   /** Killmails correlated to this campaign (0 until fighting happens in its window). */
   warKills: Scalars['Int']['output'];
 };
@@ -2894,6 +2878,16 @@ export type MapLabelsQueryVariables = Exact<{
 
 export type MapLabelsQuery = { __typename?: 'Query', mapLabels: Array<{ __typename?: 'MapLabel', id: number, name: string, kind: MapLabelKind, x: number, z: number, systemId?: number | null, bounds?: { __typename?: 'MapBounds', minX: number, maxX: number, minZ: number, maxZ: number } | null }> };
 
+export type MapSovCampaignsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MapSovCampaignsQuery = { __typename?: 'Query', sovereigntyActiveCampaigns: Array<{ __typename?: 'SovereigntyCampaign', campaignId: number, eventType: string, solarSystemId: number, solarSystemName?: string | null, regionName?: string | null, defenderId?: number | null, defenderName?: string | null, defenderTicker?: string | null, defenderScore?: number | null, attackersScore?: number | null, startTime: string, updatedAt: string }> };
+
+export type MapSovChangesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MapSovChangesQuery = { __typename?: 'Query', recentTerritoryChanges: Array<{ __typename?: 'TerritoryChange', id: string, solarSystemId: number, solarSystemName?: string | null, previousOwnerId?: number | null, previousOwnerName?: string | null, newOwnerId?: number | null, newOwnerName?: string | null, changeType: string, detectedAt: string }> };
+
 export type MapSovereigntyQueryVariables = Exact<{
   scope: MapScope;
 }>;
@@ -3109,11 +3103,6 @@ export type SovereigntyHistoryPageQueryVariables = Exact<{
 
 
 export type SovereigntyHistoryPageQuery = { __typename?: 'Query', sovereigntyOutcomeStats: { __typename?: 'SovereigntyOutcomeStats', defenderWon: number, attackerWon: number, abandoned: number, totalResolved: number }, topDefenders: Array<{ __typename?: 'AllianceDefenseRecord', rank: number, allianceId: number, allianceName?: string | null, allianceTicker?: string | null, defensesWon: number, defensesTotal: number, defenseSuccessRate: number }>, sovereigntyCampaignHistory: { __typename?: 'SovereigntyCampaignHistoryPage', totalCount: number, items: Array<{ __typename?: 'SovereigntyCampaign', campaignId: number, eventType: string, solarSystemId: number, solarSystemName?: string | null, regionName?: string | null, defenderId?: number | null, defenderName?: string | null, defenderTicker?: string | null, defenderScore?: number | null, attackersScore?: number | null, outcome?: string | null, durationHours?: number | null, endTime?: string | null, warKills: number, iskDestroyed: number, defenderIskLost: number, attackerIskLost: number }> } };
-
-export type SovereigntyMapQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type SovereigntyMapQuery = { __typename?: 'Query', sovereigntyMapPoints: Array<{ __typename?: 'SovMapPoint', systemId: number, systemName?: string | null, x: number, y: number, allianceId?: number | null, allianceName?: string | null, allianceTicker?: string | null, regionName?: string | null }> };
 
 export type SovereigntyStructuresPageQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -6956,6 +6945,109 @@ export type MapLabelsQueryHookResult = ReturnType<typeof useMapLabelsQuery>;
 export type MapLabelsLazyQueryHookResult = ReturnType<typeof useMapLabelsLazyQuery>;
 export type MapLabelsSuspenseQueryHookResult = ReturnType<typeof useMapLabelsSuspenseQuery>;
 export type MapLabelsQueryResult = Apollo.QueryResult<MapLabelsQuery, MapLabelsQueryVariables>;
+export const MapSovCampaignsDocument = gql`
+    query MapSovCampaigns {
+  sovereigntyActiveCampaigns(limit: 200) {
+    campaignId
+    eventType
+    solarSystemId
+    solarSystemName
+    regionName
+    defenderId
+    defenderName
+    defenderTicker
+    defenderScore
+    attackersScore
+    startTime
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useMapSovCampaignsQuery__
+ *
+ * To run a query within a React component, call `useMapSovCampaignsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMapSovCampaignsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMapSovCampaignsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMapSovCampaignsQuery(baseOptions?: Apollo.QueryHookOptions<MapSovCampaignsQuery, MapSovCampaignsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MapSovCampaignsQuery, MapSovCampaignsQueryVariables>(MapSovCampaignsDocument, options);
+      }
+export function useMapSovCampaignsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MapSovCampaignsQuery, MapSovCampaignsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MapSovCampaignsQuery, MapSovCampaignsQueryVariables>(MapSovCampaignsDocument, options);
+        }
+// @ts-ignore
+export function useMapSovCampaignsSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MapSovCampaignsQuery, MapSovCampaignsQueryVariables>): Apollo.UseSuspenseQueryResult<MapSovCampaignsQuery, MapSovCampaignsQueryVariables>;
+export function useMapSovCampaignsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapSovCampaignsQuery, MapSovCampaignsQueryVariables>): Apollo.UseSuspenseQueryResult<MapSovCampaignsQuery | undefined, MapSovCampaignsQueryVariables>;
+export function useMapSovCampaignsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapSovCampaignsQuery, MapSovCampaignsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MapSovCampaignsQuery, MapSovCampaignsQueryVariables>(MapSovCampaignsDocument, options);
+        }
+export type MapSovCampaignsQueryHookResult = ReturnType<typeof useMapSovCampaignsQuery>;
+export type MapSovCampaignsLazyQueryHookResult = ReturnType<typeof useMapSovCampaignsLazyQuery>;
+export type MapSovCampaignsSuspenseQueryHookResult = ReturnType<typeof useMapSovCampaignsSuspenseQuery>;
+export type MapSovCampaignsQueryResult = Apollo.QueryResult<MapSovCampaignsQuery, MapSovCampaignsQueryVariables>;
+export const MapSovChangesDocument = gql`
+    query MapSovChanges {
+  recentTerritoryChanges(limit: 50) {
+    id
+    solarSystemId
+    solarSystemName
+    previousOwnerId
+    previousOwnerName
+    newOwnerId
+    newOwnerName
+    changeType
+    detectedAt
+  }
+}
+    `;
+
+/**
+ * __useMapSovChangesQuery__
+ *
+ * To run a query within a React component, call `useMapSovChangesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMapSovChangesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMapSovChangesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMapSovChangesQuery(baseOptions?: Apollo.QueryHookOptions<MapSovChangesQuery, MapSovChangesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MapSovChangesQuery, MapSovChangesQueryVariables>(MapSovChangesDocument, options);
+      }
+export function useMapSovChangesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MapSovChangesQuery, MapSovChangesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MapSovChangesQuery, MapSovChangesQueryVariables>(MapSovChangesDocument, options);
+        }
+// @ts-ignore
+export function useMapSovChangesSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MapSovChangesQuery, MapSovChangesQueryVariables>): Apollo.UseSuspenseQueryResult<MapSovChangesQuery, MapSovChangesQueryVariables>;
+export function useMapSovChangesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapSovChangesQuery, MapSovChangesQueryVariables>): Apollo.UseSuspenseQueryResult<MapSovChangesQuery | undefined, MapSovChangesQueryVariables>;
+export function useMapSovChangesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MapSovChangesQuery, MapSovChangesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MapSovChangesQuery, MapSovChangesQueryVariables>(MapSovChangesDocument, options);
+        }
+export type MapSovChangesQueryHookResult = ReturnType<typeof useMapSovChangesQuery>;
+export type MapSovChangesLazyQueryHookResult = ReturnType<typeof useMapSovChangesLazyQuery>;
+export type MapSovChangesSuspenseQueryHookResult = ReturnType<typeof useMapSovChangesSuspenseQuery>;
+export type MapSovChangesQueryResult = Apollo.QueryResult<MapSovChangesQuery, MapSovChangesQueryVariables>;
 export const MapSovereigntyDocument = gql`
     query MapSovereignty($scope: MapScope!) {
   mapSovereignty(scope: $scope) {
@@ -8790,55 +8882,6 @@ export type SovereigntyHistoryPageQueryHookResult = ReturnType<typeof useSoverei
 export type SovereigntyHistoryPageLazyQueryHookResult = ReturnType<typeof useSovereigntyHistoryPageLazyQuery>;
 export type SovereigntyHistoryPageSuspenseQueryHookResult = ReturnType<typeof useSovereigntyHistoryPageSuspenseQuery>;
 export type SovereigntyHistoryPageQueryResult = Apollo.QueryResult<SovereigntyHistoryPageQuery, SovereigntyHistoryPageQueryVariables>;
-export const SovereigntyMapDocument = gql`
-    query SovereigntyMap {
-  sovereigntyMapPoints {
-    systemId
-    systemName
-    x
-    y
-    allianceId
-    allianceName
-    allianceTicker
-    regionName
-  }
-}
-    `;
-
-/**
- * __useSovereigntyMapQuery__
- *
- * To run a query within a React component, call `useSovereigntyMapQuery` and pass it any options that fit your needs.
- * When your component renders, `useSovereigntyMapQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useSovereigntyMapQuery({
- *   variables: {
- *   },
- * });
- */
-export function useSovereigntyMapQuery(baseOptions?: Apollo.QueryHookOptions<SovereigntyMapQuery, SovereigntyMapQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<SovereigntyMapQuery, SovereigntyMapQueryVariables>(SovereigntyMapDocument, options);
-      }
-export function useSovereigntyMapLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SovereigntyMapQuery, SovereigntyMapQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<SovereigntyMapQuery, SovereigntyMapQueryVariables>(SovereigntyMapDocument, options);
-        }
-// @ts-ignore
-export function useSovereigntyMapSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<SovereigntyMapQuery, SovereigntyMapQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyMapQuery, SovereigntyMapQueryVariables>;
-export function useSovereigntyMapSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyMapQuery, SovereigntyMapQueryVariables>): Apollo.UseSuspenseQueryResult<SovereigntyMapQuery | undefined, SovereigntyMapQueryVariables>;
-export function useSovereigntyMapSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SovereigntyMapQuery, SovereigntyMapQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<SovereigntyMapQuery, SovereigntyMapQueryVariables>(SovereigntyMapDocument, options);
-        }
-export type SovereigntyMapQueryHookResult = ReturnType<typeof useSovereigntyMapQuery>;
-export type SovereigntyMapLazyQueryHookResult = ReturnType<typeof useSovereigntyMapLazyQuery>;
-export type SovereigntyMapSuspenseQueryHookResult = ReturnType<typeof useSovereigntyMapSuspenseQuery>;
-export type SovereigntyMapQueryResult = Apollo.QueryResult<SovereigntyMapQuery, SovereigntyMapQueryVariables>;
 export const SovereigntyStructuresPageDocument = gql`
     query SovereigntyStructuresPage {
   sovereigntyUpcomingTimers(hoursAhead: 24, limit: 100) {

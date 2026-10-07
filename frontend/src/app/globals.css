@@ -96,6 +96,12 @@
   --color-success: var(--color-dropped);
   --color-caution: var(--color-isk);
 
+  /* The two sides of a sovereignty fight: whoever took a system, and whoever
+     held it. Attacker is EVE's red, the same ink as destroyed; defender is a
+     blue picked to sit at a similar weight beside it on the dark surface. */
+  --color-attacker: var(--color-destroyed);
+  --color-defender: #4f9dff;
+
   /* The same two meanings as a ground rather than as ink, and deliberately
      a deeper step: a light hue behind a whole row washes it out. EVE's two
      hues taken down to the lightness the Tailwind 700s sat at. */

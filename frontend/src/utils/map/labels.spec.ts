@@ -7,7 +7,9 @@ import {
   LABEL_DOT_GAP_PX,
   LABEL_LOGO_LIFT_PX,
   MAX_VISIBLE_LABELS,
+  placedSystemIds,
   placeLabels,
+  showHoverTip,
   type LabelCandidate,
 } from './labels';
 
@@ -61,10 +63,10 @@ describe('labelCandidates', () => {
     });
 
     // The two centroid tiers lift by exactly their line height. The system tier
-    // takes the larger of that and the room its dot needs, so it is allowed to
-    // sit higher — never lower.
+    // hangs below its dot by the larger of that and the room the dot needs, so
+    // it is allowed to sit further off — never nearer.
     for (const c of candidates) {
-      const lift = 450 - c.screenY;
+      const lift = Math.abs(450 - c.screenY);
       if (c.tier === 'system') {
         expect(lift).toBeGreaterThanOrEqual(labelLineHeight('system'));
       } else {
@@ -75,6 +77,86 @@ describe('labelCandidates', () => {
     // And the lift really does differ per tier, which is why a filter working
     // on unshifted anchors would clear cross-tier pairs that then overlap.
     expect(new Set(candidates.map((c) => c.screenY)).size).toBe(3);
+  });
+
+  // A region name is anchored to its medoid, a real system — Perrigen Falls to
+  // SR-10Z. With system names above their dots the two took the same slot and
+  // the region won it on tier priority, so the system's name was never drawn.
+  // System names sit below their dots now, and the region name keeps the slot
+  // above.
+  it.each([false, true])(
+    'puts a region name above its medoid and the system name below it (logos: %s)',
+    (logos) => {
+      const at = { x: 0, z: 0, radius: 5e14 };
+      const candidates = labelCandidates({
+        tiers: ['region', 'system'],
+        regions: [{ id: 10000066, name: 'Perrigen Falls', ...at }],
+        constellations: [],
+        systems: [{ id: 30005141, name: 'SR-10Z', ...at }],
+        measure,
+        transform,
+        width: W,
+        height: H,
+        logos,
+      });
+      const region = candidates.find((c) => c.tier === 'region')!;
+      const system = candidates.find((c) => c.tier === 'system')!;
+
+      expect(region.screenY).toBeLessThan(450);
+      expect(system.screenY).toBeGreaterThan(450);
+      expect(placeLabels(candidates).map((c) => c.tier)).toEqual([
+        'region',
+        'system',
+      ]);
+    },
+  );
+
+  // Same gap as above the dot had, mirrored: the name's top edge clears the
+  // dot by the distance its bottom edge used to.
+  it('hangs a system name below its dot by the gap it used to keep above it', () => {
+    const radius = 5e14;
+    const [system] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [{ ...source(30000142, 'Jita', 0, 0), radius }],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+    const line = labelLineHeight('system');
+    const dotPx = systemRadiusPx(
+      radius,
+      transform.scaleX,
+      systemFloorPx(Math.log2(transform.scaleX)),
+    );
+
+    expect(system.screenY - 450).toBeCloseTo(
+      Math.max(line, line / 2 + dotPx + LABEL_DOT_GAP_PX),
+      6,
+    );
+  });
+
+  // The security is drawn with every system name, so the box the collision
+  // filter reserves has to hold it too, or a neighbour's name lands on it.
+  it('measures a system name together with its security', () => {
+    const [jita, wormhole] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [
+        { ...source(30000142, 'Jita', 0, 0), securityStatus: 0.94 },
+        { ...source(31000005, 'J1', 3e16, 0), securityStatus: null },
+      ],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(jita.halfWidth).toBe(measure('system', 'Jita 0.9') / 2);
+    expect(wormhole.halfWidth).toBe(measure('system', 'J1') / 2);
   });
 
   it('puts a larger z higher on screen, not lower', () => {
@@ -451,11 +533,11 @@ describe('a system name clearing its own dot', () => {
     return c;
   }
 
-  /** How far the glyph box's bottom edge sits above the dot's own edge. */
+  /** How far the glyph box's top edge sits below the dot's own edge. */
   function clearance(c: LabelCandidate, zoom: number, radius: number) {
     const dot = systemRadiusPx(radius, 2 ** zoom, systemFloorPx(zoom));
-    const bottomEdge = c.screenY + c.halfHeight;
-    return 450 - dot - bottomEdge;
+    const topEdge = c.screenY - c.halfHeight;
+    return topEdge - (450 + dot);
   }
 
   // The dots grow with the camera now, and a lift fixed at one line height put
@@ -490,7 +572,7 @@ describe('a system name clearing its own dot', () => {
   // galaxy view is exactly half a line plus the dot's floor plus the gap — and
   // that is the arithmetic a change to any of the three has to move.
   it('is the clearance term, and never less than the line height', () => {
-    const lift = 450 - systemAt(-50, 3.8809e12).screenY;
+    const lift = systemAt(-50, 3.8809e12).screenY - 450;
 
     expect(lift).toBeGreaterThanOrEqual(labelLineHeight('system'));
     expect(lift).toBeCloseTo(
@@ -499,10 +581,10 @@ describe('a system name clearing its own dot', () => {
     );
   });
 
-  it('rises monotonically as the camera comes in', () => {
+  it('moves monotonically further off as the camera comes in', () => {
     let previousLift = 0;
     for (let zoom = -50; zoom <= -36; zoom += 0.5) {
-      const lift = 450 - systemAt(zoom, 3.8809e12).screenY;
+      const lift = systemAt(zoom, 3.8809e12).screenY - 450;
       expect(lift).toBeGreaterThanOrEqual(previousLift);
       previousLift = lift;
     }
@@ -547,7 +629,7 @@ describe('the lift', () => {
         LABEL_DOT_GAP_PX,
     );
 
-    expect(c.screenY).toBeCloseTo(450 - expected, 6);
+    expect(c.screenY).toBeCloseTo(450 + expected, 6);
   });
 
   it('falls to the dot floor for a zero-radius system, not to the line height', () => {
@@ -569,7 +651,7 @@ describe('the lift', () => {
       lineHeight / 2 + floorPx + LABEL_DOT_GAP_PX,
     );
 
-    expect(c.screenY).toBeCloseTo(450 - expected, 6);
+    expect(c.screenY).toBeCloseTo(450 + expected, 6);
   });
 
   it('takes the width from the measurer, not from the name length', () => {
@@ -607,9 +689,9 @@ describe('the logo lift', () => {
     return c;
   }
 
-  it('steps a system name up while a logo is drawn under it', () => {
-    // Up is a SMALLER screen y.
-    expect(jita(false).screenY - jita(true).screenY).toBeCloseTo(
+  it('steps a system name further down while a logo is drawn over its dot', () => {
+    // Down is a LARGER screen y.
+    expect(jita(true).screenY - jita(false).screenY).toBeCloseTo(
       LABEL_LOGO_LIFT_PX,
       6,
     );
@@ -840,5 +922,130 @@ describe('viewport clamping', () => {
 
     expect(c).toBeDefined();
     expect(c.screenX).toBeGreaterThanOrEqual(c.halfWidth);
+  });
+});
+
+describe("a system candidate's security", () => {
+  const jita = { ...source(30000142, 'Jita', 6e16, 0), radius: 1e12 };
+
+  it('is carried through, for the layer to write once', () => {
+    const [c] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [{ ...jita, securityStatus: 0.94 }],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(c.securityStatus).toBe(0.94);
+  });
+
+  it('keeps null — W-Space — apart from an area name, which has none', () => {
+    const candidates = labelCandidates({
+      tiers: ['region', 'system'],
+      regions: [source(1, 'R', 0, 0)],
+      constellations: [],
+      systems: [{ ...jita, securityStatus: null }],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(candidates.find((c) => c.tier === 'system')!.securityStatus).toBe(
+      null,
+    );
+    expect(
+      candidates.find((c) => c.tier === 'region')!.securityStatus,
+    ).toBeUndefined();
+  });
+});
+
+describe('placedSystemIds', () => {
+  function placed(key: string, systemId?: number): LabelCandidate {
+    return {
+      key,
+      name: key,
+      tier: systemId === undefined ? 'region' : 'system',
+      screenX: 0,
+      screenY: 0,
+      halfWidth: 1,
+      halfHeight: 1,
+      systemId,
+    };
+  }
+
+  it('collects the system ids and skips the area names', () => {
+    const ids = placedSystemIds(
+      [placed('region:1'), placed('system:7', 7), placed('system:9', 9)],
+      new Set(),
+    );
+
+    expect([...ids]).toEqual([7, 9]);
+  });
+
+  it('returns the previous set itself when nothing changed', () => {
+    const previous = new Set([7, 9]);
+
+    expect(
+      placedSystemIds([placed('system:9', 9), placed('system:7', 7)], previous),
+    ).toBe(previous);
+  });
+
+  it('returns a new set when an id was swapped for another', () => {
+    const previous = new Set([7, 9]);
+
+    const next = placedSystemIds(
+      [placed('system:7', 7), placed('system:8', 8)],
+      previous,
+    );
+
+    expect(next).not.toBe(previous);
+    expect([...next]).toEqual([7, 8]);
+  });
+});
+
+describe('showHoverTip', () => {
+  it('shows nothing when nothing is hovered', () => {
+    expect(
+      showHoverTip({
+        hoveredSystemId: null,
+        selectedSystemId: null,
+        placedSystemIds: new Set(),
+      }),
+    ).toBe(false);
+  });
+
+  it('shows the tip for a system whose name is not on screen', () => {
+    expect(
+      showHoverTip({
+        hoveredSystemId: 7,
+        selectedSystemId: null,
+        placedSystemIds: new Set([9]),
+      }),
+    ).toBe(true);
+  });
+
+  it('leaves the title to the name when that name is on screen', () => {
+    expect(
+      showHoverTip({
+        hoveredSystemId: 7,
+        selectedSystemId: null,
+        placedSystemIds: new Set([7]),
+      }),
+    ).toBe(false);
+  });
+
+  it('shows no tip over the selected system, which the popup already names', () => {
+    expect(
+      showHoverTip({
+        hoveredSystemId: 7,
+        selectedSystemId: 7,
+        placedSystemIds: new Set(),
+      }),
+    ).toBe(false);
   });
 });

@@ -1,4 +1,5 @@
 import type { CameraTransform } from './camera';
+import { formatSecurityStatus } from '@/utils/security';
 import { labelLineHeight } from './labelStyle';
 import type { LabelMeasure } from './measure';
 import { systemFloorPx, systemRadiusPx } from './marks';
@@ -16,13 +17,14 @@ export const MAX_VISIBLE_LABELS = 300;
  * Raised from 3 to 7 by eye. At 3 the name cleared the disc arithmetically but
  * still read as attached to it; the gap is what makes the two separate things.
  * Because the clearance term is what wins at every zoom, this constant is
- * exactly how far above its dot a system name sits — change it and they all
+ * exactly how far below its dot a system name hangs — change it and they all
  * move together.
  */
 export const LABEL_DOT_GAP_PX = 7;
 
 /**
- * Extra lift for a system name while the sovereignty logos are on screen.
+ * Extra distance for a system name while the sovereignty logos are on screen —
+ * downwards, since a system name hangs below its mark.
  *
  * The clearance term below is measured from the DOT — `systemFloorPx` tops out
  * at 6 px — while a logo is drawn at LOGO_MIN_RADIUS_PX plus its disc, so a
@@ -58,6 +60,12 @@ export interface LabelSource {
    * anchor is the thing itself.
    */
   bounds?: LabelBounds;
+  /**
+   * A system's security status, carried through to its candidate so the layer
+   * can write it once. `null` is a real value — W-Space — and is kept apart
+   * from `undefined`, which an area name has because it has no security.
+   */
+  securityStatus?: number | null;
 }
 
 /**
@@ -96,6 +104,86 @@ export interface LabelCandidate {
    */
   regionId?: number;
   constellationId?: number;
+  /** The source's security status, passed through untouched. */
+  securityStatus?: number | null;
+}
+
+/** What a collision needs: a centre and two half extents. */
+export type LabelBox = Pick<
+  LabelCandidate,
+  'screenX' | 'screenY' | 'halfWidth' | 'halfHeight'
+>;
+
+/**
+ * A world x onto the screen. One multiply-add, written once so the labels and
+ * the campaign marks cannot drift apart.
+ */
+export function projectX(transform: CameraTransform, x: number): number {
+  return x * transform.scaleX + transform.x;
+}
+
+/**
+ * A world z onto the screen. scaleY is negative, so a larger z lands at a
+ * smaller screen y — the map's +z-is-up contract, and the one thing here that
+ * silently inverts if copied wrong.
+ */
+export function projectZ(transform: CameraTransform, z: number): number {
+  return z * transform.scaleY + transform.y;
+}
+
+/**
+ * How far from its system a box `lineHeight` tall is centred — below it for a
+ * system's own name, above it for a region's: one line, or enough to clear the
+ * dot by LABEL_DOT_GAP_PX if that is more, plus the logo lift while crests are
+ * drawn.
+ */
+function systemLabelLift(
+  lineHeight: number,
+  dotRadiusPx: number,
+  logos: boolean,
+): number {
+  return (
+    Math.max(lineHeight, lineHeight / 2 + dotRadiusPx + LABEL_DOT_GAP_PX) +
+    (logos ? LABEL_LOGO_LIFT_PX : 0)
+  );
+}
+
+/** Whether a box lies wholly outside a `width` x `height` viewport. */
+export function offScreen(
+  box: LabelBox,
+  width: number,
+  height: number,
+): boolean {
+  return (
+    box.screenX + box.halfWidth < 0 ||
+    box.screenX - box.halfWidth > width ||
+    box.screenY + box.halfHeight < 0 ||
+    box.screenY - box.halfHeight > height
+  );
+}
+
+/**
+ * The security drawn after a system's name, or null for none.
+ *
+ * Null for a system with no security too: it is drawn with every name, and
+ * on the wormhole map every name would repeat "W-Space". The hover tip still
+ * says it.
+ */
+export function systemLabelSecurity(
+  securityStatus: number | null | undefined,
+): string | null {
+  return securityStatus === null || securityStatus === undefined
+    ? null
+    : formatSecurityStatus(securityStatus);
+}
+
+/**
+ * The text a label's collision box is measured from: the name, and for a
+ * system its security after one space — the same space labelLayer writes.
+ */
+function measuredText(source: LabelSource): string {
+  const security = systemLabelSecurity(source.securityStatus);
+  return security === null ? source.name : `${source.name} ${security}`;
 }
 
 const TIER_SOURCES = ['region', 'constellation', 'system'] as const;
@@ -103,10 +191,8 @@ const TIER_SOURCES = ['region', 'constellation', 'system'] as const;
 /**
  * World positions into screen-space boxes, viewport-clipped, coarsest tier first.
  *
- * The projection is the same multiply-add cameraTransform already describes —
- * note that scaleY is negative, so a larger z lands at a smaller screen y. That
- * is the map's +z-is-up contract, and it is the one thing here that silently
- * inverts if copied wrong.
+ * The projection is the same multiply-add cameraTransform already describes,
+ * through projectX and projectZ — see the latter for the sign of scaleY.
  *
  * The projected y is then lifted by one line height, so the name sits above the
  * mark it belongs to rather than on it. That offset is applied HERE rather than
@@ -168,37 +254,41 @@ export function labelCandidates({
       // `?? 0` would be wrong here. systemRadiusPx floors at `floorPx`, so a
       // missing radius read as 0 still returns 1.5-6 px and would quietly push the
       // centroid tiers up by that much.
+      //
+      // The logo lift likewise only where there is a mark to clear. A centroid
+      // tier has nothing drawn at it, so a logo elsewhere on the map is no
+      // reason to move a region's name.
       const lift =
         source.radius === undefined
           ? lineHeight
-          : Math.max(
+          : systemLabelLift(
               lineHeight,
-              halfHeight +
-                systemRadiusPx(source.radius, transform.scaleX, floorPx) +
-                LABEL_DOT_GAP_PX,
-            ) +
-            // Only where there is a mark to clear. A centroid tier has nothing
-            // drawn at it, so a logo elsewhere on the map is no reason to move
-            // a region's name.
-            (logos && source.radius !== undefined ? LABEL_LOGO_LIFT_PX : 0);
+              systemRadiusPx(source.radius, transform.scaleX, floorPx),
+              logos,
+            );
+      // A system's name hangs BELOW its dot, by the same gap; every other name
+      // sits above its anchor. A region's anchor is its medoid, a system — so
+      // with both above, the region name took the medoid's own name slot and
+      // won it on tier priority, and that system's name was never drawn.
+      const offset = tier === 'system' ? lift : -lift;
 
-      const textWidth = measure(tier, source.name);
+      const textWidth = measure(tier, measuredText(source));
       const halfWidth = textWidth / 2;
 
-      let screenX = source.x * transform.scaleX + transform.x;
-      let screenY = source.z * transform.scaleY + transform.y - lift;
+      let screenX = projectX(transform, source.x);
+      let screenY = projectZ(transform, source.z) + offset;
 
       if (source.bounds) {
         // An area name earns its place from the area, not from the zoom: it
         // appears when the region can nearly cover its own name, and stays
         // hidden while it would spill across its neighbours.
-        const boxLeft = source.bounds.minX * transform.scaleX + transform.x;
-        const boxRight = source.bounds.maxX * transform.scaleX + transform.x;
+        const boxLeft = projectX(transform, source.bounds.minX);
+        const boxRight = projectX(transform, source.bounds.maxX);
         if (boxRight - boxLeft < REGION_FIT_RATIO * textWidth) continue;
 
         // scaleY is negative, so maxZ projects to the SMALLER screen y.
-        const boxTop = source.bounds.maxZ * transform.scaleY + transform.y;
-        const boxBottom = source.bounds.minZ * transform.scaleY + transform.y;
+        const boxTop = projectZ(transform, source.bounds.maxZ);
+        const boxBottom = projectZ(transform, source.bounds.minZ);
 
         // A name belongs to the part of its area that is on screen; when none
         // of it is, the name is not this viewport's to draw. Without this the
@@ -239,10 +329,7 @@ export function labelCandidates({
       // Clipped before anything else runs: the filter is O(n*k) and n is what
       // the viewport leaves, not what the scene holds.
       if (
-        screenX + halfWidth < 0 ||
-        screenX - halfWidth > width ||
-        screenY + halfHeight < 0 ||
-        screenY - halfHeight > height
+        offScreen({ screenX, screenY, halfWidth, halfHeight }, width, height)
       ) {
         continue;
       }
@@ -258,6 +345,7 @@ export function labelCandidates({
         systemId: tier === 'system' ? source.id : undefined,
         regionId: tier === 'region' ? source.id : undefined,
         constellationId: tier === 'constellation' ? source.id : undefined,
+        securityStatus: source.securityStatus,
       });
     }
   }
@@ -265,7 +353,7 @@ export function labelCandidates({
   return candidates;
 }
 
-function overlaps(a: LabelCandidate, b: LabelCandidate): boolean {
+function overlaps(a: LabelBox, b: LabelBox): boolean {
   // Strict: boxes that exactly touch are clear. Rejecting those would thin the
   // map for nothing.
   return (
@@ -316,6 +404,51 @@ export function placeLabels(
   }
 
   return placed;
+}
+
+/**
+ * The systems whose names `placeLabels` put on screen, as a set — or `previous`
+ * itself when it holds exactly the same ids.
+ *
+ * Returning the old set unchanged is the point: the caller keeps this in React
+ * state, written on every placement, and an identical set is what lets React
+ * skip the render. Placement does not depend on the hover, so the set only
+ * moves with the camera, and a hover reads it without waiting for a pass.
+ */
+export function placedSystemIds(
+  placed: LabelCandidate[],
+  previous: ReadonlySet<number>,
+): ReadonlySet<number> {
+  const next = new Set<number>();
+  for (const candidate of placed) {
+    if (candidate.systemId !== undefined) next.add(candidate.systemId);
+  }
+  if (next.size !== previous.size) return next;
+  for (const id of next) if (!previous.has(id)) return next;
+  return previous;
+}
+
+/**
+ * Whether the hovered system needs the floating tip to name it.
+ *
+ * A system whose own name is on screen is titled there — the label shows its
+ * security beside the name — so the tip would only say it twice. The tip is
+ * for the rest: zooms that draw no system names, and a name that lost its
+ * collision. Never over the selected system either: the popup already names
+ * it, and larger.
+ */
+export function showHoverTip({
+  hoveredSystemId,
+  selectedSystemId,
+  placedSystemIds,
+}: {
+  hoveredSystemId: number | null;
+  selectedSystemId: number | null;
+  placedSystemIds: ReadonlySet<number>;
+}): boolean {
+  if (hoveredSystemId === null) return false;
+  if (hoveredSystemId === selectedSystemId) return false;
+  return !placedSystemIds.has(hoveredSystemId);
 }
 
 /**

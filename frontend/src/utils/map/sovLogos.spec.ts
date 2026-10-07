@@ -4,6 +4,10 @@ import {
   assignFrames,
   atlasSize,
   cellRect,
+  discRadiusPx,
+  drawnRadiusPx,
+  LOGO_MIN_RADIUS_PX,
+  markRadiusPx,
   LOGO_CELL_PX,
   logoUrl,
   sameBytes,
@@ -103,5 +107,29 @@ describe('sameBytes', () => {
     expect(sameBytes(a, b)).toBe(true);
     expect(sameBytes(a, c)).toBe(false);
     expect(sameBytes(a, new Uint8Array([1, 2]).buffer)).toBe(false);
+  });
+});
+
+describe('markRadiusPx', () => {
+  it('draws a dot at the system radius over the zoom floor', () => {
+    expect(markRadiusPx(1e12, 1e-12, 3, false)).toBe(3);
+    expect(markRadiusPx(1e13, 1e-12, 3, false)).toBe(10);
+  });
+
+  it('gives a logo a floor of its own', () => {
+    expect(markRadiusPx(1e12, 1e-12, 3, true)).toBe(LOGO_MIN_RADIUS_PX);
+    expect(markRadiusPx(4e13, 1e-12, 3, true)).toBe(40);
+  });
+});
+
+describe('drawnRadiusPx', () => {
+  it('is the dot itself when the system draws a dot', () => {
+    expect(drawnRadiusPx(1e12, 1e-12, 3, false)).toBe(3);
+  });
+
+  it('is the owner disc behind the logo when the system draws a logo', () => {
+    expect(drawnRadiusPx(1e12, 1e-12, 3, true)).toBe(
+      discRadiusPx(LOGO_MIN_RADIUS_PX),
+    );
   });
 });

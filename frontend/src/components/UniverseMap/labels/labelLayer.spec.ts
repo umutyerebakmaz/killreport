@@ -9,6 +9,7 @@ import {
   createLabelLayer,
   destroyLabelLayer,
   drawLabels,
+  markHoveredLabel,
   type LabelLayer,
 } from './labelLayer';
 
@@ -204,6 +205,113 @@ describe('drawLabels', () => {
     const [system, region] = [...layer.root.querySelectorAll('span')];
     expect(system.dataset.mapSystem).toBe('30000142');
     expect(region.dataset.mapSystem).toBeUndefined();
+  });
+});
+
+describe('the security beside a system name', () => {
+  it('writes it once, formatted and coloured as the rest of the site shows it', () => {
+    drawLabels(layer, [candidate({ securityStatus: 0.94 })]);
+
+    const sec = layer.root.querySelector<HTMLElement>('.map-label__sec')!;
+    expect(sec.textContent).toBe('0.9');
+    expect(sec.classList.contains('text-green-400')).toBe(true);
+    // A child of the name, so the pointer's `closest('[data-map-system]')`
+    // still finds the system when it lands on the number.
+    expect(sec.parentElement!.dataset.mapSystem).toBe('30000142');
+  });
+
+  // Shown with every name now, and every system on the wormhole map would
+  // repeat it; the hover tip still says it.
+  it('writes nothing for a system with no security', () => {
+    drawLabels(layer, [candidate({ securityStatus: null })]);
+
+    expect(layer.root.querySelector('.map-label__sec')).toBeNull();
+    expect(layer.root.querySelector('span')!.textContent).toBe('Jita');
+  });
+
+  // A real space, not a margin: the collision box is measured from the text
+  // `Jita 0.5`, and a margin would make the drawn width disagree with it.
+  it('separates it from the name with the space the measurer counted', () => {
+    drawLabels(layer, [candidate({ securityStatus: 0.5 })]);
+
+    expect(layer.root.querySelector('span')!.textContent).toBe('Jita 0.5');
+  });
+
+  it('keeps the name itself as the first text the element holds', () => {
+    drawLabels(layer, [candidate({ securityStatus: 0.5 })]);
+
+    expect(layer.root.querySelector('span')!.firstChild!.textContent).toBe(
+      'Jita',
+    );
+  });
+
+  it('does not write it again when the name is drawn again', () => {
+    drawLabels(layer, [candidate({ securityStatus: 0.5 })]);
+    drawLabels(layer, [candidate({ securityStatus: 0.5, screenX: 300 })]);
+
+    expect(layer.root.querySelectorAll('.map-label__sec')).toHaveLength(1);
+  });
+
+  it('gives an area name none', () => {
+    drawLabels(layer, [
+      candidate({
+        key: 'region:10000002',
+        tier: 'region',
+        name: 'The Forge',
+        systemId: undefined,
+        regionId: 10000002,
+      }),
+    ]);
+
+    expect(layer.root.querySelector('.map-label__sec')).toBeNull();
+  });
+});
+
+describe('markHoveredLabel', () => {
+  const amarr = () =>
+    candidate({ key: 'system:30002187', name: 'Amarr', systemId: 30002187 });
+
+  it('marks the hovered system name and no other', () => {
+    drawLabels(layer, [candidate(), amarr()]);
+
+    markHoveredLabel(layer, 30000142);
+
+    expect(layer.pool.get('system:30000142')!.classList).toContain(
+      'is-hovered',
+    );
+    expect(layer.pool.get('system:30002187')!.classList).not.toContain(
+      'is-hovered',
+    );
+  });
+
+  it('moves the mark when the hover moves', () => {
+    drawLabels(layer, [candidate(), amarr()]);
+
+    markHoveredLabel(layer, 30000142);
+    markHoveredLabel(layer, 30002187);
+
+    expect(layer.pool.get('system:30000142')!.classList).not.toContain(
+      'is-hovered',
+    );
+    expect(layer.pool.get('system:30002187')!.classList).toContain(
+      'is-hovered',
+    );
+  });
+
+  it('clears the mark when nothing is hovered', () => {
+    drawLabels(layer, [candidate()]);
+
+    markHoveredLabel(layer, 30000142);
+    markHoveredLabel(layer, null);
+
+    expect(layer.pool.get('system:30000142')!.classList).not.toContain(
+      'is-hovered',
+    );
+  });
+
+  it('does nothing for a system that has no name element', () => {
+    expect(() => markHoveredLabel(layer, 30000142)).not.toThrow();
+    expect(layer.root.querySelector('.is-hovered')).toBeNull();
   });
 });
 

@@ -59,6 +59,8 @@ type SovereigntyCampaign {
   defenderScore: Float
   attackersScore: Float
   startTime: String!
+  "When the campaign worker last wrote this row. The map reads the newest one to say how fresh its timers are."
+  updatedAt: String!
   "Set once the campaign resolves and leaves ESI; null while active."
   endTime: String
   "defender_won / attacker_won / abandoned; null while active or unresolved."
@@ -184,21 +186,6 @@ type RegionCampaignCount {
 }
 
 """
-A sov-held solar system plotted on the territory map (position in light-years,
-galactic x/z projected to 2D).
-"""
-type SovMapPoint {
-  systemId: Int!
-  systemName: String
-  x: Float!
-  y: Float!
-  allianceId: Int
-  allianceName: String
-  allianceTicker: String
-  regionName: String
-}
-
-"""
 A region ranked by sovereignty conflict intensity.
 """
 type ConflictHotspot {
@@ -263,6 +250,4 @@ extend type Query {
   sovereigntyOutcomeStats: SovereigntyOutcomeStats!
   "Alliances ranked by successful defenses of ended campaigns."
   topDefenders(limit: Int): [AllianceDefenseRecord!]!
-  "All sov-held systems with coordinates, for the territory map (filter by region client-side)."
-  sovereigntyMapPoints: [SovMapPoint!]!
 }

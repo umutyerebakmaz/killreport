@@ -1,0 +1,14 @@
+# Public by operation name, like MapSovCampaigns.
+query MapSovChanges {
+  recentTerritoryChanges(limit: 50) {
+    id
+    solarSystemId
+    solarSystemName
+    previousOwnerId
+    previousOwnerName
+    newOwnerId
+    newOwnerName
+    changeType
+    detectedAt
+  }
+}

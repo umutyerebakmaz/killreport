@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { fitCamera } from './camera';
-import { framingFor, nodeBounds, type FramingNode } from './framing';
+import {
+  framingFor,
+  nodeBounds,
+  ownerCamera,
+  type FramingNode,
+} from './framing';
 import { SYSTEM_LABEL_ZOOM } from './lod';
 
 const WIDTH = 1400;
@@ -162,5 +167,43 @@ describe('framingFor', () => {
     expect(
       framingFor({ kind: 'region', id: 10000002 }, NODES, 0, 0),
     ).toBeNull();
+  });
+});
+
+describe('ownerCamera', () => {
+  const NODES = [
+    { systemId: 1, constellationId: 10, regionId: 100, x: 0, z: 0 },
+    { systemId: 2, constellationId: 10, regionId: 100, x: 4e16, z: 2e16 },
+    { systemId: 3, constellationId: 11, regionId: 100, x: 9e16, z: 9e16 },
+  ];
+  const owners = new Map([
+    [1, 7],
+    [2, 7],
+    [3, 8],
+  ]);
+
+  it('frames every system the owner holds and nothing else', () => {
+    const camera = ownerCamera(7, owners, NODES, 1400, 900);
+    expect(camera).not.toBeNull();
+    expect(camera!.x).toBe(2e16);
+    expect(camera!.z).toBe(1e16);
+  });
+
+  // fitZoom of a point is the galaxy fit: "show me this owner" must not answer
+  // by zooming all the way out.
+  it('centres a one-system owner at the system zoom', () => {
+    expect(ownerCamera(8, owners, NODES, 1400, 900)).toEqual({
+      x: 9e16,
+      z: 9e16,
+      zoom: SYSTEM_LABEL_ZOOM,
+    });
+  });
+
+  it('is null for an owner the scene holds none of', () => {
+    expect(ownerCamera(9, owners, NODES, 1400, 900)).toBeNull();
+  });
+
+  it('is null before the viewport has been measured', () => {
+    expect(ownerCamera(7, owners, NODES, 0, 0)).toBeNull();
   });
 });

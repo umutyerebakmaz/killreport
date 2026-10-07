@@ -1170,11 +1170,6 @@ type Query {
   """Resolved (ended) campaigns, newest-ended first, paginated."""
   sovereigntyCampaignHistory(limit: Int, offset: Int): SovereigntyCampaignHistoryPage!
 
-  """
-  All sov-held systems with coordinates, for the territory map (filter by region client-side).
-  """
-  sovereigntyMapPoints: [SovMapPoint!]!
-
   """Distribution of resolved campaign outcomes."""
   sovereigntyOutcomeStats: SovereigntyOutcomeStats!
 
@@ -1451,21 +1446,6 @@ type SolarSystemsResponse {
 }
 
 """
-A sov-held solar system plotted on the territory map (position in light-years,
-galactic x/z projected to 2D).
-"""
-type SovMapPoint {
-  allianceId: Int
-  allianceName: String
-  allianceTicker: String
-  regionName: String
-  systemId: Int!
-  systemName: String
-  x: Float!
-  y: Float!
-}
-
-"""
 A real-time sovereignty alert pushed over SSE when a worker detects an event.
 """
 type SovereigntyAlert {
@@ -1537,6 +1517,11 @@ type SovereigntyCampaign {
   solarSystemName: String
   startTime: String!
   structureId: String!
+
+  """
+  When the campaign worker last wrote this row. The map reads the newest one to say how fresh its timers are.
+  """
+  updatedAt: String!
 
   """
   Killmails correlated to this campaign (0 until fighting happens in its window).

@@ -22,7 +22,9 @@ const TIP_WIDTH_PX = 140;
 const TIP_HEIGHT_PX = 24;
 
 /**
- * The system under the cursor, in one line.
+ * The system under the cursor, in one line — for a system whose own name is
+ * not on screen. One whose name is showing is titled on that name instead, and
+ * `showHoverTip` (utils/map/labels.ts) is what chooses between the two.
  *
  * Not `SecurityStatus`: that component wraps its value in a `Tooltip`, and a
  * tooltip inside a tooltip is not a thing. The two functions it formats with

@@ -131,9 +131,12 @@ export const NAV: readonly NavEntry[] = [
         description: 'Regions ranked by conflict intensity',
       },
       {
+        // Through the redirect rather than straight to /map: SOVEREIGNTY's
+        // `match` would otherwise have to claim /map, and both menus would
+        // light on every visit to the universe map.
         href: '/sovereignty/map',
         label: 'MAP',
-        description: 'Territory map colored by controlling alliance',
+        description: 'The universe map on its sovereignty layer, with timers',
       },
     ],
   },

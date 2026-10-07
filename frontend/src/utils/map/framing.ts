@@ -38,6 +38,31 @@ export function nodeBounds(
 }
 
 /**
+ * The camera that shows a set of nodes whole.
+ *
+ * A set with no extent on either axis would send fitZoom to
+ * FALLBACK_FIT_ZOOM — the galaxy fit — which would answer "frame these" by
+ * showing the galaxy, so it is centred at the system zoom instead, the same
+ * constant a focus uses.
+ */
+export function frameNodes(
+  members: Pick<FramingNode, 'x' | 'z'>[],
+  width: number,
+  height: number,
+): MapCamera | null {
+  const bounds = nodeBounds(members);
+  if (!bounds) return null;
+
+  const spanX = bounds.maxX - bounds.minX;
+  const spanZ = bounds.maxZ - bounds.minZ;
+  if (!(spanX > 0) || !(spanZ > 0)) {
+    return { ...boundsCenter(bounds), zoom: SYSTEM_LABEL_ZOOM };
+  }
+
+  return fitCamera(bounds, width, height);
+}
+
+/**
  * The camera a URL parameter asks for, or null to leave the caller on its
  * autofit.
  *
@@ -72,14 +97,25 @@ export function framingFor(
       : candidate.regionId === framing.id,
   );
 
-  const bounds = nodeBounds(members);
-  if (!bounds) return null;
+  return frameNodes(members, width, height);
+}
 
-  const spanX = bounds.maxX - bounds.minX;
-  const spanZ = bounds.maxZ - bounds.minZ;
-  if (!(spanX > 0) || !(spanZ > 0)) {
-    return { ...boundsCenter(bounds), zoom: SYSTEM_LABEL_ZOOM };
-  }
-
-  return fitCamera(bounds, width, height);
+/**
+ * Every system an owner holds, framed — what the Owners row's "show on the
+ * map" asks for. Kept apart from isolating the owner: isolating and then
+ * staying where you are is a use of its own.
+ */
+export function ownerCamera(
+  ownerId: number,
+  ownerBySystem: Map<number, number>,
+  nodes: FramingNode[],
+  width: number,
+  height: number,
+): MapCamera | null {
+  if (!(width > 0) || !(height > 0)) return null;
+  return frameNodes(
+    nodes.filter((node) => ownerBySystem.get(node.systemId) === ownerId),
+    width,
+    height,
+  );
 }

@@ -10,6 +10,8 @@ import {
   cameraTransform,
   fitCamera,
   parseFraming,
+  sharedMapUrl,
+  shareScopeFor,
   zoomLimits,
   zoomToScale,
 } from '@/utils/map/camera';
@@ -20,13 +22,20 @@ import {
   type MapArea,
   type MapHighlight,
 } from '@/utils/map/edges';
-import { framingFor } from '@/utils/map/framing';
-import { labelCandidates, placeLabels } from '@/utils/map/labels';
+import { campaignSources, ringMarks } from '@/utils/map/campaignMarks';
+import { framingFor, ownerCamera } from '@/utils/map/framing';
+import {
+  labelCandidates,
+  placedSystemIds,
+  placeLabels,
+  showHoverTip,
+} from '@/utils/map/labels';
 import {
   groupSegmentsByTint,
   MAP_LAYERS,
+  presentOwner,
   type MapLayerData,
-  type MapLayerId,
+  logoOwners,
 } from '@/utils/map/layers';
 import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
 import { createLabelMeasurer, whenLabelFontsReady } from '@/utils/map/measure';
@@ -41,6 +50,7 @@ import {
   createLabelLayer,
   destroyLabelLayer,
   drawLabels,
+  markHoveredLabel,
   type LabelLayer,
 } from './labels/labelLayer';
 import {
@@ -66,11 +76,11 @@ import { useMapCelestials } from './useMapCelestials';
 import { useMapLabels } from './useMapLabels';
 import { useMapPointer, type MapPick } from './useMapPointer';
 import { useMapSovereignty } from './useMapSovereignty';
+import { useNow } from './useNow';
+import { useRingSpin } from './useRingSpin';
+import { useSovCampaigns } from './useSovCampaigns';
 import MapLayerSwitch from './MapLayerSwitch';
-import SovLegend from './SovLegend';
-
-/** Stable empty lookup, so a map with no sovereignty data allocates nothing. */
-const EMPTY_OWNERS = new Map<number, number>();
+import SovPanel from './SovPanel';
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -82,10 +92,6 @@ function MapMessage({ children }: { children: React.ReactNode }) {
 
 export default function UniverseMap({ scope }: { scope: MapScope }) {
   const [webgl] = useState(isWebgl2Available);
-  // The layer lives in component state, not the URL: `scope`, the camera and
-  // `?focus=` are all in the URL because they are what a shared link has to
-  // carry, and which colouring the sender happened to be looking at is not.
-  const [layerId, setLayerId] = useState<MapLayerId>('security');
   const [size, setSize] = useState({ width: 0, height: 0 });
   // The host div is held in state, not a ref, because the scene is built from
   // it: it renders behind the loading, error and empty-scene returns below, so
@@ -108,6 +114,13 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // The keys placed last frame. A ref rather than state: it is read and written
   // inside the label effect and must never itself trigger a render.
   const stickyLabels = useRef<Set<string>>(new Set());
+  // The systems whose names are on screen, which decides whether a hovered
+  // system is titled on its own name or by the tip. State, unlike the sticky
+  // set, because a render reads it — and placedSystemIds hands back the same
+  // set when nothing moved, so a pan that changes no name renders nothing.
+  const [placedSystems, setPlacedSystems] = useState<ReadonlySet<number>>(
+    () => new Set(),
+  );
   // Separate from `sceneReady`: the scene itself must not wait on a webfont
   // download, only the label effect below should. See the scene-creation
   // effect for how the two are decoupled.
@@ -184,11 +197,19 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // popup is anchored to its dot and follows the camera, so its screen position
   // is recomputed every render — a frozen screenX would tear the popup off its
   // system on the first pan.
+  // The layer is URL state too, since the sovereignty panel: a timer link a
+  // fleet commander pastes has to open on the layer that shows the timer, so
+  // `useMapCamera` — the URL's one writer — owns it with the rest.
   const {
     camera,
     onCameraChange,
     focus: selected,
     onFocusChange: setSelected,
+    layer: layerId,
+    onLayerChange: setLayerId,
+    owner: urlOwner,
+    onOwnerChange: setIsolatedOwner,
+    jumpTo,
   } = useMapCamera(scope, framing ?? fit);
 
   const bucket = camera ? lodBucket(camera.zoom) : 'galaxy';
@@ -224,11 +245,34 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     layerId === 'sovereignty',
   );
 
+  // The URL's owner only while it still holds something: everything below —
+  // the marks, the crests, the panel, the shared link — reads this one.
+  const isolatedOwner = presentOwner(urlOwner, sovIndex ? sovOwners : null);
+
+  const campaigns = useSovCampaigns(layerId === 'sovereignty');
+
+  // The tick that re-runs the ring pass so a ring turns red when its timer
+  // opens. Fifteen seconds is close enough for a colour, and the map is not
+  // re-rendered every second for it.
+  const ringNow = useNow(15_000, campaigns.length > 0);
+
+  // Joined to the scene once per fetch, not per frame. Soonest first, as
+  // useSovCampaigns sorted them.
+  const markSources = useMemo(
+    () => (geometry ? campaignSources(campaigns, geometry.nodes) : []),
+    [campaigns, geometry],
+  );
+
   // One object for both the marks and the mesh, so the two can never be
-  // reading different sovereignty.
+  // reading different sovereignty — or a different isolation.
   const layerData = useMemo<MapLayerData>(
-    () => ({ sovereignty: sovIndex }),
-    [sovIndex],
+    () => ({ sovereignty: sovIndex, isolatedOwner }),
+    [sovIndex, isolatedOwner],
+  );
+
+  const crestOwners = useMemo(
+    () => logoOwners(sovIndex, isolatedOwner),
+    [sovIndex, isolatedOwner],
   );
 
   // A boolean, not the zoom: this is what the logo pass keys on, so the
@@ -250,6 +294,8 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         // The label is held clear of the dot, and past the zoom ramp's cap the
         // dot is this radius rather than the floor.
         radius: node.radius,
+        // Shown beside the name while the system is hovered.
+        securityStatus: node.securityStatus,
       })),
     [geometry],
   );
@@ -466,15 +512,12 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     const layer = labelLayer.current;
     if (!layer || !measure || !camera || !transform) return;
 
-    const tiers = visibleLabelTiers(camera.zoom);
-    if (tiers.length === 0) {
-      drawLabels(layer, []);
-      stickyLabels.current = new Set();
-      return;
-    }
-
+    // No early return for a zoom with no tiers: labelCandidates then yields
+    // nothing, so the pass below already hides every name and empties the
+    // sticky set, and the placed systems are cleared by the same line as
+    // everywhere else.
     const candidates = labelCandidates({
-      tiers,
+      tiers: visibleLabelTiers(camera.zoom),
       regions: regionSources,
       constellations: constellationSources,
       // System names ride in the geometry that is already loaded; this tier
@@ -492,6 +535,12 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     const placed = placeLabels(candidates, stickyLabels.current);
     stickyLabels.current = new Set(placed.map((candidate) => candidate.key));
     drawLabels(layer, placed);
+    // What was just written into the layer, reported back so a render can
+    // choose between the tip and the name. Placement is computed here and
+    // nowhere else — it reads and writes the sticky ref — so this effect is
+    // the only place that knows it; and placedSystemIds returns the previous
+    // set when nothing changed, which is what keeps this from cascading.
+    setPlacedSystems((previous) => placedSystemIds(placed, previous));
   }, [
     host,
     measure,
@@ -595,10 +644,67 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       scene.current.dot,
       atlas.current,
       showLogos,
-      sovIndex?.ownerBySystem ?? EMPTY_OWNERS,
+      crestOwners,
       cameraScale.current,
     );
-  }, [sceneReady, geometry, layer, layerData, showLogos, atlasReady, sovIndex]);
+  }, [
+    sceneReady,
+    geometry,
+    layer,
+    layerData,
+    showLogos,
+    atlasReady,
+    crestOwners,
+  ]);
+
+  // The rings, in screen space. This effect works out which rings there are
+  // and where, on every camera change — a few dozen. useRingSpin keeps the
+  // list, draws it, and while there is at least one ring turns them all from
+  // the Pixi ticker. Empty off the sovereignty layer, which clears them and
+  // stops the spin.
+  //
+  // A ring hugs what the logo pass above actually drew: a crest only where the
+  // system's owner survives the isolation and its logo is in the atlas, a dot
+  // everywhere else.
+  const ringSpin = useRingSpin();
+  useEffect(() => {
+    if (!scene.current) return;
+    const textures = showLogos ? atlas.current?.textureByOwner : undefined;
+    const drawsLogo = (systemId: number) => {
+      const ownerId = crestOwners.get(systemId);
+      return ownerId !== undefined && textures?.has(ownerId) === true;
+    };
+    ringSpin.update(
+      scene.current,
+      transform && layerId === 'sovereignty'
+        ? ringMarks({
+            sources: markSources,
+            transform,
+            width: size.width,
+            height: size.height,
+            drawsLogo,
+            // Read here, not from ringNow: that value is set at mount and
+            // can be up to a tick stale when the layer is switched on, which
+            // would draw a live timer's ring as upcoming beside a LIVE row
+            // in the panel.
+            // ringNow stays in the dependencies as the re-run trigger.
+            now: Date.now(),
+          })
+        : [],
+    );
+  }, [
+    sceneReady,
+    transform,
+    layerId,
+    markSources,
+    size.width,
+    size.height,
+    showLogos,
+    atlasReady,
+    crestOwners,
+    ringNow,
+    ringSpin,
+  ]);
 
   // What the pointer is resting on, at whichever tier it found something.
   //
@@ -612,6 +718,15 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // the map, so depending on the object would redraw the highlight on each one
   // for an answer that had not changed.
   const hoveredSystemId = hovered?.node.systemId ?? null;
+
+  // The hovered system's name is its title while it is on screen. Re-run on a
+  // placement change as well as a hover change: a name the camera brings on
+  // screen under a resting pointer has only just got an element to mark.
+  useEffect(() => {
+    if (!labelLayer.current) return;
+    markHoveredLabel(labelLayer.current, hoveredSystemId);
+  }, [hoveredSystemId, placedSystems]);
+
   const highlight = useMemo<MapHighlight | null>(() => {
     if (highlighted) return highlighted;
     return hoveredSystemId === null
@@ -686,6 +801,53 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // fit - 2; a `?focus=` link arrives at SYSTEM_LABEL_ZOOM, and a floor two
   // levels under *that* would forbid zooming back out to the galaxy at all.
   const limits = fit ? zoomLimits(fit.zoom) : null;
+
+  // A panel row's "go there": the camera and the popup in one write. A system
+  // the scene does not hold — a campaign seen from the POCHVEN map — has
+  // nowhere to fly to, so only the focus is written: no camera move, and no
+  // popup, since there is no dot to anchor one to.
+  const focusSystem = useCallback(
+    (systemId: number) => {
+      const target = geometry
+        ? framingFor(
+            { kind: 'system', id: systemId },
+            geometry.nodes,
+            size.width,
+            size.height,
+          )
+        : null;
+      if (target) jumpTo(target, systemId);
+      else setSelected(systemId);
+    },
+    [geometry, size.width, size.height, jumpTo, setSelected],
+  );
+
+  const frameOwner = useCallback(
+    (ownerId: number) => {
+      if (!geometry || !sovIndex) return;
+      const target = ownerCamera(
+        ownerId,
+        sovIndex.ownerBySystem,
+        geometry.nodes,
+        size.width,
+        size.height,
+      );
+      if (target) jumpTo(target);
+    },
+    [geometry, sovIndex, size.width, size.height, jumpTo],
+  );
+
+  const shareUrlFor = useCallback(
+    (systemId: number) =>
+      sharedMapUrl({
+        origin: window.location.origin,
+        scope: shareScopeFor(scope, systemId, geometry?.nodes ?? []),
+        focus: systemId,
+        layer: layerId,
+        owner: isolatedOwner,
+      }),
+    [scope, geometry, layerId, isolatedOwner],
+  );
 
   // Rebuilt whenever the camera or the viewport moves, which is correct: the
   // projection these close over has changed. useMapPointer holds them in a ref,
@@ -765,6 +927,10 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   const selectedNode = selected
     ? (geometry.nodes.find((node) => node.systemId === selected) ?? null)
     : null;
+  const selectedCampaign = selected
+    ? (campaigns.find((campaign) => campaign.solarSystemId === selected) ??
+      null)
+    : null;
   return (
     <div
       ref={attachHost}
@@ -784,7 +950,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     >
       {/* Over the canvas and out of the pointer's way. `data-map-overlay` is
           not decoration: the pan and zoom listeners are on the host and this
-          is a child of it, so without the mark a wheel over the legend zooms
+          is a child of it, so without the mark a wheel over the panel zooms
           the map instead of scrolling the list, and dragging its scrollbar
           pans the galaxy. Same mechanism SystemPopup uses. */}
       <div
@@ -792,32 +958,48 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         // Height comes from the content, not from the viewport: `bottom-3`
         // here stretched the panel to the full height whatever was in it, and
         // `items-start` keeps the switch its own width instead of the
-        // legend's. The two caps are what stop a 98-row list and a 49-
+        // panel's. The two caps are what stop a 98-row list and a 49-
         // character alliance name from growing the document itself — past
-        // them the legend scrolls and the names truncate.
+        // them the panel scrolls and the names truncate.
         className="absolute top-3 left-3 z-10 flex max-h-[calc(100%-1.5rem)] max-w-[calc(100%-1.5rem)] flex-col items-start gap-y-2"
       >
         <MapLayerSwitch value={layerId} onChange={setLayerId} />
-        {layer.legend.kind === 'owners' && <SovLegend owners={sovOwners} />}
+        {layer.legend.kind === 'owners' && (
+          <SovPanel
+            owners={sovOwners}
+            campaigns={campaigns}
+            isolatedOwner={isolatedOwner}
+            onIsolate={setIsolatedOwner}
+            onFrameOwner={frameOwner}
+            onFocusSystem={focusSystem}
+            shareUrlFor={shareUrlFor}
+          />
+        )}
       </div>
 
-      {/* No tip over the selected system: the popup already says its name, and
-          larger. */}
-      {hovered && camera && hovered.node.systemId !== selected && (
-        <SystemHoverTip
-          name={hovered.node.name}
-          securityStatus={hovered.node.securityStatus}
-          screenX={hovered.screenX}
-          screenY={hovered.screenY}
-          anchorRadius={systemRadiusPx(
-            hovered.node.radius,
-            zoomToScale(camera.zoom),
-            systemFloorPx(camera.zoom),
-          )}
-          viewportWidth={size.width}
-          viewportHeight={size.height}
-        />
-      )}
+      {/* Only for a system with no name on screen to be titled on, and never
+          over the selected one — see showHoverTip. */}
+      {hovered &&
+        camera &&
+        showHoverTip({
+          hoveredSystemId: hovered.node.systemId,
+          selectedSystemId: selected,
+          placedSystemIds: placedSystems,
+        }) && (
+          <SystemHoverTip
+            name={hovered.node.name}
+            securityStatus={hovered.node.securityStatus}
+            screenX={hovered.screenX}
+            screenY={hovered.screenY}
+            anchorRadius={systemRadiusPx(
+              hovered.node.radius,
+              zoomToScale(camera.zoom),
+              systemFloorPx(camera.zoom),
+            )}
+            viewportWidth={size.width}
+            viewportHeight={size.height}
+          />
+        )}
 
       {selectedNode && transform && camera && (
         <SystemPopup
@@ -834,6 +1016,8 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
           viewportWidth={size.width}
           viewportHeight={size.height}
           onClose={() => setSelected(null)}
+          campaign={selectedCampaign}
+          shareUrl={shareUrlFor(selectedNode.systemId)}
         />
       )}
     </div>

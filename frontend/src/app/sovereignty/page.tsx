@@ -85,7 +85,7 @@ function SovereigntyContent() {
             Hot Zones
           </Link>
           <Link
-            href="/sovereignty/map"
+            href="/map?layer=sovereignty"
             prefetch={false}
             className="button button-secondary button-sm"
           >

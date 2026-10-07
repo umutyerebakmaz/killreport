@@ -37,11 +37,17 @@ export interface SovIndex {
 
 export interface MapLayerData {
   sovereignty: SovIndex | null;
+  /**
+   * The one owner left in colour, or null/absent for all of them. Read by the
+   * sovereignty layer only — the security layer has no owners to isolate.
+   */
+  isolatedOwner?: number | null;
 }
 
 /**
- * What the legend under the switch draws. No row cap: the panel is as tall as
- * the map and scrolls, so the owner legend lists every owner.
+ * What the panel under the switch draws: nothing for security, the
+ * sovereignty panel (timers, owners, changes) for owners. No row cap: the
+ * panel scrolls, so its Owners tab lists every owner.
  */
 export type LegendSpec = { kind: 'security' } | { kind: 'owners' };
 
@@ -74,13 +80,61 @@ export function buildSovIndex(sov: {
   return { ownerBySystem, tintByOwner };
 }
 
-/** The owner's colour, or null for unheld, uncoloured, or no data at all. */
+/**
+ * The owner's colour, or null for unheld, uncoloured, dimmed by an isolation,
+ * or no data at all.
+ */
 function ownerTint(systemId: number, data: MapLayerData): number | null {
   const sov = data.sovereignty;
   if (!sov) return null;
   const ownerId = sov.ownerBySystem.get(systemId);
   if (ownerId === undefined) return null;
+  if (data.isolatedOwner != null && ownerId !== data.isolatedOwner) return null;
   return sov.tintByOwner.get(ownerId) ?? null;
+}
+
+/** Stable empty lookup, so a map with no sovereignty data allocates nothing. */
+const NO_OWNERS = new Map<number, number>();
+
+/**
+ * The owner map the logo pass reads. With an owner isolated only its own
+ * systems may show a crest: a dimmed system wearing someone's crest would
+ * still say whose it is, which is the one thing the isolation took away.
+ *
+ * Returns the index's own map, not a copy, when nothing is isolated — the
+ * logo effect keys on its identity.
+ */
+export function logoOwners(
+  sov: SovIndex | null,
+  isolatedOwner: number | null,
+): Map<number, number> {
+  if (!sov) return NO_OWNERS;
+  if (isolatedOwner === null) return sov.ownerBySystem;
+
+  const only = new Map<number, number>();
+  for (const [systemId, ownerId] of sov.ownerBySystem) {
+    if (ownerId === isolatedOwner) only.set(systemId, ownerId);
+  }
+  return only;
+}
+
+/**
+ * The isolated owner, if it still holds anything.
+ *
+ * An `owner` in the URL outlives the owner's territory: a pasted link whose
+ * alliance has since lost its last system would grey every system and drop
+ * every crest, and no Owners row would be pressed to undo it. Once the owner
+ * list is loaded, an owner it does not hold counts as no isolation. `null`
+ * owners means "not loaded yet", and the owner is kept until it is.
+ *
+ * Derived, never written back: the URL keeps what it was given.
+ */
+export function presentOwner(
+  owner: number | null,
+  owners: readonly { ownerId: number }[] | null,
+): number | null {
+  if (owner === null || owners === null) return owner;
+  return owners.some((row) => row.ownerId === owner) ? owner : null;
 }
 
 /**
@@ -115,6 +169,9 @@ export const MAP_LAYERS: Record<MapLayerId, MapColorLayer> = {
       const from = sov.ownerBySystem.get(edge.from);
       const to = sov.ownerBySystem.get(edge.to);
       if (from === undefined || from !== to) return null;
+      if (data.isolatedOwner != null && from !== data.isolatedOwner) {
+        return null;
+      }
       return sov.tintByOwner.get(from) ?? null;
     },
     usesLogos: (zoom) => zoom >= SOV_LOGO_ZOOM,

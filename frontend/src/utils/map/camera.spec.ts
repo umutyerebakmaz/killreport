@@ -10,8 +10,12 @@ import {
   parseCamera,
   parseFocus,
   parseFraming,
+  parseLayer,
+  parseOwner,
   parseScope,
   scopeForRegionId,
+  sharedMapUrl,
+  shareScopeFor,
   zoomCameraAt,
   zoomLimits,
   zoomToScale,
@@ -125,6 +129,8 @@ describe('cameraQuery', () => {
       MapScope.NewEden,
       { x: -129550000000123, z: 43236000000987, zoom: -50.0383 },
       null,
+      'security',
+      null,
     );
     const params = new URLSearchParams(query);
     expect(params.get('x')).toBe('-129550000000000');
@@ -133,7 +139,13 @@ describe('cameraQuery', () => {
 
   it('writes the zoom to two decimals', () => {
     const params = new URLSearchParams(
-      cameraQuery(MapScope.Pochven, { x: 0, z: 0, zoom: -50.0383 }, null),
+      cameraQuery(
+        MapScope.Pochven,
+        { x: 0, z: 0, zoom: -50.0383 },
+        null,
+        'security',
+        null,
+      ),
     );
     expect(params.get('zoom')).toBe('-50.04');
     expect(params.get('scope')).toBe('POCHVEN');
@@ -143,6 +155,8 @@ describe('cameraQuery', () => {
     const query = cameraQuery(
       MapScope.NewEden,
       { x: -5.08743946e17, z: 4.7286e17, zoom: -50 },
+      null,
+      'security',
       null,
     );
     expect(query).not.toContain('e+');
@@ -157,7 +171,9 @@ describe('cameraQuery', () => {
     const camera = { x: 1e9, z: -2e9, zoom: -37.5 };
     expect(
       parseCamera(
-        new URLSearchParams(cameraQuery(MapScope.Wormhole, camera, null)),
+        new URLSearchParams(
+          cameraQuery(MapScope.Wormhole, camera, null, 'security', null),
+        ),
       ),
     ).toEqual(camera);
   });
@@ -372,7 +388,7 @@ describe('cameraQuery with a focus', () => {
 
   it('writes the focus it is given', () => {
     const params = new URLSearchParams(
-      cameraQuery(MapScope.NewEden, CAMERA, 30000142),
+      cameraQuery(MapScope.NewEden, CAMERA, 30000142, 'security', null),
     );
     expect(params.get('focus')).toBe('30000142');
   });
@@ -380,22 +396,142 @@ describe('cameraQuery with a focus', () => {
   // Not `focus=`, not `focus=null`: absent. This is also what makes clicking
   // empty space clear it, with no second code path.
   it('writes no focus parameter at all when nothing is selected', () => {
-    expect(cameraQuery(MapScope.NewEden, CAMERA, null)).not.toContain('focus');
+    expect(
+      cameraQuery(MapScope.NewEden, CAMERA, null, 'security', null),
+    ).not.toContain('focus');
   });
 
   // Phase 1 and 2 shipped links in this exact shape and they have to go on
   // meaning the same frame.
   it('leaves the phase 1-2 parameter order and format untouched', () => {
-    expect(cameraQuery(MapScope.NewEden, CAMERA, null)).toBe(
+    expect(cameraQuery(MapScope.NewEden, CAMERA, null, 'security', null)).toBe(
       'scope=NEW_EDEN&x=0&z=0&zoom=-50.00',
     );
-    expect(cameraQuery(MapScope.NewEden, CAMERA, 30000142)).toBe(
-      'scope=NEW_EDEN&x=0&z=0&zoom=-50.00&focus=30000142',
-    );
+    expect(
+      cameraQuery(MapScope.NewEden, CAMERA, 30000142, 'security', null),
+    ).toBe('scope=NEW_EDEN&x=0&z=0&zoom=-50.00&focus=30000142');
   });
 
   it('round-trips a focus it wrote', () => {
-    const query = cameraQuery(MapScope.Pochven, CAMERA, 30045329);
+    const query = cameraQuery(
+      MapScope.Pochven,
+      CAMERA,
+      30045329,
+      'security',
+      null,
+    );
     expect(parseFocus(new URLSearchParams(query))).toBe(30045329);
+  });
+});
+
+describe('parseLayer', () => {
+  it('reads the sovereignty layer', () => {
+    expect(parseLayer(new URLSearchParams('layer=sovereignty'))).toBe(
+      'sovereignty',
+    );
+  });
+
+  // Anything else is the default, silently: a map link has no reason to show
+  // an error, and `security` is what the map opened on before layers existed.
+  it.each(['', 'layer=security', 'layer=SOVEREIGNTY', 'layer=activity'])(
+    'falls back to security for %j',
+    (query) => {
+      expect(parseLayer(new URLSearchParams(query))).toBe('security');
+    },
+  );
+});
+
+describe('parseOwner', () => {
+  it('reads a positive integer', () => {
+    expect(parseOwner(new URLSearchParams('owner=99003581'))).toBe(99003581);
+  });
+
+  it.each(['', 'owner=abc', 'owner=-5', 'owner=0', 'owner=1.5'])(
+    'is null for %j',
+    (query) => {
+      expect(parseOwner(new URLSearchParams(query))).toBeNull();
+    },
+  );
+});
+
+describe('cameraQuery with a layer and an owner', () => {
+  const CAMERA = { x: 0, z: 0, zoom: -50 };
+
+  it('writes nothing for the security layer, so every older link still reads the same', () => {
+    expect(cameraQuery(MapScope.NewEden, CAMERA, null, 'security', null)).toBe(
+      'scope=NEW_EDEN&x=0&z=0&zoom=-50.00',
+    );
+  });
+
+  it('writes the sovereignty layer and its isolated owner after the focus', () => {
+    expect(
+      cameraQuery(MapScope.NewEden, CAMERA, 30000142, 'sovereignty', 99003581),
+    ).toBe(
+      'scope=NEW_EDEN&x=0&z=0&zoom=-50.00&focus=30000142&layer=sovereignty&owner=99003581',
+    );
+  });
+
+  // An owner means nothing on a layer that does not colour by owner.
+  it('drops the owner on the security layer', () => {
+    expect(
+      cameraQuery(MapScope.NewEden, CAMERA, null, 'security', 99003581),
+    ).toBe('scope=NEW_EDEN&x=0&z=0&zoom=-50.00');
+  });
+
+  it('round-trips through the parsers', () => {
+    const params = new URLSearchParams(
+      cameraQuery(MapScope.NewEden, CAMERA, null, 'sovereignty', 99003581),
+    );
+    expect(parseLayer(params)).toBe('sovereignty');
+    expect(parseOwner(params)).toBe(99003581);
+  });
+});
+
+describe('sharedMapUrl', () => {
+  it('carries the system, the layer and the owner, and no camera', () => {
+    expect(
+      sharedMapUrl({
+        origin: 'https://killreport.com',
+        scope: MapScope.NewEden,
+        focus: 30004759,
+        layer: 'sovereignty',
+        owner: 99003581,
+      }),
+    ).toBe(
+      'https://killreport.com/map?layer=sovereignty&focus=30004759&owner=99003581',
+    );
+  });
+
+  it('names the scope only when it is not New Eden', () => {
+    expect(
+      sharedMapUrl({
+        origin: 'https://killreport.com',
+        scope: MapScope.Pochven,
+        focus: 30000021,
+        layer: 'security',
+        owner: null,
+      }),
+    ).toBe('https://killreport.com/map?scope=POCHVEN&focus=30000021');
+  });
+});
+
+describe('shareScopeFor', () => {
+  const pochven = [{ systemId: 30000021 }, { systemId: 30001372 }];
+
+  it('keeps the current scope for a system in its scene', () => {
+    expect(shareScopeFor(MapScope.Pochven, 30000021, pochven)).toBe(
+      MapScope.Pochven,
+    );
+  });
+
+  it('falls back to New Eden for a system the scene does not hold', () => {
+    // A sovereignty timer copied from the Pochven map: the campaign's system
+    // is a nullsec one, and a link naming Pochven would open without it.
+    expect(shareScopeFor(MapScope.Pochven, 30004759, pochven)).toBe(
+      MapScope.NewEden,
+    );
+    expect(shareScopeFor(MapScope.Wormhole, 30004759, [])).toBe(
+      MapScope.NewEden,
+    );
   });
 });
