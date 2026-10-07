@@ -1,11 +1,11 @@
 import type { MapNode } from '@/generated/graphql';
 import { securityTint } from '@/utils/map/colors';
 import type { MapColorLayer, MapLayerData } from '@/utils/map/layers';
-import { spriteScale, systemFloorPx, systemRadiusPx } from '@/utils/map/marks';
+import { spriteScale, systemFloorPx } from '@/utils/map/marks';
 import {
   discRadiusPx,
-  LOGO_MIN_RADIUS_PX,
   LOGO_TEXTURE_RADIUS,
+  markRadiusPx,
 } from '@/utils/map/sovLogos';
 import { Sprite, type Texture } from 'pixi.js';
 import { DOT_TEXTURE_RADIUS, type MapScene } from './createScene';
@@ -99,13 +99,10 @@ export function scaleSystems(
   const floorPx = systemFloorPx(Math.log2(cameraScale));
 
   for (let i = 0; i < sprites.length; i++) {
-    // A logo is a mark, not a body: it has a floor of its own and a texture
-    // twice the dot's. Past the approach the system's own radius overtakes
-    // both, so the logo grows with the disc rather than sitting in the middle
-    // of it.
+    // A logo has a texture twice the dot's, and a floor of its own — the
+    // second lives in markRadiusPx, which the campaign rings measure with too.
     const textureRadius = logos[i] ? LOGO_TEXTURE_RADIUS : DOT_TEXTURE_RADIUS;
-    const floor = logos[i] ? Math.max(floorPx, LOGO_MIN_RADIUS_PX) : floorPx;
-    const radiusPx = systemRadiusPx(radii[i], cameraScale, floor);
+    const radiusPx = markRadiusPx(radii[i], cameraScale, floorPx, logos[i]);
 
     const scale = spriteScale(radiusPx, textureRadius, cameraScale);
 

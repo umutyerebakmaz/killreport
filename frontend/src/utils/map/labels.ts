@@ -98,15 +98,67 @@ export interface LabelCandidate {
   constellationId?: number;
 }
 
+/** What a collision needs: a centre and two half extents. */
+export type LabelBox = Pick<
+  LabelCandidate,
+  'screenX' | 'screenY' | 'halfWidth' | 'halfHeight'
+>;
+
+/**
+ * A world x onto the screen. One multiply-add, written once so the labels and
+ * the campaign marks cannot drift apart.
+ */
+export function projectX(transform: CameraTransform, x: number): number {
+  return x * transform.scaleX + transform.x;
+}
+
+/**
+ * A world z onto the screen. scaleY is negative, so a larger z lands at a
+ * smaller screen y — the map's +z-is-up contract, and the one thing here that
+ * silently inverts if copied wrong.
+ */
+export function projectZ(transform: CameraTransform, z: number): number {
+  return z * transform.scaleY + transform.y;
+}
+
+/**
+ * How far above its system a box `lineHeight` tall is centred: one line, or
+ * enough to clear the dot by LABEL_DOT_GAP_PX if that is more, plus the logo
+ * lift while crests are drawn. The system name and the campaign chip that
+ * replaces it share this, so a chip sits exactly where the name would have.
+ */
+export function systemLabelLift(
+  lineHeight: number,
+  dotRadiusPx: number,
+  logos: boolean,
+): number {
+  return (
+    Math.max(lineHeight, lineHeight / 2 + dotRadiusPx + LABEL_DOT_GAP_PX) +
+    (logos ? LABEL_LOGO_LIFT_PX : 0)
+  );
+}
+
+/** Whether a box lies wholly outside a `width` x `height` viewport. */
+export function offScreen(
+  box: LabelBox,
+  width: number,
+  height: number,
+): boolean {
+  return (
+    box.screenX + box.halfWidth < 0 ||
+    box.screenX - box.halfWidth > width ||
+    box.screenY + box.halfHeight < 0 ||
+    box.screenY - box.halfHeight > height
+  );
+}
+
 const TIER_SOURCES = ['region', 'constellation', 'system'] as const;
 
 /**
  * World positions into screen-space boxes, viewport-clipped, coarsest tier first.
  *
- * The projection is the same multiply-add cameraTransform already describes —
- * note that scaleY is negative, so a larger z lands at a smaller screen y. That
- * is the map's +z-is-up contract, and it is the one thing here that silently
- * inverts if copied wrong.
+ * The projection is the same multiply-add cameraTransform already describes,
+ * through projectX and projectZ — see the latter for the sign of scaleY.
  *
  * The projected y is then lifted by one line height, so the name sits above the
  * mark it belongs to rather than on it. That offset is applied HERE rather than
@@ -168,37 +220,36 @@ export function labelCandidates({
       // `?? 0` would be wrong here. systemRadiusPx floors at `floorPx`, so a
       // missing radius read as 0 still returns 1.5-6 px and would quietly push the
       // centroid tiers up by that much.
+      //
+      // The logo lift likewise only where there is a mark to clear. A centroid
+      // tier has nothing drawn at it, so a logo elsewhere on the map is no
+      // reason to move a region's name.
       const lift =
         source.radius === undefined
           ? lineHeight
-          : Math.max(
+          : systemLabelLift(
               lineHeight,
-              halfHeight +
-                systemRadiusPx(source.radius, transform.scaleX, floorPx) +
-                LABEL_DOT_GAP_PX,
-            ) +
-            // Only where there is a mark to clear. A centroid tier has nothing
-            // drawn at it, so a logo elsewhere on the map is no reason to move
-            // a region's name.
-            (logos && source.radius !== undefined ? LABEL_LOGO_LIFT_PX : 0);
+              systemRadiusPx(source.radius, transform.scaleX, floorPx),
+              logos,
+            );
 
       const textWidth = measure(tier, source.name);
       const halfWidth = textWidth / 2;
 
-      let screenX = source.x * transform.scaleX + transform.x;
-      let screenY = source.z * transform.scaleY + transform.y - lift;
+      let screenX = projectX(transform, source.x);
+      let screenY = projectZ(transform, source.z) - lift;
 
       if (source.bounds) {
         // An area name earns its place from the area, not from the zoom: it
         // appears when the region can nearly cover its own name, and stays
         // hidden while it would spill across its neighbours.
-        const boxLeft = source.bounds.minX * transform.scaleX + transform.x;
-        const boxRight = source.bounds.maxX * transform.scaleX + transform.x;
+        const boxLeft = projectX(transform, source.bounds.minX);
+        const boxRight = projectX(transform, source.bounds.maxX);
         if (boxRight - boxLeft < REGION_FIT_RATIO * textWidth) continue;
 
         // scaleY is negative, so maxZ projects to the SMALLER screen y.
-        const boxTop = source.bounds.maxZ * transform.scaleY + transform.y;
-        const boxBottom = source.bounds.minZ * transform.scaleY + transform.y;
+        const boxTop = projectZ(transform, source.bounds.maxZ);
+        const boxBottom = projectZ(transform, source.bounds.minZ);
 
         // A name belongs to the part of its area that is on screen; when none
         // of it is, the name is not this viewport's to draw. Without this the
@@ -239,10 +290,7 @@ export function labelCandidates({
       // Clipped before anything else runs: the filter is O(n*k) and n is what
       // the viewport leaves, not what the scene holds.
       if (
-        screenX + halfWidth < 0 ||
-        screenX - halfWidth > width ||
-        screenY + halfHeight < 0 ||
-        screenY - halfHeight > height
+        offScreen({ screenX, screenY, halfWidth, halfHeight }, width, height)
       ) {
         continue;
       }
@@ -265,7 +313,7 @@ export function labelCandidates({
   return candidates;
 }
 
-function overlaps(a: LabelCandidate, b: LabelCandidate): boolean {
+export function overlaps(a: LabelBox, b: LabelBox): boolean {
   // Strict: boxes that exactly touch are clear. Rejecting those would thin the
   // map for nothing.
   return (
@@ -276,6 +324,9 @@ function overlaps(a: LabelCandidate, b: LabelCandidate): boolean {
 
 /** Shared empty set, so the default argument mints nothing per frame. */
 const EMPTY_STICKY: ReadonlySet<string> = new Set();
+
+/** Shared empty list, for the same reason. */
+const NO_RESERVED: readonly LabelBox[] = [];
 
 /**
  * Greedy, in the order given, with the previous frame's survivors going first.
@@ -299,11 +350,17 @@ const EMPTY_STICKY: ReadonlySet<string> = new Set();
 export function placeLabels(
   candidates: LabelCandidate[],
   sticky: ReadonlySet<string> = EMPTY_STICKY,
+  /**
+   * Boxes already taken before any name is placed — the campaign chips. They
+   * do not count toward MAX_VISIBLE_LABELS and are not returned.
+   */
+  reserved: readonly LabelBox[] = NO_RESERVED,
 ): LabelCandidate[] {
   const placed: LabelCandidate[] = [];
 
   const consider = (candidate: LabelCandidate) => {
     if (placed.length >= MAX_VISIBLE_LABELS) return;
+    if (reserved.some((box) => overlaps(candidate, box))) return;
     if (placed.some((other) => overlaps(candidate, other))) return;
     placed.push(candidate);
   };

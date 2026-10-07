@@ -1,5 +1,6 @@
 import { MapOwnerKind } from '@/generated/graphql';
 import { eveImageUrl } from '@/utils/eveImageUrl';
+import { systemRadiusPx } from './marks';
 
 /**
  * One atlas cell, and the size every logo is fetched at. 128 is a power of two
@@ -41,6 +42,39 @@ export const DISC_PADDING_PX = 2;
 /** The owner's disc, for a logo of this radius. */
 export function discRadiusPx(logoRadiusPx: number): number {
   return logoRadiusPx + DISC_PADDING_PX;
+}
+
+/**
+ * The radius a system's own sprite is drawn at: its dot, or its logo. A logo
+ * is a mark, not a body — it has a floor of its own — and past the approach
+ * the system's real radius overtakes both, so the logo grows with the disc
+ * rather than sitting in the middle of it.
+ *
+ * The one statement of the rule: `scaleSystems` sizes the sprites with it,
+ * and the campaign rings measure what they have to clear with it.
+ */
+export function markRadiusPx(
+  worldRadius: number,
+  cameraScale: number,
+  floorPx: number,
+  logo: boolean,
+): number {
+  const floor = logo ? Math.max(floorPx, LOGO_MIN_RADIUS_PX) : floorPx;
+  return systemRadiusPx(worldRadius, cameraScale, floor);
+}
+
+/**
+ * How far out a system's drawing reaches: the dot itself, or the owner's disc
+ * behind a logo, which is wider than the logo it backs.
+ */
+export function drawnRadiusPx(
+  worldRadius: number,
+  cameraScale: number,
+  floorPx: number,
+  logo: boolean,
+): number {
+  const radiusPx = markRadiusPx(worldRadius, cameraScale, floorPx, logo);
+  return logo ? discRadiusPx(radiusPx) : radiusPx;
 }
 
 /**
