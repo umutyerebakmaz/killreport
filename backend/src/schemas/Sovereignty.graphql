@@ -59,6 +59,8 @@ type SovereigntyCampaign {
   defenderScore: Float
   attackersScore: Float
   startTime: String!
+  "When the campaign worker last wrote this row. The map reads the newest one to say how fresh its timers are."
+  updatedAt: String!
   "Set once the campaign resolves and leaves ESI; null while active."
   endTime: String
   "defender_won / attacker_won / abandoned; null while active or unresolved."

@@ -221,6 +221,7 @@ type CampaignRow = {
   start_time: Date;
   end_time: Date | null;
   outcome: string | null;
+  updated_at: Date;
 };
 
 /**
@@ -282,6 +283,7 @@ async function enrichCampaigns(campaigns: CampaignRow[]) {
       defenderScore: c.defender_score,
       attackersScore: c.attackers_score,
       startTime: c.start_time.toISOString(),
+      updatedAt: c.updated_at.toISOString(),
       endTime: c.end_time?.toISOString() ?? null,
       outcome: c.outcome,
       durationHours,

@@ -1998,6 +1998,8 @@ export type SovereigntyCampaign = {
   solarSystemName?: Maybe<Scalars['String']['output']>;
   startTime: Scalars['String']['output'];
   structureId: Scalars['String']['output'];
+  /** When the campaign worker last wrote this row. The map reads the newest one to say how fresh its timers are. */
+  updatedAt: Scalars['String']['output'];
   /** Killmails correlated to this campaign (0 until fighting happens in its window). */
   warKills: Scalars['Int']['output'];
 };
@@ -3779,6 +3781,7 @@ export type SovereigntyCampaignResolvers<ContextType = any, ParentType extends R
   solarSystemName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   startTime?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   structureId?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   warKills?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
 };
 

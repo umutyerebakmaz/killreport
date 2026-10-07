@@ -33,6 +33,12 @@ export const CACHE_TTL = {
 
   /** Hourly ESI snapshots - the map popup's activity numbers */
   LIVE_SYSTEM_DATA: 300_000, // 5 minutes
+  /**
+   * Active sovereignty campaigns: the worker writes them every minute and the
+   * map shows their scores live, so the response cache may not hold them for
+   * the 2 minutes DEFAULT_PUBLIC would.
+   */
+  LIVE_CAMPAIGNS: 60_000, // 1 minute
 
   /** Default for other public queries */
   DEFAULT_PUBLIC: 120_000, // 2 minutes
@@ -87,6 +93,10 @@ export const PUBLIC_CACHE_QUERIES = [
   'MapCelestials',
   'MapLabels',
   'MapSystemDetails',
+  // The sovereignty layer's timers and recent changes: the same body for every
+  // visitor, so one shared entry rather than one per token.
+  'MapSovCampaigns',
+  'MapSovChanges',
 ] as const;
 
 /**
@@ -140,6 +150,9 @@ export const TTL_PER_SCHEMA_COORDINATE: Record<string, number> = {
   // hourly activity snapshot. Query.solarSystem's 365 days over the same
   // numbers is exactly the bug this query exists to avoid.
   'Query.mapSystemDetails': CACHE_TTL.LIVE_SYSTEM_DATA,
+  'Query.sovereigntyActiveCampaigns': CACHE_TTL.LIVE_CAMPAIGNS,
+  // Territory changes are detected by worker-sov-map, every 30 minutes.
+  'Query.recentTerritoryChanges': CACHE_TTL.SOVEREIGNTY,
 
   // Live fields reachable from the long-lived queries above. useResponseCache
   // takes the shortest TTL of every coordinate a query selects, so without

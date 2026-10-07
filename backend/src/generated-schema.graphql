@@ -1539,6 +1539,11 @@ type SovereigntyCampaign {
   structureId: String!
 
   """
+  When the campaign worker last wrote this row. The map reads the newest one to say how fresh its timers are.
+  """
+  updatedAt: String!
+
+  """
   Killmails correlated to this campaign (0 until fighting happens in its window).
   """
   warKills: Int!
