@@ -58,6 +58,12 @@ export interface LabelSource {
    * anchor is the thing itself.
    */
   bounds?: LabelBounds;
+  /**
+   * A system's security status, carried through to its candidate so the layer
+   * can write it once. `null` is a real value — W-Space — and is kept apart
+   * from `undefined`, which an area name has because it has no security.
+   */
+  securityStatus?: number | null;
 }
 
 /**
@@ -96,6 +102,8 @@ export interface LabelCandidate {
    */
   regionId?: number;
   constellationId?: number;
+  /** The source's security status, passed through untouched. */
+  securityStatus?: number | null;
 }
 
 /** What a collision needs: a centre and two half extents. */
@@ -305,6 +313,7 @@ export function labelCandidates({
         systemId: tier === 'system' ? source.id : undefined,
         regionId: tier === 'region' ? source.id : undefined,
         constellationId: tier === 'constellation' ? source.id : undefined,
+        securityStatus: source.securityStatus,
       });
     }
   }
@@ -363,6 +372,51 @@ export function placeLabels(
   }
 
   return placed;
+}
+
+/**
+ * The systems whose names `placeLabels` put on screen, as a set — or `previous`
+ * itself when it holds exactly the same ids.
+ *
+ * Returning the old set unchanged is the point: the caller keeps this in React
+ * state, written on every placement, and an identical set is what lets React
+ * skip the render. Placement does not depend on the hover, so the set only
+ * moves with the camera, and a hover reads it without waiting for a pass.
+ */
+export function placedSystemIds(
+  placed: LabelCandidate[],
+  previous: ReadonlySet<number>,
+): ReadonlySet<number> {
+  const next = new Set<number>();
+  for (const candidate of placed) {
+    if (candidate.systemId !== undefined) next.add(candidate.systemId);
+  }
+  if (next.size !== previous.size) return next;
+  for (const id of next) if (!previous.has(id)) return next;
+  return previous;
+}
+
+/**
+ * Whether the hovered system needs the floating tip to name it.
+ *
+ * A system whose own name is on screen is titled there — the label shows its
+ * security beside the name — so the tip would only say it twice. The tip is
+ * for the rest: zooms that draw no system names, and a name that lost its
+ * collision. Never over the selected system either: the popup already names
+ * it, and larger.
+ */
+export function showHoverTip({
+  hoveredSystemId,
+  selectedSystemId,
+  placedSystemIds,
+}: {
+  hoveredSystemId: number | null;
+  selectedSystemId: number | null;
+  placedSystemIds: ReadonlySet<number>;
+}): boolean {
+  if (hoveredSystemId === null) return false;
+  if (hoveredSystemId === selectedSystemId) return false;
+  return !placedSystemIds.has(hoveredSystemId);
 }
 
 /**

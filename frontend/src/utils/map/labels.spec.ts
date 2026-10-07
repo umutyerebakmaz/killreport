@@ -7,7 +7,9 @@ import {
   LABEL_DOT_GAP_PX,
   LABEL_LOGO_LIFT_PX,
   MAX_VISIBLE_LABELS,
+  placedSystemIds,
   placeLabels,
+  showHoverTip,
   type LabelCandidate,
 } from './labels';
 
@@ -840,5 +842,130 @@ describe('viewport clamping', () => {
 
     expect(c).toBeDefined();
     expect(c.screenX).toBeGreaterThanOrEqual(c.halfWidth);
+  });
+});
+
+describe("a system candidate's security", () => {
+  const jita = { ...source(30000142, 'Jita', 6e16, 0), radius: 1e12 };
+
+  it('is carried through, for the layer to write once', () => {
+    const [c] = labelCandidates({
+      tiers: ['system'],
+      regions: [],
+      constellations: [],
+      systems: [{ ...jita, securityStatus: 0.94 }],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(c.securityStatus).toBe(0.94);
+  });
+
+  it('keeps null — W-Space — apart from an area name, which has none', () => {
+    const candidates = labelCandidates({
+      tiers: ['region', 'system'],
+      regions: [source(1, 'R', 0, 0)],
+      constellations: [],
+      systems: [{ ...jita, securityStatus: null }],
+      measure,
+      transform,
+      width: W,
+      height: H,
+    });
+
+    expect(candidates.find((c) => c.tier === 'system')!.securityStatus).toBe(
+      null,
+    );
+    expect(
+      candidates.find((c) => c.tier === 'region')!.securityStatus,
+    ).toBeUndefined();
+  });
+});
+
+describe('placedSystemIds', () => {
+  function placed(key: string, systemId?: number): LabelCandidate {
+    return {
+      key,
+      name: key,
+      tier: systemId === undefined ? 'region' : 'system',
+      screenX: 0,
+      screenY: 0,
+      halfWidth: 1,
+      halfHeight: 1,
+      systemId,
+    };
+  }
+
+  it('collects the system ids and skips the area names', () => {
+    const ids = placedSystemIds(
+      [placed('region:1'), placed('system:7', 7), placed('system:9', 9)],
+      new Set(),
+    );
+
+    expect([...ids]).toEqual([7, 9]);
+  });
+
+  it('returns the previous set itself when nothing changed', () => {
+    const previous = new Set([7, 9]);
+
+    expect(
+      placedSystemIds([placed('system:9', 9), placed('system:7', 7)], previous),
+    ).toBe(previous);
+  });
+
+  it('returns a new set when an id was swapped for another', () => {
+    const previous = new Set([7, 9]);
+
+    const next = placedSystemIds(
+      [placed('system:7', 7), placed('system:8', 8)],
+      previous,
+    );
+
+    expect(next).not.toBe(previous);
+    expect([...next]).toEqual([7, 8]);
+  });
+});
+
+describe('showHoverTip', () => {
+  it('shows nothing when nothing is hovered', () => {
+    expect(
+      showHoverTip({
+        hoveredSystemId: null,
+        selectedSystemId: null,
+        placedSystemIds: new Set(),
+      }),
+    ).toBe(false);
+  });
+
+  it('shows the tip for a system whose name is not on screen', () => {
+    expect(
+      showHoverTip({
+        hoveredSystemId: 7,
+        selectedSystemId: null,
+        placedSystemIds: new Set([9]),
+      }),
+    ).toBe(true);
+  });
+
+  it('leaves the title to the name when that name is on screen', () => {
+    expect(
+      showHoverTip({
+        hoveredSystemId: 7,
+        selectedSystemId: null,
+        placedSystemIds: new Set([7]),
+      }),
+    ).toBe(false);
+  });
+
+  it('shows no tip over the selected system, which the popup already names', () => {
+    expect(
+      showHoverTip({
+        hoveredSystemId: 7,
+        selectedSystemId: 7,
+        placedSystemIds: new Set(),
+      }),
+    ).toBe(false);
   });
 });

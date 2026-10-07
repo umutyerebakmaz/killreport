@@ -24,7 +24,12 @@ import {
 } from '@/utils/map/edges';
 import { campaignSources, ringMarks } from '@/utils/map/campaignMarks';
 import { framingFor, ownerCamera } from '@/utils/map/framing';
-import { labelCandidates, placeLabels } from '@/utils/map/labels';
+import {
+  labelCandidates,
+  placedSystemIds,
+  placeLabels,
+  showHoverTip,
+} from '@/utils/map/labels';
 import {
   groupSegmentsByTint,
   MAP_LAYERS,
@@ -45,6 +50,7 @@ import {
   createLabelLayer,
   destroyLabelLayer,
   drawLabels,
+  markHoveredLabel,
   type LabelLayer,
 } from './labels/labelLayer';
 import {
@@ -108,6 +114,13 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // The keys placed last frame. A ref rather than state: it is read and written
   // inside the label effect and must never itself trigger a render.
   const stickyLabels = useRef<Set<string>>(new Set());
+  // The systems whose names are on screen, which decides whether a hovered
+  // system is titled on its own name or by the tip. State, unlike the sticky
+  // set, because a render reads it — and placedSystemIds hands back the same
+  // set when nothing moved, so a pan that changes no name renders nothing.
+  const [placedSystems, setPlacedSystems] = useState<ReadonlySet<number>>(
+    () => new Set(),
+  );
   // Separate from `sceneReady`: the scene itself must not wait on a webfont
   // download, only the label effect below should. See the scene-creation
   // effect for how the two are decoupled.
@@ -281,6 +294,8 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         // The label is held clear of the dot, and past the zoom ramp's cap the
         // dot is this radius rather than the floor.
         radius: node.radius,
+        // Shown beside the name while the system is hovered.
+        securityStatus: node.securityStatus,
       })),
     [geometry],
   );
@@ -497,15 +512,12 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     const layer = labelLayer.current;
     if (!layer || !measure || !camera || !transform) return;
 
-    const tiers = visibleLabelTiers(camera.zoom);
-    if (tiers.length === 0) {
-      drawLabels(layer, []);
-      stickyLabels.current = new Set();
-      return;
-    }
-
+    // No early return for a zoom with no tiers: labelCandidates then yields
+    // nothing, so the pass below already hides every name and empties the
+    // sticky set, and the placed systems are cleared by the same line as
+    // everywhere else.
     const candidates = labelCandidates({
-      tiers,
+      tiers: visibleLabelTiers(camera.zoom),
       regions: regionSources,
       constellations: constellationSources,
       // System names ride in the geometry that is already loaded; this tier
@@ -523,6 +535,12 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     const placed = placeLabels(candidates, stickyLabels.current);
     stickyLabels.current = new Set(placed.map((candidate) => candidate.key));
     drawLabels(layer, placed);
+    // What was just written into the layer, reported back so a render can
+    // choose between the tip and the name. Placement is computed here and
+    // nowhere else — it reads and writes the sticky ref — so this effect is
+    // the only place that knows it; and placedSystemIds returns the previous
+    // set when nothing changed, which is what keeps this from cascading.
+    setPlacedSystems((previous) => placedSystemIds(placed, previous));
   }, [
     host,
     measure,
@@ -700,6 +718,15 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // the map, so depending on the object would redraw the highlight on each one
   // for an answer that had not changed.
   const hoveredSystemId = hovered?.node.systemId ?? null;
+
+  // The hovered system's name is its title while it is on screen. Re-run on a
+  // placement change as well as a hover change: a name the camera brings on
+  // screen under a resting pointer has only just got an element to mark.
+  useEffect(() => {
+    if (!labelLayer.current) return;
+    markHoveredLabel(labelLayer.current, hoveredSystemId);
+  }, [hoveredSystemId, placedSystems]);
+
   const highlight = useMemo<MapHighlight | null>(() => {
     if (highlighted) return highlighted;
     return hoveredSystemId === null
@@ -950,23 +977,29 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         )}
       </div>
 
-      {/* No tip over the selected system: the popup already says its name, and
-          larger. */}
-      {hovered && camera && hovered.node.systemId !== selected && (
-        <SystemHoverTip
-          name={hovered.node.name}
-          securityStatus={hovered.node.securityStatus}
-          screenX={hovered.screenX}
-          screenY={hovered.screenY}
-          anchorRadius={systemRadiusPx(
-            hovered.node.radius,
-            zoomToScale(camera.zoom),
-            systemFloorPx(camera.zoom),
-          )}
-          viewportWidth={size.width}
-          viewportHeight={size.height}
-        />
-      )}
+      {/* Only for a system with no name on screen to be titled on, and never
+          over the selected one — see showHoverTip. */}
+      {hovered &&
+        camera &&
+        showHoverTip({
+          hoveredSystemId: hovered.node.systemId,
+          selectedSystemId: selected,
+          placedSystemIds: placedSystems,
+        }) && (
+          <SystemHoverTip
+            name={hovered.node.name}
+            securityStatus={hovered.node.securityStatus}
+            screenX={hovered.screenX}
+            screenY={hovered.screenY}
+            anchorRadius={systemRadiusPx(
+              hovered.node.radius,
+              zoomToScale(camera.zoom),
+              systemFloorPx(camera.zoom),
+            )}
+            viewportWidth={size.width}
+            viewportHeight={size.height}
+          />
+        )}
 
       {selectedNode && transform && camera && (
         <SystemPopup

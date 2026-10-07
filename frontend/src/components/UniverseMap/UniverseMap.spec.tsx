@@ -130,6 +130,7 @@ vi.mock('./labels/labelLayer', () => ({
   createLabelLayer: (host: HTMLElement) => createLabelLayer(host),
   destroyLabelLayer: (layer: unknown) => destroyLabelLayer(layer),
   drawLabels: vi.fn(),
+  markHoveredLabel: vi.fn(),
 }));
 vi.mock('./scene/campaignRings', () => ({ drawRings: vi.fn() }));
 
