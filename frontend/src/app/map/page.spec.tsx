@@ -30,6 +30,7 @@ vi.mock('@/components/Loader', () => ({ default: () => null }));
 // spec to the page's own decision, which is the one thing it is about.
 vi.mock('@/generated/graphql', () => ({
   MapScope: { NewEden: 'NEW_EDEN', Pochven: 'POCHVEN', Wormhole: 'WORMHOLE' },
+  MapProjection: { Schematic: 'SCHEMATIC', Galactic: 'GALACTIC' },
 }));
 
 import MapPage from './page';
