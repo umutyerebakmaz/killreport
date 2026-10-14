@@ -6,6 +6,7 @@ import {
   FALLBACK_FIT_ZOOM,
   fitCamera,
   fitZoom,
+  isAtFit,
   panCamera,
   parseCamera,
   parseFocus,
@@ -63,6 +64,52 @@ describe('fitCamera', () => {
     expect(camera.x).toBeCloseTo(-8.611049e16, -10);
     expect(camera.z).toBeCloseTo(-5.796372e15, -10);
     expect(camera.zoom).toBeCloseTo(-50.04, 2);
+  });
+});
+
+describe('isAtFit', () => {
+  const fit = { x: 1e17, z: -2e17, zoom: -49.9 };
+
+  it('holds for the fit itself, as a copy', () => {
+    expect(isAtFit({ ...fit }, fit)).toBe(true);
+  });
+
+  // What a camera read back from the URL looks like: x/z on the 1e9 m grid,
+  // zoom to two decimals.
+  it('holds for the fit after a round trip through the URL', () => {
+    const back = parseCamera(
+      new URLSearchParams(
+        cameraQuery(
+          MapScope.NewEden,
+          { x: 1.23456789e17 + 4.4e8, z: -2e17 - 3e8, zoom: -49.91234 },
+          null,
+          'security',
+          null,
+          MapProjection.Schematic,
+        ),
+      ),
+    )!;
+    expect(
+      isAtFit(back, {
+        x: 1.23456789e17 + 4.4e8,
+        z: -2e17 - 3e8,
+        zoom: -49.91234,
+      }),
+    ).toBe(true);
+  });
+
+  it('fails for a pan of a few pixels', () => {
+    // 4 px at the fit's scale.
+    const metres = 4 / 2 ** fit.zoom;
+    expect(isAtFit({ ...fit, x: fit.x + metres }, fit)).toBe(false);
+  });
+
+  it('fails for a zoom of one wheel step', () => {
+    expect(isAtFit({ ...fit, zoom: fit.zoom + 0.1 }, fit)).toBe(false);
+  });
+
+  it('fails without a fit', () => {
+    expect(isAtFit(fit, null)).toBe(false);
   });
 });
 

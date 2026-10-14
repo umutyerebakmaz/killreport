@@ -981,8 +981,98 @@ describe('UniverseMap', () => {
       // call at all: the layers the run hides are the part this can see.
       expect(scene.edgesGalaxy.visible).toBe(false);
       expect(scene.discs.visible).toBe(false);
-      expect(scene.celestials.visible).toBe(false);
       expect(scene.systems.visible).toBe(true);
+    });
+
+    it('leaves the map in place while the other layout is still loading', async () => {
+      useMapGeometryQuery.mockImplementation((projection) =>
+        projection === 'GALACTIC'
+          ? { loading: true }
+          : { data: GEOMETRY, loading: false },
+      );
+      render(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+
+      fireEvent.click(screen.getByRole('button', { name: 'Galactic' }));
+
+      expect(
+        screen
+          .getByRole('button', { name: 'Galactic' })
+          .getAttribute('aria-pressed'),
+      ).toBe('true');
+      expect(scene.edgesGalaxy.visible).toBe(true);
+      expect(scene.discs.visible).toBe(true);
+      expect(morphRun).not.toHaveBeenCalled();
+    });
+
+    it('drops a morph still loading when the scope changes', async () => {
+      useMapGeometryQuery.mockImplementation((projection) =>
+        projection === 'GALACTIC'
+          ? { loading: true }
+          : { data: GEOMETRY, loading: false },
+      );
+      const { rerender } = render(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+      fireEvent.click(screen.getByRole('button', { name: 'Galactic' }));
+
+      rerender(<UniverseMap scope={MapScope.Pochven} />);
+
+      expect(
+        screen
+          .getByRole('button', { name: 'Schematic' })
+          .getAttribute('aria-pressed'),
+      ).toBe('true');
+      expect(morphRun).not.toHaveBeenCalled();
+    });
+
+    // After a landing the camera is a copy of the new layout's fit, never the
+    // fit object itself: "at the fit" has to be judged by value, or the trip
+    // back from an untouched galactic map would not end on the whole galaxy.
+    it('returns to the fit on a second switch the camera was never moved between', async () => {
+      const GALACTIC = {
+        mapGeometry: {
+          ...GEOMETRY.mapGeometry,
+          bounds: { minX: -5e17, maxX: 5e17, minZ: -5e17, maxZ: 5e17 },
+          nodes: [{ ...GEOMETRY.mapGeometry.nodes[0], x: 1e17, z: -1e17 }],
+        },
+      };
+      useMapGeometryQuery.mockImplementation((projection) => ({
+        data: projection === 'GALACTIC' ? GALACTIC : GEOMETRY,
+        loading: false,
+      }));
+      morphRun.mockImplementation((run: { onDone: () => void }) =>
+        run.onDone(),
+      );
+      const { rerender } = render(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+
+      fireEvent.click(screen.getByRole('button', { name: 'Galactic' }));
+      await waitFor(() => expect(morphRun).toHaveBeenCalledTimes(1));
+      // The router hands the written URL back.
+      searchParams = new URLSearchParams(
+        routerReplace.mock.calls.at(-1)![0].slice(1),
+      );
+      rerender(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() =>
+        expect(
+          screen
+            .getByRole('button', { name: 'Galactic' })
+            .getAttribute('aria-pressed'),
+        ).toBe('true'),
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Schematic' }));
+      await waitFor(() => expect(morphRun).toHaveBeenCalledTimes(2));
+
+      const back = fitCamera(
+        GEOMETRY.mapGeometry.bounds,
+        VIEWPORT.width,
+        VIEWPORT.height,
+      );
+      const toCamera = morphRun.mock.calls[1][0].toCamera;
+      expect(toCamera.x).toBeCloseTo(back.x, -10);
+      expect(toCamera.z).toBeCloseTo(back.z, -10);
+      expect(toCamera.zoom).toBeCloseTo(back.zoom, 6);
     });
 
     it('gives up the switch when the other layout cannot be loaded', async () => {

@@ -10,6 +10,7 @@ import {
 import {
   cameraTransform,
   fitCamera,
+  isAtFit,
   parseFraming,
   parseProjection,
   projectionsFor,
@@ -222,7 +223,25 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   const geometry =
     data?.mapGeometry ??
     (morph && urlProjection === morph.to ? targetGeometry : undefined);
-  const morphing = morph !== null;
+
+  // The run and the hold after it, not the loading before it: while the other
+  // layout loads, the switch shows the press and the map stays as it is. The
+  // run starts in the very commit the target arrives in (the effect below), so
+  // "a morph with its target loaded" is the run from its first frame to the
+  // URL commit that drops it.
+  const morphing = morph !== null && targetGeometry !== undefined;
+
+  // The hover and the area highlight are dropped as the run starts, in render
+  // for the same reason the morph is: the pointer stands down for the run, and
+  // without this both would stay pinned to where the dots were.
+  const [wasMorphing, setWasMorphing] = useState(false);
+  if (morphing !== wasMorphing) {
+    setWasMorphing(morphing);
+    if (morphing) {
+      setHovered(null);
+      setHighlighted(null);
+    }
+  }
 
   // Memoised: `useMapCamera` and the pointer hook both take this as an input,
   // and a fresh object every render would churn both on every keystroke of an
@@ -274,15 +293,11 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     onProjectionChange,
   } = useMapCamera(scope, framing ?? fit);
 
-  // The press itself: a second one while a switch is under way, or one on the
-  // layout already drawn, does nothing. The hover and the area highlight are
-  // dropped here because the pointer stands down for the run (below) and would
-  // otherwise leave both pinned to where the dots were.
+  // The press itself: a second one while a switch is loading or running, or
+  // one on the layout already drawn, does nothing.
   const requestProjection = useCallback(
     (next: MapProjection) => {
       if (morph !== null || next === urlProjection) return;
-      setHovered(null);
-      setHighlighted(null);
       setMorph({ scope, from: urlProjection, to: next });
     },
     [morph, urlProjection, scope],
@@ -694,8 +709,8 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     const toFit = fitCamera(targetGeometry.bounds, size.width, size.height);
     const toCamera = morphTarget({
       camera,
-      // The camera is the fit object itself until anything moves it.
-      atFit: camera === fit,
+      // By value: after a landing the camera is a copy of the new fit.
+      atFit: isAtFit(camera, fit),
       toFit,
       anchor: morphAnchor({
         focus: selected,

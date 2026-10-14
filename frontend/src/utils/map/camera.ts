@@ -94,6 +94,30 @@ export function fitCamera(
   return { x: centre.x, z: centre.z, zoom: fitZoom(bounds, width, height) };
 }
 
+/** Half a pixel of pan, at the fit's own scale, still counts as untouched. */
+export const AT_FIT_PAN_PX = 0.5;
+
+/** Under a wheel step, and over the 0.005 the URL's two decimals can move it. */
+export const AT_FIT_ZOOM = 0.01;
+
+/**
+ * Whether the camera is looking at the whole scene: the fit, by value.
+ *
+ * By value because the camera a layout switch lands on, or one read back from
+ * the URL, is a copy of the fit and never the fit object itself. The pan is
+ * measured in screen pixels at the fit's scale, which is the unit a person can
+ * see: the URL's 1e9 m grid is a millionth of a pixel there, and a pan anyone
+ * made on purpose is several.
+ */
+export function isAtFit(camera: MapCamera, fit: MapCamera | null): boolean {
+  if (!fit) return false;
+  const scale = zoomToScale(fit.zoom);
+  return (
+    Math.abs(camera.zoom - fit.zoom) <= AT_FIT_ZOOM &&
+    Math.hypot(camera.x - fit.x, camera.z - fit.z) * scale <= AT_FIT_PAN_PX
+  );
+}
+
 /**
  * The ceiling is absolute, not an offset from the fit. Phase 1 used fit + 13
  * because interiors were out of scope; it happened to land below the interior
