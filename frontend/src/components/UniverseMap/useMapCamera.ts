@@ -1,12 +1,13 @@
 'use client';
 
-import type { MapScope } from '@/generated/graphql';
+import type { MapProjection, MapScope } from '@/generated/graphql';
 import {
   cameraQuery,
   parseCamera,
   parseFocus,
   parseLayer,
   parseOwner,
+  parseProjection,
   type MapCamera,
 } from '@/utils/map/camera';
 import type { MapLayerId } from '@/utils/map/layers';
@@ -25,7 +26,7 @@ const MAX_PENDING = 8;
 /**
  * One write of the URL: everything this hook owns there.
  *
- * The layer and the owner are here, beside the camera and the focus, because
+ * The layer, the owner and the layout are here, beside the camera and the focus, because
  * the URL has to have exactly one writer. Two hooks calling `router.replace`
  * would each overwrite the other's parameters, and the "is this my own write"
  * comparison below only works when one serialisation describes the whole URL.
@@ -35,10 +36,18 @@ interface WrittenUrl {
   focus: number | null;
   layer: MapLayerId;
   owner: number | null;
+  projection: MapProjection;
 }
 
 function queryOf(scope: MapScope, url: WrittenUrl): string {
-  return cameraQuery(scope, url.camera, url.focus, url.layer, url.owner);
+  return cameraQuery(
+    scope,
+    url.camera,
+    url.focus,
+    url.layer,
+    url.owner,
+    url.projection,
+  );
 }
 
 export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
@@ -56,6 +65,9 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
   );
   const [owner, setOwner] = useState<number | null>(() =>
     parseOwner(searchParams),
+  );
+  const [projection, setProjection] = useState<MapProjection>(() =>
+    parseProjection(searchParams, scope),
   );
 
   /**
@@ -116,7 +128,7 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
   // the frame moved or not. Returning `current` when the two agree is what makes
   // the no-op actually free.
   //
-  // The focus, the layer and the owner are primitives, so setting one to the
+  // The focus, the layer, the owner and the layout are primitives, so setting one to the
   // value it already holds costs nothing, and they are read even when the URL
   // carries no camera: a `?focus=` link has no x/z/zoom.
   //
@@ -133,10 +145,18 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
     const nextFocus = parseFocus(searchParams);
     const nextLayer = parseLayer(searchParams);
     const nextOwner = parseOwner(searchParams);
+    const nextProjection = parseProjection(searchParams, scope);
 
     if (fromUrl) {
       const own = pending.current.indexOf(
-        cameraQuery(scope, fromUrl, nextFocus, nextLayer, nextOwner),
+        cameraQuery(
+          scope,
+          fromUrl,
+          nextFocus,
+          nextLayer,
+          nextOwner,
+          nextProjection,
+        ),
       );
       if (own !== -1) {
         pending.current = pending.current.slice(own + 1);
@@ -159,15 +179,16 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
     setFocus(nextFocus);
     setLayer(nextLayer);
     setOwner(nextOwner);
+    setProjection(nextProjection);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [searchParams, scope]);
 
   const onCameraChange = useCallback(
     (next: MapCamera) => {
       setCamera(next);
-      write({ camera: next, focus, layer, owner }, false);
+      write({ camera: next, focus, layer, owner, projection }, false);
     },
-    [write, focus, layer, owner],
+    [write, focus, layer, owner, projection],
   );
 
   const onFocusChange = useCallback(
@@ -176,9 +197,12 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
       // Before the geometry lands there is no frame to write the selection
       // against. The state still moves, so the popup opens either way.
       if (effective)
-        write({ camera: effective, focus: next, layer, owner }, true);
+        write(
+          { camera: effective, focus: next, layer, owner, projection },
+          true,
+        );
     },
-    [write, effective, layer, owner],
+    [write, effective, layer, owner, projection],
   );
 
   const onLayerChange = useCallback(
@@ -190,21 +214,30 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
       setOwner(nextOwner);
       if (effective) {
         write(
-          { camera: effective, focus, layer: next, owner: nextOwner },
+          {
+            camera: effective,
+            focus,
+            layer: next,
+            owner: nextOwner,
+            projection,
+          },
           true,
         );
       }
     },
-    [write, effective, focus, owner],
+    [write, effective, focus, owner, projection],
   );
 
   const onOwnerChange = useCallback(
     (next: number | null) => {
       setOwner(next);
       if (effective)
-        write({ camera: effective, focus, layer, owner: next }, true);
+        write(
+          { camera: effective, focus, layer, owner: next, projection },
+          true,
+        );
     },
-    [write, effective, focus, layer],
+    [write, effective, focus, layer, projection],
   );
 
   // A camera move and a selection as ONE write. A panel row does both, and as
@@ -215,7 +248,26 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
       const resolvedFocus = nextFocus === undefined ? focus : nextFocus;
       setCamera(nextCamera);
       setFocus(resolvedFocus);
-      write({ camera: nextCamera, focus: resolvedFocus, layer, owner }, true);
+      write(
+        { camera: nextCamera, focus: resolvedFocus, layer, owner, projection },
+        true,
+      );
+    },
+    [write, focus, layer, owner, projection],
+  );
+
+  // The layout and the camera as ONE write, for the same reason jumpTo is one:
+  // the morph ends on a camera framed for the new layout, and a camera written
+  // without the layout — or the other way round — would put galactic x/z on a
+  // schematic map for the length of a debounce.
+  const onProjectionChange = useCallback(
+    (next: MapProjection, nextCamera: MapCamera) => {
+      setProjection(next);
+      setCamera(nextCamera);
+      write(
+        { camera: nextCamera, focus, layer, owner, projection: next },
+        true,
+      );
     },
     [write, focus, layer, owner],
   );
@@ -239,5 +291,7 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
     owner: layer === 'sovereignty' ? owner : null,
     onOwnerChange,
     jumpTo,
+    projection,
+    onProjectionChange,
   };
 }
