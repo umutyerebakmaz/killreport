@@ -1,8 +1,8 @@
 # The operation must be named MapGeometry: the backend's response cache
 # looks it up in PUBLIC_CACHE_QUERIES by operation name (backend/src/config/cache.ts).
 # Renaming it silently drops the cache to 120 s per token.
-query MapGeometry($scope: MapScope!) {
-  mapGeometry(scope: $scope) {
+query MapGeometry($scope: MapScope!, $projection: MapProjection!) {
+  mapGeometry(scope: $scope, projection: $projection) {
     scope
     bounds {
       minX

@@ -1,4 +1,4 @@
-import { MapScope, type MapBounds } from '@/generated/graphql';
+import { MapProjection, MapScope, type MapBounds } from '@/generated/graphql';
 import type { MapLayerId } from './layers';
 import { MAX_ZOOM } from './lod';
 import { boundsCenter } from './origin';
@@ -21,6 +21,42 @@ export const MAP_SCOPES: readonly MapScope[] = [
 ];
 
 export const DEFAULT_SCOPE: MapScope = MapScope.NewEden;
+
+export const DEFAULT_PROJECTION: MapProjection = MapProjection.Schematic;
+
+/**
+ * The layouts a scene can be drawn in. Wormhole space has no schematic one —
+ * the SDE gives no wormhole a position2D — and the backend answers it in
+ * GALACTIC whatever is asked, so the switch is not offered there.
+ */
+export function projectionsFor(scope: MapScope): readonly MapProjection[] {
+  return scope === MapScope.Wormhole
+    ? [MapProjection.Galactic]
+    : [MapProjection.Schematic, MapProjection.Galactic];
+}
+
+/**
+ * The layout the URL asks for. Anything but `view=galactic` — its absence
+ * included — is the default.
+ *
+ * A URL written before the schematic layout existed carries galactic x/z with
+ * no `view`, so it now opens somewhere else in the schematic map. Accepted:
+ * shared links carry no camera (`sharedMapUrl`), and a `?focus=` frames its
+ * system in either layout.
+ */
+export function parseProjection(
+  params: URLSearchParams,
+  scope: MapScope,
+): MapProjection {
+  if (scope === MapScope.Wormhole) return MapProjection.Galactic;
+  return params.get('view') === 'galactic'
+    ? MapProjection.Galactic
+    : DEFAULT_PROJECTION;
+}
+
+function writesView(scope: MapScope, projection: MapProjection): boolean {
+  return scope !== MapScope.Wormhole && projection === MapProjection.Galactic;
+}
 
 /** Leaves a margin, so the outermost dots are not half-clipped by the edge. */
 export const FIT_PADDING = 0.92;
@@ -259,7 +295,7 @@ function toGrid(value: number): number {
  * The canonical serialisation. useMapCamera also uses it to tell its own writes
  * apart from someone else's, so it has to be a pure function of its arguments.
  *
- * `focus`, `layer` and `owner` are required, not defaulted: a camera write
+ * `focus`, `layer`, `owner` and `projection` are required, not defaulted: a camera write
  * that forgot one would erase it from the URL, and the camera is written on
  * every pan. The compiler is what keeps that from happening.
  *
@@ -278,9 +314,11 @@ export function cameraQuery(
   focus: number | null,
   layer: MapLayerId,
   owner: number | null,
+  projection: MapProjection,
 ): string {
   const params = new URLSearchParams();
   params.set('scope', scope);
+  if (writesView(scope, projection)) params.set('view', 'galactic');
   params.set('x', String(toGrid(camera.x)));
   params.set('z', String(toGrid(camera.z)));
   params.set('zoom', camera.zoom.toFixed(2));
@@ -306,15 +344,18 @@ export function sharedMapUrl({
   focus,
   layer,
   owner,
+  projection,
 }: {
   origin: string;
   scope: MapScope;
   focus: number;
   layer: MapLayerId;
   owner: number | null;
+  projection: MapProjection;
 }): string {
   const params = new URLSearchParams();
   if (scope !== DEFAULT_SCOPE) params.set('scope', scope);
+  if (writesView(scope, projection)) params.set('view', 'galactic');
   if (layer !== 'security') params.set('layer', layer);
   params.set('focus', String(focus));
   if (layer === 'sovereignty' && owner !== null) {

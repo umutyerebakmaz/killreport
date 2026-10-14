@@ -842,6 +842,16 @@ export enum MapOwnerKind {
   Faction = 'FACTION'
 }
 
+/**
+ * Which layout a scene is drawn in. Both are flat: SCHEMATIC is CCP's own 2D map
+ * from the SDE's position2D, GALACTIC the real position seen from above. WORMHOLE
+ * has no schematic layout and is always GALACTIC, whatever is asked.
+ */
+export enum MapProjection {
+  Galactic = 'GALACTIC',
+  Schematic = 'SCHEMATIC'
+}
+
 /** A drawable scene. Abyssal, Proving and GPMR-01 are not here: they contain zero planets, moons and stations. */
 export enum MapScope {
   NewEden = 'NEW_EDEN',
@@ -1543,12 +1553,14 @@ export type QueryMapCelestialsArgs = {
 
 
 export type QueryMapGeometryArgs = {
+  projection?: MapProjection;
   scope?: MapScope;
 };
 
 
 export type QueryMapLabelsArgs = {
   kind: MapLabelKind;
+  projection?: MapProjection;
   scope?: MapScope;
 };
 
@@ -2865,6 +2877,7 @@ export type MapCelestialsQuery = { __typename?: 'Query', mapCelestials: Array<{ 
 
 export type MapGeometryQueryVariables = Exact<{
   scope: MapScope;
+  projection: MapProjection;
 }>;
 
 
@@ -2873,6 +2886,7 @@ export type MapGeometryQuery = { __typename?: 'Query', mapGeometry: { __typename
 export type MapLabelsQueryVariables = Exact<{
   scope: MapScope;
   kind: MapLabelKind;
+  projection: MapProjection;
 }>;
 
 
@@ -6828,8 +6842,8 @@ export type MapCelestialsLazyQueryHookResult = ReturnType<typeof useMapCelestial
 export type MapCelestialsSuspenseQueryHookResult = ReturnType<typeof useMapCelestialsSuspenseQuery>;
 export type MapCelestialsQueryResult = Apollo.QueryResult<MapCelestialsQuery, MapCelestialsQueryVariables>;
 export const MapGeometryDocument = gql`
-    query MapGeometry($scope: MapScope!) {
-  mapGeometry(scope: $scope) {
+    query MapGeometry($scope: MapScope!, $projection: MapProjection!) {
+  mapGeometry(scope: $scope, projection: $projection) {
     scope
     bounds {
       minX
@@ -6868,6 +6882,7 @@ export const MapGeometryDocument = gql`
  * const { data, loading, error } = useMapGeometryQuery({
  *   variables: {
  *      scope: // value for 'scope'
+ *      projection: // value for 'projection'
  *   },
  * });
  */
@@ -6891,8 +6906,8 @@ export type MapGeometryLazyQueryHookResult = ReturnType<typeof useMapGeometryLaz
 export type MapGeometrySuspenseQueryHookResult = ReturnType<typeof useMapGeometrySuspenseQuery>;
 export type MapGeometryQueryResult = Apollo.QueryResult<MapGeometryQuery, MapGeometryQueryVariables>;
 export const MapLabelsDocument = gql`
-    query MapLabels($scope: MapScope!, $kind: MapLabelKind!) {
-  mapLabels(scope: $scope, kind: $kind) {
+    query MapLabels($scope: MapScope!, $kind: MapLabelKind!, $projection: MapProjection!) {
+  mapLabels(scope: $scope, kind: $kind, projection: $projection) {
     id
     name
     kind
@@ -6923,6 +6938,7 @@ export const MapLabelsDocument = gql`
  *   variables: {
  *      scope: // value for 'scope'
  *      kind: // value for 'kind'
+ *      projection: // value for 'projection'
  *   },
  * });
  */
