@@ -66,6 +66,10 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
   const [owner, setOwner] = useState<number | null>(() =>
     parseOwner(searchParams),
   );
+  // Kept so every write serialises the whole URL, layout included — not for
+  // UniverseMap to read. UniverseMap reads the layout from the URL itself
+  // (`parseProjection`), because the geometry query has to be decided before
+  // this hook, which takes that geometry's fit as its fallback camera.
   const [projection, setProjection] = useState<MapProjection>(() =>
     parseProjection(searchParams, scope),
   );
@@ -291,6 +295,8 @@ export function useMapCamera(scope: MapScope, fallback: MapCamera | null) {
     owner: layer === 'sovereignty' ? owner : null,
     onOwnerChange,
     jumpTo,
+    // UniverseMap reads the layout from the URL instead; see the state above.
+    // Returned for the hook's own contract, not because the two may differ.
     projection,
     onProjectionChange,
   };
