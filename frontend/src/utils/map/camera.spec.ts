@@ -1,4 +1,4 @@
-import { MapScope } from '@/generated/graphql';
+import { MapProjection, MapScope } from '@/generated/graphql';
 import { describe, expect, it } from 'vitest';
 import {
   cameraQuery,
@@ -6,6 +6,7 @@ import {
   FALLBACK_FIT_ZOOM,
   fitCamera,
   fitZoom,
+  isAtFit,
   panCamera,
   parseCamera,
   parseFocus,
@@ -19,6 +20,8 @@ import {
   zoomCameraAt,
   zoomLimits,
   zoomToScale,
+  parseProjection,
+  projectionsFor,
 } from './camera';
 import { MAX_ZOOM } from './lod';
 
@@ -61,6 +64,52 @@ describe('fitCamera', () => {
     expect(camera.x).toBeCloseTo(-8.611049e16, -10);
     expect(camera.z).toBeCloseTo(-5.796372e15, -10);
     expect(camera.zoom).toBeCloseTo(-50.04, 2);
+  });
+});
+
+describe('isAtFit', () => {
+  const fit = { x: 1e17, z: -2e17, zoom: -49.9 };
+
+  it('holds for the fit itself, as a copy', () => {
+    expect(isAtFit({ ...fit }, fit)).toBe(true);
+  });
+
+  // What a camera read back from the URL looks like: x/z on the 1e9 m grid,
+  // zoom to two decimals.
+  it('holds for the fit after a round trip through the URL', () => {
+    const back = parseCamera(
+      new URLSearchParams(
+        cameraQuery(
+          MapScope.NewEden,
+          { x: 1.23456789e17 + 4.4e8, z: -2e17 - 3e8, zoom: -49.91234 },
+          null,
+          'security',
+          null,
+          MapProjection.Schematic,
+        ),
+      ),
+    )!;
+    expect(
+      isAtFit(back, {
+        x: 1.23456789e17 + 4.4e8,
+        z: -2e17 - 3e8,
+        zoom: -49.91234,
+      }),
+    ).toBe(true);
+  });
+
+  it('fails for a pan of a few pixels', () => {
+    // 4 px at the fit's scale.
+    const metres = 4 / 2 ** fit.zoom;
+    expect(isAtFit({ ...fit, x: fit.x + metres }, fit)).toBe(false);
+  });
+
+  it('fails for a zoom of one wheel step', () => {
+    expect(isAtFit({ ...fit, zoom: fit.zoom + 0.1 }, fit)).toBe(false);
+  });
+
+  it('fails without a fit', () => {
+    expect(isAtFit(fit, null)).toBe(false);
   });
 });
 
@@ -131,6 +180,7 @@ describe('cameraQuery', () => {
       null,
       'security',
       null,
+      MapProjection.Schematic,
     );
     const params = new URLSearchParams(query);
     expect(params.get('x')).toBe('-129550000000000');
@@ -145,6 +195,7 @@ describe('cameraQuery', () => {
         null,
         'security',
         null,
+        MapProjection.Schematic,
       ),
     );
     expect(params.get('zoom')).toBe('-50.04');
@@ -158,6 +209,7 @@ describe('cameraQuery', () => {
       null,
       'security',
       null,
+      MapProjection.Schematic,
     );
     expect(query).not.toContain('e+');
     expect(parseCamera(new URLSearchParams(query))).toEqual({
@@ -172,7 +224,14 @@ describe('cameraQuery', () => {
     expect(
       parseCamera(
         new URLSearchParams(
-          cameraQuery(MapScope.Wormhole, camera, null, 'security', null),
+          cameraQuery(
+            MapScope.Wormhole,
+            camera,
+            null,
+            'security',
+            null,
+            MapProjection.Schematic,
+          ),
         ),
       ),
     ).toEqual(camera);
@@ -388,7 +447,14 @@ describe('cameraQuery with a focus', () => {
 
   it('writes the focus it is given', () => {
     const params = new URLSearchParams(
-      cameraQuery(MapScope.NewEden, CAMERA, 30000142, 'security', null),
+      cameraQuery(
+        MapScope.NewEden,
+        CAMERA,
+        30000142,
+        'security',
+        null,
+        MapProjection.Schematic,
+      ),
     );
     expect(params.get('focus')).toBe('30000142');
   });
@@ -397,18 +463,39 @@ describe('cameraQuery with a focus', () => {
   // empty space clear it, with no second code path.
   it('writes no focus parameter at all when nothing is selected', () => {
     expect(
-      cameraQuery(MapScope.NewEden, CAMERA, null, 'security', null),
+      cameraQuery(
+        MapScope.NewEden,
+        CAMERA,
+        null,
+        'security',
+        null,
+        MapProjection.Schematic,
+      ),
     ).not.toContain('focus');
   });
 
   // Phase 1 and 2 shipped links in this exact shape and they have to go on
   // meaning the same frame.
   it('leaves the phase 1-2 parameter order and format untouched', () => {
-    expect(cameraQuery(MapScope.NewEden, CAMERA, null, 'security', null)).toBe(
-      'scope=NEW_EDEN&x=0&z=0&zoom=-50.00',
-    );
     expect(
-      cameraQuery(MapScope.NewEden, CAMERA, 30000142, 'security', null),
+      cameraQuery(
+        MapScope.NewEden,
+        CAMERA,
+        null,
+        'security',
+        null,
+        MapProjection.Schematic,
+      ),
+    ).toBe('scope=NEW_EDEN&x=0&z=0&zoom=-50.00');
+    expect(
+      cameraQuery(
+        MapScope.NewEden,
+        CAMERA,
+        30000142,
+        'security',
+        null,
+        MapProjection.Schematic,
+      ),
     ).toBe('scope=NEW_EDEN&x=0&z=0&zoom=-50.00&focus=30000142');
   });
 
@@ -419,6 +506,7 @@ describe('cameraQuery with a focus', () => {
       30045329,
       'security',
       null,
+      MapProjection.Schematic,
     );
     expect(parseFocus(new URLSearchParams(query))).toBe(30045329);
   });
@@ -458,14 +546,28 @@ describe('cameraQuery with a layer and an owner', () => {
   const CAMERA = { x: 0, z: 0, zoom: -50 };
 
   it('writes nothing for the security layer, so every older link still reads the same', () => {
-    expect(cameraQuery(MapScope.NewEden, CAMERA, null, 'security', null)).toBe(
-      'scope=NEW_EDEN&x=0&z=0&zoom=-50.00',
-    );
+    expect(
+      cameraQuery(
+        MapScope.NewEden,
+        CAMERA,
+        null,
+        'security',
+        null,
+        MapProjection.Schematic,
+      ),
+    ).toBe('scope=NEW_EDEN&x=0&z=0&zoom=-50.00');
   });
 
   it('writes the sovereignty layer and its isolated owner after the focus', () => {
     expect(
-      cameraQuery(MapScope.NewEden, CAMERA, 30000142, 'sovereignty', 99003581),
+      cameraQuery(
+        MapScope.NewEden,
+        CAMERA,
+        30000142,
+        'sovereignty',
+        99003581,
+        MapProjection.Schematic,
+      ),
     ).toBe(
       'scope=NEW_EDEN&x=0&z=0&zoom=-50.00&focus=30000142&layer=sovereignty&owner=99003581',
     );
@@ -474,13 +576,27 @@ describe('cameraQuery with a layer and an owner', () => {
   // An owner means nothing on a layer that does not colour by owner.
   it('drops the owner on the security layer', () => {
     expect(
-      cameraQuery(MapScope.NewEden, CAMERA, null, 'security', 99003581),
+      cameraQuery(
+        MapScope.NewEden,
+        CAMERA,
+        null,
+        'security',
+        99003581,
+        MapProjection.Schematic,
+      ),
     ).toBe('scope=NEW_EDEN&x=0&z=0&zoom=-50.00');
   });
 
   it('round-trips through the parsers', () => {
     const params = new URLSearchParams(
-      cameraQuery(MapScope.NewEden, CAMERA, null, 'sovereignty', 99003581),
+      cameraQuery(
+        MapScope.NewEden,
+        CAMERA,
+        null,
+        'sovereignty',
+        99003581,
+        MapProjection.Schematic,
+      ),
     );
     expect(parseLayer(params)).toBe('sovereignty');
     expect(parseOwner(params)).toBe(99003581);
@@ -496,6 +612,7 @@ describe('sharedMapUrl', () => {
         focus: 30004759,
         layer: 'sovereignty',
         owner: 99003581,
+        projection: MapProjection.Schematic,
       }),
     ).toBe(
       'https://killreport.com/map?layer=sovereignty&focus=30004759&owner=99003581',
@@ -510,6 +627,7 @@ describe('sharedMapUrl', () => {
         focus: 30000021,
         layer: 'security',
         owner: null,
+        projection: MapProjection.Schematic,
       }),
     ).toBe('https://killreport.com/map?scope=POCHVEN&focus=30000021');
   });
@@ -533,5 +651,125 @@ describe('shareScopeFor', () => {
     expect(shareScopeFor(MapScope.Wormhole, 30004759, [])).toBe(
       MapScope.NewEden,
     );
+  });
+});
+
+describe('parseProjection', () => {
+  it('opens on the schematic layout when the URL says nothing', () => {
+    expect(parseProjection(new URLSearchParams(''), MapScope.NewEden)).toBe(
+      MapProjection.Schematic,
+    );
+  });
+
+  it('reads view=galactic', () => {
+    expect(
+      parseProjection(new URLSearchParams('view=galactic'), MapScope.NewEden),
+    ).toBe(MapProjection.Galactic);
+  });
+
+  it('treats anything else as the default', () => {
+    expect(
+      parseProjection(new URLSearchParams('view=3d'), MapScope.Pochven),
+    ).toBe(MapProjection.Schematic);
+  });
+
+  it('is always galactic in wormhole space, which has no schematic layout', () => {
+    expect(parseProjection(new URLSearchParams(''), MapScope.Wormhole)).toBe(
+      MapProjection.Galactic,
+    );
+  });
+});
+
+describe('projectionsFor', () => {
+  it('offers both layouts in k-space and Pochven, one in wormhole space', () => {
+    expect(projectionsFor(MapScope.NewEden)).toHaveLength(2);
+    expect(projectionsFor(MapScope.Pochven)).toHaveLength(2);
+    expect(projectionsFor(MapScope.Wormhole)).toEqual([MapProjection.Galactic]);
+  });
+});
+
+describe('cameraQuery and the projection', () => {
+  const camera = { x: 0, z: 0, zoom: -50 };
+
+  it('leaves the default out of the URL', () => {
+    const params = new URLSearchParams(
+      cameraQuery(
+        MapScope.NewEden,
+        camera,
+        null,
+        'security',
+        null,
+        MapProjection.Schematic,
+      ),
+    );
+    expect(params.has('view')).toBe(false);
+  });
+
+  it('writes view=galactic', () => {
+    const params = new URLSearchParams(
+      cameraQuery(
+        MapScope.NewEden,
+        camera,
+        null,
+        'security',
+        null,
+        MapProjection.Galactic,
+      ),
+    );
+    expect(params.get('view')).toBe('galactic');
+  });
+
+  it('never writes it in wormhole space', () => {
+    const params = new URLSearchParams(
+      cameraQuery(
+        MapScope.Wormhole,
+        camera,
+        null,
+        'security',
+        null,
+        MapProjection.Galactic,
+      ),
+    );
+    expect(params.has('view')).toBe(false);
+  });
+
+  it('parses back to what it wrote', () => {
+    const query = cameraQuery(
+      MapScope.NewEden,
+      camera,
+      30000142,
+      'security',
+      null,
+      MapProjection.Galactic,
+    );
+    expect(parseProjection(new URLSearchParams(query), MapScope.NewEden)).toBe(
+      MapProjection.Galactic,
+    );
+  });
+});
+
+describe('sharedMapUrl and the projection', () => {
+  it('carries view=galactic so the receiver opens the same layout', () => {
+    const url = sharedMapUrl({
+      origin: 'https://killreport.com',
+      scope: MapScope.NewEden,
+      focus: 30000142,
+      layer: 'security',
+      owner: null,
+      projection: MapProjection.Galactic,
+    });
+    expect(new URL(url).searchParams.get('view')).toBe('galactic');
+  });
+
+  it('stays short on the default layout', () => {
+    const url = sharedMapUrl({
+      origin: 'https://killreport.com',
+      scope: MapScope.NewEden,
+      focus: 30000142,
+      layer: 'security',
+      owner: null,
+      projection: MapProjection.Schematic,
+    });
+    expect(url).toBe('https://killreport.com/map?focus=30000142');
   });
 });

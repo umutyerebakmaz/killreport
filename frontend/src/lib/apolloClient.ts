@@ -12,6 +12,21 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
 
+/**
+ * The cache the app's client uses. Exported so a spec builds the real policy
+ * rather than a copy of it.
+ */
+export function createApolloCache(): InMemoryCache {
+  return new InMemoryCache({
+    typePolicies: {
+      // Not normalised: the same label id has a different position in each
+      // projection, so a shared `MapLabel:<id>` entry would let the SCHEMATIC
+      // and GALACTIC results overwrite each other's x/z and bounds.
+      MapLabel: { keyFields: false },
+    },
+  });
+}
+
 // Lazy initialization - only create client on first use (client-side only)
 let apolloClient: ApolloClient<any> | null = null;
 
@@ -227,7 +242,7 @@ export function createApolloClient() {
 
   apolloClient = new ApolloClient({
     link: splitLink,
-    cache: new InMemoryCache(),
+    cache: createApolloCache(),
     defaultOptions: {
       watchQuery: {
         fetchPolicy: 'cache-and-network',

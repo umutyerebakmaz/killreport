@@ -8,7 +8,7 @@ vi.mock('next/navigation', () => ({
   useSearchParams: () => searchParams,
 }));
 
-import { MapScope } from '@/generated/graphql';
+import { MapProjection, MapScope } from '@/generated/graphql';
 import { useMapCamera } from './useMapCamera';
 
 /** Stands in for the autofit the component computes from the geometry. */
@@ -317,5 +317,36 @@ describe('useMapCamera', () => {
     searchParams = new URLSearchParams('scope=NEW_EDEN&x=0&z=0&zoom=-50.00');
     rerender();
     expect(result.current.camera).toEqual({ x: 0, z: 0, zoom: -50 });
+  });
+
+  it('reads the layout from the URL', () => {
+    searchParams = new URLSearchParams('view=galactic');
+    const { result } = renderHook(() => useMapCamera(MapScope.NewEden, FIT));
+    expect(result.current.projection).toBe(MapProjection.Galactic);
+  });
+
+  it('writes the layout and the camera in one immediate write', () => {
+    const { result } = renderHook(() => useMapCamera(MapScope.NewEden, FIT));
+    act(() =>
+      result.current.onProjectionChange(MapProjection.Galactic, {
+        x: 1e17,
+        z: 2e17,
+        zoom: -50,
+      }),
+    );
+
+    expect(result.current.projection).toBe(MapProjection.Galactic);
+    expect(result.current.camera).toEqual({ x: 1e17, z: 2e17, zoom: -50 });
+    const written = new URLSearchParams(replace.mock.calls.at(-1)![0].slice(1));
+    expect(written.get('view')).toBe('galactic');
+    expect(written.get('x')).toBe('100000000000000000');
+  });
+
+  it('keeps the layout on a later layer change', () => {
+    const { result } = renderHook(() => useMapCamera(MapScope.NewEden, FIT));
+    act(() => result.current.onProjectionChange(MapProjection.Galactic, FIT));
+    act(() => result.current.onLayerChange('sovereignty'));
+    const written = new URLSearchParams(replace.mock.calls.at(-1)![0].slice(1));
+    expect(written.get('view')).toBe('galactic');
   });
 });

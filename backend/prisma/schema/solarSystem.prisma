@@ -8,6 +8,11 @@ model SolarSystem {
   position_x       Float?
   position_y       Float?
   position_z       Float?
+  /// CCP's schematic 2D map, from the SDE's mapSolarSystems.jsonl position2D.
+  /// ESI does not serve it; `yarn sde:map-2d` fills it. position_2d_y is the
+  /// map's z axis. Null for every wormhole, Abyssal and Proving system.
+  position_2d_x    Float?
+  position_2d_y    Float?
   constellation    Constellation? @relation(fields: [constellation_id], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   system_activity   SystemActivity[]

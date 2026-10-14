@@ -722,9 +722,11 @@ type MapGeometry {
 }
 
 """
-A name on the map. Coordinates are in **galactic metres**, the same space as the nodes.
-A region has no position, so it is computed from the medoid of the systems the scene
-draws; a constellation uses constellations.position_x/z directly.
+A name on the map. Coordinates are in the requested projection, the same space as
+the nodes. A region has no position, so it is computed from the medoid of the
+systems the scene draws, in either projection. A constellation in SCHEMATIC sits
+at the mean of its drawn systems, since CCP's 2D map gives constellations no
+position; in GALACTIC it uses constellations.position_x/z directly.
 """
 type MapLabel {
   """
@@ -756,7 +758,9 @@ enum MapLabelKind {
 }
 
 """
-A system at its galactic position. Coordinates are rounded to 1e9 m and never reach the GPU raw.
+A system at its position in the requested projection: CCP's 2D map for
+SCHEMATIC, the galactic position seen from above for GALACTIC. Coordinates are
+rounded to 1e9 m and never reach the GPU raw.
 """
 type MapNode {
   constellationId: Int!
@@ -784,6 +788,16 @@ enum MapOwnerKind {
   ALLIANCE
   CORPORATION
   FACTION
+}
+
+"""
+Which layout a scene is drawn in. Both are flat: SCHEMATIC is CCP's own 2D map
+from the SDE's position2D, GALACTIC the real position seen from above. WORMHOLE
+has no schematic layout and is always GALACTIC, whatever is asked.
+"""
+enum MapProjection {
+  GALACTIC
+  SCHEMATIC
 }
 
 """
@@ -1095,14 +1109,14 @@ type Query {
   freshness seen through the API is the response cache's STATIC_GAME_DATA: 365
   days. A universe backfill does not reach the map until the cache is cleared.
   """
-  mapGeometry(scope: MapScope! = NEW_EDEN): MapGeometry!
+  mapGeometry(projection: MapProjection! = SCHEMATIC, scope: MapScope! = NEW_EDEN): MapGeometry!
 
   """
   The names of one tier of the given scene. Static universe data; the service keeps
   it in Redis for 86400 s, and the freshness seen through the API is the response
   cache's STATIC_GAME_DATA.
   """
-  mapLabels(kind: MapLabelKind!, scope: MapScope! = NEW_EDEN): [MapLabel!]!
+  mapLabels(kind: MapLabelKind!, projection: MapProjection! = SCHEMATIC, scope: MapScope! = NEW_EDEN): [MapLabel!]!
 
   """
   The scene's sovereignty layer. The service keeps it in Redis for 900 s.

@@ -795,9 +795,11 @@ export type MapGeometry = {
 };
 
 /**
- * A name on the map. Coordinates are in **galactic metres**, the same space as the nodes.
- * A region has no position, so it is computed from the medoid of the systems the scene
- * draws; a constellation uses constellations.position_x/z directly.
+ * A name on the map. Coordinates are in the requested projection, the same space as
+ * the nodes. A region has no position, so it is computed from the medoid of the
+ * systems the scene draws, in either projection. A constellation in SCHEMATIC sits
+ * at the mean of its drawn systems, since CCP's 2D map gives constellations no
+ * position; in GALACTIC it uses constellations.position_x/z directly.
  */
 export type MapLabel = {
   __typename?: 'MapLabel';
@@ -819,7 +821,11 @@ export enum MapLabelKind {
   Region = 'REGION'
 }
 
-/** A system at its galactic position. Coordinates are rounded to 1e9 m and never reach the GPU raw. */
+/**
+ * A system at its position in the requested projection: CCP's 2D map for
+ * SCHEMATIC, the galactic position seen from above for GALACTIC. Coordinates are
+ * rounded to 1e9 m and never reach the GPU raw.
+ */
 export type MapNode = {
   __typename?: 'MapNode';
   constellationId: Scalars['Int']['output'];
@@ -839,6 +845,16 @@ export enum MapOwnerKind {
   Alliance = 'ALLIANCE',
   Corporation = 'CORPORATION',
   Faction = 'FACTION'
+}
+
+/**
+ * Which layout a scene is drawn in. Both are flat: SCHEMATIC is CCP's own 2D map
+ * from the SDE's position2D, GALACTIC the real position seen from above. WORMHOLE
+ * has no schematic layout and is always GALACTIC, whatever is asked.
+ */
+export enum MapProjection {
+  Galactic = 'GALACTIC',
+  Schematic = 'SCHEMATIC'
 }
 
 /** A drawable scene. Abyssal, Proving and GPMR-01 are not here: they contain zero planets, moons and stations. */
@@ -1542,12 +1558,14 @@ export type QueryMapCelestialsArgs = {
 
 
 export type QueryMapGeometryArgs = {
+  projection?: MapProjection;
   scope?: MapScope;
 };
 
 
 export type QueryMapLabelsArgs = {
   kind: MapLabelKind;
+  projection?: MapProjection;
   scope?: MapScope;
 };
 
@@ -2654,6 +2672,7 @@ export type ResolversTypes = {
   MapLabelKind: MapLabelKind;
   MapNode: ResolverTypeWrapper<MapNode>;
   MapOwnerKind: MapOwnerKind;
+  MapProjection: MapProjection;
   MapScope: MapScope;
   MapSovOwner: ResolverTypeWrapper<MapSovOwner>;
   MapSovSystem: ResolverTypeWrapper<MapSovSystem>;
@@ -3553,8 +3572,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   killmails?: Resolver<ResolversTypes['KillmailsResponse'], ParentType, ContextType, Partial<QueryKillmailsArgs>>;
   killmailsDateCounts?: Resolver<Array<ResolversTypes['KillmailDateCount']>, ParentType, ContextType, Partial<QueryKillmailsDateCountsArgs>>;
   mapCelestials?: Resolver<Array<ResolversTypes['MapCelestial']>, ParentType, ContextType, RequireFields<QueryMapCelestialsArgs, 'systemIds'>>;
-  mapGeometry?: Resolver<ResolversTypes['MapGeometry'], ParentType, ContextType, RequireFields<QueryMapGeometryArgs, 'scope'>>;
-  mapLabels?: Resolver<Array<ResolversTypes['MapLabel']>, ParentType, ContextType, RequireFields<QueryMapLabelsArgs, 'kind' | 'scope'>>;
+  mapGeometry?: Resolver<ResolversTypes['MapGeometry'], ParentType, ContextType, RequireFields<QueryMapGeometryArgs, 'projection' | 'scope'>>;
+  mapLabels?: Resolver<Array<ResolversTypes['MapLabel']>, ParentType, ContextType, RequireFields<QueryMapLabelsArgs, 'kind' | 'projection' | 'scope'>>;
   mapSovereignty?: Resolver<ResolversTypes['MapSovereignty'], ParentType, ContextType, RequireFields<QueryMapSovereigntyArgs, 'scope'>>;
   mapSystemDetails?: Resolver<Maybe<ResolversTypes['MapSystemDetails']>, ParentType, ContextType, RequireFields<QueryMapSystemDetailsArgs, 'systemId'>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;

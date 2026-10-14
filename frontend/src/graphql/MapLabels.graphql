@@ -1,7 +1,11 @@
 # The operation must be named MapLabels: the backend's response cache
 # looks it up in PUBLIC_CACHE_QUERIES by operation name (backend/src/config/cache.ts).
-query MapLabels($scope: MapScope!, $kind: MapLabelKind!) {
-  mapLabels(scope: $scope, kind: $kind) {
+query MapLabels(
+  $scope: MapScope!
+  $kind: MapLabelKind!
+  $projection: MapProjection!
+) {
+  mapLabels(scope: $scope, kind: $kind, projection: $projection) {
     id
     name
     kind

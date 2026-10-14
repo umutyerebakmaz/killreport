@@ -796,9 +796,11 @@ export type MapGeometry = {
 };
 
 /**
- * A name on the map. Coordinates are in **galactic metres**, the same space as the nodes.
- * A region has no position, so it is computed from the medoid of the systems the scene
- * draws; a constellation uses constellations.position_x/z directly.
+ * A name on the map. Coordinates are in the requested projection, the same space as
+ * the nodes. A region has no position, so it is computed from the medoid of the
+ * systems the scene draws, in either projection. A constellation in SCHEMATIC sits
+ * at the mean of its drawn systems, since CCP's 2D map gives constellations no
+ * position; in GALACTIC it uses constellations.position_x/z directly.
  */
 export type MapLabel = {
   __typename?: 'MapLabel';
@@ -820,7 +822,11 @@ export enum MapLabelKind {
   Region = 'REGION'
 }
 
-/** A system at its galactic position. Coordinates are rounded to 1e9 m and never reach the GPU raw. */
+/**
+ * A system at its position in the requested projection: CCP's 2D map for
+ * SCHEMATIC, the galactic position seen from above for GALACTIC. Coordinates are
+ * rounded to 1e9 m and never reach the GPU raw.
+ */
 export type MapNode = {
   __typename?: 'MapNode';
   constellationId: Scalars['Int']['output'];
@@ -840,6 +846,16 @@ export enum MapOwnerKind {
   Alliance = 'ALLIANCE',
   Corporation = 'CORPORATION',
   Faction = 'FACTION'
+}
+
+/**
+ * Which layout a scene is drawn in. Both are flat: SCHEMATIC is CCP's own 2D map
+ * from the SDE's position2D, GALACTIC the real position seen from above. WORMHOLE
+ * has no schematic layout and is always GALACTIC, whatever is asked.
+ */
+export enum MapProjection {
+  Galactic = 'GALACTIC',
+  Schematic = 'SCHEMATIC'
 }
 
 /** A drawable scene. Abyssal, Proving and GPMR-01 are not here: they contain zero planets, moons and stations. */
@@ -1543,12 +1559,14 @@ export type QueryMapCelestialsArgs = {
 
 
 export type QueryMapGeometryArgs = {
+  projection?: MapProjection;
   scope?: MapScope;
 };
 
 
 export type QueryMapLabelsArgs = {
   kind: MapLabelKind;
+  projection?: MapProjection;
   scope?: MapScope;
 };
 
@@ -2865,6 +2883,7 @@ export type MapCelestialsQuery = { __typename?: 'Query', mapCelestials: Array<{ 
 
 export type MapGeometryQueryVariables = Exact<{
   scope: MapScope;
+  projection: MapProjection;
 }>;
 
 
@@ -2873,6 +2892,7 @@ export type MapGeometryQuery = { __typename?: 'Query', mapGeometry: { __typename
 export type MapLabelsQueryVariables = Exact<{
   scope: MapScope;
   kind: MapLabelKind;
+  projection: MapProjection;
 }>;
 
 
@@ -6828,8 +6848,8 @@ export type MapCelestialsLazyQueryHookResult = ReturnType<typeof useMapCelestial
 export type MapCelestialsSuspenseQueryHookResult = ReturnType<typeof useMapCelestialsSuspenseQuery>;
 export type MapCelestialsQueryResult = Apollo.QueryResult<MapCelestialsQuery, MapCelestialsQueryVariables>;
 export const MapGeometryDocument = gql`
-    query MapGeometry($scope: MapScope!) {
-  mapGeometry(scope: $scope) {
+    query MapGeometry($scope: MapScope!, $projection: MapProjection!) {
+  mapGeometry(scope: $scope, projection: $projection) {
     scope
     bounds {
       minX
@@ -6868,6 +6888,7 @@ export const MapGeometryDocument = gql`
  * const { data, loading, error } = useMapGeometryQuery({
  *   variables: {
  *      scope: // value for 'scope'
+ *      projection: // value for 'projection'
  *   },
  * });
  */
@@ -6891,8 +6912,8 @@ export type MapGeometryLazyQueryHookResult = ReturnType<typeof useMapGeometryLaz
 export type MapGeometrySuspenseQueryHookResult = ReturnType<typeof useMapGeometrySuspenseQuery>;
 export type MapGeometryQueryResult = Apollo.QueryResult<MapGeometryQuery, MapGeometryQueryVariables>;
 export const MapLabelsDocument = gql`
-    query MapLabels($scope: MapScope!, $kind: MapLabelKind!) {
-  mapLabels(scope: $scope, kind: $kind) {
+    query MapLabels($scope: MapScope!, $kind: MapLabelKind!, $projection: MapProjection!) {
+  mapLabels(scope: $scope, kind: $kind, projection: $projection) {
     id
     name
     kind
@@ -6923,6 +6944,7 @@ export const MapLabelsDocument = gql`
  *   variables: {
  *      scope: // value for 'scope'
  *      kind: // value for 'kind'
+ *      projection: // value for 'projection'
  *   },
  * });
  */

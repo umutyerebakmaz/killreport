@@ -6,26 +6,10 @@ import {
   type RingMark,
 } from '@/utils/map/campaignMarks';
 import type { Application } from 'pixi.js';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useState } from 'react';
 import { drawRings } from './scene/campaignRings';
 import type { MapScene } from './scene/createScene';
-
-const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
-
-function subscribeReducedMotion(onChange: () => void): () => void {
-  // jsdom, and nothing else this site runs in, has no matchMedia.
-  if (typeof window.matchMedia !== 'function') return () => {};
-  const query = window.matchMedia(REDUCED_MOTION);
-  query.addEventListener('change', onChange);
-  return () => query.removeEventListener('change', onChange);
-}
-
-function prefersReducedMotion(): boolean {
-  return (
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia(REDUCED_MOTION).matches
-  );
-}
+import { useReducedMotion } from './useReducedMotion';
 
 /** The handle the ring effect draws through. */
 export interface RingSpin {
@@ -110,11 +94,7 @@ function createRingSpin() {
  * frame it draws.
  */
 export function useRingSpin(): RingSpin {
-  const reducedMotion = useSyncExternalStore(
-    subscribeReducedMotion,
-    prefersReducedMotion,
-    () => false,
-  );
+  const reducedMotion = useReducedMotion();
   const [spin] = useState(createRingSpin);
 
   useEffect(() => {

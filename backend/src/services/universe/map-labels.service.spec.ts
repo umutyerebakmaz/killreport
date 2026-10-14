@@ -12,11 +12,8 @@ vi.mock('@services/redis', () => ({ default: redis, redis }));
 vi.mock('@services/prisma', () => ({ default: prisma, prisma }));
 
 import { Prisma } from '@generated/prisma/client';
-import {
-  getMapLabels,
-  labelsCacheKey,
-  LABELS_CACHE_TTL_SECONDS,
-} from './map-labels.service';
+import { labelsCacheKey } from './map-cache-keys';
+import { getMapLabels, LABELS_CACHE_TTL_SECONDS } from './map-labels.service';
 
 /**
  * The SQL the service actually handed Prisma. A `Prisma.Sql` flattens its
@@ -39,17 +36,60 @@ describe('labelsCacheKey', () => {
     // One key per (scope, kind): a shared key would serve Pochven's regions
     // to New Eden, and a key without the kind would serve 114 regions where
     // 1,184 constellations were asked for.
-    expect(labelsCacheKey('NEW_EDEN', 'REGION')).toBe(
-      'map:labels:v2:NEW_EDEN:REGION',
+    expect(labelsCacheKey('NEW_EDEN', 'REGION', 'GALACTIC')).toBe(
+      'map:labels:v3:NEW_EDEN:REGION:GALACTIC',
     );
-    expect(labelsCacheKey('POCHVEN', 'CONSTELLATION')).toBe(
-      'map:labels:v2:POCHVEN:CONSTELLATION',
+    expect(labelsCacheKey('POCHVEN', 'CONSTELLATION', 'GALACTIC')).toBe(
+      'map:labels:v3:POCHVEN:CONSTELLATION:GALACTIC',
     );
   });
 
   it('never collides across the two tiers of one scene', () => {
-    expect(labelsCacheKey('NEW_EDEN', 'REGION')).not.toBe(
-      labelsCacheKey('NEW_EDEN', 'CONSTELLATION'),
+    expect(labelsCacheKey('NEW_EDEN', 'REGION', 'GALACTIC')).not.toBe(
+      labelsCacheKey('NEW_EDEN', 'CONSTELLATION', 'GALACTIC'),
+    );
+  });
+});
+
+describe('labels by projection', () => {
+  it('keys the labels on the projection', () => {
+    expect(labelsCacheKey('NEW_EDEN', 'REGION', 'SCHEMATIC')).toBe(
+      'map:labels:v3:NEW_EDEN:REGION:SCHEMATIC',
+    );
+    expect(labelsCacheKey('NEW_EDEN', 'REGION', 'SCHEMATIC')).not.toBe(
+      labelsCacheKey('NEW_EDEN', 'REGION', 'GALACTIC'),
+    );
+  });
+
+  it('anchors SCHEMATIC regions on the schematic columns', async () => {
+    prisma.$queryRaw.mockResolvedValue([]);
+    await getMapLabels('NEW_EDEN', 'REGION', 'SCHEMATIC');
+    const sql = lastQueryText();
+    expect(sql).toContain('s.position_2d_x');
+    expect(sql).toContain('s.position_2d_y');
+    expect(sql).not.toContain('s.position_x');
+  });
+
+  it('puts a SCHEMATIC constellation at the mean of its systems', async () => {
+    prisma.$queryRaw.mockResolvedValue([]);
+    await getMapLabels('NEW_EDEN', 'CONSTELLATION', 'SCHEMATIC');
+    const sql = lastQueryText();
+    expect(sql).toContain('AVG(s.position_2d_x)');
+    expect(sql).toContain('AVG(s.position_2d_y)');
+    expect(sql).not.toContain('c.position_x');
+  });
+
+  it('keeps the constellation own position for GALACTIC', async () => {
+    prisma.$queryRaw.mockResolvedValue([]);
+    await getMapLabels('NEW_EDEN', 'CONSTELLATION', 'GALACTIC');
+    expect(lastQueryText()).toContain('c.position_x AS x');
+  });
+
+  it('answers WORMHOLE labels in GALACTIC', async () => {
+    prisma.$queryRaw.mockResolvedValue([]);
+    await getMapLabels('WORMHOLE', 'REGION', 'SCHEMATIC');
+    expect(redis.get).toHaveBeenCalledWith(
+      'map:labels:v3:WORMHOLE:REGION:GALACTIC',
     );
   });
 });
@@ -62,7 +102,7 @@ describe('getMapLabels', () => {
       ]),
     );
 
-    const labels = await getMapLabels('NEW_EDEN', 'REGION');
+    const labels = await getMapLabels('NEW_EDEN', 'REGION', 'GALACTIC');
 
     expect(labels).toHaveLength(1);
     expect(labels[0].name).toBe('The Forge');
@@ -74,7 +114,7 @@ describe('getMapLabels', () => {
       { id: 20000020, name: 'Kimotoro', x: 1.5e17, z: -2.5e17 },
     ]);
 
-    const labels = await getMapLabels('NEW_EDEN', 'CONSTELLATION');
+    const labels = await getMapLabels('NEW_EDEN', 'CONSTELLATION', 'GALACTIC');
 
     expect(labels).toEqual([
       {
@@ -88,7 +128,7 @@ describe('getMapLabels', () => {
       },
     ]);
     expect(redis.setex).toHaveBeenCalledWith(
-      'map:labels:v2:NEW_EDEN:CONSTELLATION',
+      'map:labels:v3:NEW_EDEN:CONSTELLATION:GALACTIC',
       LABELS_CACHE_TTL_SECONDS,
       expect.any(String),
     );
@@ -104,19 +144,21 @@ describe('getMapLabels', () => {
       { id: 2, name: 'B', x: 1, z: 1 },
     ]);
 
-    const labels = await getMapLabels('WORMHOLE', 'REGION');
+    const labels = await getMapLabels('WORMHOLE', 'REGION', 'GALACTIC');
 
     expect(labels.map((l) => l.kind)).toEqual(['REGION', 'REGION']);
   });
 
   it('returns an empty list rather than throwing when a scene has no rows', async () => {
     prisma.$queryRaw.mockResolvedValue([]);
-    await expect(getMapLabels('POCHVEN', 'CONSTELLATION')).resolves.toEqual([]);
+    await expect(
+      getMapLabels('POCHVEN', 'CONSTELLATION', 'GALACTIC'),
+    ).resolves.toEqual([]);
   });
 
   it('caches an empty result too, so an empty scene is not re-queried', async () => {
     prisma.$queryRaw.mockResolvedValue([]);
-    await getMapLabels('POCHVEN', 'REGION');
+    await getMapLabels('POCHVEN', 'REGION', 'GALACTIC');
     expect(redis.setex).toHaveBeenCalledTimes(1);
   });
 
@@ -128,13 +170,13 @@ describe('getMapLabels', () => {
     // that scene entirely.
     prisma.$queryRaw.mockResolvedValue([]);
 
-    await getMapLabels('NEW_EDEN', 'REGION');
+    await getMapLabels('NEW_EDEN', 'REGION', 'GALACTIC');
     expect(lastQueryText()).toContain(
       'EXISTS (SELECT 1 FROM stargates g WHERE g.solar_system_id = s.system_id)',
     );
 
     prisma.$queryRaw.mockClear();
-    await getMapLabels('WORMHOLE', 'REGION');
+    await getMapLabels('WORMHOLE', 'REGION', 'GALACTIC');
     expect(lastQueryText()).not.toContain('stargates');
   });
 
@@ -143,14 +185,14 @@ describe('getMapLabels', () => {
     // ly of its members' centroid, so averaging it would be work for nothing.
     prisma.$queryRaw.mockResolvedValue([]);
 
-    await getMapLabels('NEW_EDEN', 'CONSTELLATION');
+    await getMapLabels('NEW_EDEN', 'CONSTELLATION', 'GALACTIC');
     expect(lastQueryText()).not.toContain('AVG');
     expect(lastQueryText()).toContain('c.position_x AS x');
   });
 
   it('derives an extent and a medoid for a region, never an average', async () => {
     prisma.$queryRaw.mockResolvedValue([]);
-    await getMapLabels('NEW_EDEN', 'REGION');
+    await getMapLabels('NEW_EDEN', 'REGION', 'GALACTIC');
 
     const sql = lastQueryText();
     expect(sql).toContain('MIN(x)');
@@ -163,7 +205,7 @@ describe('getMapLabels', () => {
 
   it('left-joins, so a one-system region still gets a medoid', async () => {
     prisma.$queryRaw.mockResolvedValue([]);
-    await getMapLabels('NEW_EDEN', 'REGION');
+    await getMapLabels('NEW_EDEN', 'REGION', 'GALACTIC');
 
     const sql = lastQueryText();
     expect(sql).toContain('LEFT JOIN scene b');
@@ -177,7 +219,7 @@ describe('getMapLabels', () => {
     // the plan emits first. The anchor is cached for 24 h, so without the
     // tie-breaker the region name jumps between two stars on each rebuild.
     prisma.$queryRaw.mockResolvedValue([]);
-    await getMapLabels('NEW_EDEN', 'REGION');
+    await getMapLabels('NEW_EDEN', 'REGION', 'GALACTIC');
 
     expect(lastQueryText()).toMatch(
       /ORDER BY a\.region_id,\s*COALESCE\(SUM\([^\n]*\)\), 0\),\s*a\.system_id/,
@@ -199,7 +241,7 @@ describe('getMapLabels', () => {
       },
     ]);
 
-    const [label] = await getMapLabels('NEW_EDEN', 'REGION');
+    const [label] = await getMapLabels('NEW_EDEN', 'REGION', 'GALACTIC');
 
     expect(label).toEqual({
       id: 10000002,
@@ -217,7 +259,7 @@ describe('getMapLabels', () => {
       { id: 20000020, name: 'Kimotoro', x: 1, z: 2 },
     ]);
 
-    const [label] = await getMapLabels('NEW_EDEN', 'CONSTELLATION');
+    const [label] = await getMapLabels('NEW_EDEN', 'CONSTELLATION', 'GALACTIC');
 
     expect(label.systemId).toBeNull();
     expect(label.bounds).toBeNull();
@@ -229,7 +271,7 @@ describe('getMapLabels', () => {
       { id: 2, name: 'B', x: 1, z: 1 },
       { id: 3, name: 'C', x: 2, z: 2 },
     ]);
-    await getMapLabels('NEW_EDEN', 'REGION');
+    await getMapLabels('NEW_EDEN', 'REGION', 'GALACTIC');
     expect(prisma.$queryRaw).toHaveBeenCalledTimes(1);
   });
 });

@@ -27,6 +27,7 @@
     "rabbitmq:reset": "bash scripts/reset-rabbitmq.sh",
     "render:region-maps": "tsx src/scripts/render-region-maps.ts",
     "sde:meta-groups": "curl -fsSL https://developers.eveonline.com/static-data/eve-online-static-data-latest-jsonl.zip -o /tmp/killreport-sde.zip && unzip -p /tmp/killreport-sde.zip types.jsonl | tsx src/scripts/import-sde-meta-groups.ts",
+    "sde:map-2d": "curl -fsSL https://developers.eveonline.com/static-data/eve-online-static-data-latest-jsonl.zip -o /tmp/killreport-sde.zip && unzip -p /tmp/killreport-sde.zip mapSolarSystems.jsonl | tsx src/scripts/import-sde-map-2d.ts",
     "render:constellation-maps": "tsx src/scripts/render-constellation-maps.ts",
     "render:solar-system-maps": "tsx src/scripts/render-solar-system-maps.ts",
     "render:maps": "yarn render:region-maps && yarn render:constellation-maps && yarn render:solar-system-maps",

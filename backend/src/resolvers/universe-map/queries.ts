@@ -62,8 +62,8 @@ const OWNER_KIND: Record<ServiceOwnerKind, MapOwnerKind> = {
  * reason, which costs nothing at runtime — it is the same string.
  */
 export const universeMapQueries: QueryResolvers = {
-  mapGeometry: async (_, { scope }) => {
-    const geometry = await getMapGeometry(scope);
+  mapGeometry: async (_, { scope, projection }) => {
+    const geometry = await getMapGeometry(scope, projection);
     return { ...geometry, scope };
   },
 
@@ -72,8 +72,8 @@ export const universeMapQueries: QueryResolvers = {
     return celestials.map((c) => ({ ...c, kind: CELESTIAL_KIND[c.kind] }));
   },
 
-  mapLabels: async (_, { scope, kind }) => {
-    const labels = await getMapLabels(scope, kind);
+  mapLabels: async (_, { scope, kind, projection }) => {
+    const labels = await getMapLabels(scope, kind, projection);
     return labels.map((l) => ({ ...l, kind: LABEL_KIND[l.kind] }));
   },
 

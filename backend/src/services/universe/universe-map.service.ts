@@ -8,13 +8,48 @@
  * Measured 2026-09-13 against production: NEW_EDEN 5,241 nodes / 6,959 edges
  * in 111-123 ms + 9 ms, POCHVEN 27 / 30, WORMHOLE 2,604 / 0. Behind a 24 hour
  * Redis key, so those queries run once a day per scope.
+ *
+ * Two layouts per scope since the schematic map: SCHEMATIC is CCP's own 2D map
+ * (solar_systems.position_2d_x/y, from the SDE), GALACTIC the real position seen
+ * from above. Both are metres of the same magnitude, so nothing downstream of
+ * x/z changes with the projection.
  */
 
 import { Prisma } from '@generated/prisma/client';
 import prisma from '@services/prisma';
 import redis from '@services/redis';
+import { geometryCacheKey } from './map-cache-keys';
 
 export type MapScope = 'NEW_EDEN' | 'POCHVEN' | 'WORMHOLE';
+
+export type MapProjection = 'SCHEMATIC' | 'GALACTIC';
+
+/**
+ * WORMHOLE has no schematic layout: the SDE gives position2D to every k-space
+ * and Pochven system and to no wormhole (build 3607705, measured 2026-10-14).
+ * Asked for one, the scene answers in the only layout it has.
+ */
+export function effectiveProjection(
+  scope: MapScope,
+  projection: MapProjection,
+): MapProjection {
+  return scope === 'WORMHOLE' ? 'GALACTIC' : projection;
+}
+
+/**
+ * The two columns a layout reads its x and z from, on the `s` alias every map
+ * query gives solar_systems. position2D's y is the map's z: it correlates with
+ * position.z at r=0.98, same sign, so nothing is negated here - cameraTransform
+ * stays the one place that flips an axis.
+ */
+export function positionColumns(projection: MapProjection): {
+  x: Prisma.Sql;
+  z: Prisma.Sql;
+} {
+  return projection === 'SCHEMATIC'
+    ? { x: Prisma.raw('s.position_2d_x'), z: Prisma.raw('s.position_2d_y') }
+    : { x: Prisma.raw('s.position_x'), z: Prisma.raw('s.position_z') };
+}
 
 export interface MapNode {
   systemId: number;
@@ -148,13 +183,18 @@ export function computeBounds(nodes: MapNode[]): MapBounds {
   return { minX, maxX, minZ, maxZ };
 }
 
-export async function getMapGeometry(scope: MapScope): Promise<MapGeometry> {
-  const cacheKey = `map:geometry:${scope}`;
+export async function getMapGeometry(
+  scope: MapScope,
+  projection: MapProjection,
+): Promise<MapGeometry> {
+  const resolved = effectiveProjection(scope, projection);
+  const cacheKey = geometryCacheKey(scope, resolved);
   const cached = await redis.get(cacheKey);
   if (cached) return JSON.parse(cached);
 
   const predicate = scopePredicate(scope);
   const gateless = gatelessFilter(scope);
+  const { x, z } = positionColumns(resolved);
 
   // Security is truncated in SQL rather than in JS because numeric is exact
   // decimal: Math.trunc(0.29 * 100) / 100 is 0.28, since 0.29 * 100 is
@@ -167,13 +207,13 @@ export async function getMapGeometry(scope: MapScope): Promise<MapGeometry> {
   // >= 0.5 threshold would call them highsec.
   const nodeRowsPromise = prisma.$queryRaw<NodeRow[]>`
     WITH scoped AS (
-      SELECT s.system_id, s.name, s.position_x, s.position_z,
+      SELECT s.system_id, s.name, ${x} AS px, ${z} AS pz,
              s.security_status, s.constellation_id, c.region_id
       FROM solar_systems s
       JOIN constellations c ON c.constellation_id = s.constellation_id
       WHERE ${predicate} ${gateless}
-        AND s.position_x IS NOT NULL
-        AND s.position_z IS NOT NULL
+        AND ${x} IS NOT NULL
+        AND ${z} IS NOT NULL
         AND s.security_status IS NOT NULL
     ),
     celestial AS (
@@ -201,8 +241,8 @@ export async function getMapGeometry(scope: MapScope): Promise<MapGeometry> {
     SELECT
       scoped.system_id,
       scoped.name,
-      scoped.position_x AS x,
-      scoped.position_z AS z,
+      scoped.px AS x,
+      scoped.pz AS z,
       COALESCE(extent.radius, 0) AS radius,
       TRUNC(scoped.security_status::numeric, 2)::DOUBLE PRECISION AS security_status,
       scoped.constellation_id,
@@ -221,8 +261,8 @@ export async function getMapGeometry(scope: MapScope): Promise<MapGeometry> {
       FROM solar_systems s
       JOIN constellations c ON c.constellation_id = s.constellation_id
       WHERE ${predicate} ${gateless}
-        AND s.position_x IS NOT NULL
-        AND s.position_z IS NOT NULL
+        AND ${x} IS NOT NULL
+        AND ${z} IS NOT NULL
         AND s.security_status IS NOT NULL
     )
     SELECT DISTINCT
