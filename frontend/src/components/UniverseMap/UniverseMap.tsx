@@ -35,6 +35,7 @@ import {
   MAP_LAYERS,
   presentOwner,
   type MapLayerData,
+  type MapLayerId,
   logoOwners,
 } from '@/utils/map/layers';
 import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
@@ -79,8 +80,13 @@ import { useMapSovereignty } from './useMapSovereignty';
 import { useNow } from './useNow';
 import { useRingSpin } from './useRingSpin';
 import { useSovCampaigns } from './useSovCampaigns';
-import MapLayerSwitch from './MapLayerSwitch';
+import MapSwitch from './MapSwitch';
 import SovPanel from './SovPanel';
+
+const LAYER_OPTIONS = (Object.keys(MAP_LAYERS) as MapLayerId[]).map((id) => ({
+  id,
+  label: MAP_LAYERS[id].label,
+}));
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -963,7 +969,12 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         // them the panel scrolls and the names truncate.
         className="absolute top-3 left-3 z-10 flex max-h-[calc(100%-1.5rem)] max-w-[calc(100%-1.5rem)] flex-col items-start gap-y-2"
       >
-        <MapLayerSwitch value={layerId} onChange={setLayerId} />
+        <MapSwitch
+          label="Colouring"
+          options={LAYER_OPTIONS}
+          value={layerId}
+          onChange={setLayerId}
+        />
         {layer.legend.kind === 'owners' && (
           <SovPanel
             owners={sovOwners}
