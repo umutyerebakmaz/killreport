@@ -1,9 +1,13 @@
 import { Prisma } from '@generated/prisma/client';
 import prisma from '@services/prisma';
 import redis from '@services/redis';
+import { labelsCacheKey } from './map-cache-keys';
 import {
+  effectiveProjection,
   gatelessFilter,
+  positionColumns,
   scopePredicate,
+  type MapProjection,
   type MapScope,
 } from './universe-map.service';
 
@@ -31,16 +35,6 @@ export interface MapLabel {
 /** Static universe data, same as the geometry it sits beside. */
 export const LABELS_CACHE_TTL_SECONDS = 86400;
 
-/**
- * `v2` because the region row grew a medoid and an extent. Without the bump a
- * deploy would keep serving yesterday's shape — no bounds, no systemId — for up
- * to LABELS_CACHE_TTL_SECONDS, and the client would hide every region name
- * because none of them would pass the fit rule.
- */
-export function labelsCacheKey(scope: MapScope, kind: MapLabelKind): string {
-  return `map:labels:v2:${scope}:${kind}`;
-}
-
 interface LabelRow {
   id: number;
   name: string;
@@ -63,11 +57,32 @@ interface LabelRow {
  * shift every region centroid and could list a constellation with no drawn
  * system under it.
  */
-function labelQuery(scope: MapScope, kind: MapLabelKind): Prisma.Sql {
+function labelQuery(
+  scope: MapScope,
+  kind: MapLabelKind,
+  projection: MapProjection,
+): Prisma.Sql {
+  const { x, z } = positionColumns(projection);
   const scene = scopePredicate(scope);
   const gateless = gatelessFilter(scope);
 
   if (kind === 'CONSTELLATION') {
+    if (projection === 'SCHEMATIC') {
+      // The SDE gives a constellation no position2D. Its schematic name sits at
+      // the mean of its drawn systems — the galactic branch below is the same
+      // idea, since a constellation's own position is within 0.23 ly of that.
+      return Prisma.sql`
+        SELECT c.constellation_id AS id, c.name AS name,
+               AVG(${x}) AS x, AVG(${z}) AS z
+        FROM constellations c
+        JOIN solar_systems s ON s.constellation_id = c.constellation_id
+        WHERE ${scene}
+          AND ${x} IS NOT NULL AND ${z} IS NOT NULL
+          ${gateless}
+        GROUP BY c.constellation_id, c.name
+        ORDER BY id
+      `;
+    }
     // Measured 2026-09-14: zero constellations have a null position, and a
     // constellation's own position sits within 0.23 ly of its members' centroid,
     // so it is used directly.
@@ -112,12 +127,12 @@ function labelQuery(scope: MapScope, kind: MapLabelKind): Prisma.Sql {
   return Prisma.sql`
     WITH scene AS (
       SELECT r.region_id, r.name, s.system_id,
-             s.position_x AS x, s.position_z AS z
+             ${x} AS x, ${z} AS z
       FROM regions r
       JOIN constellations c ON c.region_id = r.region_id
       JOIN solar_systems s ON s.constellation_id = c.constellation_id
       WHERE ${scene}
-        AND s.position_x IS NOT NULL AND s.position_z IS NOT NULL
+        AND ${x} IS NOT NULL AND ${z} IS NOT NULL
         ${gateless}
     ),
     extent AS (
@@ -149,12 +164,16 @@ function labelQuery(scope: MapScope, kind: MapLabelKind): Prisma.Sql {
 export async function getMapLabels(
   scope: MapScope,
   kind: MapLabelKind,
+  projection: MapProjection,
 ): Promise<MapLabel[]> {
-  const key = labelsCacheKey(scope, kind);
+  const resolved = effectiveProjection(scope, projection);
+  const key = labelsCacheKey(scope, kind, resolved);
   const cached = await redis.get(key);
   if (cached) return JSON.parse(cached) as MapLabel[];
 
-  const rows = await prisma.$queryRaw<LabelRow[]>(labelQuery(scope, kind));
+  const rows = await prisma.$queryRaw<LabelRow[]>(
+    labelQuery(scope, kind, resolved),
+  );
 
   // The kind is stamped from the argument, not read from the row: it is the
   // thing the cache key was built on, and a row that carried its own could

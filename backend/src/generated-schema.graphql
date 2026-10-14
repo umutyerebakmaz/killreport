@@ -1112,7 +1112,7 @@ type Query {
   it in Redis for 86400 s, and the freshness seen through the API is the response
   cache's STATIC_GAME_DATA.
   """
-  mapLabels(kind: MapLabelKind!, scope: MapScope! = NEW_EDEN): [MapLabel!]!
+  mapLabels(kind: MapLabelKind!, projection: MapProjection! = SCHEMATIC, scope: MapScope! = NEW_EDEN): [MapLabel!]!
 
   """
   The scene's sovereignty layer. The service keeps it in Redis for 900 s.

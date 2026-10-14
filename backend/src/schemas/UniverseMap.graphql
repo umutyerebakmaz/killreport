@@ -233,7 +233,11 @@ extend type Query {
   it in Redis for 86400 s, and the freshness seen through the API is the response
   cache's STATIC_GAME_DATA.
   """
-  mapLabels(scope: MapScope! = NEW_EDEN, kind: MapLabelKind!): [MapLabel!]!
+  mapLabels(
+    scope: MapScope! = NEW_EDEN
+    kind: MapLabelKind!
+    projection: MapProjection! = SCHEMATIC
+  ): [MapLabel!]!
 
   """
   The single query the popup reads. Cached per system for 300 s — the shortest-lived

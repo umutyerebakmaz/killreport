@@ -1559,6 +1559,7 @@ export type QueryMapGeometryArgs = {
 
 export type QueryMapLabelsArgs = {
   kind: MapLabelKind;
+  projection?: MapProjection;
   scope?: MapScope;
 };
 
@@ -3566,7 +3567,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   killmailsDateCounts?: Resolver<Array<ResolversTypes['KillmailDateCount']>, ParentType, ContextType, Partial<QueryKillmailsDateCountsArgs>>;
   mapCelestials?: Resolver<Array<ResolversTypes['MapCelestial']>, ParentType, ContextType, RequireFields<QueryMapCelestialsArgs, 'systemIds'>>;
   mapGeometry?: Resolver<ResolversTypes['MapGeometry'], ParentType, ContextType, RequireFields<QueryMapGeometryArgs, 'projection' | 'scope'>>;
-  mapLabels?: Resolver<Array<ResolversTypes['MapLabel']>, ParentType, ContextType, RequireFields<QueryMapLabelsArgs, 'kind' | 'scope'>>;
+  mapLabels?: Resolver<Array<ResolversTypes['MapLabel']>, ParentType, ContextType, RequireFields<QueryMapLabelsArgs, 'kind' | 'projection' | 'scope'>>;
   mapSovereignty?: Resolver<ResolversTypes['MapSovereignty'], ParentType, ContextType, RequireFields<QueryMapSovereigntyArgs, 'scope'>>;
   mapSystemDetails?: Resolver<Maybe<ResolversTypes['MapSystemDetails']>, ParentType, ContextType, RequireFields<QueryMapSystemDetailsArgs, 'systemId'>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;

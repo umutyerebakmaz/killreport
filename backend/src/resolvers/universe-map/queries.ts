@@ -72,8 +72,8 @@ export const universeMapQueries: QueryResolvers = {
     return celestials.map((c) => ({ ...c, kind: CELESTIAL_KIND[c.kind] }));
   },
 
-  mapLabels: async (_, { scope, kind }) => {
-    const labels = await getMapLabels(scope, kind);
+  mapLabels: async (_, { scope, kind, projection }) => {
+    const labels = await getMapLabels(scope, kind, projection);
     return labels.map((l) => ({ ...l, kind: LABEL_KIND[l.kind] }));
   },
 
