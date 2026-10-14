@@ -795,9 +795,11 @@ export type MapGeometry = {
 };
 
 /**
- * A name on the map. Coordinates are in **galactic metres**, the same space as the nodes.
- * A region has no position, so it is computed from the medoid of the systems the scene
- * draws; a constellation uses constellations.position_x/z directly.
+ * A name on the map. Coordinates are in the requested projection, the same space as
+ * the nodes. A region has no position, so it is computed from the medoid of the
+ * systems the scene draws, in either projection. A constellation in SCHEMATIC sits
+ * at the mean of its drawn systems, since CCP's 2D map gives constellations no
+ * position; in GALACTIC it uses constellations.position_x/z directly.
  */
 export type MapLabel = {
   __typename?: 'MapLabel';
@@ -819,7 +821,11 @@ export enum MapLabelKind {
   Region = 'REGION'
 }
 
-/** A system at its galactic position. Coordinates are rounded to 1e9 m and never reach the GPU raw. */
+/**
+ * A system at its position in the requested projection: CCP's 2D map for
+ * SCHEMATIC, the galactic position seen from above for GALACTIC. Coordinates are
+ * rounded to 1e9 m and never reach the GPU raw.
+ */
 export type MapNode = {
   __typename?: 'MapNode';
   constellationId: Scalars['Int']['output'];
