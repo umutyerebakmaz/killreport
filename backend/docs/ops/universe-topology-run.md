@@ -245,6 +245,10 @@ A clean report has every count at zero, except `stations.owner_corporation_id`,
 which was 2,535 on 2026-09-02: those are station owners the **corporation**
 pipeline has not fetched. That is a separate job, not a topology fault.
 
+If the root scan added systems, re-run the schematic layout import afterwards —
+new rows have no 2D position and stay off `/map`'s default layout until it does:
+see [`sde-map-2d.md`](./sde-map-2d.md).
+
 ---
 
 ## When something goes wrong

@@ -74,6 +74,7 @@ the containing file, and run `yarn docs:check-links` from the repository root.
 - [Crontab](ops/crontab.md) — crontab configuration
 - [Daily Workflows](ops/daily.md) — daily backend workflows
 - [Performance Improvements](ops/performance-improvements.md) — killmail query performance
+- [SDE Schematic Map Import](ops/sde-map-2d.md) — the 2D layout `/map` opens on, and the caches to clear after it
 
 ## Deployment
 
