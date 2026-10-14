@@ -1095,6 +1095,36 @@ describe('UniverseMap', () => {
       expect(morphRun).not.toHaveBeenCalled();
     });
 
+    // An empty layout is what SCHEMATIC answers before `sde:map-2d` has run:
+    // its bounds are all zero, and a morph would fly every dot off to the
+    // origin and land on a blank scene.
+    it('gives up the switch when the other layout has no systems', async () => {
+      const EMPTY = {
+        mapGeometry: {
+          ...GEOMETRY.mapGeometry,
+          nodes: [],
+          edges: [],
+          bounds: { minX: 0, maxX: 0, minZ: 0, maxZ: 0 },
+        },
+      };
+      useMapGeometryQuery.mockImplementation((projection) => ({
+        data: projection === 'GALACTIC' ? EMPTY : GEOMETRY,
+        loading: false,
+      }));
+      render(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+
+      fireEvent.click(screen.getByRole('button', { name: 'Galactic' }));
+
+      expect(
+        screen
+          .getByRole('button', { name: 'Schematic' })
+          .getAttribute('aria-pressed'),
+      ).toBe('true');
+      expect(scene.edgesGalaxy.visible).toBe(true);
+      expect(morphRun).not.toHaveBeenCalled();
+    });
+
     it('drops a morph in flight when the scope changes', async () => {
       const { rerender } = render(<UniverseMap scope={MapScope.NewEden} />);
       await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());

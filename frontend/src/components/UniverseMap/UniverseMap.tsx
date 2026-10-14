@@ -207,10 +207,15 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // with every layer hidden and the pointer off. React's "adjust state while
   // rendering" pattern: an effect would draw one frame of the new geometry
   // with every layer still hidden.
+  //
+  // A layout that loaded with no systems is given up the same way: it is what
+  // SCHEMATIC answers before `sde:map-2d` has run, and a morph would fly every
+  // dot to the origin of its all-zero bounds and land on a blank scene.
   if (
     morph &&
     (morph.scope !== scope ||
       targetQuery.error ||
+      targetGeometry?.nodes.length === 0 ||
       (urlProjection === morph.to && data?.mapGeometry))
   ) {
     setMorph(null);
