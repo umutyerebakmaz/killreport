@@ -3,6 +3,7 @@
 import {
   MapLabelKind,
   useMapLabelsQuery,
+  type MapProjection,
   type MapLabelsQuery,
   type MapScope,
 } from '@/generated/graphql';
@@ -41,14 +42,18 @@ const EMPTY: MapLabelsQuery['mapLabels'] = [];
  * drawing the constellation tier at the exact same `CONSTELLATION_LABEL_ZOOM`,
  * so the data disappears exactly when nothing is reading it.
  */
-export function useMapLabels(scope: MapScope, zoom: number | null) {
+export function useMapLabels(
+  scope: MapScope,
+  projection: MapProjection,
+  zoom: number | null,
+) {
   const { data: regionData } = useMapLabelsQuery({
-    variables: { scope, kind: MapLabelKind.Region },
+    variables: { scope, kind: MapLabelKind.Region, projection },
     fetchPolicy: 'cache-first',
   });
 
   const { data: constellationData } = useMapLabelsQuery({
-    variables: { scope, kind: MapLabelKind.Constellation },
+    variables: { scope, kind: MapLabelKind.Constellation, projection },
     fetchPolicy: 'cache-first',
     skip: zoom === null || zoom < CONSTELLATION_LABEL_ZOOM,
   });

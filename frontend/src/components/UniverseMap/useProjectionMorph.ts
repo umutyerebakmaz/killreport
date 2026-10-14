@@ -40,7 +40,11 @@ export interface MorphRun {
  * animation would cost more than the animation. The caller hides everything
  * else for the run and builds it again in the new layout from `onDone`.
  */
-export function useProjectionMorph(): { run(run: MorphRun): void } {
+export function useProjectionMorph(): {
+  run(run: MorphRun): void;
+  /** Ends a run where it stands, without calling its `onDone`. */
+  stop(): void;
+} {
   const reduced = useReducedMotion();
   const reducedRef = useRef(reduced);
   useEffect(() => {
@@ -95,12 +99,12 @@ export function useProjectionMorph(): { run(run: MorphRun): void } {
           stop = null;
         };
       },
-      dispose() {
+      stop() {
         stop?.();
       },
     };
   });
 
-  useEffect(() => morph.dispose, [morph]);
+  useEffect(() => morph.stop, [morph]);
   return morph;
 }

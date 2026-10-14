@@ -3,6 +3,7 @@
 import Loader from '@/components/Loader';
 import {
   MapCelestialKind,
+  MapProjection,
   useMapGeometryQuery,
   type MapScope,
 } from '@/generated/graphql';
@@ -10,6 +11,8 @@ import {
   cameraTransform,
   fitCamera,
   parseFraming,
+  parseProjection,
+  projectionsFor,
   sharedMapUrl,
   shareScopeFor,
   zoomLimits,
@@ -42,6 +45,7 @@ import { layerVisibility, lodBucket, visibleLabelTiers } from '@/utils/map/lod';
 import { createLabelMeasurer, whenLabelFontsReady } from '@/utils/map/measure';
 import { boundsCenter, nearestNode, originFor } from '@/utils/map/origin';
 import { systemFloorPx, systemRadiusPx } from '@/utils/map/marks';
+import { morphAnchor, morphTarget, pairNodes } from '@/utils/map/morph';
 import { pickById, pickSystem, type PickTarget } from '@/utils/map/pick';
 import { gateNeighbours } from '@/utils/map/topology';
 import { isWebgl2Available } from '@/utils/map/webgl';
@@ -78,6 +82,7 @@ import { useMapLabels } from './useMapLabels';
 import { useMapPointer, type MapPick } from './useMapPointer';
 import { useMapSovereignty } from './useMapSovereignty';
 import { useNow } from './useNow';
+import { useProjectionMorph } from './useProjectionMorph';
 import { useRingSpin } from './useRingSpin';
 import { useSovCampaigns } from './useSovCampaigns';
 import MapSwitch from './MapSwitch';
@@ -87,6 +92,18 @@ const LAYER_OPTIONS = (Object.keys(MAP_LAYERS) as MapLayerId[]).map((id) => ({
   id,
   label: MAP_LAYERS[id].label,
 }));
+
+const PROJECTION_LABEL: Record<MapProjection, string> = {
+  [MapProjection.Schematic]: 'Schematic',
+  [MapProjection.Galactic]: 'Galactic',
+};
+
+/** A switch of layout under way: requested, loading, or running. */
+interface Morph {
+  scope: MapScope;
+  from: MapProjection;
+  to: MapProjection;
+}
 
 function MapMessage({ children }: { children: React.ReactNode }) {
   return (
@@ -158,14 +175,54 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   // the effect below from redrawing on every move.
   const [highlighted, setHighlighted] = useState<MapArea | null>(null);
 
+  const searchParams = useSearchParams();
+
+  // The layout the query draws comes from the URL, not from useMapCamera: that
+  // hook takes the geometry's fit as its fallback, so its state cannot also
+  // decide which geometry to load. useMapCamera writes the URL the moment a
+  // morph lands, and the morph holds its last frame until the URL arrives here.
+  const urlProjection = parseProjection(searchParams, scope);
+  const [morph, setMorph] = useState<Morph | null>(null);
+
   // Static universe data behind a 24 hour Redis key and a STATIC_GAME_DATA
   // response cache: cache-first is overridden here at the call site rather than
   // globally, because apolloClient.ts is shared by every page.
   const { data, loading, error } = useMapGeometryQuery({
-    variables: { scope },
+    variables: { scope, projection: urlProjection },
     fetchPolicy: 'cache-first',
   });
-  const geometry = data?.mapGeometry;
+  // The layout being switched to. Same variables the main query moves to once
+  // the URL commits, so that query is then answered from this one's cache entry.
+  const targetQuery = useMapGeometryQuery({
+    variables: { scope, projection: morph?.to ?? urlProjection },
+    fetchPolicy: 'cache-first',
+    skip: morph === null,
+  });
+  const targetGeometry = morph ? targetQuery.data?.mapGeometry : undefined;
+
+  // Dropped during render, not in an effect, once the URL has the new layout
+  // and the main query has its data — or the scope it ran in is gone, or the
+  // layout asked for could not be loaded, which would otherwise leave the map
+  // with every layer hidden and the pointer off. React's "adjust state while
+  // rendering" pattern: an effect would draw one frame of the new geometry
+  // with every layer still hidden.
+  if (
+    morph &&
+    (morph.scope !== scope ||
+      targetQuery.error ||
+      (urlProjection === morph.to && data?.mapGeometry))
+  ) {
+    setMorph(null);
+  }
+
+  // The target's own copy stands in while the main query catches up with the
+  // URL. Without it a query that did not answer from cache on the very render
+  // its variables changed would put up the Loader — which unmounts the host
+  // and with it the whole scene.
+  const geometry =
+    data?.mapGeometry ??
+    (morph && urlProjection === morph.to ? targetGeometry : undefined);
+  const morphing = morph !== null;
 
   // Memoised: `useMapCamera` and the pointer hook both take this as an input,
   // and a fresh object every render would churn both on every keystroke of an
@@ -176,8 +233,6 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       geometry ? fitCamera(geometry.bounds, size.width, size.height) : null,
     [geometry, size.width, size.height],
   );
-
-  const searchParams = useSearchParams();
 
   // Where the URL says to look. Resolved against the loaded scene on the
   // client — every node carries its three ids — so none of this costs a query.
@@ -216,7 +271,22 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     owner: urlOwner,
     onOwnerChange: setIsolatedOwner,
     jumpTo,
+    onProjectionChange,
   } = useMapCamera(scope, framing ?? fit);
+
+  // The press itself: a second one while a switch is under way, or one on the
+  // layout already drawn, does nothing. The hover and the area highlight are
+  // dropped here because the pointer stands down for the run (below) and would
+  // otherwise leave both pinned to where the dots were.
+  const requestProjection = useCallback(
+    (next: MapProjection) => {
+      if (morph !== null || next === urlProjection) return;
+      setHovered(null);
+      setHighlighted(null);
+      setMorph({ scope, from: urlProjection, to: next });
+    },
+    [morph, urlProjection, scope],
+  );
 
   const bucket = camera ? lodBucket(camera.zoom) : 'galaxy';
 
@@ -243,7 +313,11 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   );
   const celestials = useMapCelestials(celestialSystemIds);
 
-  const { regions, constellations } = useMapLabels(scope, camera?.zoom ?? null);
+  const { regions, constellations } = useMapLabels(
+    scope,
+    urlProjection,
+    camera?.zoom ?? null,
+  );
 
   const layer = MAP_LAYERS[layerId];
   const { index: sovIndex, owners: sovOwners } = useMapSovereignty(
@@ -503,12 +577,14 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     [camera, size.width, size.height],
   );
 
-  // The transform is one object write.
+  // The transform is one object write. Written again when a morph ends: the
+  // run writes the world directly on every frame, and one dropped part-way
+  // leaves it wherever that frame put it.
   useEffect(() => {
     if (!scene.current || !transform) return;
     scene.current.world.scale.set(transform.scaleX, transform.scaleY);
     scene.current.world.position.set(transform.x, transform.y);
-  }, [sceneReady, transform]);
+  }, [sceneReady, transform, morphing]);
 
   // Labels live in screen space, so they re-place on every camera change rather
   // than on a bucket change. Their own effect: the dependencies differ from the
@@ -523,7 +599,8 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     // sticky set, and the placed systems are cleared by the same line as
     // everywhere else.
     const candidates = labelCandidates({
-      tiers: visibleLabelTiers(camera.zoom),
+      // None during a morph: the names would stand where the dots were.
+      tiers: morphing ? [] : visibleLabelTiers(camera.zoom),
       regions: regionSources,
       constellations: constellationSources,
       // System names ride in the geometry that is already loaded; this tier
@@ -558,6 +635,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     regionSources,
     constellationSources,
     showLogos,
+    morphing,
   ]);
 
   // The galaxy: 5,241 sprites and the full 6,959-segment mesh, built once per
@@ -594,6 +672,71 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
       cameraScale.current,
     );
   }, [sceneReady, geometry, galaxyMesh]);
+
+  // Read when the run lands rather than closed over when it starts: a layer
+  // switched mid-run is part of the URL that landing writes.
+  const onProjectionChangeRef = useRef(onProjectionChange);
+  useEffect(() => {
+    onProjectionChangeRef.current = onProjectionChange;
+  }, [onProjectionChange]);
+
+  // Once per morph, when the layout being switched to has loaded and there are
+  // sprites to move. The ref, not the state, remembers it ran: a render in the
+  // middle of the run must not start it again.
+  const morphRunner = useProjectionMorph();
+  const morphStarted = useRef<Morph | null>(null);
+  useEffect(() => {
+    if (!morph || morphStarted.current === morph) return;
+    if (!targetGeometry || !geometry || !camera || !fit) return;
+    if (!scene.current || !systemSprites.current || !size.width) return;
+    morphStarted.current = morph;
+
+    const toFit = fitCamera(targetGeometry.bounds, size.width, size.height);
+    const toCamera = morphTarget({
+      camera,
+      // The camera is the fit object itself until anything moves it.
+      atFit: camera === fit,
+      toFit,
+      anchor: morphAnchor({
+        focus: selected,
+        camera,
+        from: geometry.nodes,
+        to: targetGeometry.nodes,
+      }),
+    });
+
+    morphRunner.run({
+      scene: scene.current,
+      sprites: systemSprites.current,
+      from: geometry.nodes,
+      to: pairNodes(geometry.nodes, targetGeometry.nodes),
+      fromCamera: camera,
+      toCamera,
+      width: size.width,
+      height: size.height,
+      onDone: () => onProjectionChangeRef.current(morph.to, toCamera),
+    });
+  }, [
+    morph,
+    targetGeometry,
+    geometry,
+    camera,
+    fit,
+    selected,
+    sceneReady,
+    size.width,
+    size.height,
+    morphRunner,
+  ]);
+
+  // A morph dropped before it lands — the scope changed under it — is stopped
+  // where it stands. Left running, its remaining frames would write the old
+  // scene's camera over the new one and its end would write the old layout
+  // into the URL. After a landing this is a no-op: the run has already ended.
+  useEffect(() => {
+    if (!morph) return;
+    return () => morphRunner.stop();
+  }, [morph, morphRunner]);
 
   // The galaxy mesh, coloured by the layer. Its own effect and not part of the
   // build above: a layer change must not rebuild 5,241 sprites, and the mesh
@@ -682,7 +825,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     };
     ringSpin.update(
       scene.current,
-      transform && layerId === 'sovereignty'
+      transform && layerId === 'sovereignty' && !morphing
         ? ringMarks({
             sources: markSources,
             transform,
@@ -710,6 +853,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     crestOwners,
     ringNow,
     ringSpin,
+    morphing,
   ]);
 
   // What the pointer is resting on, at whichever tier it found something.
@@ -789,15 +933,17 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
   useEffect(() => {
     if (!scene.current) return;
     const v = layerVisibility(bucket);
-    scene.current.edgesGalaxy.visible = v.edgesGalaxy;
-    scene.current.edgesHighlight.visible = v.edgesHighlight;
-    scene.current.edgesLocal.visible = v.edgesLocal;
+    // Everything but the dots is hidden for a morph: none of it moves with them.
+    scene.current.edgesGalaxy.visible = v.edgesGalaxy && !morphing;
+    scene.current.edgesHighlight.visible = v.edgesHighlight && !morphing;
+    scene.current.edgesLocal.visible = v.edgesLocal && !morphing;
+    scene.current.discs.visible = !morphing;
     scene.current.systems.visible = v.systems;
-    scene.current.celestials.visible = v.celestials;
+    scene.current.celestials.visible = v.celestials && !morphing;
     if (celestialSprites.current) {
       setFineVisible(celestialSprites.current, v.fine);
     }
-  }, [sceneReady, bucket, celestials]);
+  }, [sceneReady, bucket, celestials, morphing]);
 
   // Pan and zoom: the listeners bind once per host and read the latest camera
   // through a ref, in useMapPointer.ts — see that file for why the host and
@@ -851,8 +997,9 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
         focus: systemId,
         layer: layerId,
         owner: isolatedOwner,
+        projection: urlProjection,
       }),
-    [scope, geometry, layerId, isolatedOwner],
+    [scope, geometry, layerId, isolatedOwner, urlProjection],
   );
 
   // Rebuilt whenever the camera or the viewport moves, which is correct: the
@@ -890,7 +1037,15 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
     };
   }, [transform, pickNodes, setSelected]);
 
-  useMapPointer(host, camera, limits, onCameraChange, pick);
+  // A null camera and no pick are how the pointer hook stands down: a drag or
+  // a click during the morph would act on positions that are mid-flight.
+  useMapPointer(
+    host,
+    morphing ? null : camera,
+    limits,
+    onCameraChange,
+    morphing ? undefined : pick,
+  );
 
   // Stable, so React attaches it once rather than detaching and re-attaching on
   // every render — which with `setHost` in it would tear the scene down and
@@ -975,6 +1130,19 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
           value={layerId}
           onChange={setLayerId}
         />
+        {projectionsFor(scope).length > 1 && (
+          <MapSwitch
+            label="Layout"
+            options={projectionsFor(scope).map((id) => ({
+              id,
+              label: PROJECTION_LABEL[id],
+            }))}
+            // The pressed segment is the one asked for, so the press is
+            // answered at once even while that layout is still loading.
+            value={morph?.to ?? urlProjection}
+            onChange={requestProjection}
+          />
+        )}
         {layer.legend.kind === 'owners' && (
           <SovPanel
             owners={sovOwners}
@@ -990,7 +1158,8 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
 
       {/* Only for a system with no name on screen to be titled on, and never
           over the selected one — see showHoverTip. */}
-      {hovered &&
+      {!morphing &&
+        hovered &&
         camera &&
         showHoverTip({
           hoveredSystemId: hovered.node.systemId,
@@ -1012,7 +1181,7 @@ export default function UniverseMap({ scope }: { scope: MapScope }) {
           />
         )}
 
-      {selectedNode && transform && camera && (
+      {!morphing && selectedNode && transform && camera && (
         <SystemPopup
           systemId={selectedNode.systemId}
           screenX={selectedNode.x * transform.scaleX + transform.x}

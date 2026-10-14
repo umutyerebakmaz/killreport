@@ -1,4 +1,10 @@
-import { act, render, screen, waitFor } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const webgl = vi.fn(() => true);
@@ -13,6 +19,8 @@ vi.mock('next/navigation', () => ({
 }));
 
 let labelQueries: { kind: string; skip: boolean }[] = [];
+/** Every geometry query: which layout it asked for and whether it was skipped. */
+let geometryQueries: { projection: string; skip: boolean }[] = [];
 /** Whether the sovereignty query was skipped — it is, until the layer opens. */
 let sovQueries: { skip: boolean }[] = [];
 /** Whether the campaigns query was skipped — it is, off the sovereignty layer. */
@@ -27,7 +35,7 @@ type QueryResult = {
   loading: boolean;
   error?: { message: string };
 };
-const useMapGeometryQuery = vi.fn<() => QueryResult>();
+const useMapGeometryQuery = vi.fn<(projection?: string) => QueryResult>();
 vi.mock('@/generated/graphql', () => ({
   MapScope: { NewEden: 'NEW_EDEN', Pochven: 'POCHVEN', Wormhole: 'WORMHOLE' },
   MapCelestialKind: {
@@ -39,12 +47,25 @@ vi.mock('@/generated/graphql', () => ({
     Gate: 'GATE',
   },
   MapLabelKind: { Region: 'REGION', Constellation: 'CONSTELLATION' },
+  MapProjection: { Schematic: 'SCHEMATIC', Galactic: 'GALACTIC' },
   MapOwnerKind: {
     Alliance: 'ALLIANCE',
     Faction: 'FACTION',
     Corporation: 'CORPORATION',
   },
-  useMapGeometryQuery: () => useMapGeometryQuery(),
+  useMapGeometryQuery: (options: {
+    variables: { projection: string };
+    skip?: boolean;
+  }) => {
+    geometryQueries.push({
+      projection: options.variables.projection,
+      skip: !!options.skip,
+    });
+    // Called either way, so the mock keeps the order rules-of-hooks asks of
+    // anything named like a hook.
+    const answer = useMapGeometryQuery(options.variables.projection);
+    return options.skip ? { data: undefined, loading: false } : answer;
+  },
   // The layer switch starts on `security`, so the hook is always skipped in
   // these tests; it still has to exist, because the module is mocked whole.
   useMapSovereigntyQuery: (options: { skip?: boolean }) => {
@@ -99,7 +120,12 @@ vi.mock('./scene/createScene', () => ({
   createScene: (host: HTMLElement) => createScene(host),
 }));
 vi.mock('./scene/systems', () => ({
-  buildSystems: vi.fn(),
+  buildSystems: vi.fn(() => ({
+    sprites: [],
+    radii: [],
+    logos: [],
+    discs: [],
+  })),
   scaleSystems: vi.fn(),
   applyLayer: vi.fn(),
   applyLogos: vi.fn(),
@@ -133,6 +159,16 @@ vi.mock('./labels/labelLayer', () => ({
   markHoveredLabel: vi.fn(),
 }));
 vi.mock('./scene/campaignRings', () => ({ drawRings: vi.fn() }));
+// The morph runs on the Pixi ticker, which the fake scene does not turn: the
+// mock lets a test end it at once, or never, and see that it was started.
+// One object across renders, as the real hook's is: a fresh one each render
+// would re-run every effect keyed on it, the stop included.
+const morphRun = vi.fn();
+const morphStop = vi.fn();
+const morphRunner = { run: morphRun, stop: morphStop };
+vi.mock('./useProjectionMorph', () => ({
+  useProjectionMorph: () => morphRunner,
+}));
 
 /** A real canvas element, as the component's `resizeTo: host` scene has. */
 type FakeScene = ReturnType<typeof fakeScene>;
@@ -156,6 +192,7 @@ function fakeScene() {
     edgesHighlight: { visible: true, clear: vi.fn() },
     edgesLocal: { visible: true, clear: vi.fn() },
     systems: { visible: true },
+    discs: { visible: true },
     celestials: { visible: true },
     rings: {},
     dot: {},
@@ -204,6 +241,7 @@ import {
 } from '@/utils/map/camera';
 import { SYSTEM_LABEL_ZOOM } from '@/utils/map/lod';
 import UniverseMap from './UniverseMap';
+import { drawLabels } from './labels/labelLayer';
 import { buildCelestials } from './scene/celestials';
 import { buildSystems } from './scene/systems';
 
@@ -236,6 +274,9 @@ beforeEach(() => {
   createScene.mockResolvedValue(scene);
   searchParams = new URLSearchParams('');
   labelQueries = [];
+  geometryQueries = [];
+  morphRun.mockReset();
+  morphStop.mockReset();
   sovQueries = [];
   sovCampaignQueries = [];
   sovCampaignData = undefined;
@@ -848,6 +889,139 @@ describe('UniverseMap', () => {
       expect(
         screen.queryByText('· Kimotoro · The Forge'),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('layout', () => {
+    it('opens on the schematic layout', () => {
+      render(<UniverseMap scope={MapScope.NewEden} />);
+      expect(geometryQueries.find((q) => !q.skip)?.projection).toBe(
+        'SCHEMATIC',
+      );
+      expect(
+        screen
+          .getByRole('button', { name: 'Schematic' })
+          .getAttribute('aria-pressed'),
+      ).toBe('true');
+    });
+
+    it('opens on the galactic layout when the URL names it', () => {
+      searchParams = new URLSearchParams('view=galactic');
+      render(<UniverseMap scope={MapScope.NewEden} />);
+      expect(geometryQueries.find((q) => !q.skip)?.projection).toBe('GALACTIC');
+    });
+
+    it('offers no layout switch in wormhole space', () => {
+      render(<UniverseMap scope={MapScope.Wormhole} />);
+      expect(screen.queryByRole('group', { name: 'Layout' })).toBeNull();
+    });
+
+    it('fetches the other layout and morphs to it when the switch is pressed', async () => {
+      render(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+
+      fireEvent.click(screen.getByRole('button', { name: 'Galactic' }));
+
+      expect(geometryQueries.at(-1)).toEqual({
+        projection: 'GALACTIC',
+        skip: false,
+      });
+      await waitFor(() => expect(morphRun).toHaveBeenCalledTimes(1));
+    });
+
+    it('starts no second morph when pressed again mid-run, or on the selected layout', async () => {
+      render(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+
+      fireEvent.click(screen.getByRole('button', { name: 'Schematic' }));
+      expect(morphRun).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Galactic' }));
+      await waitFor(() => expect(morphRun).toHaveBeenCalledTimes(1));
+      fireEvent.click(screen.getByRole('button', { name: 'Schematic' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Galactic' }));
+      expect(morphRun).toHaveBeenCalledTimes(1);
+    });
+
+    it('writes the layout and the camera once the morph lands', async () => {
+      morphRun.mockImplementation((run: { onDone: () => void }) =>
+        run.onDone(),
+      );
+      render(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+
+      fireEvent.click(screen.getByRole('button', { name: 'Galactic' }));
+
+      await waitFor(() => {
+        const last = new URLSearchParams(
+          routerReplace.mock.calls.at(-1)![0].slice(1),
+        );
+        expect(last.get('view')).toBe('galactic');
+        expect(last.has('x')).toBe(true);
+      });
+    });
+
+    it('keeps the labels and the pointer off until the URL has the new layout', async () => {
+      // onDone writes the URL, but the mocked router never hands it back: the
+      // map is held on the morph's last frame.
+      morphRun.mockImplementation((run: { onDone: () => void }) =>
+        run.onDone(),
+      );
+      render(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+      vi.mocked(drawLabels).mockClear();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Galactic' }));
+      await waitFor(() => expect(morphRun).toHaveBeenCalled());
+
+      for (const call of vi.mocked(drawLabels).mock.calls) {
+        expect(call[1]).toEqual([]);
+      }
+      // jsdom gives no 2d context, so no measurer and usually no drawLabels
+      // call at all: the layers the run hides are the part this can see.
+      expect(scene.edgesGalaxy.visible).toBe(false);
+      expect(scene.discs.visible).toBe(false);
+      expect(scene.celestials.visible).toBe(false);
+      expect(scene.systems.visible).toBe(true);
+    });
+
+    it('gives up the switch when the other layout cannot be loaded', async () => {
+      useMapGeometryQuery.mockImplementation((projection) =>
+        projection === 'GALACTIC'
+          ? { loading: false, error: { message: 'boom' } }
+          : { data: GEOMETRY, loading: false },
+      );
+      render(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+
+      fireEvent.click(screen.getByRole('button', { name: 'Galactic' }));
+
+      expect(
+        screen
+          .getByRole('button', { name: 'Schematic' })
+          .getAttribute('aria-pressed'),
+      ).toBe('true');
+      expect(scene.edgesGalaxy.visible).toBe(true);
+      expect(morphRun).not.toHaveBeenCalled();
+    });
+
+    it('drops a morph in flight when the scope changes', async () => {
+      const { rerender } = render(<UniverseMap scope={MapScope.NewEden} />);
+      await waitFor(() => expect(scene.world.position.set).toHaveBeenCalled());
+      fireEvent.click(screen.getByRole('button', { name: 'Galactic' }));
+      await waitFor(() => expect(morphRun).toHaveBeenCalledTimes(1));
+      expect(morphStop).not.toHaveBeenCalled();
+
+      rerender(<UniverseMap scope={MapScope.Pochven} />);
+
+      expect(
+        screen
+          .getByRole('button', { name: 'Schematic' })
+          .getAttribute('aria-pressed'),
+      ).toBe('true');
+      // The run is stopped, not left to land: its last frames would write the
+      // old scene's camera over the new one, and its end the old layout's URL.
+      expect(morphStop).toHaveBeenCalled();
     });
   });
 });
