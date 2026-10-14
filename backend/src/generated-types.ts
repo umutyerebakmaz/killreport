@@ -841,6 +841,16 @@ export enum MapOwnerKind {
   Faction = 'FACTION'
 }
 
+/**
+ * Which layout a scene is drawn in. Both are flat: SCHEMATIC is CCP's own 2D map
+ * from the SDE's position2D, GALACTIC the real position seen from above. WORMHOLE
+ * has no schematic layout and is always GALACTIC, whatever is asked.
+ */
+export enum MapProjection {
+  Galactic = 'GALACTIC',
+  Schematic = 'SCHEMATIC'
+}
+
 /** A drawable scene. Abyssal, Proving and GPMR-01 are not here: they contain zero planets, moons and stations. */
 export enum MapScope {
   NewEden = 'NEW_EDEN',
@@ -1542,6 +1552,7 @@ export type QueryMapCelestialsArgs = {
 
 
 export type QueryMapGeometryArgs = {
+  projection?: MapProjection;
   scope?: MapScope;
 };
 
@@ -2654,6 +2665,7 @@ export type ResolversTypes = {
   MapLabelKind: MapLabelKind;
   MapNode: ResolverTypeWrapper<MapNode>;
   MapOwnerKind: MapOwnerKind;
+  MapProjection: MapProjection;
   MapScope: MapScope;
   MapSovOwner: ResolverTypeWrapper<MapSovOwner>;
   MapSovSystem: ResolverTypeWrapper<MapSovSystem>;
@@ -3553,7 +3565,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   killmails?: Resolver<ResolversTypes['KillmailsResponse'], ParentType, ContextType, Partial<QueryKillmailsArgs>>;
   killmailsDateCounts?: Resolver<Array<ResolversTypes['KillmailDateCount']>, ParentType, ContextType, Partial<QueryKillmailsDateCountsArgs>>;
   mapCelestials?: Resolver<Array<ResolversTypes['MapCelestial']>, ParentType, ContextType, RequireFields<QueryMapCelestialsArgs, 'systemIds'>>;
-  mapGeometry?: Resolver<ResolversTypes['MapGeometry'], ParentType, ContextType, RequireFields<QueryMapGeometryArgs, 'scope'>>;
+  mapGeometry?: Resolver<ResolversTypes['MapGeometry'], ParentType, ContextType, RequireFields<QueryMapGeometryArgs, 'projection' | 'scope'>>;
   mapLabels?: Resolver<Array<ResolversTypes['MapLabel']>, ParentType, ContextType, RequireFields<QueryMapLabelsArgs, 'kind' | 'scope'>>;
   mapSovereignty?: Resolver<ResolversTypes['MapSovereignty'], ParentType, ContextType, RequireFields<QueryMapSovereigntyArgs, 'scope'>>;
   mapSystemDetails?: Resolver<Maybe<ResolversTypes['MapSystemDetails']>, ParentType, ContextType, RequireFields<QueryMapSystemDetailsArgs, 'systemId'>>;

@@ -62,8 +62,8 @@ const OWNER_KIND: Record<ServiceOwnerKind, MapOwnerKind> = {
  * reason, which costs nothing at runtime — it is the same string.
  */
 export const universeMapQueries: QueryResolvers = {
-  mapGeometry: async (_, { scope }) => {
-    const geometry = await getMapGeometry(scope);
+  mapGeometry: async (_, { scope, projection }) => {
+    const geometry = await getMapGeometry(scope, projection);
     return { ...geometry, scope };
   },
 

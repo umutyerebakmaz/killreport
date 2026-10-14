@@ -61,29 +61,31 @@ describe('getMapGeometry', () => {
     const cached = { scope: 'NEW_EDEN', nodes: [], edges: [], bounds: {} };
     redis.get.mockResolvedValue(JSON.stringify(cached));
 
-    await expect(getMapGeometry('NEW_EDEN')).resolves.toEqual(cached);
+    await expect(getMapGeometry('NEW_EDEN', 'GALACTIC')).resolves.toEqual(
+      cached,
+    );
     expect(prisma.$queryRaw).not.toHaveBeenCalled();
     expect(redis.setex).not.toHaveBeenCalled();
   });
 
   it('keys the cache on the scope and caches for a day', async () => {
-    await getMapGeometry('POCHVEN');
+    await getMapGeometry('POCHVEN', 'GALACTIC');
 
-    expect(redis.get).toHaveBeenCalledWith('map:geometry:POCHVEN');
+    expect(redis.get).toHaveBeenCalledWith('map:geometry:POCHVEN:GALACTIC');
     expect(redis.setex).toHaveBeenCalledWith(
-      'map:geometry:POCHVEN',
+      'map:geometry:POCHVEN:GALACTIC',
       86400,
       expect.any(String),
     );
   });
 
   it('gives each scope its own key', async () => {
-    await getMapGeometry('WORMHOLE');
-    expect(redis.get).toHaveBeenCalledWith('map:geometry:WORMHOLE');
+    await getMapGeometry('WORMHOLE', 'GALACTIC');
+    expect(redis.get).toHaveBeenCalledWith('map:geometry:WORMHOLE:GALACTIC');
   });
 
   it('excludes Pochven and gateless systems from NEW_EDEN', async () => {
-    await getMapGeometry('NEW_EDEN');
+    await getMapGeometry('NEW_EDEN', 'GALACTIC');
 
     const sql = querySql(0);
     expect(sql).toContain('c.region_id BETWEEN 10000001 AND 10999999');
@@ -92,18 +94,18 @@ describe('getMapGeometry', () => {
   });
 
   it('keeps gateless systems in POCHVEN and WORMHOLE', async () => {
-    await getMapGeometry('POCHVEN');
+    await getMapGeometry('POCHVEN', 'GALACTIC');
     expect(querySql(0)).toContain('c.region_id = 10000070');
     expect(querySql(0)).not.toContain('EXISTS (SELECT 1 FROM stargates g');
 
     prisma.$queryRaw.mockClear();
-    await getMapGeometry('WORMHOLE');
+    await getMapGeometry('WORMHOLE', 'GALACTIC');
     expect(querySql(0)).toContain('c.region_id BETWEEN 11000001 AND 11999999');
     expect(querySql(0)).not.toContain('EXISTS (SELECT 1 FROM stargates g');
   });
 
   it('uses the mapped primary key names, never bare id', async () => {
-    await getMapGeometry('NEW_EDEN');
+    await getMapGeometry('NEW_EDEN', 'GALACTIC');
     const sql = querySql(0);
     expect(sql).toContain('s.system_id');
     expect(sql).toContain('c.constellation_id = s.constellation_id');
@@ -112,7 +114,7 @@ describe('getMapGeometry', () => {
   });
 
   it('truncates security in SQL and casts it back to a float', async () => {
-    await getMapGeometry('NEW_EDEN');
+    await getMapGeometry('NEW_EDEN', 'GALACTIC');
     expect(querySql(0)).toContain(
       'TRUNC(scoped.security_status::numeric, 2)::DOUBLE PRECISION',
     );
@@ -129,7 +131,7 @@ describe('getMapGeometry', () => {
       ])
       .mockResolvedValueOnce([]);
 
-    const { nodes } = await getMapGeometry('NEW_EDEN');
+    const { nodes } = await getMapGeometry('NEW_EDEN', 'GALACTIC');
 
     expect(nodes[0].x).toBe(1_235_000_000_000);
     expect(nodes[0].z).toBe(-988_000_000_000);
@@ -141,7 +143,7 @@ describe('getMapGeometry', () => {
       .mockResolvedValueOnce([nodeRow()])
       .mockResolvedValueOnce([]);
 
-    const { nodes } = await getMapGeometry('NEW_EDEN');
+    const { nodes } = await getMapGeometry('NEW_EDEN', 'GALACTIC');
 
     expect(nodes[0]).toEqual({
       systemId: 30000142,
@@ -161,7 +163,7 @@ describe('getMapGeometry', () => {
       { a: 30000001, b: 30000142 },
     ]);
 
-    const { edges } = await getMapGeometry('NEW_EDEN');
+    const { edges } = await getMapGeometry('NEW_EDEN', 'GALACTIC');
 
     expect(edges).toEqual([
       { from: 30000142, to: 30000144 },
@@ -174,7 +176,7 @@ describe('getMapGeometry', () => {
   });
 
   it('restricts both edge endpoints with the same predicate as the nodes', async () => {
-    await getMapGeometry('NEW_EDEN');
+    await getMapGeometry('NEW_EDEN', 'GALACTIC');
     const edgeSql = querySql(1);
 
     expect(edgeSql).toContain(
@@ -193,7 +195,7 @@ describe('getMapGeometry', () => {
     // serialisation — sit in the cache for a day. Both CTEs need all three or
     // they select different system sets, and then an edge can name a system the
     // node list dropped.
-    await getMapGeometry('NEW_EDEN');
+    await getMapGeometry('NEW_EDEN', 'GALACTIC');
 
     for (const call of [0, 1]) {
       const sql = querySql(call);
@@ -211,7 +213,7 @@ describe('getMapGeometry', () => {
       ])
       .mockResolvedValueOnce([]);
 
-    const { bounds } = await getMapGeometry('NEW_EDEN');
+    const { bounds } = await getMapGeometry('NEW_EDEN', 'GALACTIC');
 
     expect(bounds).toEqual({
       minX: -2e17,
@@ -221,12 +223,61 @@ describe('getMapGeometry', () => {
     });
   });
 
+  it('reads the schematic columns for SCHEMATIC, in both queries', async () => {
+    await getMapGeometry('NEW_EDEN', 'SCHEMATIC');
+
+    for (const call of [0, 1]) {
+      const sql = querySql(call);
+      expect(sql).toContain('s.position_2d_x');
+      expect(sql).toContain('s.position_2d_y');
+      expect(sql).not.toContain('s.position_x');
+    }
+  });
+
+  it('reads the galactic columns for GALACTIC', async () => {
+    await getMapGeometry('NEW_EDEN', 'GALACTIC');
+
+    const sql = querySql(0);
+    expect(sql).toContain('s.position_x');
+    expect(sql).toContain('s.position_z');
+    expect(sql).not.toContain('position_2d');
+  });
+
+  it('keys the cache on the projection as well as the scope', async () => {
+    await getMapGeometry('NEW_EDEN', 'SCHEMATIC');
+    expect(redis.get).toHaveBeenCalledWith('map:geometry:NEW_EDEN:SCHEMATIC');
+  });
+
+  it('answers WORMHOLE in GALACTIC whatever is asked, under the GALACTIC key', async () => {
+    await getMapGeometry('WORMHOLE', 'SCHEMATIC');
+
+    expect(redis.get).toHaveBeenCalledWith('map:geometry:WORMHOLE:GALACTIC');
+    expect(querySql(0)).not.toContain('position_2d');
+  });
+
+  it('takes bounds from the projection it drew', async () => {
+    prisma.$queryRaw
+      .mockResolvedValueOnce([
+        nodeRow({ system_id: 1, x: 6.9e16, z: -7.1e16 }),
+        nodeRow({ system_id: 2, x: 7.0e16, z: -6.5e16 }),
+      ])
+      .mockResolvedValueOnce([]);
+
+    const { bounds } = await getMapGeometry('NEW_EDEN', 'SCHEMATIC');
+    expect(bounds).toEqual({
+      minX: 6.9e16,
+      maxX: 7.0e16,
+      minZ: -7.1e16,
+      maxZ: -6.5e16,
+    });
+  });
+
   it('caches a JSON-serialisable body — no BigInt, no Decimal', async () => {
     prisma.$queryRaw
       .mockResolvedValueOnce([nodeRow()])
       .mockResolvedValueOnce([{ a: 1, b: 2 }]);
 
-    await getMapGeometry('NEW_EDEN');
+    await getMapGeometry('NEW_EDEN', 'GALACTIC');
 
     const [, , body] = redis.setex.mock.calls[0];
     expect(() => JSON.parse(body as string)).not.toThrow();
