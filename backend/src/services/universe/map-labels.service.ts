@@ -6,6 +6,7 @@ import {
   effectiveProjection,
   gatelessFilter,
   positionColumns,
+  scatteredFilter,
   scopePredicate,
   type MapProjection,
   type MapScope,
@@ -55,7 +56,8 @@ interface LabelRow {
  * scopePredicate plus gatelessFilter — imported rather than copied. NEW_EDEN's
  * gateless filter drops 217 Jove systems; a label query that skipped it would
  * shift every region centroid and could list a constellation with no drawn
- * system under it.
+ * system under it. scatteredFilter then drops the names the geometry draws no
+ * gates for: Pochven's, on the galactic layout.
  */
 function labelQuery(
   scope: MapScope,
@@ -65,6 +67,7 @@ function labelQuery(
   const { x, z } = positionColumns(projection);
   const scene = scopePredicate(scope);
   const gateless = gatelessFilter(scope);
+  const scattered = scatteredFilter(scope, projection);
 
   if (kind === 'CONSTELLATION') {
     if (projection === 'SCHEMATIC') {
@@ -78,7 +81,7 @@ function labelQuery(
         JOIN solar_systems s ON s.constellation_id = c.constellation_id
         WHERE ${scene}
           AND ${x} IS NOT NULL AND ${z} IS NOT NULL
-          ${gateless}
+          ${gateless} ${scattered}
         GROUP BY c.constellation_id, c.name
         ORDER BY id
       `;
@@ -93,7 +96,7 @@ function labelQuery(
       JOIN solar_systems s ON s.constellation_id = c.constellation_id
       WHERE ${scene}
         AND c.position_x IS NOT NULL AND c.position_z IS NOT NULL
-        ${gateless}
+        ${gateless} ${scattered}
       ORDER BY id
     `;
   }
@@ -133,7 +136,7 @@ function labelQuery(
       JOIN solar_systems s ON s.constellation_id = c.constellation_id
       WHERE ${scene}
         AND ${x} IS NOT NULL AND ${z} IS NOT NULL
-        ${gateless}
+        ${gateless} ${scattered}
     ),
     extent AS (
       SELECT region_id, name,

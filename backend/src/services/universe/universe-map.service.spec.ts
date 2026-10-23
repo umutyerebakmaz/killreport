@@ -84,13 +84,34 @@ describe('getMapGeometry', () => {
     expect(redis.get).toHaveBeenCalledWith('map:geometry:WORMHOLE:GALACTIC');
   });
 
-  it('excludes Pochven and gateless systems from NEW_EDEN', async () => {
+  it('excludes gateless systems from NEW_EDEN', async () => {
     await getMapGeometry('NEW_EDEN', 'GALACTIC');
 
     const sql = querySql(0);
     expect(sql).toContain('c.region_id BETWEEN 10000001 AND 10999999');
-    expect(sql).toContain('c.region_id <> 10000070');
     expect(sql).toContain('EXISTS (SELECT 1 FROM stargates g');
+  });
+
+  it('draws Pochven in both NEW_EDEN layouts', async () => {
+    // position2D gives Pochven's three krai a triangle inside New Eden, over a
+    // box no other k-space system occupies. Galactically its 27 systems sit in
+    // the gaps they left in the regions they were taken from.
+    for (const projection of ['SCHEMATIC', 'GALACTIC'] as const) {
+      prisma.$queryRaw.mockClear();
+      await getMapGeometry('NEW_EDEN', projection);
+      expect(querySql(0)).not.toContain('10000070');
+    }
+  });
+
+  it("keeps Pochven's gates in the schematic and drops them from the galactic layout", async () => {
+    // Galactically a Pochven gate runs 8.2 ly at the median against 0.7 ly for
+    // the rest of New Eden: 30 lines across the whole cloud.
+    await getMapGeometry('NEW_EDEN', 'SCHEMATIC');
+    expect(querySql(1)).not.toContain('10000070');
+
+    prisma.$queryRaw.mockClear();
+    await getMapGeometry('NEW_EDEN', 'GALACTIC');
+    expect(querySql(1)).toContain('c.region_id <> 10000070');
   });
 
   it('keeps gateless systems in POCHVEN and WORMHOLE', async () => {
@@ -185,7 +206,7 @@ describe('getMapGeometry', () => {
     expect(edgeSql).toContain(
       'g.destination_system_id IN (SELECT system_id FROM scoped)',
     );
-    expect(edgeSql).toContain('c.region_id <> 10000070');
+    expect(edgeSql).toContain('c.region_id BETWEEN 10000001 AND 10999999');
   });
 
   it('guards every nullable column the schema declares non-null, in both CTEs', async () => {

@@ -52,7 +52,7 @@ export const SOV_COLORS: Record<number, string> = {
   99009287: '#ffb0cf',
   500006: '#d8dde3',
   99009927: '#145ec1',
-  500026: '#9e1b1b',
+  500026: '#3d0c0c',
   99013045: '#f923ff',
   99010468: '#9b00b3',
   99010877: '#9cfe00',

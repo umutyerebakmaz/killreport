@@ -180,6 +180,22 @@ describe('getMapLabels', () => {
     expect(lastQueryText()).not.toContain('stargates');
   });
 
+  it('labels Pochven in the NEW_EDEN schematic and not in the galactic layout', async () => {
+    // Galactically Pochven's systems are scattered across the cloud, so a
+    // region or krai name would sit at a centroid with nothing around it.
+    prisma.$queryRaw.mockResolvedValue([]);
+
+    for (const kind of ['REGION', 'CONSTELLATION'] as const) {
+      prisma.$queryRaw.mockClear();
+      await getMapLabels('NEW_EDEN', kind, 'SCHEMATIC');
+      expect(lastQueryText()).not.toContain('10000070');
+
+      prisma.$queryRaw.mockClear();
+      await getMapLabels('NEW_EDEN', kind, 'GALACTIC');
+      expect(lastQueryText()).toContain('c.region_id <> 10000070');
+    }
+  });
+
   it('reads the stored position for a constellation, not an average', async () => {
     // A constellation has a position of its own, measured to sit within 0.23
     // ly of its members' centroid, so averaging it would be work for nothing.

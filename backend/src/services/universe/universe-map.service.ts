@@ -115,15 +115,36 @@ export function scopePredicate(scope: MapScope): Prisma.Sql {
     case 'NEW_EDEN':
       // Zarzakh (30000000+ id 30100000, region 10001000 Yasna Zakh) falls
       // inside this band and its four gates reach k-space, so it belongs here.
-      // Pochven is cut out because it is a closed component - all 30 of its
-      // edges are internal, so dropped into this scene its 27 systems would
-      // land mid-cloud connected to nothing.
-      return Prisma.sql`c.region_id BETWEEN 10000001 AND 10999999 AND c.region_id <> 10000070`;
+      // Pochven does too, though only its systems in every layout; see
+      // scatteredFilter for its gates and names.
+      return Prisma.sql`c.region_id BETWEEN 10000001 AND 10999999`;
     case 'POCHVEN':
       return Prisma.sql`c.region_id = 10000070`;
     case 'WORMHOLE':
       return Prisma.sql`c.region_id BETWEEN 11000001 AND 11999999`;
   }
+}
+
+/**
+ * What a scene draws as dots but leaves out of its gates and names.
+ *
+ * Pochven is a closed component - all 30 of its gates are internal. The
+ * schematic is CCP's own layout and draws its three krai as a triangle in a box
+ * no other k-space system occupies (measured 2026-10-23: zero systems inside
+ * it). Galactically its 27 systems sit where they were taken from, in the gaps
+ * they left, so the dots fit but a gate runs 8.2 ly at the median against
+ * 0.7 ly for the rest of New Eden, and a region or krai name would sit at a
+ * centroid with nothing around it.
+ *
+ * Starts with AND, like gatelessFilter, so it follows the scene predicate.
+ */
+export function scatteredFilter(
+  scope: MapScope,
+  projection: MapProjection,
+): Prisma.Sql {
+  return scope === 'NEW_EDEN' && projection === 'GALACTIC'
+    ? Prisma.sql`AND c.region_id <> 10000070`
+    : Prisma.sql``;
 }
 
 /**
@@ -194,6 +215,7 @@ export async function getMapGeometry(
 
   const predicate = scopePredicate(scope);
   const gateless = gatelessFilter(scope);
+  const scattered = scatteredFilter(scope, resolved);
   const { x, z } = positionColumns(resolved);
 
   // Security is truncated in SQL rather than in JS because numeric is exact
@@ -253,14 +275,15 @@ export async function getMapGeometry(
   `;
 
   // The same predicate, so an edge can never name a system the node list
-  // dropped. LEAST/GREATEST + DISTINCT is what makes each pair appear once
-  // with from < to: the stargates table holds both directions.
+  // dropped; the scattered filter only narrows it further. LEAST/GREATEST +
+  // DISTINCT is what makes each pair appear once with from < to: the stargates
+  // table holds both directions.
   const edgeRowsPromise = prisma.$queryRaw<EdgeRow[]>`
     WITH scoped AS (
       SELECT s.system_id
       FROM solar_systems s
       JOIN constellations c ON c.constellation_id = s.constellation_id
-      WHERE ${predicate} ${gateless}
+      WHERE ${predicate} ${gateless} ${scattered}
         AND ${x} IS NOT NULL
         AND ${z} IS NOT NULL
         AND s.security_status IS NOT NULL
