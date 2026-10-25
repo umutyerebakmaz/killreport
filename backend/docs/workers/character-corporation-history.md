@@ -52,7 +52,7 @@ logs `✅ queue completed!` with the totals.
 ### Refresh one character
 
 ```bash
-yarn queue:character-corporation-history 95465499
+yarn queue:character-corporation-history 365974960   # General XAN
 yarn worker:character-corporation-history
 ```
 
@@ -61,7 +61,7 @@ the read service caches it for 7200 s. To see the new data at once, delete the
 key (add `-n <db>` if `REDIS_URL` ends in a database number):
 
 ```bash
-redis-cli DEL character:corporation-history:95465499
+redis-cli DEL character:corporation-history:365974960
 ```
 
 ### Backfill everyone
