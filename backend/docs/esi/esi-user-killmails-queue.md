@@ -150,7 +150,7 @@ class UserKillmailCron {
 🕐 [06.01.2026 14:30:00] Running background sync...
 ──────────────────────────────────────────────────────────────────────
    📊 Found 3 user(s) to sync
-   ⏳ John Doe (last: 20m ago)
+   ⏳ General XAN (last: 20m ago)
    ⏳ Jane Smith (never)
    ⏳ Bob Wilson (last: 45m ago)
 
@@ -195,7 +195,7 @@ yarn queue:user-killmails --force --full
 ✓ Found 5 active user(s) with valid tokens
 📤 Adding to queue: esi_user_killmails_queue
 
-  ⏳ Queued: John Doe (ID: 95465499) [INCREMENTAL]
+  ⏳ Queued: General XAN (ID: 365974960) [INCREMENTAL]
   ⏳ Queued: Jane Smith (ID: 12345678) [FIRST SYNC]
   ⏳ Queued: Bob Wilson (ID: 98765432) [FULL SYNC]
 
@@ -280,12 +280,12 @@ flowchart TB
 
 ```text
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-👤 Processing: John Doe (ID: 95465499)
+👤 Processing: General XAN (ID: 365974960)
 🆔 User ID: 1
 📅 Queued at: 2026-01-06T14:30:00.000Z
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-  📡 [John Doe] Fetching NEW killmails from ESI (incremental sync)...
+  📡 [General XAN] Fetching NEW killmails from ESI (incremental sync)...
      🔍 Will stop at killmail ID: 123456789
      📄 Max pages: 50 (will stop earlier if found)
 
@@ -312,7 +312,7 @@ flowchart TB
 
   💾 Updated last sync info (latest killmail ID: 125467892)
 
-✅ Completed: John Doe
+✅ Completed: General XAN
 ```
 
 ---
@@ -453,8 +453,8 @@ interface UserKillmailMessage {
 ```json
 {
   "userId": 1,
-  "characterId": 95465499,
-  "characterName": "John Doe",
+  "characterId": 365974960,
+  "characterName": "General XAN",
   "accessToken": "eyJhbGciOiJSUzI1NiIs...",
   "refreshToken": "dGhpc19pc19hX3JlZnJl...",
   "expiresAt": "2026-01-06T15:30:00.000Z",

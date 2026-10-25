@@ -45,16 +45,16 @@ flowchart TB
 
 ### From `alliances` Table
 
-| Field        | Description                        | Example  |
-| ------------ | ---------------------------------- | -------- |
-| `creator_id` | Character who created the alliance | 95465499 |
+| Field        | Description                        | Example   |
+| ------------ | ---------------------------------- | --------- |
+| `creator_id` | Character who created the alliance | 365974960 |
 
 ### From `corporations` Table
 
-| Field        | Description                           | Example  |
-| ------------ | ------------------------------------- | -------- |
-| `ceo_id`     | Current CEO of the corporation        | 12345678 |
-| `creator_id` | Character who created the corporation | 87654321 |
+| Field        | Description                           | Example   |
+| ------------ | ------------------------------------- | --------- |
+| `ceo_id`     | Current CEO of the corporation        | 365974960 |
+| `creator_id` | Character who created the corporation | 87654321  |
 
 **Note:** All IDs are Character IDs, not Corporation IDs.
 
@@ -149,7 +149,7 @@ yarn worker:info:characters
 ⏳ Waiting for characters...
 
   ✅ [1] Umut Yerebakmaz
-  ✅ [2] John Doe
+  ✅ [2] General XAN
   - [3] Character 12345678 (exists)
   ! [4] Character 99999999 (404 - Deleted)
   ✅ [5] Jane Smith
@@ -296,7 +296,7 @@ Output includes:
 #### 2. Network Errors (Retry)
 
 ```
-× [125] Character 12345678 ERROR:
+× [125] Character 365974960 ERROR:
    Message: Failed to fetch character info: 500
    Stack: Error: Failed to fetch character info: 500
 ```
@@ -489,7 +489,7 @@ yarn worker:info:characters
 **Symptom:**
 
 ```
-× [50] Character 12345678 ERROR:
+× [50] Character 365974960 ERROR:
    Message: Failed to fetch character info: 500
 ```
 

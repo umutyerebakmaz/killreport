@@ -54,17 +54,17 @@ yarn sync:character <characterId> <maxPages>
 **Examples:**
 
 ```bash
-# CCP Falcon's killmails (default 50 pages)
-yarn sync:character 95465499
+# General XAN's killmails (default 50 pages)
+yarn sync:character 365974960
 
 # Only last 1,000 killmails (5 pages)
-yarn sync:character 95465499 5
+yarn sync:character 365974960 5
 
 # Last 20,000 killmails (100 pages)
-yarn sync:character 95465499 100
+yarn sync:character 365974960 100
 
 # ALL history (use carefully, can take very long)
-yarn sync:character 95465499 999
+yarn sync:character 365974960 999
 ```
 
 **Output:**
@@ -72,7 +72,7 @@ yarn sync:character 95465499 999
 ```
 🚀 Character Killmail Sync Started
 ==================================
-📝 Character ID: 95465499
+📝 Character ID: 365974960
 📄 Max Pages: 50 (10000 killmails max)
 
 📡 Fetching killmails from zKillboard...
@@ -109,10 +109,10 @@ Use for multiple characters or when background processing is desired.
 
 ```bash
 # Single character
-yarn queue:character 95465499
+yarn queue:character 365974960
 
 # Multiple characters
-yarn queue:character 95465499 96621253 94466798
+yarn queue:character 365974960 96621253 94466798
 
 # Alliance/Corporation members (example with multiple IDs)
 yarn queue:character 123 456 789 101112 131415
@@ -421,8 +421,8 @@ yarn prisma:studio
 ### Example 1: Sync a famous pilot
 
 ```bash
-# CCP Falcon
-yarn sync:character 95465499 10
+# General XAN
+yarn sync:character 365974960 10
 
 # The Mittani
 yarn sync:character 443630591 50
@@ -441,7 +441,7 @@ yarn worker:zkillboard
 
 ```bash
 # Run again - will skip existing and only add new
-yarn sync:character 95465499 5
+yarn sync:character 365974960 5
 ```
 
 ### Example 4: Full history sync
@@ -449,7 +449,7 @@ yarn sync:character 95465499 5
 ```bash
 # For a very active pilot (10+ years)
 # Warning: Can take 12+ hours
-yarn sync:character 95465499 999
+yarn sync:character 365974960 999
 ```
 
 ## Best Practices

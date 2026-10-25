@@ -367,8 +367,8 @@ yarn sync:character <characterId> [maxPages]
 **Example**:
 
 ```bash
-yarn sync:character 95465499 50     # 50 pages (10,000 killmails)
-yarn sync:character 95465499 999    # ALL history
+yarn sync:character 365974960 50     # 50 pages (10,000 killmails)
+yarn sync:character 365974960 999    # ALL history
 ```
 
 **How it works**:

@@ -19,19 +19,19 @@ yarn worker:zkillboard
 ### 1. Sync a Single Character (Fastest)
 
 ```bash
-cd backend && yarn sync:character 95465499
+cd backend && yarn sync:character 365974960
 ```
 
 ### 2. Recent Activity Only (5 pages = 1k killmails)
 
 ```bash
-yarn sync:character 95465499 5
+yarn sync:character 365974960 5
 ```
 
 ### 3. Complete History (999 pages = all)
 
 ```bash
-yarn sync:character 95465499 999
+yarn sync:character 365974960 999
 ```
 
 ### 4. Multiple Characters
@@ -57,7 +57,7 @@ yarn worker:zkillboard
 ```text
 🚀 Character Killmail Sync Started
 ==================================
-📝 Character ID: 95465499
+📝 Character ID: 365974960
 📄 Max Pages: 10 (2000 killmails max)
 
 📡 Fetching from zKillboard...
@@ -94,8 +94,8 @@ yarn worker:zkillboard
 ## Famous Pilots
 
 ```bash
-# CCP Falcon
-yarn sync:character 95465499
+# General XAN
+yarn sync:character 365974960
 
 # The Mittani
 yarn sync:character 443630591

@@ -73,7 +73,7 @@ await redis.del(`character:detail:${characterId}`);
 
 ```graphql
 mutation {
-  refreshCharacter(characterId: 379226154) {
+  refreshCharacter(characterId: 365974960) {
     success
     message
     queued

@@ -120,10 +120,10 @@ Update specific characters for logged-in users or special cases:
 
 ```bash
 # Single character
-yarn queue:characters 379226154
+yarn queue:characters 365974960
 
 # Multiple characters
-yarn queue:characters 379226154 95465499 123456
+yarn queue:characters 365974960 443630591 196379789
 
 # Start worker
 yarn worker:info:characters
