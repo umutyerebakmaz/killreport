@@ -38,7 +38,7 @@ export default function EmploymentHistoryList({
             kind="corporation"
             id={entry.corporationId}
             name={entry.corporation?.name ?? String(entry.corporationId)}
-            size={64}
+            size={32}
           />
           <div className="flex-1 min-w-0">
             <div>
