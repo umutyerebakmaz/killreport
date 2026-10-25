@@ -1,0 +1,13 @@
+query CharacterCorporationHistory($characterId: Int!) {
+  characterCorporationHistory(characterId: $characterId) {
+    recordId
+    corporationId
+    startDate
+    endDate
+    isDeleted
+    corporation {
+      id
+      name
+    }
+  }
+}
