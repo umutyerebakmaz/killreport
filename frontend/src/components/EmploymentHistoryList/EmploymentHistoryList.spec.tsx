@@ -14,7 +14,7 @@ const entry = (overrides: Partial<Entry> = {}): Entry => ({
   startDate: '2022-09-18T09:56:00.000Z',
   endDate: '2026-01-17T18:13:00.000Z',
   isDeleted: false,
-  corporation: { id: 98148202, name: 'Kenshin.' },
+  corporation: { id: 98148202, name: 'Kenshin.', ticker: '300M' },
   ...overrides,
 });
 
@@ -22,14 +22,16 @@ const renderList = (entries: Entry[]) =>
   render(<EmploymentHistoryList entries={entries} now={NOW} />);
 
 describe('EmploymentHistoryList', () => {
-  it('writes a row the way the game does', () => {
+  it('puts the corporation and its ticker above the dates, the days apart', () => {
     const { container } = renderList([entry()]);
 
     const link = screen.getByRole('link', { name: 'Kenshin.' });
     expect(link.getAttribute('href')).toBe('/corporations/98148202');
-    expect(container.querySelector('li')?.textContent).toBe(
-      'Kenshin. 2022.09.18 09:56 to 2026.01.17 18:13 (1217 Days)',
-    );
+    expect(screen.getByText('[300M]')).toBeTruthy();
+    expect(
+      screen.getByText('2022.09.18 09:56 to 2026.01.17 18:13'),
+    ).toBeTruthy();
+    expect(screen.getByText('(1217 Days)')).toBeTruthy();
     // Plain weight: the corporation link is what the row is about
     expect(container.querySelector('b')).toBeNull();
   });
@@ -63,29 +65,30 @@ describe('EmploymentHistoryList', () => {
         recordId: 1,
         isDeleted: true,
         corporationId: 1024623120,
-        corporation: { id: 1024623120, name: 'CORPFREE' },
+        corporation: { id: 1024623120, name: 'CORPFREE', ticker: 'CORP' },
       }),
     ]);
 
     const rows = screen.getAllByRole('listitem');
     expect(rows[0].textContent).not.toContain('(Closed)');
-    expect(rows[1].textContent).toContain('CORPFREE (Closed)');
+    expect(rows[1].textContent).toContain('CORPFREE [CORP] (Closed)');
   });
 
   it('runs the current corporation to this day', () => {
-    const { container } = renderList([
+    renderList([
       entry({ startDate: '2026-01-17T18:18:00.000Z', endDate: null }),
     ]);
 
-    expect(container.textContent).toContain('2026.01.17 18:18 to this day');
-    expect(container.textContent).toContain('(280 Days)');
+    expect(screen.getByText('2026.01.17 18:18 to this day')).toBeTruthy();
+    expect(screen.getByText('(280 Days)')).toBeTruthy();
   });
 
-  it('shows the corporation id, unlinked, until its name is known', () => {
+  it('shows the corporation id, unlinked and without a ticker, until its name is known', () => {
     renderList([entry({ corporationId: 1024623120, corporation: null })]);
 
     expect(screen.queryByRole('link')).toBeNull();
-    expect(screen.getByRole('listitem').textContent).toContain('1024623120');
+    expect(screen.getByText('1024623120')).toBeTruthy();
+    expect(screen.getByRole('listitem').textContent).not.toContain('[');
   });
 
   it('says so when there is no history yet', () => {

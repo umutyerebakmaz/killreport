@@ -272,7 +272,11 @@ CORPFREE (Closed) 2007.04.30 17:47 to 2007.05.15 18:38 (15 Days)
   satır gizlenmiyor. Yukarıdaki örnek kısaltılmış: Kenshin ile Clown Swords
   arasındaki 5 dakikalık boşluk, listede kendi satırıyla görünecek kısa bir
   NPC corp dönemi.
-- Corporation adı `/corporations/{id}`'ye link. Adın sonundaki nokta
+- 2026-10-25'te satır düzeni değişti: solda 32 px corporation logosu; ortada
+  üstte `Corporation Name [TICKER]`, altta tarihler; sağda ayrı `(N Days)`.
+  Satırın tamamı aynı renk ve yazı tipinde.
+- Corporation adı `/corporations/{id}`'ye link; üzerine gelince "Show
+  Corporation Info" tooltip'i, başlangıca hizalı (`top-start`). Adın sonundaki nokta
   (`Clown Swords.`, `Kenshin.`) ayraç değil, corporation adının kendisi.
 - `isDeleted` ise adın ardından `(Closed)`.
 - Tarihler `YYYY.MM.DD HH:mm`, UTC (EVE saati), normal ağırlıkta. İlk sürümde
@@ -280,7 +284,8 @@ CORPFREE (Closed) 2007.04.30 17:47 to 2007.05.15 18:38 (15 Days)
   tarihler öne çıktı, bu yüzden 2026-10-25'te kalınlık kaldırıldı.
 - Bitiş yoksa `to this day`.
 - Süre: tam gün, aşağı yuvarlanmış; bitiş yoksa şimdiki zamana göre.
-- Corporation adı henüz yoksa ad yerine corporation ID gösterilir.
+- Corporation adı henüz yoksa ad yerine corporation ID gösterilir, ticker
+  gösterilmez; logo ID'den yine gelir.
 - Liste boşsa (geçmiş henüz çekilmemiş) kısa bir boş durum metni.
 
 Tarih biçimi ve gün hesabı `utils/` altında saf fonksiyonlar, birim testli.

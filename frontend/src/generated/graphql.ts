@@ -2672,7 +2672,7 @@ export type CharacterCorporationHistoryQueryVariables = Exact<{
 }>;
 
 
-export type CharacterCorporationHistoryQuery = { __typename?: 'Query', characterCorporationHistory: Array<{ __typename?: 'CharacterCorporationHistory', recordId: number, corporationId: number, startDate: string, endDate?: string | null, isDeleted: boolean, corporation?: { __typename?: 'Corporation', id: number, name: string } | null }> };
+export type CharacterCorporationHistoryQuery = { __typename?: 'Query', characterCorporationHistory: Array<{ __typename?: 'CharacterCorporationHistory', recordId: number, corporationId: number, startDate: string, endDate?: string | null, isDeleted: boolean, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null }> };
 
 export type CharacterKillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -4184,6 +4184,7 @@ export const CharacterCorporationHistoryDocument = gql`
     corporation {
       id
       name
+      ticker
     }
   }
 }

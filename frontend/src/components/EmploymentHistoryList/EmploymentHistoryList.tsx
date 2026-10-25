@@ -14,9 +14,10 @@ interface EmploymentHistoryListProps {
 }
 
 /**
- * A character's corporations, newest first, written the way the game's
- * Employment History does: "Kenshin. 2022.09.18 09:56 to 2026.01.17 18:13
- * (1217 Days)".
+ * A character's corporations, newest first. Each row is the corporation's
+ * logo, its name and ticker over the dates it was held, and the length of the
+ * stay on the right: "Kenshin. [300M]" / "2022.09.18 09:56 to 2026.01.17
+ * 18:13" / "(1217 Days)".
  */
 export default function EmploymentHistoryList({
   entries,
@@ -36,25 +37,34 @@ export default function EmploymentHistoryList({
             name={entry.corporation?.name ?? String(entry.corporationId)}
             size={32}
           />
-          {/* One flex item, so the spaces between its parts survive */}
-          <span>
-            {entry.corporation ? (
-              <Tooltip content="Show Corporation Info" position="top-start">
-                <Link
-                  href={`/corporations/${entry.corporation.id}`}
-                  className="transition-colors hover:text-accent-link"
-                  prefetch={false}
-                >
-                  {entry.corporation.name}
-                </Link>
-              </Tooltip>
-            ) : (
-              entry.corporationId
-            )}
-            {entry.isDeleted && ' (Closed)'}{' '}
-            {formatEveDateTime(entry.startDate)} to{' '}
-            {entry.endDate ? formatEveDateTime(entry.endDate) : 'this day'} (
-            {employmentDays(entry.startDate, entry.endDate, now)} Days)
+          <div className="flex-1 min-w-0">
+            <div>
+              {entry.corporation ? (
+                <>
+                  <Tooltip content="Show Corporation Info" position="top-start">
+                    <Link
+                      href={`/corporations/${entry.corporation.id}`}
+                      className="transition-colors hover:text-accent-link"
+                      prefetch={false}
+                    >
+                      {entry.corporation.name}
+                    </Link>
+                  </Tooltip>{' '}
+                  <span>[{entry.corporation.ticker}]</span>
+                </>
+              ) : (
+                <span>{entry.corporationId}</span>
+              )}
+              {entry.isDeleted && ' (Closed)'}
+            </div>
+            <div>
+              {`${formatEveDateTime(entry.startDate)} to ${
+                entry.endDate ? formatEveDateTime(entry.endDate) : 'this day'
+              }`}
+            </div>
+          </div>
+          <span className="shrink-0">
+            ({employmentDays(entry.startDate, entry.endDate, now)} Days)
           </span>
         </li>
       ))}
