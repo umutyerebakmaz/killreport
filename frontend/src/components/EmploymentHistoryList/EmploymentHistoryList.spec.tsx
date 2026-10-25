@@ -22,16 +22,15 @@ const renderList = (entries: Entry[]) =>
   render(<EmploymentHistoryList entries={entries} now={NOW} />);
 
 describe('EmploymentHistoryList', () => {
-  it('puts the corporation and its ticker above the dates, the days apart', () => {
+  it('puts the corporation and its ticker above the dates and days', () => {
     const { container } = renderList([entry()]);
 
     const link = screen.getByRole('link', { name: 'Kenshin.' });
     expect(link.getAttribute('href')).toBe('/corporations/98148202');
     expect(screen.getByText('[300M]')).toBeTruthy();
     expect(
-      screen.getByText('2022.09.18 09:56 to 2026.01.17 18:13'),
+      screen.getByText('2022.09.18 09:56 to 2026.01.17 18:13 (1217 Days)'),
     ).toBeTruthy();
-    expect(screen.getByText('(1217 Days)')).toBeTruthy();
     // Plain weight: the corporation link is what the row is about
     expect(container.querySelector('b')).toBeNull();
   });
@@ -79,8 +78,9 @@ describe('EmploymentHistoryList', () => {
       entry({ startDate: '2026-01-17T18:18:00.000Z', endDate: null }),
     ]);
 
-    expect(screen.getByText('2026.01.17 18:18 to this day')).toBeTruthy();
-    expect(screen.getByText('(280 Days)')).toBeTruthy();
+    expect(
+      screen.getByText('2026.01.17 18:18 to this day (280 Days)'),
+    ).toBeTruthy();
   });
 
   it('shows the corporation id, unlinked and without a ticker, until its name is known', () => {

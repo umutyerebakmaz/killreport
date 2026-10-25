@@ -273,7 +273,7 @@ CORPFREE (Closed) 2007.04.30 17:47 to 2007.05.15 18:38 (15 Days)
   arasındaki 5 dakikalık boşluk, listede kendi satırıyla görünecek kısa bir
   NPC corp dönemi.
 - 2026-10-25'te satır düzeni değişti: solda 64 px corporation logosu; ortada
-  üstte `Corporation Name [TICKER]`, altta tarihler; sağda ayrı `(N Days)`.
+  üstte `Corporation Name [TICKER]`, altta daha küçük tarihler ve `(N Days)`.
   Satırın tamamı aynı renk ve yazı tipinde.
 - Corporation adı `/corporations/{id}`'ye link; üzerine gelince "Show
   Corporation Info" tooltip'i, başlangıca hizalı (`top-start`). Adın sonundaki nokta

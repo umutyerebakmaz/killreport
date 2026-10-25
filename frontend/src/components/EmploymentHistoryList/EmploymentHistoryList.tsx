@@ -15,9 +15,9 @@ interface EmploymentHistoryListProps {
 
 /**
  * A character's corporations, newest first. Each row is the corporation's
- * logo, its name and ticker over the dates it was held, and the length of the
- * stay on the right: "Kenshin. [300M]" / "2022.09.18 09:56 to 2026.01.17
- * 18:13" / "(1217 Days)".
+ * logo, then its name and ticker over the dates it was held and the length of
+ * the stay: "Kenshin. [300M]" / "2022.09.18 09:56 to 2026.01.17 18:13 (1217
+ * Days)".
  */
 export default function EmploymentHistoryList({
   entries,
@@ -60,12 +60,9 @@ export default function EmploymentHistoryList({
             <div className="text-sm">
               {`${formatEveDateTime(entry.startDate)} to ${
                 entry.endDate ? formatEveDateTime(entry.endDate) : 'this day'
-              }`}
+              } (${employmentDays(entry.startDate, entry.endDate, now)} Days)`}
             </div>
           </div>
-          <span className="shrink-0">
-            ({employmentDays(entry.startDate, entry.endDate, now)} Days)
-          </span>
         </li>
       ))}
     </ul>
