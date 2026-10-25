@@ -8,24 +8,26 @@ One queue, one worker, one table. The worker is the sole writer of
 
 ## Flow
 
-```text
-yarn queue:character-corporation-history         (weekly, or by hand)
-        |  reads: characters + character_corporation_history
-        |  picks: never fetched, or last fetched more than 6 days ago
-        v
-esi_character_corporation_history_queue          message: { entityId, queuedAt, source }
-        |
-yarn worker:character-corporation-history        (prefetch 5)
-        |  ESI: GET /characters/{id}/corporationhistory/
-        |  writes: character_corporation_history
-        +--> esi_corporation_info_queue          corporations not in the database yet
-                |
-        yarn worker:info:corporations            fills in their names
+### Write path
 
-Read path:
-characterCorporationHistory(characterId)  ->  character-corporation-history.service.ts
-        Redis  character:corporation-history:{characterId}  (7200 s)
-        ->  EmploymentHistoryList in the Employment History tab
+```mermaid
+flowchart LR
+    Cron@{ img: "https://cdn.simpleicons.org/pm2/8b949e", label: "Weekly cron", pos: "b", w: 32, h: 32, constraint: "on" } --> Producer["<b>Queue script</b><br/><i>stale characters</i>"]
+    Producer --> Queue@{ img: "https://cdn.simpleicons.org/rabbitmq/8b949e", label: "RabbitMQ", pos: "b", w: 32, h: 32, constraint: "on" }
+    Queue --> Worker["<b>Worker</b><br/><i>prefetch 5</i>"]
+    ESI["EVE ESI"] -->|"history"| Worker
+    Worker --> DB@{ img: "https://cdn.simpleicons.org/postgresql/8b949e", label: "PostgreSQL", pos: "b", w: 32, h: 32, constraint: "on" }
+    Worker -.->|"missing corporations"| Corp["<b>Corporation worker</b>"]
+```
+
+### Read path
+
+```mermaid
+flowchart LR
+    Tab@{ img: "https://cdn.simpleicons.org/nextdotjs/8b949e", label: "Employment History tab", pos: "b", w: 32, h: 32, constraint: "on" } --> API@{ img: "https://cdn.simpleicons.org/graphql/8b949e", label: "GraphQL", pos: "b", w: 32, h: 32, constraint: "on" }
+    API --> Service["<b>Read service</b>"]
+    Service --> Redis@{ img: "https://cdn.simpleicons.org/redis/8b949e", label: "Redis · 7200 s", pos: "b", w: 32, h: 32, constraint: "on" }
+    Service -.->|"cache miss"| DB@{ img: "https://cdn.simpleicons.org/postgresql/8b949e", label: "PostgreSQL", pos: "b", w: 32, h: 32, constraint: "on" }
 ```
 
 ## Commands
