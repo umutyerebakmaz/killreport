@@ -40,9 +40,11 @@ describe('getCorporationHistory', () => {
   });
 
   it('queries newest first, record_id breaking ties, and caches for 7200 s', async () => {
-    prisma.characterCorporationHistory.findMany.mockResolvedValue([]);
+    prisma.characterCorporationHistory.findMany.mockResolvedValue([
+      row(1, 10, '2019-01-01T00:00:00Z'),
+    ]);
 
-    await getCorporationHistory(42);
+    const history = await getCorporationHistory(42);
 
     expect(prisma.characterCorporationHistory.findMany).toHaveBeenCalledWith({
       where: { character_id: 42 },
@@ -51,7 +53,7 @@ describe('getCorporationHistory', () => {
     expect(redis.setex).toHaveBeenCalledWith(
       'character:corporation-history:42',
       7200,
-      '[]',
+      JSON.stringify(history),
     );
   });
 
@@ -106,9 +108,11 @@ describe('getCorporationHistory', () => {
     ]);
   });
 
-  it('returns an empty list for a character never fetched', async () => {
+  it('returns an empty list for a character never fetched, without caching it', async () => {
     prisma.characterCorporationHistory.findMany.mockResolvedValue([]);
 
     await expect(getCorporationHistory(42)).resolves.toEqual([]);
+    // Cached, the empty list would outlive the worker's first fetch by up to 7200 s
+    expect(redis.setex).not.toHaveBeenCalled();
   });
 });

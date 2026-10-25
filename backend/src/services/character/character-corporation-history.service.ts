@@ -43,6 +43,10 @@ export async function getCorporationHistory(
     isDeleted: row.is_deleted,
   }));
 
-  await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(history));
+  // An empty list means the worker has not fetched the character yet; caching
+  // it would hide the first fetch for the whole TTL
+  if (history.length > 0) {
+    await redis.setex(cacheKey, CACHE_TTL, JSON.stringify(history));
+  }
   return history;
 }
