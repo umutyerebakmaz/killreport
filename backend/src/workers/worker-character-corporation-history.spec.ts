@@ -21,6 +21,11 @@ vi.mock('@services/character/character-corporation-history-writer', () => ({
   saveCorporationHistory,
   findMissingCorporationIds: findMissing,
 }));
+// The real module validates the environment and exits where there is no .env,
+// as in CI
+vi.mock('@config/config', () => ({
+  config: { esi: { prefetch: 25, maxRequestsPerSecond: 50 } },
+}));
 vi.mock('@services/prisma-worker', () => ({ default: {} }));
 vi.mock('@services/logger', () => ({
   default: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
