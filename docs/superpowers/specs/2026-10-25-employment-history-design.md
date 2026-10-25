@@ -275,7 +275,9 @@ CORPFREE (Closed) 2007.04.30 17:47 to 2007.05.15 18:38 (15 Days)
 - Corporation adı `/corporations/{id}`'ye link. Adın sonundaki nokta
   (`Clown Swords.`, `Kenshin.`) ayraç değil, corporation adının kendisi.
 - `isDeleted` ise adın ardından `(Closed)`.
-- Tarihler kalın, `YYYY.MM.DD HH:mm`, UTC (EVE saati).
+- Tarihler `YYYY.MM.DD HH:mm`, UTC (EVE saati), normal ağırlıkta. İlk sürümde
+  oyundaki gibi kalındı; corporation adları gri link olunca satırda en çok
+  tarihler öne çıktı, bu yüzden 2026-10-25'te kalınlık kaldırıldı.
 - Bitiş yoksa `to this day`.
 - Süre: tam gün, aşağı yuvarlanmış; bitiş yoksa şimdiki zamana göre.
 - Corporation adı henüz yoksa ad yerine corporation ID gösterilir.

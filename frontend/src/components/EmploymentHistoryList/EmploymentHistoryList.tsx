@@ -42,14 +42,9 @@ export default function EmploymentHistoryList({
           ) : (
             entry.corporationId
           )}
-          {entry.isDeleted && ' (Closed)'}{' '}
-          <b>{formatEveDateTime(entry.startDate)}</b> to{' '}
-          {entry.endDate ? (
-            <b>{formatEveDateTime(entry.endDate)}</b>
-          ) : (
-            'this day'
-          )}{' '}
-          ({employmentDays(entry.startDate, entry.endDate, now)} Days)
+          {entry.isDeleted && ' (Closed)'} {formatEveDateTime(entry.startDate)}{' '}
+          to {entry.endDate ? formatEveDateTime(entry.endDate) : 'this day'} (
+          {employmentDays(entry.startDate, entry.endDate, now)} Days)
         </li>
       ))}
     </ul>

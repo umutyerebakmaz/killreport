@@ -27,9 +27,11 @@ describe('EmploymentHistoryList', () => {
 
     const link = screen.getByRole('link', { name: 'Kenshin.' });
     expect(link.getAttribute('href')).toBe('/corporations/98148202');
-    const bold = [...container.querySelectorAll('b')].map((b) => b.textContent);
-    expect(bold).toEqual(['2022.09.18 09:56', '2026.01.17 18:13']);
-    expect(container.textContent).toContain('(1217 Days)');
+    expect(container.querySelector('li')?.textContent).toBe(
+      'Kenshin. 2022.09.18 09:56 to 2026.01.17 18:13 (1217 Days)',
+    );
+    // Plain weight: the corporation link is what the row is about
+    expect(container.querySelector('b')).toBeNull();
   });
 
   it('explains the corporation link on hover, worded like the tables', async () => {
