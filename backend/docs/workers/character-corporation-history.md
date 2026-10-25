@@ -12,22 +12,24 @@ One queue, one worker, one table. The worker is the sole writer of
 
 ```mermaid
 flowchart LR
-    Cron@{ img: "https://cdn.simpleicons.org/pm2/8b949e", label: "Weekly cron", pos: "b", w: 32, h: 32, constraint: "on" } --> Producer["<b>Queue script</b><br/><i>stale characters</i>"]
-    Producer --> Queue@{ img: "https://cdn.simpleicons.org/rabbitmq/8b949e", label: "RabbitMQ", pos: "b", w: 32, h: 32, constraint: "on" }
-    Queue --> Worker["<b>Worker</b><br/><i>prefetch 5</i>"]
-    ESI["EVE ESI"] -->|"history"| Worker
-    Worker --> DB@{ img: "https://cdn.simpleicons.org/postgresql/8b949e", label: "PostgreSQL", pos: "b", w: 32, h: 32, constraint: "on" }
-    Worker -.->|"missing corporations"| Corp["<b>Corporation worker</b>"]
+    Cron(["<img src='https://cdn.simpleicons.org/pm2/8b949e' width='28' height='28'/><br/><b>PM2 cron</b><br/><i>Monday 03:00 UTC</i>"])
+    --> Producer["<b>Queue script</b><br/><i>stale characters</i>"]
+    --> Queue["<img src='https://cdn.simpleicons.org/rabbitmq/8b949e' width='28' height='28'/><br/><b>RabbitMQ</b><br/><i>corporation history queue</i>"]
+    --> Worker["<b>Worker</b><br/><i>prefetch 5</i>"]
+    ESI["<b>EVE ESI</b><br/><i>corporationhistory</i>"] -->|"history"| Worker
+    Worker --> DB[("<img src='https://cdn.simpleicons.org/postgresql/8b949e' width='28' height='28'/><br/><b>PostgreSQL</b><br/><i>character_corporation_history</i>")]
+    Worker -.->|"missing corporations"| Corp["<b>Corporation worker</b><br/><i>fills in names</i>"]
 ```
 
 ### Read path
 
 ```mermaid
 flowchart LR
-    Tab@{ img: "https://cdn.simpleicons.org/nextdotjs/8b949e", label: "Employment History tab", pos: "b", w: 32, h: 32, constraint: "on" } --> API@{ img: "https://cdn.simpleicons.org/graphql/8b949e", label: "GraphQL", pos: "b", w: 32, h: 32, constraint: "on" }
-    API --> Service["<b>Read service</b>"]
-    Service --> Redis@{ img: "https://cdn.simpleicons.org/redis/8b949e", label: "Redis · 7200 s", pos: "b", w: 32, h: 32, constraint: "on" }
-    Service -.->|"cache miss"| DB@{ img: "https://cdn.simpleicons.org/postgresql/8b949e", label: "PostgreSQL", pos: "b", w: 32, h: 32, constraint: "on" }
+    Tab["<img src='https://cdn.simpleicons.org/nextdotjs/8b949e' width='28' height='28'/><br/><b>Next.js</b><br/><i>Employment History tab</i>"]
+    --> API["<img src='https://cdn.simpleicons.org/graphql/8b949e' width='28' height='28'/><br/><b>GraphQL</b><br/><i>characterCorporationHistory</i>"]
+    --> Service["<b>Read service</b><br/><i>derives end dates</i>"]
+    Service --> Redis[("<img src='https://cdn.simpleicons.org/redis/8b949e' width='28' height='28'/><br/><b>Redis</b><br/><i>7200 s</i>")]
+    Service -.->|"cache miss"| DB[("<img src='https://cdn.simpleicons.org/postgresql/8b949e' width='28' height='28'/><br/><b>PostgreSQL</b><br/><i>character_corporation_history</i>")]
 ```
 
 ## Commands
