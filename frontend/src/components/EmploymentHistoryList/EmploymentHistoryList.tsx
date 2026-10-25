@@ -33,7 +33,7 @@ export default function EmploymentHistoryList({
             <Tooltip content="Show Corporation Info">
               <Link
                 href={`/corporations/${entry.corporation.id}`}
-                className="text-ink-muted hover:text-accent-link"
+                className="transition-colors hover:text-accent-link"
                 prefetch={false}
               >
                 {entry.corporation.name}
