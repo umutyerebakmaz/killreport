@@ -73,6 +73,7 @@
     "worker:info:alliances": "tsx src/workers/worker-info-alliances.ts",
     "worker:info:categories": "tsx src/workers/worker-info-categories.ts",
     "worker:info:characters": "tsx src/workers/worker-info-characters.ts",
+    "worker:character-corporation-history": "tsx src/workers/worker-character-corporation-history.ts",
     "worker:info:corporations": "tsx src/workers/worker-info-corporations.ts",
     "worker:info:dogma-attributes": "tsx src/workers/worker-info-dogma-attributes.ts",
     "worker:info:dogma-effects": "tsx src/workers/worker-info-dogma-effects.ts",

@@ -297,6 +297,27 @@ module.exports = {
       time: true,
     },
 
+    // Character Corporation History Worker (prefetch: 5)
+    {
+      name: 'worker-character-corporation-history',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:character-corporation-history',
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'debug',
+      },
+      max_memory_restart: '512M',
+      autorestart: true,
+      error_file:
+        '/var/www/killreport/logs/worker-character-corporation-history-error.log',
+      out_file:
+        '/var/www/killreport/logs/worker-character-corporation-history-out.log',
+      time: true,
+    },
+
     // Alliance Snapshot (Daily at 01:00 UTC)
     {
       name: 'snapshot-alliances',

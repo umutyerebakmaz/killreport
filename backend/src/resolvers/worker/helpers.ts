@@ -11,6 +11,10 @@ const execAsync = promisify(exec);
 export const QUEUE_WORKER_MAP: Record<string, string[]> = {
   esi_alliance_info_queue: ['worker:info:alliances', 'worker-alliances'],
   esi_character_info_queue: ['worker:info:characters', 'worker-characters'],
+  esi_character_corporation_history_queue: [
+    'worker:character-corporation-history',
+    'worker-character-corporation-history',
+  ],
   esi_corporation_info_queue: [
     'worker:info:corporations',
     'worker-corporations',
