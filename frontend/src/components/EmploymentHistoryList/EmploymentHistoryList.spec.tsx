@@ -42,6 +42,20 @@ describe('EmploymentHistoryList', () => {
     expect(await screen.findByText('Show Corporation Info')).toBeTruthy();
   });
 
+  it('leads each row with the corporation logo', () => {
+    renderList([
+      entry({ recordId: 2 }),
+      entry({ recordId: 1, corporationId: 1024623120, corporation: null }),
+    ]);
+
+    const [named, unnamed] = screen.getAllByRole('img');
+    expect(named.getAttribute('alt')).toBe('Kenshin.');
+    expect(named.getAttribute('src')).toContain('98148202');
+    // The image server knows the corporation before our database does
+    expect(unnamed.getAttribute('alt')).toBe('1024623120');
+    expect(unnamed.getAttribute('src')).toContain('1024623120');
+  });
+
   it('marks a closed corporation, and only that one', () => {
     renderList([
       entry({ recordId: 2 }),

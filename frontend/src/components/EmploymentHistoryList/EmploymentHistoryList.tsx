@@ -4,6 +4,7 @@ import { CharacterCorporationHistoryQuery } from '@/generated/graphql';
 import { formatEveDateTime } from '@/utils/date';
 import { employmentDays } from '@/utils/employmentDays';
 import Tooltip from '../Tooltip/Tooltip';
+import EveImage from '../ui/EveImage';
 
 type Entries = CharacterCorporationHistoryQuery['characterCorporationHistory'];
 
@@ -28,23 +29,33 @@ export default function EmploymentHistoryList({
   return (
     <ul className="space-y-1">
       {entries.map((entry) => (
-        <li key={entry.recordId}>
-          {entry.corporation ? (
-            <Tooltip content="Show Corporation Info" position="top-start">
-              <Link
-                href={`/corporations/${entry.corporation.id}`}
-                className="transition-colors hover:text-accent-link"
-                prefetch={false}
-              >
-                {entry.corporation.name}
-              </Link>
-            </Tooltip>
-          ) : (
-            entry.corporationId
-          )}
-          {entry.isDeleted && ' (Closed)'} {formatEveDateTime(entry.startDate)}{' '}
-          to {entry.endDate ? formatEveDateTime(entry.endDate) : 'this day'} (
-          {employmentDays(entry.startDate, entry.endDate, now)} Days)
+        <li key={entry.recordId} className="flex items-center gap-3">
+          <EveImage
+            kind="corporation"
+            id={entry.corporationId}
+            name={entry.corporation?.name ?? String(entry.corporationId)}
+            size={32}
+          />
+          {/* One flex item, so the spaces between its parts survive */}
+          <span>
+            {entry.corporation ? (
+              <Tooltip content="Show Corporation Info" position="top-start">
+                <Link
+                  href={`/corporations/${entry.corporation.id}`}
+                  className="transition-colors hover:text-accent-link"
+                  prefetch={false}
+                >
+                  {entry.corporation.name}
+                </Link>
+              </Tooltip>
+            ) : (
+              entry.corporationId
+            )}
+            {entry.isDeleted && ' (Closed)'}{' '}
+            {formatEveDateTime(entry.startDate)} to{' '}
+            {entry.endDate ? formatEveDateTime(entry.endDate) : 'this day'} (
+            {employmentDays(entry.startDate, entry.endDate, now)} Days)
+          </span>
         </li>
       ))}
     </ul>
