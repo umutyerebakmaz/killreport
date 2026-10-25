@@ -56,13 +56,22 @@ yarn queue:character-corporation-history 365974960   # General XAN
 yarn worker:character-corporation-history
 ```
 
-The page can keep showing the old list for up to two hours afterwards, because
-the read service caches it for 7200 s. To see the new data at once, delete the
-key (add `-n <db>` if `REDIS_URL` ends in a database number):
+A character fetched for the first time shows up at once: an empty result is
+never cached. A refresh of a character that already had rows can take up to
+two hours to appear, because the read service caches the list for 7200 s. To
+see it at once, delete the key:
 
 ```bash
-redis-cli DEL character:corporation-history:365974960
+redis-cli -n 1 DEL character:corporation-history:365974960
 ```
+
+`-n 1` is the database number at the end of `REDIS_URL` in `backend/.env`
+(`redis://localhost:6379/1`). Without it `redis-cli` uses database 0, finds no
+key, deletes nothing and still exits cleanly — so check the reply: `1` means
+the key was deleted, `0` means it was not there.
+
+The GraphQL response cache keeps the same answer for another 120 s on top of
+that.
 
 ### Backfill everyone
 
@@ -140,6 +149,4 @@ Design and plan:
 - Refreshing when the tab is opened. It needs a mutation that queues the
   character at high priority, the query taken out of the response cache, and
   the worker deleting the service key after it writes (spec §8).
-- An empty result (`[]`) is cached for 7200 s like any other, so a character
-  fetched just after someone opened the tab stays empty until the key expires.
 - A GraphQL error renders as the empty-state text, `No employment history yet.`
