@@ -30,7 +30,7 @@ export default function EmploymentHistoryList({
       {entries.map((entry) => (
         <li key={entry.recordId}>
           {entry.corporation ? (
-            <Tooltip content="Show Corporation Info">
+            <Tooltip content="Show Corporation Info" position="top-start">
               <Link
                 href={`/corporations/${entry.corporation.id}`}
                 className="transition-colors hover:text-accent-link"
