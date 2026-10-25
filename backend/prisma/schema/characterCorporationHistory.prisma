@@ -1,0 +1,11 @@
+model CharacterCorporationHistory {
+  record_id      BigInt   @id
+  character_id   Int
+  corporation_id Int
+  start_date     DateTime
+  is_deleted     Boolean  @default(false)
+  fetched_at     DateTime
+
+  @@index([character_id])
+  @@map("character_corporation_history")
+}
