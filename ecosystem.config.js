@@ -239,6 +239,27 @@ module.exports = {
       time: true,
     },
 
+    // Queue Character Corporation History - Weekly (Monday 03:00 UTC, stale only)
+    {
+      name: 'queue-character-corporation-history',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'queue:character-corporation-history',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      cron_restart: '0 3 * * 1',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file:
+        '/var/www/killreport/logs/queue-character-corporation-history-error.log',
+      out_file:
+        '/var/www/killreport/logs/queue-character-corporation-history-out.log',
+      time: true,
+    },
+
     // Queue Alliances - Daily at 01:00 Turkey Time (22:00 UTC)
     {
       name: 'queue-alliances',
