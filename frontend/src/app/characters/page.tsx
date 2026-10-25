@@ -18,10 +18,7 @@ function CharactersContent() {
   const [pageSize, setPageSize] = useState(25);
   const [orderBy, setOrderBy] = useState<string>(orderByFromUrl);
   const [filters, setFilters] = useState<{
-    search?: string;
-    name?: string;
-    corporation_id?: number;
-    alliance_id?: number;
+    id?: number;
   }>({});
 
   const { data, loading, error, refetch } = useCharactersQuery({
@@ -104,12 +101,7 @@ function CharactersContent() {
     setCurrentPage(1);
   };
 
-  const handleFilterChange = (newFilters: {
-    search?: string;
-    name?: string;
-    corporation_id?: number;
-    alliance_id?: number;
-  }) => {
+  const handleFilterChange = (newFilters: { id?: number }) => {
     setFilters(newFilters);
     setCurrentPage(1); // Reset to first page when filters change
   };

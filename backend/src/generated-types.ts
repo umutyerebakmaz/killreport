@@ -296,6 +296,7 @@ export type CharacterCorporationHistory = {
 export type CharacterFilter = {
   allianceId?: InputMaybe<Scalars['Int']['input']>;
   corporationId?: InputMaybe<Scalars['Int']['input']>;
+  id?: InputMaybe<Scalars['Int']['input']>;
   limit?: InputMaybe<Scalars['Int']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   orderBy?: InputMaybe<CharacterOrderBy>;

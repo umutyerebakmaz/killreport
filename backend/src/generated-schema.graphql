@@ -251,6 +251,7 @@ type CharacterCorporationHistory {
 input CharacterFilter {
   allianceId: Int
   corporationId: Int
+  id: Int
   limit: Int
   name: String
   orderBy: CharacterOrderBy
