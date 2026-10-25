@@ -15,7 +15,7 @@ flowchart LR
     Cron(["<img src='https://cdn.simpleicons.org/pm2/8a63d2' width='28' height='28'/><br/><b>PM2 cron</b><br/><i>Monday 03:00 UTC</i>"])
     --> Producer["<b>Queue script</b><br/><i>stale characters</i>"]
     --> Queue["<img src='https://cdn.simpleicons.org/rabbitmq' width='28' height='28'/><br/><b>RabbitMQ</b><br/><i>corporation history queue</i>"]
-    --> Worker["<b>Worker</b><br/><i>prefetch 5</i>"]
+    --> Worker["<b>Worker</b><br/><i>prefetch ESI_PREFETCH</i>"]
     ESI["<b>EVE ESI</b><br/><i>corporationhistory</i>"] -->|"history"| Worker
     Worker --> DB[("<img src='https://cdn.simpleicons.org/postgresql' width='28' height='28'/><br/><b>PostgreSQL</b><br/><i>character_corporation_history</i>")]
     Worker -.->|"missing corporations"| Corp["<b>Corporation worker</b><br/><i>fills in names</i>"]
@@ -81,6 +81,12 @@ On the first run, every character counts as "never fetched", so the plain queue
 script queues the whole `characters` table — one ESI request per character.
 Leave the worker running in a second terminal. Run `worker:info:corporations`
 as well, or new corporations show up as bare IDs.
+
+The worker holds `ESI_PREFETCH` characters in flight (default 100) and
+`esiRateLimiter` caps it at `ESI_MAX_RPS` (default 50), one request per
+character. Raise `ESI_MAX_RPS` only when this worker has ESI to itself, for
+example `ESI_MAX_RPS=100 yarn worker:character-corporation-history`. Stop it with
+Ctrl+C, not Ctrl+Z: a suspended worker keeps its messages and works on none.
 
 Stopping halfway loses nothing. Run the queue script again and it queues only
 the characters that are still missing or stale; the database, not RabbitMQ, is

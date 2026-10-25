@@ -4,6 +4,7 @@
  */
 
 import type amqp from 'amqplib';
+import { config } from '@config/config';
 import { CharacterService } from '@services/character';
 import {
   findMissingCorporationIds,
@@ -16,7 +17,13 @@ import { handleWorkerError } from './worker-error';
 
 export const QUEUE_NAME = 'esi_character_corporation_history_queue';
 const CORPORATION_QUEUE_NAME = 'esi_corporation_info_queue';
-const PREFETCH_COUNT = 5; // Process 5 characters concurrently (ESI rate limit protection)
+// Concurrency, not a rate limit - esiRateLimiter owns the dispatch ceiling.
+// Its job is to keep that ceiling fed, so it has to be at least a fraction of
+// the target rate. Override per run with ESI_PREFETCH.
+const PREFETCH_COUNT = Math.max(
+  config.esi.prefetch,
+  Math.ceil(config.esi.maxRequestsPerSecond / 2),
+);
 
 interface EntityQueueMessage {
   entityId: number;
@@ -60,7 +67,10 @@ export async function processCharacter(
 async function characterCorporationHistoryWorker() {
   logger.info('🏢 character corporation history worker started');
   logger.info(`📦 queue: ${QUEUE_NAME}`);
-  logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent\n`);
+  logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent`);
+  logger.info(
+    `🚦 ESI ceiling: ${config.esi.maxRequestsPerSecond} req/sec (ESI_MAX_RPS)\n`,
+  );
 
   await ensureAllQueuesExist();
   while (!isShuttingDown) {
