@@ -28,7 +28,7 @@ export default function EmploymentHistoryList({
   }
 
   return (
-    <ul className="divide-y divide-white/5">
+    <ul className="divide-y divide-white/5 text-ink-muted">
       {entries.map((entry) => (
         <li
           key={entry.recordId}
