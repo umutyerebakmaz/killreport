@@ -17,6 +17,7 @@ type Character {
 input CharacterFilter {
   page: Int
   limit: Int
+  id: Int
   search: String
   name: String
   corporationId: Int

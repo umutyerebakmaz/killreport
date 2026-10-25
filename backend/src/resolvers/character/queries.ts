@@ -53,6 +53,10 @@ export const characterQueries: QueryResolvers = {
         where.name = { startsWith: trim, mode: 'insensitive' };
       }
 
+      if (filter.id) {
+        where.id = filter.id;
+      }
+
       if (filter.corporationId) {
         where.corporation_id = filter.corporationId;
       }
