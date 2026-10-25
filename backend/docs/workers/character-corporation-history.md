@@ -19,6 +19,7 @@ flowchart LR
     ESI["<b>EVE ESI</b><br/><i>corporationhistory</i>"] -->|"history"| Worker
     Worker --> DB[("<img src='https://cdn.simpleicons.org/postgresql' width='28' height='28'/><br/><b>PostgreSQL</b><br/><i>character_corporation_history</i>")]
     Worker -.->|"missing corporations"| Corp["<b>Corporation worker</b><br/><i>fills in names</i>"]
+    Scan["<b>Missing corporations scan</b><br/><i>daily 04:00 UTC</i>"] -.->|"safety net"| Corp
 ```
 
 ### Read path
@@ -36,12 +37,13 @@ flowchart LR
 
 All of them run from `backend/`.
 
-| Command                                         | What it does                                                                                    |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `yarn queue:character-corporation-history`      | Queues every character whose history was never fetched or is older than 6 days                  |
-| `yarn queue:character-corporation-history <id>` | Queues only the given character(s), regardless of age. Several IDs separated by spaces work too |
-| `yarn worker:character-corporation-history`     | Consumes the queue: fetches from ESI, saves, queues missing corporations                        |
-| `yarn worker:info:corporations`                 | Resolves the corporations the worker queued, so names appear instead of IDs                     |
+| Command                                         | What it does                                                                                                               |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `yarn queue:character-corporation-history`      | Queues every character whose history was never fetched or is older than 6 days                                             |
+| `yarn queue:character-corporation-history <id>` | Queues only the given character(s), regardless of age. Several IDs separated by spaces work too                            |
+| `yarn worker:character-corporation-history`     | Consumes the queue: fetches from ESI, saves, queues missing corporations                                                   |
+| `yarn worker:info:corporations`                 | Resolves the corporations the worker queued, so names appear instead of IDs                                                |
+| `yarn queue:character-corporations`             | Daily safety net: queues every corporation in the history (or a character's current one) still missing from `corporations` |
 
 The queue script exits when it has finished queueing. The worker keeps running
 and waits for new messages; stop it with `Ctrl+C`. When the queue drains it

@@ -305,6 +305,19 @@ Tarih biçimi ve gün hesabı `utils/` altında saf fonksiyonlar, birim testli.
 
 ---
 
+## 7a. Eksik corporation'ların kalıcı taraması (2026-10-25 eki)
+
+Worker bir geçmişi kaydedince veritabanında olmayan corporation'ları hemen
+`esi_corporation_info_queue`'ya atar; bu hızlı yol. Ama RabbitMQ bekleyen işin
+kaydı değil: mesaj kaybolursa (kuyruk temizlenir, worker kayıtla yayın arasında
+çöker) o corporation bir daha kuyruğa girmezdi. Bu yüzden günlük
+`queue:character-corporations` (04:00 UTC) artık `characters.corporation_id`'ye
+ek olarak `character_corporation_history.corporation_id`'yi de tarıyor. Eksikleri
+tek bir SQL anti-join'le buluyor; eski hali tüm `corporations` tablosunu belleğe
+yükleyip JavaScript'te ayıklıyordu.
+
+---
+
 ## 8. Sonraya kalanlar
 
 - **Sekme açılınca tazeleme.** Konuşulan yön: sekme açılınca bir mutation

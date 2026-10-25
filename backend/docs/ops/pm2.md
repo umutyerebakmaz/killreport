@@ -473,12 +473,16 @@ pm2 logs queue-character-corporations
 
 **What it does:**
 
-- Collects corporation_ids from characters (~24k unique)
-- Finds those not in database
-- Adds to `esi_corporation_info_queue`
+- Collects the corporation IDs characters point at: each character's
+  `corporation_id`, and every corporation in `character_corporation_history`
+- Keeps the ones not in `corporations` — one SQL anti-join, nothing filtered in
+  JavaScript
+- Adds them to `esi_corporation_info_queue`
 - `worker-corporations` processes them
 
-**Use Case:** Adding corporations from new killmails
+**Use Case:** Adding corporations from new killmails, and catching any
+employment-history corporation whose message from
+`worker-character-corporation-history` was lost
 
 ---
 
