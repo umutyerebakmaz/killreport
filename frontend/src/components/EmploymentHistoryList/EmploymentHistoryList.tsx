@@ -57,7 +57,7 @@ export default function EmploymentHistoryList({
               )}
               {entry.isDeleted && ' (Closed)'}
             </div>
-            <div>
+            <div className="text-sm">
               {`${formatEveDateTime(entry.startDate)} to ${
                 entry.endDate ? formatEveDateTime(entry.endDate) : 'this day'
               }`}
