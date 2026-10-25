@@ -30,7 +30,10 @@ export default function EmploymentHistoryList({
   return (
     <ul className="space-y-1">
       {entries.map((entry) => (
-        <li key={entry.recordId} className="flex items-center gap-3">
+        <li
+          key={entry.recordId}
+          className="flex items-center gap-3 p-3 transition-colors duration-100 hover:bg-surface-inset"
+        >
           <EveImage
             kind="corporation"
             id={entry.corporationId}
