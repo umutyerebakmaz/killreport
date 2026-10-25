@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { CharacterCorporationHistoryQuery } from '@/generated/graphql';
 import { formatEveDateTime } from '@/utils/date';
 import { employmentDays } from '@/utils/employmentDays';
+import Tooltip from '../Tooltip/Tooltip';
 
 type Entries = CharacterCorporationHistoryQuery['characterCorporationHistory'];
 
@@ -29,9 +30,15 @@ export default function EmploymentHistoryList({
       {entries.map((entry) => (
         <li key={entry.recordId}>
           {entry.corporation ? (
-            <Link href={`/corporations/${entry.corporation.id}`}>
-              {entry.corporation.name}
-            </Link>
+            <Tooltip content="Show Corporation Info">
+              <Link
+                href={`/corporations/${entry.corporation.id}`}
+                className="text-ink-muted hover:text-accent-link"
+                prefetch={false}
+              >
+                {entry.corporation.name}
+              </Link>
+            </Tooltip>
           ) : (
             entry.corporationId
           )}

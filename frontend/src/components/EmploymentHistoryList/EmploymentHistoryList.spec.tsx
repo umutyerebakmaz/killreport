@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { CharacterCorporationHistoryQuery } from '@/generated/graphql';
@@ -30,6 +30,14 @@ describe('EmploymentHistoryList', () => {
     const bold = [...container.querySelectorAll('b')].map((b) => b.textContent);
     expect(bold).toEqual(['2022.09.18 09:56', '2026.01.17 18:13']);
     expect(container.textContent).toContain('(1217 Days)');
+  });
+
+  it('explains the corporation link on hover, worded like the tables', async () => {
+    renderList([entry()]);
+
+    fireEvent.mouseEnter(screen.getByRole('link', { name: 'Kenshin.' }));
+
+    expect(await screen.findByText('Show Corporation Info')).toBeTruthy();
   });
 
   it('marks a closed corporation, and only that one', () => {
