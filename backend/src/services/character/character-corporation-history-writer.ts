@@ -11,33 +11,52 @@ import type { EsiCorporationHistoryRecord } from './character.service';
 /**
  * Upserts every record and stamps `fetched_at` on all of the character's rows,
  * so `MAX(fetched_at)` is when the history was last fetched.
+ *
+ * One statement, not a transaction of per-row upserts: a transaction holds one
+ * of the worker pool's two connections for the whole loop, and with a full
+ * prefetch in flight the rest time out waiting to start one (P2028). The
+ * timestamps go in as UTC text, which `timestamp` stores without shifting.
  */
 export async function saveCorporationHistory(
   characterId: number,
   records: EsiCorporationHistoryRecord[],
   fetchedAt: Date,
 ): Promise<void> {
-  await prismaWorker.$transaction(async (tx) => {
-    for (const record of records) {
-      const fields = {
-        character_id: characterId,
-        corporation_id: record.corporation_id,
-        start_date: new Date(record.start_date),
-        is_deleted: record.is_deleted ?? false,
-        fetched_at: fetchedAt,
-      };
-      await tx.characterCorporationHistory.upsert({
-        where: { record_id: BigInt(record.record_id) },
-        create: { record_id: BigInt(record.record_id), ...fields },
-        update: fields,
-      });
-    }
+  const recordIds = records.map((r) => r.record_id);
+  const corporationIds = records.map((r) => r.corporation_id);
+  const startDates = records.map((r) => r.start_date);
+  const deleted = records.map((r) => r.is_deleted ?? false);
+  const stamp = fetchedAt.toISOString();
 
-    await tx.characterCorporationHistory.updateMany({
-      where: { character_id: characterId },
-      data: { fetched_at: fetchedAt },
-    });
-  });
+  // The UPDATE skips the incoming records: the CTE already writes those, and a
+  // statement may not modify the same row twice
+  await prismaWorker.$executeRaw`
+    WITH incoming AS (
+      SELECT *
+      FROM unnest(
+        ${recordIds}::bigint[],
+        ${corporationIds}::int[],
+        ${startDates}::timestamp(3)[],
+        ${deleted}::bool[]
+      ) AS v(record_id, corporation_id, start_date, is_deleted)
+    ), upserted AS (
+      INSERT INTO character_corporation_history
+        (record_id, character_id, corporation_id, start_date, is_deleted, fetched_at)
+      SELECT record_id, ${characterId}, corporation_id, start_date, is_deleted,
+        ${stamp}::timestamp(3)
+      FROM incoming
+      ON CONFLICT (record_id) DO UPDATE SET
+        character_id = EXCLUDED.character_id,
+        corporation_id = EXCLUDED.corporation_id,
+        start_date = EXCLUDED.start_date,
+        is_deleted = EXCLUDED.is_deleted,
+        fetched_at = EXCLUDED.fetched_at
+    )
+    UPDATE character_corporation_history
+    SET fetched_at = ${stamp}::timestamp(3)
+    WHERE character_id = ${characterId}
+      AND record_id NOT IN (SELECT record_id FROM incoming)
+  `;
 }
 
 /**
