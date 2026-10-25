@@ -6,40 +6,34 @@ const QUEUE_NAME = 'esi_corporation_info_queue';
 const BATCH_SIZE = 100;
 
 /**
- * Scans all characters in database and queues missing corporations
- * These will be processed by worker:info:corporations to fetch from ESI
+ * Queues every corporation a character points at that is not in the database
+ * yet: a character's current corporation, and every corporation in its
+ * employment history. worker:info:corporations then fetches them from ESI.
+ *
+ * worker-character-corporation-history queues a history's missing
+ * corporations as soon as it saves them, but RabbitMQ is not the record of
+ * outstanding work; this daily scan is what catches a message that was lost.
  */
 async function queueCharacterCorporations() {
-  logger.info('scanning characters for missing corporations...');
+  logger.info(
+    'scanning characters and their corporation history for missing corporations...',
+  );
 
   try {
-    // Get all unique corporation_ids from characters
-    const allCharacters = await prismaWorker.character.findMany({
-      select: { corporation_id: true },
-      distinct: ['corporation_id'],
-    });
-
-    const corporationIdsFromCharacters = allCharacters
-      .map((c) => c.corporation_id)
-      .filter((id): id is number => id !== null && id !== undefined);
-
-    logger.info(
-      `found ${corporationIdsFromCharacters.length} unique corporations from characters`,
-    );
-
-    // Get existing corporation IDs from database
-    const existingCorporations = await prismaWorker.corporation.findMany({
-      select: { id: true },
-    });
-
-    const existingCorporationIds = new Set(
-      existingCorporations.map((c) => c.id),
-    );
-
-    // Find missing corporations
-    const missingCorporationIds = corporationIdsFromCharacters.filter(
-      (id) => !existingCorporationIds.has(id),
-    );
+    // UNION already de-duplicates; the anti-join leaves only the unknown ones
+    const rows = await prismaWorker.$queryRaw<{ corporation_id: number }[]>`
+      SELECT ids.corporation_id
+      FROM (
+        SELECT corporation_id FROM characters
+        UNION
+        SELECT corporation_id FROM character_corporation_history
+      ) ids
+      WHERE NOT EXISTS (
+        SELECT 1 FROM corporations c WHERE c.id = ids.corporation_id
+      )
+      ORDER BY ids.corporation_id
+    `;
+    const missingCorporationIds = rows.map((r) => r.corporation_id);
 
     logger.info(`found ${missingCorporationIds.length} missing corporations`);
 
