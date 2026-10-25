@@ -82,11 +82,21 @@ script queues the whole `characters` table — one ESI request per character.
 Leave the worker running in a second terminal. Run `worker:info:corporations`
 as well, or new corporations show up as bare IDs.
 
-The worker holds `ESI_PREFETCH` characters in flight (default 100) and
+The worker holds `ESI_PREFETCH` characters in flight (default 25) and
 `esiRateLimiter` caps it at `ESI_MAX_RPS` (default 50), one request per
-character. Raise `ESI_MAX_RPS` only when this worker has ESI to itself, for
-example `ESI_MAX_RPS=100 yarn worker:character-corporation-history`. Stop it with
-Ctrl+C, not Ctrl+Z: a suspended worker keeps its messages and works on none.
+character. For a backfill that is too fast: this route is rate limited inside
+the EVE server, with no `X-Ratelimit-*` or `Retry-After` header to read, and
+on 2026-10-25 it answered 429 after about 20 seconds at 25 req/sec while 5
+req/sec ran clean. Run the backfill below that:
+
+```bash
+ESI_MAX_RPS=15 ESI_PREFETCH=8 yarn worker:character-corporation-history
+```
+
+The worker logs `rate limited (429)` when it happens; drop to 10 if it does.
+Both values are environment variables — the worker takes no arguments. Stop it
+with Ctrl+C, not Ctrl+Z: a suspended worker keeps its messages and works on
+none.
 
 Stopping halfway loses nothing. Run the queue script again and it queues only
 the characters that are still missing or stale; the database, not RabbitMQ, is

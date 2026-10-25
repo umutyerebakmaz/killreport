@@ -159,7 +159,7 @@ adding a second process. Only when nothing else is running:
 ESI_MAX_RPS=120 yarn worker:moons
 ```
 
-`ESI_PREFETCH` (default 100) is the other half: how many messages a worker holds
+`ESI_PREFETCH` (default 25) is the other half: how many messages a worker holds
 unacked at once. That is concurrency, not a rate — the dispatch ceiling still
 applies — but set too low it starves the limiter and becomes the real ceiling.
 The effective value is never below half the configured rate.
