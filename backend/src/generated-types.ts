@@ -278,6 +278,21 @@ export type Character = {
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
+/**
+ * One corporation a character was a member of, from ESI
+ * /characters/{id}/corporationhistory/.
+ */
+export type CharacterCorporationHistory = {
+  __typename?: 'CharacterCorporationHistory';
+  corporation?: Maybe<Corporation>;
+  corporationId: Scalars['Int']['output'];
+  /** The next, newer record's start; null for the current corporation */
+  endDate?: Maybe<Scalars['String']['output']>;
+  isDeleted: Scalars['Boolean']['output'];
+  recordId: Scalars['Float']['output'];
+  startDate: Scalars['String']['output'];
+};
+
 export type CharacterFilter = {
   allianceId?: InputMaybe<Scalars['Int']['input']>;
   corporationId?: InputMaybe<Scalars['Int']['input']>;
@@ -1180,6 +1195,8 @@ export type Query = {
   categories: CategoriesResponse;
   category?: Maybe<Category>;
   character?: Maybe<Character>;
+  /** Newest first; empty until the worker has fetched the character */
+  characterCorporationHistory: Array<CharacterCorporationHistory>;
   characterTopAllianceTargets: Array<AllianceTopTarget>;
   characterTopCorporationTargets: Array<CorporationTopTarget>;
   characterTopShipTargets: Array<ShipTopKill>;
@@ -1385,6 +1402,11 @@ export type QueryCategoryArgs = {
 
 export type QueryCharacterArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryCharacterCorporationHistoryArgs = {
+  characterId: Scalars['Int']['input'];
 };
 
 
@@ -2619,6 +2641,7 @@ export type ResolversTypes = {
   Category: ResolverTypeWrapper<Category>;
   CategoryFilter: CategoryFilter;
   Character: ResolverTypeWrapper<Character>;
+  CharacterCorporationHistory: ResolverTypeWrapper<CharacterCorporationHistory>;
   CharacterFilter: CharacterFilter;
   CharacterOrderBy: CharacterOrderBy;
   CharacterTopTarget: ResolverTypeWrapper<CharacterTopTarget>;
@@ -2792,6 +2815,7 @@ export type ResolversParentTypes = {
   Category: Category;
   CategoryFilter: CategoryFilter;
   Character: Character;
+  CharacterCorporationHistory: CharacterCorporationHistory;
   CharacterFilter: CharacterFilter;
   CharacterTopTarget: CharacterTopTarget;
   CharactersResponse: CharactersResponse;
@@ -3104,6 +3128,15 @@ export type CharacterResolvers<ContextType = any, ParentType extends ResolversPa
   securityStatus?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   title?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
+export type CharacterCorporationHistoryResolvers<ContextType = any, ParentType extends ResolversParentTypes['CharacterCorporationHistory'] = ResolversParentTypes['CharacterCorporationHistory']> = {
+  corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
+  corporationId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  endDate?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  isDeleted?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  recordId?: Resolver<ResolversTypes['Float'], ParentType, ContextType>;
+  startDate?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 };
 
 export type CharacterTopTargetResolvers<ContextType = any, ParentType extends ResolversParentTypes['CharacterTopTarget'] = ResolversParentTypes['CharacterTopTarget']> = {
@@ -3540,6 +3573,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   categories?: Resolver<ResolversTypes['CategoriesResponse'], ParentType, ContextType, Partial<QueryCategoriesArgs>>;
   category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType, RequireFields<QueryCategoryArgs, 'id'>>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
+  characterCorporationHistory?: Resolver<Array<ResolversTypes['CharacterCorporationHistory']>, ParentType, ContextType, RequireFields<QueryCharacterCorporationHistoryArgs, 'characterId'>>;
   characterTopAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, RequireFields<QueryCharacterTopAllianceTargetsArgs, 'characterId'>>;
   characterTopCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, RequireFields<QueryCharacterTopCorporationTargetsArgs, 'characterId'>>;
   characterTopShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, RequireFields<QueryCharacterTopShipTargetsArgs, 'characterId'>>;
@@ -4107,6 +4141,7 @@ export type Resolvers<ContextType = any> = {
   CategoriesResponse?: CategoriesResponseResolvers<ContextType>;
   Category?: CategoryResolvers<ContextType>;
   Character?: CharacterResolvers<ContextType>;
+  CharacterCorporationHistory?: CharacterCorporationHistoryResolvers<ContextType>;
   CharacterTopTarget?: CharacterTopTargetResolvers<ContextType>;
   CharactersResponse?: CharactersResponseResolvers<ContextType>;
   ConflictHotspot?: ConflictHotspotResolvers<ContextType>;

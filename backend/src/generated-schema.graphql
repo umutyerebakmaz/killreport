@@ -233,6 +233,21 @@ type Character {
   updatedAt: String
 }
 
+"""
+One corporation a character was a member of, from ESI
+/characters/{id}/corporationhistory/.
+"""
+type CharacterCorporationHistory {
+  corporation: Corporation
+  corporationId: Int!
+
+  """The next, newer record's start; null for the current corporation"""
+  endDate: String
+  isDeleted: Boolean!
+  recordId: Float!
+  startDate: String!
+}
+
 input CharacterFilter {
   allianceId: Int
   corporationId: Int
@@ -1057,6 +1072,9 @@ type Query {
   categories(filter: CategoryFilter): CategoriesResponse!
   category(id: Int!): Category
   character(id: Int!): Character
+
+  """Newest first; empty until the worker has fetched the character"""
+  characterCorporationHistory(characterId: Int!): [CharacterCorporationHistory!]!
   characterTopAllianceTargets(characterId: Int!, filter: TopTargetFilter): [AllianceTopTarget!]!
   characterTopCorporationTargets(characterId: Int!, filter: TopTargetFilter): [CorporationTopTarget!]!
   characterTopShipTargets(characterId: Int!, filter: TopTargetFilter): [ShipTopKill!]!

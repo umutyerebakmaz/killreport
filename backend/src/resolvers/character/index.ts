@@ -6,6 +6,10 @@
  * `import { characterQueries, characterMutations, characterFields, characterStatsQueries } from './character'`
  */
 
+export {
+  characterCorporationHistoryFields,
+  characterCorporationHistoryQueries,
+} from './corporation-history';
 export { characterFields } from './fields';
 export { characterMutations } from './mutations';
 export { characterQueries } from './queries';
