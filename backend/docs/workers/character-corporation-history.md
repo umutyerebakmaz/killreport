@@ -1,0 +1,170 @@
+# Character Corporation History
+
+Every corporation a character has been a member of, shown in the **Employment
+History** tab of the character page (`/characters/{id}?tab=employment`).
+
+One queue, one worker, one table. The worker is the sole writer of
+`character_corporation_history`.
+
+## Flow
+
+### Write path
+
+```mermaid
+flowchart LR
+    Cron(["<img src='https://cdn.simpleicons.org/pm2/8a63d2' width='28' height='28'/><br/><b>PM2 cron</b><br/><i>Monday 03:00 UTC</i>"])
+    --> Producer["<b>Queue script</b><br/><i>stale characters</i>"]
+    --> Queue["<img src='https://cdn.simpleicons.org/rabbitmq' width='28' height='28'/><br/><b>RabbitMQ</b><br/><i>corporation history queue</i>"]
+    --> Worker["<b>Worker</b><br/><i>prefetch ESI_PREFETCH</i>"]
+    ESI["<b>EVE ESI</b><br/><i>corporationhistory</i>"] -->|"history"| Worker
+    Worker --> DB[("<img src='https://cdn.simpleicons.org/postgresql' width='28' height='28'/><br/><b>PostgreSQL</b><br/><i>character_corporation_history</i>")]
+    Worker -.->|"missing corporations"| Corp["<b>Corporation worker</b><br/><i>fills in names</i>"]
+    Scan["<b>Missing corporations scan</b><br/><i>daily 04:00 UTC</i>"] -.->|"safety net"| Corp
+```
+
+### Read path
+
+```mermaid
+flowchart LR
+    Tab["<img src='https://cdn.simpleicons.org/nextdotjs' width='28' height='28'/><br/><b>Next.js</b><br/><i>Employment History tab</i>"]
+    --> API["<img src='https://cdn.simpleicons.org/graphql' width='28' height='28'/><br/><b>GraphQL</b><br/><i>characterCorporationHistory</i>"]
+    --> Service["<b>Read service</b><br/><i>derives end dates</i>"]
+    Service --> Redis[("<img src='https://cdn.simpleicons.org/redis' width='28' height='28'/><br/><b>Redis</b><br/><i>7200 s</i>")]
+    Service -.->|"cache miss"| DB[("<img src='https://cdn.simpleicons.org/postgresql' width='28' height='28'/><br/><b>PostgreSQL</b><br/><i>character_corporation_history</i>")]
+```
+
+## Commands
+
+All of them run from `backend/`.
+
+| Command                                         | What it does                                                                                                               |
+| ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `yarn queue:character-corporation-history`      | Queues every character whose history was never fetched or is older than 6 days                                             |
+| `yarn queue:character-corporation-history <id>` | Queues only the given character(s), regardless of age. Several IDs separated by spaces work too                            |
+| `yarn worker:character-corporation-history`     | Consumes the queue: fetches from ESI, saves, queues missing corporations                                                   |
+| `yarn worker:info:corporations`                 | Resolves the corporations the worker queued, so names appear instead of IDs                                                |
+| `yarn queue:character-corporations`             | Daily safety net: queues every corporation in the history (or a character's current one) still missing from `corporations` |
+
+The queue script exits when it has finished queueing. The worker keeps running
+and waits for new messages; stop it with `Ctrl+C`. When the queue drains it
+logs `✅ queue completed!` with the totals.
+
+## Typical tasks
+
+### Refresh one character
+
+```bash
+yarn queue:character-corporation-history 365974960   # General XAN
+yarn worker:character-corporation-history
+```
+
+A character fetched for the first time shows up at once: an empty result is
+never cached. A refresh of a character that already had rows can take up to
+two hours to appear, because the read service caches the list for 7200 s. To
+see it at once, delete the key:
+
+```bash
+redis-cli -n 1 DEL character:corporation-history:365974960
+```
+
+`-n 1` is the database number at the end of `REDIS_URL` in `backend/.env`
+(`redis://localhost:6379/1`). Without it `redis-cli` uses database 0, finds no
+key, deletes nothing and still exits cleanly — so check the reply: `1` means
+the key was deleted, `0` means it was not there.
+
+The GraphQL response cache keeps the same answer for another 120 s on top of
+that.
+
+### Backfill everyone
+
+On the first run, every character counts as "never fetched", so the plain queue
+script queues the whole `characters` table — one ESI request per character.
+Leave the worker running in a second terminal. Run `worker:info:corporations`
+as well, or new corporations show up as bare IDs.
+
+The worker holds `ESI_PREFETCH` characters in flight (default 25) and
+`esiRateLimiter` caps it at `ESI_MAX_RPS` (default 50), one request per
+character. For a backfill that is too fast: this route is rate limited inside
+the EVE server, with no `X-Ratelimit-*` or `Retry-After` header to read, and
+on 2026-10-25 it answered 429 after about 20 seconds at 25 req/sec while 5
+req/sec ran clean. Run the backfill below that:
+
+```bash
+ESI_MAX_RPS=15 ESI_PREFETCH=8 yarn worker:character-corporation-history
+```
+
+The worker logs `rate limited (429)` when it happens; drop to 10 if it does.
+Both values are environment variables — the worker takes no arguments. Stop it
+with Ctrl+C, not Ctrl+Z: a suspended worker keeps its messages and works on
+none.
+
+Stopping halfway loses nothing. Run the queue script again and it queues only
+the characters that are still missing or stale; the database, not RabbitMQ, is
+the record of what is done.
+
+### Check progress
+
+```sql
+SELECT COUNT(DISTINCT character_id) FROM character_corporation_history;
+SELECT COUNT(*) FROM characters;
+```
+
+Queue depth through the API:
+`query { workerStatus { queueName messageCount consumerCount } }`.
+
+## Schedule
+
+In production PM2 runs both processes (`ecosystem.config.js`, described in
+[pm2.md](../ops/pm2.md)):
+
+- `queue-character-corporation-history` — `cron_restart: '0 3 * * 1'`, every
+  Monday 03:00 UTC.
+- `worker-character-corporation-history` — always on.
+
+The threshold is 6 days rather than 7 on purpose. A character fetched a little
+after last Monday's run started is slightly under 7 days old at the next run;
+with a 7-day threshold it would be skipped and refresh only every two weeks.
+
+## Data
+
+`character_corporation_history`
+([model](../../prisma/schema/characterCorporationHistory.prisma)):
+
+| Column           | Meaning                                                                    |
+| ---------------- | -------------------------------------------------------------------------- |
+| `record_id`      | ESI's record ID, primary key; re-fetching upserts instead of duplicating   |
+| `character_id`   | Indexed                                                                    |
+| `corporation_id` | Not a foreign key; the corporation may not be in `corporations` yet        |
+| `start_date`     | When the character joined                                                  |
+| `is_deleted`     | The corporation has since closed — shown as `(Closed)`; `false` if absent  |
+| `fetched_at`     | Stamped on all of a character's rows on every fetch; `MAX` is "last fetch" |
+
+ESI gives only a start date. The read service derives each record's end from the
+next, newer record's start; the newest record has no end and is shown as "to
+this day". Rows are ordered `start_date DESC, record_id DESC`, and NPC
+corporations are kept.
+
+## Code
+
+| Part           | File                                                                                                              |
+| -------------- | ----------------------------------------------------------------------------------------------------------------- |
+| ESI call       | [character.service.ts](../../src/services/character/character.service.ts) — `getCorporationHistory`               |
+| Writer         | [character-corporation-history-writer.ts](../../src/services/character/character-corporation-history-writer.ts)   |
+| Worker         | [worker-character-corporation-history.ts](../../src/workers/worker-character-corporation-history.ts)              |
+| Queue script   | [queue-character-corporation-history.ts](../../src/queues/queue-character-corporation-history.ts)                 |
+| Read service   | [character-corporation-history.service.ts](../../src/services/character/character-corporation-history.service.ts) |
+| GraphQL schema | [CharacterCorporationHistory.graphql](../../src/schemas/CharacterCorporationHistory.graphql)                      |
+| Resolver       | [corporation-history.ts](../../src/resolvers/character/corporation-history.ts)                                    |
+| Tab component  | [EmploymentHistoryList.tsx](../../../frontend/src/components/EmploymentHistoryList/EmploymentHistoryList.tsx)     |
+| Day count      | [employmentDays.ts](../../../frontend/src/utils/employmentDays.ts)                                                |
+
+Design and plan:
+[spec](../../../docs/superpowers/specs/2026-10-25-employment-history-design.md),
+[plan](../../../docs/superpowers/plans/2026-10-25-employment-history.md).
+
+## Not built yet
+
+- Refreshing when the tab is opened. It needs a mutation that queues the
+  character at high priority, the query taken out of the response cache, and
+  the worker deleting the service key after it writes (spec §8).
+- A GraphQL error renders as the empty-state text, `No employment history yet.`

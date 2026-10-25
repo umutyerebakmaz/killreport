@@ -15,6 +15,7 @@ export const ALL_QUEUES: readonly string[] = [
   // ESI info workers (entity enrichment)
   'esi_alliance_info_queue',
   'esi_character_info_queue',
+  'esi_character_corporation_history_queue',
   'esi_corporation_info_queue',
   'esi_type_info_queue',
   'esi_category_info_queue',

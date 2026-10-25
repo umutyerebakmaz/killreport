@@ -38,10 +38,10 @@ const envSchema = z.object({
   // right default when several workers run at once; raise it for a single
   // process that has the budget to itself.
   ESI_MAX_RPS: z.string().default('50').transform(Number),
-  // Messages a topology worker holds unacked at once. Concurrency only - the
-  // dispatch ceiling above still applies. Temporarily 100 for the manual
-  // universe run; 25 was the long-standing value.
-  ESI_PREFETCH: z.string().default('100').transform(Number),
+  // Messages a worker holds unacked at once. Concurrency only - the dispatch
+  // ceiling above still applies. Raise it per run when one worker has the
+  // budget to itself, as the universe run did with 100.
+  ESI_PREFETCH: z.string().default('25').transform(Number),
 
   // GraphQL
   GRAPHQL_INTROSPECTION: z

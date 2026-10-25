@@ -67,6 +67,9 @@ describe('handleWorkerError', () => {
     // attempt counter does not move. Being error-limited is not a defect in
     // the message.
     expect(channel.nack).toHaveBeenCalledWith(expect.anything(), false, true);
+    expect(logger.warn).toHaveBeenCalledWith(
+      '🛑 error limited (420)! waiting 60 seconds...',
+    );
     expect(channel.publish).not.toHaveBeenCalled();
   });
 
@@ -94,6 +97,9 @@ describe('handleWorkerError', () => {
     // attempt counter does not move. 429 is the same signal as 420 with a
     // different number.
     expect(channel.nack).toHaveBeenCalledWith(expect.anything(), false, true);
+    expect(logger.warn).toHaveBeenCalledWith(
+      '🛑 rate limited (429)! waiting 60 seconds...',
+    );
     expect(channel.publish).not.toHaveBeenCalled();
   });
 
@@ -121,6 +127,9 @@ describe('handleWorkerError', () => {
     vi.useRealTimers();
 
     expect(channel.nack).toHaveBeenCalledWith(expect.anything(), false, true);
+    expect(logger.warn).toHaveBeenCalledWith(
+      '🛑 error limited (420)! waiting 60 seconds...',
+    );
     expect(channel.publish).not.toHaveBeenCalled();
   });
 
@@ -144,6 +153,9 @@ describe('handleWorkerError', () => {
     vi.useRealTimers();
 
     expect(channel.nack).toHaveBeenCalledWith(expect.anything(), false, true);
+    expect(logger.warn).toHaveBeenCalledWith(
+      '🛑 rate limited (429)! waiting 60 seconds...',
+    );
     expect(channel.publish).not.toHaveBeenCalled();
   });
 

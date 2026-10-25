@@ -473,12 +473,16 @@ pm2 logs queue-character-corporations
 
 **What it does:**
 
-- Collects corporation_ids from characters (~24k unique)
-- Finds those not in database
-- Adds to `esi_corporation_info_queue`
+- Collects the corporation IDs characters point at: each character's
+  `corporation_id`, and every corporation in `character_corporation_history`
+- Keeps the ones not in `corporations` — one SQL anti-join, nothing filtered in
+  JavaScript
+- Adds them to `esi_corporation_info_queue`
 - `worker-corporations` processes them
 
-**Use Case:** Adding corporations from new killmails
+**Use Case:** Adding corporations from new killmails, and catching any
+employment-history corporation whose message from
+`worker-character-corporation-history` was lost
 
 ---
 
@@ -557,6 +561,42 @@ pm2 logs update-alliance-counts
 - Calculates killmail counts for each alliance
 - Updates cached statistics
 - Critical for API performance
+
+---
+
+### 19. queue-character-corporation-history
+
+```bash
+pm2 start ecosystem.config.js --only queue-character-corporation-history
+pm2 trigger queue-character-corporation-history
+pm2 logs queue-character-corporation-history
+```
+
+| Property        | Value                                                                |
+| --------------- | -------------------------------------------------------------------- |
+| **Command**     | `yarn queue:character-corporation-history`                           |
+| **Run Time**    | Every Monday 03:00 UTC (weekly)                                      |
+| **Cron**        | `0 3 * * 1`                                                          |
+| **Description** | Queues characters whose corporation history is stale                 |
+| **Autorestart** | ❌ No (one-time)                                                     |
+| **Log**         | `/var/www/killreport/logs/queue-character-corporation-history-*.log` |
+
+**What it does:**
+
+- Selects characters whose corporation history was never fetched, or last
+  fetched more than 6 days ago
+- Adds them to `esi_character_corporation_history_queue`
+- `worker-character-corporation-history` fetches
+  `/characters/{id}/corporationhistory/` and writes
+  `character_corporation_history`; corporations missing from the database go
+  to `esi_corporation_info_queue`
+
+**How It Works:**
+
+- The first run queues every character (all are "never fetched")
+- The 6-day threshold is shorter than the weekly schedule on purpose: at 7
+  days a character fetched after the previous run started would be skipped,
+  and refresh only every two weeks
 
 ---
 
@@ -660,30 +700,32 @@ pm2 plus
 
 ### Continuously Active Workers (10)
 
-| PM2 Name                       | Command                             | Queue                             | Concurrency | Description                  |
-| ------------------------------ | ----------------------------------- | --------------------------------- | ----------- | ---------------------------- |
-| `worker-redisq`                | `yarn worker:redisq`                | RedisQ Stream                     | 1           | Real-time killmail ingestion |
-| `worker-characters`            | `yarn worker:info:characters`       | `esi_character_info_queue`        | 10          | Character info sync          |
-| `worker-corporations`          | `yarn worker:info:corporations`     | `esi_corporation_info_queue`      | 5           | Corporation info sync        |
-| `worker-alliances`             | `yarn worker:info:alliances`        | `esi_alliance_info_queue`         | 3           | Alliance info sync           |
-| `worker-alliance-corporations` | `yarn worker:alliance-corporations` | `esi_alliance_corporations_queue` | 5           | Corp discovery               |
-| `worker-types`                 | `yarn worker:info:types`            | `esi_type_info_queue`             | 10          | Item/ship info               |
-| `worker-zkillboard`            | `yarn worker:zkillboard`            | `zkillboard_character_queue`      | 1           | zKillboard sync              |
-| `worker-user-killmails`        | `yarn worker:user-killmails`        | `esi_user_killmails_queue`        | 1           | User ESI sync                |
-| `worker-corporation-killmails` | `yarn worker:corporation-killmails` | `esi_corporation_killmails_queue` | 1           | Corporation ESI sync         |
-| `worker-killmail-detail`       | `yarn worker:killmail-detail`       | `esi_killmail_detail_queue`       | 10          | Killmail detail fetch        |
+| PM2 Name                               | Command                                     | Queue                                     | Concurrency | Description                   |
+| -------------------------------------- | ------------------------------------------- | ----------------------------------------- | ----------- | ----------------------------- |
+| `worker-redisq`                        | `yarn worker:redisq`                        | RedisQ Stream                             | 1           | Real-time killmail ingestion  |
+| `worker-characters`                    | `yarn worker:info:characters`               | `esi_character_info_queue`                | 10          | Character info sync           |
+| `worker-corporations`                  | `yarn worker:info:corporations`             | `esi_corporation_info_queue`              | 5           | Corporation info sync         |
+| `worker-alliances`                     | `yarn worker:info:alliances`                | `esi_alliance_info_queue`                 | 3           | Alliance info sync            |
+| `worker-alliance-corporations`         | `yarn worker:alliance-corporations`         | `esi_alliance_corporations_queue`         | 5           | Corp discovery                |
+| `worker-types`                         | `yarn worker:info:types`                    | `esi_type_info_queue`                     | 10          | Item/ship info                |
+| `worker-zkillboard`                    | `yarn worker:zkillboard`                    | `zkillboard_character_queue`              | 1           | zKillboard sync               |
+| `worker-user-killmails`                | `yarn worker:user-killmails`                | `esi_user_killmails_queue`                | 1           | User ESI sync                 |
+| `worker-corporation-killmails`         | `yarn worker:corporation-killmails`         | `esi_corporation_killmails_queue`         | 1           | Corporation ESI sync          |
+| `worker-killmail-detail`               | `yarn worker:killmail-detail`               | `esi_killmail_detail_queue`               | 10          | Killmail detail fetch         |
+| `worker-character-corporation-history` | `yarn worker:character-corporation-history` | `esi_character_corporation_history_queue` | 5           | Character corporation history |
 
 ### Scheduled Tasks (5)
 
-| PM2 Name                       | Command                             | Run Time               | Description                       |
-| ------------------------------ | ----------------------------------- | ---------------------- | --------------------------------- |
-| `queue-characters`             | `yarn queue:characters`             | 1st of month 00:00 UTC | Add characters to queue (monthly) |
-| `queue-alliances`              | `yarn queue:alliances`              | Sunday 00:00 UTC       | Add alliances to queue (weekly)   |
-| `queue-alliance-corporations`  | `yarn queue:alliance-corporations`  | Sunday 00:10 UTC       | Discover alliance corps (weekly)  |
-| `queue-character-corporations` | `yarn queue:character-corporations` | Daily 04:00 UTC        | Add missing corps to queue        |
-| `snapshot-alliances`           | `yarn snapshot:alliances`           | Daily 01:00 UTC        | Alliance snapshot                 |
-| `snapshot-corporations`        | `yarn snapshot:corporations`        | Daily 01:00 UTC        | Corporation snapshot              |
-| `update-alliance-counts`       | `yarn update:alliance-counts`       | Daily 01:00 UTC        | Alliance statistics               |
+| PM2 Name                              | Command                                    | Run Time               | Description                          |
+| ------------------------------------- | ------------------------------------------ | ---------------------- | ------------------------------------ |
+| `queue-characters`                    | `yarn queue:characters`                    | 1st of month 00:00 UTC | Add characters to queue (monthly)    |
+| `queue-alliances`                     | `yarn queue:alliances`                     | Sunday 00:00 UTC       | Add alliances to queue (weekly)      |
+| `queue-alliance-corporations`         | `yarn queue:alliance-corporations`         | Sunday 00:10 UTC       | Discover alliance corps (weekly)     |
+| `queue-character-corporations`        | `yarn queue:character-corporations`        | Daily 04:00 UTC        | Add missing corps to queue           |
+| `snapshot-alliances`                  | `yarn snapshot:alliances`                  | Daily 01:00 UTC        | Alliance snapshot                    |
+| `snapshot-corporations`               | `yarn snapshot:corporations`               | Daily 01:00 UTC        | Corporation snapshot                 |
+| `update-alliance-counts`              | `yarn update:alliance-counts`              | Daily 01:00 UTC        | Alliance statistics                  |
+| `queue-character-corporation-history` | `yarn queue:character-corporation-history` | Monday 03:00 UTC       | Stale corporation histories (weekly) |
 
 ---
 
@@ -739,15 +781,16 @@ These run continuously rather than on a schedule:
 
 ## 📅 Scheduled Tasks - Weekly Calendar
 
-| Day           | Time (UTC) | Job                          | Description                                   |
-| ------------- | ---------- | ---------------------------- | --------------------------------------------- |
-| **Sunday**    | 00:00      | queue-alliances              | Fetches all alliances from ESI, adds to queue |
-| **Sunday**    | 00:10      | queue-alliance-corporations  | Discovers alliance corporations               |
-| **Every day** | 01:00      | snapshot-alliances           | Takes alliance snapshot (parallel)            |
-| **Every day** | 01:00      | update-alliance-counts       | Updates alliance killmail counts (parallel)   |
-| **Every day** | 01:00      | snapshot-corporations        | Takes corporation snapshot (parallel)         |
-| **Every day** | 04:00      | queue-character-corporations | Detects missing corporations                  |
-| **Monthly**   | 00:00      | queue-characters (1st day)   | Adds all characters to queue                  |
+| Day           | Time (UTC) | Job                                 | Description                                   |
+| ------------- | ---------- | ----------------------------------- | --------------------------------------------- |
+| **Sunday**    | 00:00      | queue-alliances                     | Fetches all alliances from ESI, adds to queue |
+| **Sunday**    | 00:10      | queue-alliance-corporations         | Discovers alliance corporations               |
+| **Every day** | 01:00      | snapshot-alliances                  | Takes alliance snapshot (parallel)            |
+| **Every day** | 01:00      | update-alliance-counts              | Updates alliance killmail counts (parallel)   |
+| **Every day** | 01:00      | snapshot-corporations               | Takes corporation snapshot (parallel)         |
+| **Monday**    | 03:00      | queue-character-corporation-history | Queues stale corporation histories            |
+| **Every day** | 04:00      | queue-character-corporations        | Detects missing corporations                  |
+| **Monthly**   | 00:00      | queue-characters (1st day)          | Adds all characters to queue                  |
 
 ---
 

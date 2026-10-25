@@ -2,7 +2,8 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import './tooltip.css';
 
-type TooltipPosition = 'top' | 'bottom' | 'left' | 'right' | 'top-right';
+type TooltipPosition =
+  'top' | 'top-start' | 'bottom' | 'left' | 'right' | 'top-right';
 
 interface TooltipProps {
   content: ReactNode;
@@ -44,6 +45,12 @@ export default function Tooltip({
           top = triggerRect.top - tooltipRect.height - 8;
           left =
             triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
+          break;
+        case 'top-start':
+          // Left edges aligned, for links of varying width in a list, where a
+          // centred tooltip would sit at a different place on every row.
+          top = triggerRect.top - tooltipRect.height - 8;
+          left = triggerRect.left;
           break;
         case 'bottom':
           top = triggerRect.bottom + 8;

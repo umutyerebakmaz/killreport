@@ -8,6 +8,14 @@ export interface EsiKillmail {
   killmail_hash: string;
 }
 
+export interface EsiCorporationHistoryRecord {
+  corporation_id: number;
+  record_id: number;
+  start_date: string;
+  // ESI sends this only when the corporation has been closed
+  is_deleted?: boolean;
+}
+
 /**
  * Character service for ESI API interactions
  */
@@ -21,6 +29,22 @@ export class CharacterService {
     return esiRateLimiter.execute(async () => {
       const response = await axios.get(
         `${ESI_BASE_URL}/characters/${characterId}/`,
+      );
+      return response.data;
+    });
+  }
+
+  /**
+   * Fetches every corporation the character has been a member of (public endpoint)
+   * @param characterId - Character ID
+   * @returns History records, newest first
+   */
+  static async getCorporationHistory(
+    characterId: number,
+  ): Promise<EsiCorporationHistoryRecord[]> {
+    return esiRateLimiter.execute(async () => {
+      const response = await axios.get(
+        `${ESI_BASE_URL}/characters/${characterId}/corporationhistory/`,
       );
       return response.data;
     });

@@ -239,6 +239,27 @@ module.exports = {
       time: true,
     },
 
+    // Queue Character Corporation History - Weekly (Monday 03:00 UTC, stale only)
+    {
+      name: 'queue-character-corporation-history',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'queue:character-corporation-history',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      cron_restart: '0 3 * * 1',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file:
+        '/var/www/killreport/logs/queue-character-corporation-history-error.log',
+      out_file:
+        '/var/www/killreport/logs/queue-character-corporation-history-out.log',
+      time: true,
+    },
+
     // Queue Alliances - Daily at 01:00 Turkey Time (22:00 UTC)
     {
       name: 'queue-alliances',
@@ -294,6 +315,27 @@ module.exports = {
       autorestart: true,
       error_file: '/var/www/killreport/logs/worker-characters-error.log',
       out_file: '/var/www/killreport/logs/worker-characters-out.log',
+      time: true,
+    },
+
+    // Character Corporation History Worker (prefetch: 5)
+    {
+      name: 'worker-character-corporation-history',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:character-corporation-history',
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'debug',
+      },
+      max_memory_restart: '512M',
+      autorestart: true,
+      error_file:
+        '/var/www/killreport/logs/worker-character-corporation-history-error.log',
+      out_file:
+        '/var/www/killreport/logs/worker-character-corporation-history-out.log',
       time: true,
     },
 

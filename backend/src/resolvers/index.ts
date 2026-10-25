@@ -12,6 +12,8 @@ import { bloodlineFields, bloodlineQueries } from './bloodline';
 import { cacheMutations, cacheQueries } from './cache';
 import { categoryFields, categoryMutations, categoryQueries } from './category';
 import {
+  characterCorporationHistoryFields,
+  characterCorporationHistoryQueries,
   characterFields,
   characterMutations,
   characterQueries,
@@ -75,6 +77,7 @@ export const resolvers: Resolvers = {
     ...userQueries,
     ...characterQueries,
     ...characterStatsQueries,
+    ...characterCorporationHistoryQueries,
     ...killmailQueries,
     ...allianceQueries,
     ...allianceStatsQueries,
@@ -122,6 +125,7 @@ export const resolvers: Resolvers = {
     ...sovereigntySubscriptions,
   },
   Character: characterFields,
+  CharacterCorporationHistory: characterCorporationHistoryFields,
   Alliance: allianceFields,
   Bloodline: bloodlineFields,
   Category: categoryFields,

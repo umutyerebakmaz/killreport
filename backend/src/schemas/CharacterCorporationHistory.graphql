@@ -1,0 +1,20 @@
+"""
+One corporation a character was a member of, from ESI
+/characters/{id}/corporationhistory/.
+"""
+type CharacterCorporationHistory {
+  recordId: Float!
+  corporationId: Int!
+  corporation: Corporation
+  startDate: String!
+  "The next, newer record's start; null for the current corporation"
+  endDate: String
+  isDeleted: Boolean!
+}
+
+extend type Query {
+  "Newest first; empty until the worker has fetched the character"
+  characterCorporationHistory(
+    characterId: Int!
+  ): [CharacterCorporationHistory!]!
+}

@@ -61,10 +61,11 @@ function messageHead(error: unknown): string {
 }
 
 /**
- * True for HTTP 420 (ESI's own error-limit status) or 429 (the generic rate
- * limit status, used by zKillboard and any plain-HTTP caller). Both mean the
- * same thing: the caller is being throttled, not that the message is bad. See
- * the wait-and-requeue branch below.
+ * The throttling status, if any: 420 (ESI's own error-limit status) or 429
+ * (the generic rate limit status, used by ESI, zKillboard and any plain-HTTP
+ * caller), else null. Both mean the caller is being throttled, not that the
+ * message is bad, so the wait-and-requeue branch below treats them alike and
+ * only its log line tells them apart.
  *
  * Checking the status first means this does not rest on a particular message
  * string once the next task moves ~25 workers, not all of them Axios-shaped,
@@ -76,11 +77,12 @@ function messageHead(error: unknown): string {
  * The word boundary keeps "1420" from matching, and `messageHead` keeps
  * anything below the first line — a Prisma code frame — out of it entirely.
  */
-function isErrorLimited(error: unknown): boolean {
+function throttleStatus(error: unknown): 420 | 429 | null {
   const status = (error as { response?: { status?: number } })?.response
     ?.status;
-  if (status === 420 || status === 429) return true;
-  return /\b(420|429)\b/.test(messageHead(error));
+  if (status === 420 || status === 429) return status;
+  const match = /\b(420|429)\b/.exec(messageHead(error));
+  return match ? (Number(match[1]) as 420 | 429) : null;
 }
 
 /**
@@ -140,10 +142,17 @@ export async function handleWorkerError(
   error: unknown,
   logger: WorkerLogger,
 ): Promise<void> {
-  // 420/429: error limited. Wait, requeue untouched, burn no attempt — being
-  // rate limited is not a defect in the message.
-  if (isErrorLimited(error)) {
-    logger.warn('🛑 error limited (420/429)! waiting 60 seconds...');
+  // 420/429: throttled. Wait, requeue untouched, burn no attempt — being
+  // throttled is not a defect in the message. The log names which one: 420 is
+  // ESI's error limit (too many failed requests), 429 a plain rate limit (too
+  // many requests), and they call for different fixes.
+  const throttled = throttleStatus(error);
+  if (throttled) {
+    logger.warn(
+      throttled === 420
+        ? '🛑 error limited (420)! waiting 60 seconds...'
+        : '🛑 rate limited (429)! waiting 60 seconds...',
+    );
     await sleep(60_000);
     channel.nack(msg, false, true);
     return;

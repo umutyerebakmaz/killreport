@@ -1,6 +1,7 @@
 'use client';
 
 import CardLogoBackdrop from '@/components/Card/CardLogoBackdrop';
+import EmploymentHistoryList from '@/components/EmploymentHistoryList';
 import EveHtmlRenderer from '@/components/EveHtmlRenderer';
 import KillmailsTable from '@/components/KillmailsTable';
 import { Loader } from '@/components/Loader/Loader';
@@ -10,6 +11,7 @@ import MembershipLink from '@/components/ui/MembershipLink';
 import TopShipsCard from '@/components/TopShipsCard';
 import TopTargetsCard from '@/components/TopTargetsCard';
 import {
+  useCharacterCorporationHistoryQuery,
   useCharacterKillmailsQuery,
   useCharacterQuery,
   useCharacterTopAllianceTargetsQuery,
@@ -29,14 +31,15 @@ interface CharacterDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-type TabType = 'bio' | 'killmails' | 'statistics';
+type TabType = 'bio' | 'killmails' | 'statistics' | 'employment';
 
-const TAB_IDS: TabType[] = ['bio', 'killmails', 'statistics'];
+const TAB_IDS: TabType[] = ['bio', 'killmails', 'statistics', 'employment'];
 
 const TAB_LABELS: Record<TabType, string> = {
   bio: 'Bio',
   killmails: 'Killmails',
   statistics: 'Statistics',
+  employment: 'Employment History',
 };
 
 export default function CharacterDetailPage({
@@ -116,6 +119,12 @@ export default function CharacterDetailPage({
     },
     skip: activeTab !== 'killmails',
   });
+
+  const { data: employmentData, loading: employmentLoading } =
+    useCharacterCorporationHistoryQuery({
+      variables: { characterId: parseInt(id) },
+      skip: activeTab !== 'employment',
+    });
 
   // Memoize killmails array
   const killmails = useMemo(
@@ -439,6 +448,24 @@ export default function CharacterDetailPage({
           >
             <h2 className="mb-4 text-2xl font-bold">Statistics</h2>
             <p className="text-ink-muted">Statistics coming soon...</p>
+          </div>
+        )}
+
+        {activeTab === 'employment' && (
+          <div
+            role="tabpanel"
+            id="panel-employment"
+            aria-labelledby="tab-employment"
+            className="p-6 bg-white/5 border-white/10"
+          >
+            <h2 className="sr-only">Employment History</h2>
+            {employmentLoading ? (
+              <Loader />
+            ) : (
+              <EmploymentHistoryList
+                entries={employmentData?.characterCorporationHistory ?? []}
+              />
+            )}
           </div>
         )}
       </div>

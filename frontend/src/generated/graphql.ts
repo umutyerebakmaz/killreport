@@ -279,6 +279,21 @@ export type Character = {
   updatedAt?: Maybe<Scalars['String']['output']>;
 };
 
+/**
+ * One corporation a character was a member of, from ESI
+ * /characters/{id}/corporationhistory/.
+ */
+export type CharacterCorporationHistory = {
+  __typename?: 'CharacterCorporationHistory';
+  corporation?: Maybe<Corporation>;
+  corporationId: Scalars['Int']['output'];
+  /** The next, newer record's start; null for the current corporation */
+  endDate?: Maybe<Scalars['String']['output']>;
+  isDeleted: Scalars['Boolean']['output'];
+  recordId: Scalars['Float']['output'];
+  startDate: Scalars['String']['output'];
+};
+
 export type CharacterFilter = {
   allianceId?: InputMaybe<Scalars['Int']['input']>;
   corporationId?: InputMaybe<Scalars['Int']['input']>;
@@ -1181,6 +1196,8 @@ export type Query = {
   categories: CategoriesResponse;
   category?: Maybe<Category>;
   character?: Maybe<Character>;
+  /** Newest first; empty until the worker has fetched the character */
+  characterCorporationHistory: Array<CharacterCorporationHistory>;
   characterTopAllianceTargets: Array<AllianceTopTarget>;
   characterTopCorporationTargets: Array<CorporationTopTarget>;
   characterTopShipTargets: Array<ShipTopKill>;
@@ -1386,6 +1403,11 @@ export type QueryCategoryArgs = {
 
 export type QueryCharacterArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryCharacterCorporationHistoryArgs = {
+  characterId: Scalars['Int']['input'];
 };
 
 
@@ -2644,6 +2666,13 @@ export type CharacterQueryVariables = Exact<{
 
 
 export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, securityStatus?: number | null, description?: string | null, title?: string | null, updatedAt?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null };
+
+export type CharacterCorporationHistoryQueryVariables = Exact<{
+  characterId: Scalars['Int']['input'];
+}>;
+
+
+export type CharacterCorporationHistoryQuery = { __typename?: 'Query', characterCorporationHistory: Array<{ __typename?: 'CharacterCorporationHistory', recordId: number, corporationId: number, startDate: string, endDate?: string | null, isDeleted: boolean, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null }> };
 
 export type CharacterKillmailsQueryVariables = Exact<{
   filter?: InputMaybe<KillmailFilter>;
@@ -4144,6 +4173,58 @@ export type CharacterQueryHookResult = ReturnType<typeof useCharacterQuery>;
 export type CharacterLazyQueryHookResult = ReturnType<typeof useCharacterLazyQuery>;
 export type CharacterSuspenseQueryHookResult = ReturnType<typeof useCharacterSuspenseQuery>;
 export type CharacterQueryResult = Apollo.QueryResult<CharacterQuery, CharacterQueryVariables>;
+export const CharacterCorporationHistoryDocument = gql`
+    query CharacterCorporationHistory($characterId: Int!) {
+  characterCorporationHistory(characterId: $characterId) {
+    recordId
+    corporationId
+    startDate
+    endDate
+    isDeleted
+    corporation {
+      id
+      name
+      ticker
+    }
+  }
+}
+    `;
+
+/**
+ * __useCharacterCorporationHistoryQuery__
+ *
+ * To run a query within a React component, call `useCharacterCorporationHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCharacterCorporationHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCharacterCorporationHistoryQuery({
+ *   variables: {
+ *      characterId: // value for 'characterId'
+ *   },
+ * });
+ */
+export function useCharacterCorporationHistoryQuery(baseOptions: Apollo.QueryHookOptions<CharacterCorporationHistoryQuery, CharacterCorporationHistoryQueryVariables> & ({ variables: CharacterCorporationHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CharacterCorporationHistoryQuery, CharacterCorporationHistoryQueryVariables>(CharacterCorporationHistoryDocument, options);
+      }
+export function useCharacterCorporationHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CharacterCorporationHistoryQuery, CharacterCorporationHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CharacterCorporationHistoryQuery, CharacterCorporationHistoryQueryVariables>(CharacterCorporationHistoryDocument, options);
+        }
+// @ts-ignore
+export function useCharacterCorporationHistorySuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<CharacterCorporationHistoryQuery, CharacterCorporationHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<CharacterCorporationHistoryQuery, CharacterCorporationHistoryQueryVariables>;
+export function useCharacterCorporationHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterCorporationHistoryQuery, CharacterCorporationHistoryQueryVariables>): Apollo.UseSuspenseQueryResult<CharacterCorporationHistoryQuery | undefined, CharacterCorporationHistoryQueryVariables>;
+export function useCharacterCorporationHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CharacterCorporationHistoryQuery, CharacterCorporationHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CharacterCorporationHistoryQuery, CharacterCorporationHistoryQueryVariables>(CharacterCorporationHistoryDocument, options);
+        }
+export type CharacterCorporationHistoryQueryHookResult = ReturnType<typeof useCharacterCorporationHistoryQuery>;
+export type CharacterCorporationHistoryLazyQueryHookResult = ReturnType<typeof useCharacterCorporationHistoryLazyQuery>;
+export type CharacterCorporationHistorySuspenseQueryHookResult = ReturnType<typeof useCharacterCorporationHistorySuspenseQuery>;
+export type CharacterCorporationHistoryQueryResult = Apollo.QueryResult<CharacterCorporationHistoryQuery, CharacterCorporationHistoryQueryVariables>;
 export const CharacterKillmailsDocument = gql`
     query CharacterKillmails($filter: KillmailFilter) {
   killmails(filter: $filter) {
