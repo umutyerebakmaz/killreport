@@ -42,6 +42,7 @@ the containing file, and run `yarn docs:check-links` from the repository root.
 - [Corporation Killmail Sync](workers/corporation-killmail-sync.md) — corporation killmails via ESI
 - [Character Killmail Worker](workers/character-killmail-worker.md) — character killmail sync worker
 - [Character Sync (Quick Reference)](workers/character-sync.md) — one-line sync commands
+- [Character Corporation History](workers/character-corporation-history.md) — Employment History tab: queue, worker, backfill
 - [Character Refresh Cost Analysis](workers/character-refresh-cost-analysis.md) — refresh cost & performance
 - [Capsule Value Calculation](workers/capsule-value-calculation.md) — pod (capsule) value calculation
 - [Background Sync (Incremental)](workers/background-sync-incremental.md) — incremental background sync
