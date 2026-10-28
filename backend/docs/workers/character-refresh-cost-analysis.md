@@ -9,7 +9,7 @@
 ### ESI API (EVE Online)
 
 - **Cost:** FREE ✅
-- **Rate Limit:** 150 requests per second (soft limit), 50 req/sec recommended
+- **Rate Limit:** no single req/sec ceiling; route-group token buckets and an error limit, paced by the limiter from response headers (up to `ESI_MAX_RPS`)
 - **Restriction:** Global (for entire application), not user-based
 - **Result:** No cost but must be used carefully
 

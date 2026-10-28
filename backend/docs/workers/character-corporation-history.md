@@ -83,11 +83,13 @@ Leave the worker running in a second terminal. Run `worker:info:corporations`
 as well, or new corporations show up as bare IDs.
 
 The worker holds `ESI_PREFETCH` characters in flight (default 25) and
-`esiRateLimiter` caps it at `ESI_MAX_RPS` (default 50), one request per
-character. For a backfill that is too fast: this route is rate limited inside
-the EVE server, with no `X-Ratelimit-*` or `Retry-After` header to read, and
-on 2026-10-25 it answered 429 after about 20 seconds at 25 req/sec while 5
-req/sec ran clean. Run the backfill below that:
+the limiter caps it at `ESI_MAX_RPS` (default 50), one request per
+character. This route is rate limited inside the EVE server with no
+`X-Ratelimit-*` header, so the limiter learns the pace from the 429s: it brakes
+for `Retry-After`, halves its rate and climbs back +1 req/s per 10 s. That keeps
+the run going but still burns requests, so a backfill is gentler below the
+limit. Historically (2026-10-25, before the limiter adapted) the route answered
+429 after about 20 seconds at 25 req/sec while 5 req/sec ran clean:
 
 ```bash
 ESI_MAX_RPS=15 ESI_PREFETCH=8 yarn worker:character-corporation-history

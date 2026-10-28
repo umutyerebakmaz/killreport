@@ -367,7 +367,7 @@ Second sync: **Incremental sync** (lastKillmailId exists)
 
 ### Rate Limiting
 
-- ✅ **ESI limit: 150 req/sec** - our usage is far below
+- ✅ **ESI limits** - the limiter paces from ESI's headers; our usage is far below
 - ✅ **Background priority: 3** - manual syncs have priority: 5
 - ✅ **Worker prefetch: 1** - processes 1 user at a time
 - ✅ **Page delay: 100ms** - wait between pages

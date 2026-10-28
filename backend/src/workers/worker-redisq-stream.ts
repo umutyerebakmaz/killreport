@@ -20,7 +20,7 @@
  *
  * Rate Limits:
  * - R2Z2: 15 requests per second per IP (aggressive polling risks HTTP 403)
- * - ESI: 150 req/sec (we use conservative 50 req/sec)
+ * - ESI: no fixed ceiling; esiClient and the limiter pace requests from its headers
  *
  * Usage:
  *   yarn worker:redisq

@@ -565,8 +565,8 @@ interface UserKillmailMessage {
 
 **EVE ESI:**
 
-- **150 requests/second** (burst)
-- Worker: **50 requests/second** (safe mode)
+- No single published req/sec ceiling: route-group token buckets and an error limit, reported in response headers
+- Worker: paced by the limiter from those headers, up to `ESI_MAX_RPS`
 
 ### Worker Configuration
 
@@ -582,15 +582,7 @@ const KILLMAIL_DETAIL_DELAY_MS = 150; // 150ms after each killmail
 
 **File:** `services/rate-limiter.ts`
 
-```typescript
-export const esiRateLimiter = {
-  execute: async (fn) => {
-    // 20ms minimum delay (50 req/sec)
-    await delay(20);
-    return fn();
-  },
-};
-```
+The exported instance is `esiRateLimiter`; every ESI request goes through `esiClient`, which asks it for a slot (`acquire`), reports the response (`observe`) and frees the slot (`release`).
 
 ### Calculation
 
@@ -956,7 +948,7 @@ Process:
 ⚙️ PERFORMANCE:
 
 • Incremental sync: 50x faster
-• Rate limiting: 50 req/sec (safe)
+• Rate limiting: header-driven (esiClient + limiter)
 • Batch processing: 3 killmails/batch
 • Delay: 500ms between batches
 

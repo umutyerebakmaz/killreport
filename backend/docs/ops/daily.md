@@ -185,13 +185,13 @@ yarn worker:info:corporations
 
 | Worker                         | Queue Name                        | Concurrency | Rate Limit | Usage                           |
 | ------------------------------ | --------------------------------- | ----------- | ---------- | ------------------------------- |
-| `worker:info:alliances`        | `esi_alliance_info_queue`         | 3           | 50 req/sec | Updates alliance information    |
-| `worker:info:corporations`     | `esi_corporation_info_queue`      | 5           | 50 req/sec | Updates corporation information |
-| `worker:info:characters`       | `esi_character_info_queue`        | 5           | 50 req/sec | Updates character information   |
-| `worker:info:types`            | `esi_type_info_queue`             | 10          | 50 req/sec | Updates ship/item information   |
-| `worker:alliance-corporations` | `esi_alliance_corporations_queue` | 5           | 50 req/sec | Discovers alliance corporations |
+| `worker:info:alliances`        | `esi_alliance_info_queue`         | 3           | up to 50/s | Updates alliance information    |
+| `worker:info:corporations`     | `esi_corporation_info_queue`      | 5           | up to 50/s | Updates corporation information |
+| `worker:info:characters`       | `esi_character_info_queue`        | 5           | up to 50/s | Updates character information   |
+| `worker:info:types`            | `esi_type_info_queue`             | 10          | up to 50/s | Updates ship/item information   |
+| `worker:alliance-corporations` | `esi_alliance_corporations_queue` | 5           | up to 50/s | Discovers alliance corporations |
 
-**Important:** All ESI workers share the same rate limit (50 req/sec). Be careful when running multiple workers.
+**Important:** Each ESI worker process is limited by its own header-driven limiter (up to `ESI_MAX_RPS`, default 50). Be careful when running multiple workers.
 
 ---
 
@@ -224,10 +224,10 @@ query {
 
 ## ⚠️ Important Notes
 
-1. **Rate Limiting:** ESI API has 50 req/sec limit. Adjust worker concurrency accordingly.
+1. **Rate Limiting:** ESI limits are enforced by the limiter from response headers. Adjust worker concurrency accordingly.
 2. **Database Connections:** Workers use `prisma-worker.ts` (2 connection max).
 3. **Memory:** 93k character sync can use ~2GB RAM.
-4. **Duration:** 93k characters takes ~31 minutes (5 concurrent, 50 req/sec).
+4. **Duration:** 93k characters takes ~31 minutes (5 concurrent, at the default `ESI_MAX_RPS`).
 5. **Always run `scan:entities` after killmail sync**
 6. Keep workers running continuously in production with PM2
 

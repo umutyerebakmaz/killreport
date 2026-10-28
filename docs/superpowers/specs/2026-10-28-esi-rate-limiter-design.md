@@ -1,7 +1,7 @@
 # ESI istemcisi ve header'a bakan rate limiter — tasarım
 
 **Tarih:** 2026-10-28
-**Durum:** taslak, kullanıcı review'u bekliyor
+**Durum:** uygulandı (`feat/esi-rate-limiter` dalı)
 **İlgili:** #292 (employment history backfill'indeki 429'lar),
 `backend/src/services/rate-limiter.ts`, `backend/src/workers/worker-error.ts`
 
@@ -210,8 +210,10 @@ Fren süreleri üstte 15 dakika ile kesilir. Fren kurulurken, o andaki
 
 **c) Uyarlanan hız (header'sız 429 için).** Eşiği bilinmeyen derin limiter'a
 karşı. Her header'sız 429'da o anki hız yarıya iner (en az 1 istek/sn).
-Ardından her 10 saniyede, 429 gelmediyse, 1 istek/sn artarak `ESI_MAX_RPS`'e
-kadar geri çıkar. (Bu klasik AIMD yöntemi: hata gelince hızı çarpanla düşür,
+Yarılama en fazla 10 saniyede bir yapılır ve fren sürerken hiç yapılmaz.
+Tırmanış istekler yeniden başlayınca başlar: son yarılama ile fren bitişinden
+hangisi geçse ondan sayılır. Ardından her 10 saniyede 1 istek/sn artarak
+`ESI_MAX_RPS`'e kadar geri çıkar. (Bu klasik AIMD yöntemi: hata gelince hızı çarpanla düşür,
 hata gelmezse yavaş yavaş artır.) #292'de elle bulduğumuz 15 req/s'yi
 limiter'ın kendisinin bulmasını sağlayan parça bu.
 
@@ -228,8 +230,10 @@ karakterlerin bucket'ı birbirini yavaşlatmaz.)
 
 - `remaining` limitin %20'sinin altına inince o grup için istekler, kalan
   token'lar pencere boyunca yetecek şekilde aralıklandırılır: iki istek
-  arasındaki en az süre `window / (remaining / 2)`. Burada 2, bir 2xx'in
-  maliyeti.
+  arasındaki en az süre `window / limit × 2`, yani bucket'ın dolum hızı.
+  (İlk taslaktaki `window / (remaining / 2)` formülü, token azaldıkça aralığı
+  büyütüyordu ve bir grubu 15 dakikaya kadar durdurabilirdi; bu yüzden
+  bırakıldı.)
 - `remaining` bir 2xx'in maliyetinin (2) altındaysa istek hiç
   gönderilmez. Limiter bucket'ın dolmasını bekler, yani 429'u almayı
   beklemez. Bu, sayfa sayfa giden çağrılar için gerekli:
@@ -278,7 +282,9 @@ karakterlerin bucket'ı birbirini yavaşlatmaz.)
 
 Bunun için `esiClient` bir `maxWaitMs` seçeneği alır. Varsayılan sınırsızdır,
 API sunucusu ve canlı akış 10.000 verir. Fren, `maxWaitMs`'i aşacaksa istek
-hiç gönderilmeden throttle hatası döner. Bu hata da §4.3'teki işaretli hata
+hiç gönderilmeden throttle hatası döner. `maxWaitMs` yalnızca yeni gelen
+istekleri değil, fren kurulduğunda kuyrukta zaten bekleyen çağıranları da
+sınırlar: onlar da süre dolunca throttle hatası alır. Bu hata da §4.3'teki işaretli hata
 türünden olur.
 
 ### 4.5 Birden çok process
@@ -392,7 +398,11 @@ Bunun yanında CLAUDE.md'deki tablo: logic değiştiği için `test` ve `build`.
 - `X-Compatibility-Date: 2020-01-01` sabit gönderilir.
 - Error-limit eşiği 20. Bugün iki worker'ın kullandığı değer bu.
 - Fren üst sınırı 15 dakika, en uzun bucket penceresi.
-- AIMD'nin parametreleri: hız yarıya iner; her 10 sn'de +1 req/sn artar.
+- AIMD'nin parametreleri: hız yarıya iner (en fazla 10 sn'de bir, fren
+  sürerken hiç); tırmanış istekler yeniden başlayınca, yani son yarılama ve
+  fren bitişinden hangisi geçse ondan başlar ve her 10 sn'de +1 req/sn artar.
+- Gruplu yavaşlama aralığı `window / limit × 2` (§4.2d).
+- `maxWaitMs`, fren kurulduğunda kuyrukta bekleyenleri de sınırlar (§4.4).
 - Gruplu yavaşlama eşiği %20.
 - `esiClient` 429'u kendisi tekrar denemez, mesaj requeue edilir.
 - Limiter `rate-limiter.ts`'de kalır, yeni dosya yalnızca `esi-client.ts`.

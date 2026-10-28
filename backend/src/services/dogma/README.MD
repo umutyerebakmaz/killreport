@@ -229,7 +229,7 @@ This example displays real data for Retribution, the famous Assault Frigate of t
 
 ## Rate Limiting
 
-All ESI calls are wrapped with `esiRateLimiter.execute()`. This guarantees compliance with ESI's 150 req/sec limit (project uses 50 req/sec across the board).
+All ESI calls go through `esiClient`, which takes a limiter slot per request. The limiter paces dispatch from ESI's response headers (route-group token buckets and the error limit), up to `ESI_MAX_RPS`.
 
 ## Further Reading
 

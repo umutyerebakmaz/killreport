@@ -191,7 +191,7 @@ Worker uses these endpoints:
 
 ### Rate Limiting
 
-- **ESI Limit**: 150 requests/second
+- **ESI Limit**: route-group token buckets and an error limit, paced by `esiClient` and the limiter from response headers
 - **Worker Delay**: 50ms between killmail fetches
 - **Concurrent Users**: 3 (PREFETCH_COUNT)
 - **Safe**: ~20 requests/second per worker instance
@@ -215,7 +215,7 @@ killmail_item (killmail_id, item_type_id, quantity_dropped, quantity_destroyed)
 | **Authentication**        | ✅ SSO Token required             | ❌ Public API            |
 | **Killmail Limit**        | 2,500 (50 page × 50)              | Unlimited (full history) |
 | **Scope Requirement**     | `esi-killmails.read_killmails.v1` | None                     |
-| **Rate Limit**            | ESI: 150 req/sec                  | zKillboard: 10s delay    |
+| **Rate Limit**            | ESI: header-driven limiter        | zKillboard: 10s delay    |
 | **Target Audience**       | Our own users                     | Any character            |
 | **Real-time**             | ❌ (polling required)             | ✅ (RedisQ stream)       |
 | **zKillboard Dependency** | ❌ None                           | ✅ Yes                   |

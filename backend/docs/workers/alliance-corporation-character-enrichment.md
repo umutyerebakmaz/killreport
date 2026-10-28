@@ -221,25 +221,19 @@ const PREFETCH_COUNT = 30; // Increase for faster processing
 
 ### ESI Rate Limits
 
-- **ESI Official Limit:** 150 requests/second
-- **Our Conservative Limit:** 100 requests/second
-- **Worker Rate:** 50 requests/second per instance
+- **ESI Limits:** no single req/sec ceiling; route-group token buckets and an error limit, both reported in response headers
+- **Our Limiter:** paces every `esiClient` request from those headers, up to `ESI_MAX_RPS` (default 50) per process
 
 ### Rate Limiter Implementation
 
 **File:** `/backend/src/services/rate-limiter.ts`
 
-```typescript
-class RateLimiter {
-  maxRequestsPerSecond = 100; // Global limit
-  minDelayBetweenRequests = 20; // 20ms = 50 req/sec
-}
-```
+The exported instance is `esiRateLimiter`; `esiClient` calls `acquire`, `observe` and `release` on it. The header comment in the file describes the rules.
 
 ### Safety Features
 
 - ✅ Queue-based request management
-- ✅ Automatic window reset (1 second)
+- ✅ Group buckets and error-limit brake driven by ESI's response headers
 - ✅ Minimum delay between requests
 - ✅ Wait until next window if limit reached
 - ✅ No manual intervention needed

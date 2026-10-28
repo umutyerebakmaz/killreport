@@ -27,7 +27,7 @@ All workers operate with the **enrichment (automatic completion)** principle. Th
 - **Features**:
   - Processes 3 messages concurrently
   - Only adds new records (no updates)
-  - Central rate limiter (50 req/sec)
+  - Central header-driven rate limiter (up to `ESI_MAX_RPS`)
   - Service abstraction (`getAllianceInfo()`)
 
 **Corporation Info Worker** - `worker-info-corporations.ts`:
@@ -38,7 +38,7 @@ All workers operate with the **enrichment (automatic completion)** principle. Th
 - **Features**:
   - Processes 5 messages concurrently
   - Only adds new records (no updates)
-  - Central rate limiter (50 req/sec)
+  - Central header-driven rate limiter (up to `ESI_MAX_RPS`)
   - Service abstraction (`getCorporationInfo()`)
 
 ---
@@ -190,7 +190,7 @@ yarn worker:info:alliances
 
 **ESI Endpoint**: `/alliances/{alliance_id}/`
 
-**Rate Limit**: 50 req/sec with `esiRateLimiter`
+**Rate Limit**: header-driven limiter via `esiClient`
 
 ---
 
@@ -217,7 +217,7 @@ yarn worker:info:corporations
 
 **ESI Endpoint**: `/corporations/{corporation_id}/`
 
-**Rate Limit**: 50 req/sec with `esiRateLimiter`
+**Rate Limit**: header-driven limiter via `esiClient`
 
 ---
 
@@ -245,7 +245,7 @@ yarn worker:info:characters
 
 **ESI Endpoint**: `/characters/{character_id}/`
 
-**Rate Limit**: 50 req/sec with `esiRateLimiter`
+**Rate Limit**: header-driven limiter via `esiClient`
 
 ---
 
@@ -272,7 +272,7 @@ yarn worker:info:types
 
 **ESI Endpoint**: `/universe/types/{type_id}/`
 
-**Rate Limit**: 50 req/sec with `esiRateLimiter`
+**Rate Limit**: header-driven limiter via `esiClient`
 
 ---
 
@@ -305,7 +305,7 @@ yarn worker:zkillboard
 **Rate Limits**:
 
 - zKillboard: 10 seconds for same endpoint
-- ESI: 50 req/sec with `esiRateLimiter`
+- ESI: header-driven limiter via `esiClient`
 
 ---
 
@@ -346,7 +346,7 @@ yarn worker:alliance-corporations
 
 **ESI Endpoint**: `/alliances/{alliance_id}/corporations/`
 
-**Rate Limit**: 50 req/sec with `esiRateLimiter`
+**Rate Limit**: header-driven limiter via `esiClient`
 
 **Next Step**: Processed by `worker-info-corporations.ts`
 
@@ -460,15 +460,13 @@ flowchart TB
 
 **Settings**:
 
-- Max: 50 req/sec (ESI limit is 150 but 50 for safe play)
-- Min delay: 20ms
+- Upper bound: `ESI_MAX_RPS` (default 50). ESI publishes no single req/sec ceiling; the limiter finds the real rate from response headers (route-group token buckets and the error limit)
+- A 420/429 brakes the process; the worker requeues at once and the limiter holds requests back
 
-**Usage**: All ESI functions automatically use rate limiter
+**Usage**: Every ESI request goes through `esiClient.get`, which takes a limiter slot automatically
 
 ```typescript
-return esiRateLimiter.execute(async () => {
-  // ESI API call
-});
+const response = await esiClient.get<Type>(`/latest/universe/types/${id}/`);
 ```
 
 ### zKillboard Rate Limiting
@@ -679,7 +677,7 @@ yourWorker();
 
 - Decrease prefetch value
 - Don't run multiple worker instances
-- Check `esiRateLimiter` settings
+- Check `ESI_MAX_RPS` and the limiter logs
 
 ### Database Connection Error
 

@@ -129,7 +129,7 @@ export function isForbidden(error: unknown): boolean {
  *
  * It replaces ~25 copies of the same try/catch, of which 17 called
  * `nack(msg, false, true)` — an unbounded requeue, so a message that fails
- * deterministically retried forever against the 50 req/sec ESI ceiling and
+ * deterministically retried forever against ESI and
  * surfaced nowhere.
  *
  * It always settles the message itself: exactly one ack or nack on every path.
