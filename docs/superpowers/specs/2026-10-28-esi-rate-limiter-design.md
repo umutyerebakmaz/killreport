@@ -203,19 +203,26 @@ dolana kadar hiçbir istek dağıtılmaz. Şu durumlarda kurulur:
 | ---------------------------------------- | -------------------------------------- |
 | 420                                      | `X-ESI-Error-Limit-Reset`, yoksa 60 sn |
 | `X-ESI-Error-Limit-Remain` < 20          | `X-ESI-Error-Limit-Reset`              |
-| Header'sız 429 (`X-Ratelimit-Group` yok) | `Retry-After`, yoksa 60 sn             |
+| Header'sız 429 (`X-Ratelimit-Group` yok) | `Retry-After`, yoksa 15 sn             |
 
 Fren süreleri üstte 15 dakika ile kesilir. Fren kurulurken, o andaki
 `pausedUntil` daha geç ise daha geç olan kalır.
 
 **c) Uyarlanan hız (header'sız 429 için).** Eşiği bilinmeyen derin limiter'a
-karşı. Her header'sız 429'da o anki hız yarıya iner (en az 1 istek/sn).
-Yarılama en fazla 10 saniyede bir yapılır ve fren sürerken hiç yapılmaz.
-Tırmanış istekler yeniden başlayınca başlar: son yarılama ile fren bitişinden
+karşı. Her header'sız 429'da o anki hız dörtte bir azalır (×0,75, en az 1
+istek/sn). Azaltma en fazla 10 saniyede bir yapılır ve fren sürerken hiç
+yapılmaz. Tırmanış istekler yeniden başlayınca başlar: son azaltma ile fren bitişinden
 hangisi geçse ondan sayılır. Ardından her 10 saniyede 1 istek/sn artarak
 `ESI_MAX_RPS`'e kadar geri çıkar. (Bu klasik AIMD yöntemi: hata gelince hızı çarpanla düşür,
 hata gelmezse yavaş yavaş artır.) #292'de elle bulduğumuz 15 req/s'yi
 limiter'ın kendisinin bulmasını sağlayan parça bu.
+
+İlk tasarımda fren 60 sn ve azaltma yarıya inmekti. 2026-10-29'daki gerçek
+çalıştırmada (§7) derin limiter düz bir hız eşiği gibi davrandı: iki
+process'in toplamı ~17-20 req/s'yi geçince 429 geldi, `Retry-After` hiç
+gelmedi, fren bitince düşük hızla hemen devam edilebildi. 60 sn fren ile
+yarılama birlikte sürenin yarısını frende geçirtti ve ortalamayı ~6,8
+req/s'de bıraktı. Fren 15 sn'ye, azaltma ×0,75'e bu yüzden indi.
 
 **d) Grup bucket'ları.** `X-Ratelimit-Group` içeren her yanıttan o grubun
 son durumu kaydedilir: `limit`, `window`, `remaining`. Bir isteğin grubu,
@@ -295,7 +302,7 @@ ve `X-ESI-Error-Limit-Remain`, o IP'deki **bütün process'lerin ortak
 harcamasını** gösteriyor. Dolayısıyla her process, diğerlerinin ne harcadığını
 bir sonraki yanıtta görüyor. Redis'te ortak state'e gerek yok.
 
-Header'sız 429'da ise her process kendi hızını ayrı ayrı yarıya indirir. Bu
+Header'sız 429'da ise her process kendi hızını ayrı ayrı düşürür. Bu
 da toplam hızı düşürür, ki istenen budur.
 
 Bu bir çıkarım, doküman açıkça yazmıyor. §7'deki gerçek çalıştırmada iki
@@ -355,7 +362,7 @@ yeni). Fake timer ve mock yanıtlarla:
 
 - 420 → `Reset` süresi kadar hiçbir istek dağıtılmaz.
 - `Error-Limit-Remain` 19 → fren kurulur, 20 → kurulmaz.
-- Header'sız 429 → hız yarıya iner, 10 sn'lik adımlarla geri çıkar.
+- Header'sız 429 → hız dörtte bir azalır, 10 sn'lik adımlarla geri çıkar.
 - Gruplu 429 → yalnızca o grup durur, başka bir grup devam eder.
 - `remaining` %20'nin altında → istekler arası süre formüle uyar.
 - Fren süresi 15 dakikayla kesilir.
@@ -398,8 +405,9 @@ Bunun yanında CLAUDE.md'deki tablo: logic değiştiği için `test` ve `build`.
 - `X-Compatibility-Date: 2020-01-01` sabit gönderilir.
 - Error-limit eşiği 20. Bugün iki worker'ın kullandığı değer bu.
 - Fren üst sınırı 15 dakika, en uzun bucket penceresi.
-- AIMD'nin parametreleri: hız yarıya iner (en fazla 10 sn'de bir, fren
-  sürerken hiç); tırmanış istekler yeniden başlayınca, yani son yarılama ve
+- AIMD'nin parametreleri: hız ×0,75'e iner (en fazla 10 sn'de bir, fren
+  sürerken hiç), `Retry-After`'sız header'sız 429'un freni 15 sn; tırmanış
+  istekler yeniden başlayınca, yani son azaltma ve
   fren bitişinden hangisi geçse ondan başlar ve her 10 sn'de +1 req/sn artar.
 - Gruplu yavaşlama aralığı `window / limit × 2` (§4.2d).
 - `maxWaitMs`, fren kurulduğunda kuyrukta bekleyenleri de sınırlar (§4.4).

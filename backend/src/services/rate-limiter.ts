@@ -11,7 +11,11 @@
  *
  * `observe` reads every response. A 420, a low error budget or a header-less
  * 429 sets a process-wide brake (`pausedUntil`), and a header-less 429 also
- * halves the dispatch rate, which climbs back +1 req/s per 10 s (AIMD).
+ * cuts the dispatch rate by a quarter, which climbs back +1 req/s per 10 s
+ * (AIMD). The deep limiter behaves like a plain rate threshold (about 17-20
+ * req/s per IP for corporationhistory, measured 2026-10-29) and sends no
+ * Retry-After, so its brake is short and its cut gentle: a 60 s brake plus a
+ * halving spent half the run stopped and settled at under half the threshold.
  *
  * A response that carries X-Ratelimit-Group teaches the limiter which group
  * its route template belongs to, and records that bucket's limit and
@@ -55,6 +59,10 @@ export interface EsiRoute {
 
 const ERROR_LIMIT_FLOOR = 20;
 const DEFAULT_PAUSE_MS = 60_000;
+/** Brake for a header-less 429 that sends no Retry-After. */
+const DEEP_LIMIT_PAUSE_MS = 15_000;
+/** Share of the rate kept after a header-less 429. */
+const RATE_DECREASE = 0.75;
 const MAX_PAUSE_MS = 15 * 60_000;
 const RATE_CLIMB_INTERVAL_MS = 10_000;
 /** Below this share of the limit, a group's requests are spaced out. */
@@ -149,9 +157,9 @@ class RateLimiter {
   private pauseStatus: 420 | 429 = 429;
   private pauseKind: EsiThrottleKind = 'deep-limit';
 
-  // AIMD: the rate right after the last halving, and when that happened.
+  // AIMD: the rate right after the last decrease, and when that happened.
   private rateBase = config.esi.maxRequestsPerSecond;
-  private halvedAt = -Infinity;
+  private loweredAt = -Infinity;
 
   // Route template → group, learnt from responses; group:bucketKey → bucket.
   private groups = new Map<string, string>();
@@ -165,7 +173,7 @@ class RateLimiter {
    * so the time spent braked never counts towards the climb.
    */
   private currentRate(now = Date.now()): number {
-    const climbFrom = Math.max(this.halvedAt, this.pausedUntil);
+    const climbFrom = Math.max(this.loweredAt, this.pausedUntil);
     const climbed = Math.max(
       0,
       Math.floor((now - climbFrom) / RATE_CLIMB_INTERVAL_MS),
@@ -294,17 +302,17 @@ class RateLimiter {
     }
 
     if (status === 429) {
-      // 429s that land during a pause, or within 10 s of a halving, were sent
-      // before the rate dropped: one event, one halving.
+      // 429s that land during a pause, or within 10 s of a decrease, were sent
+      // before the rate dropped: one event, one decrease.
       const now = Date.now();
       if (
         now >= this.pausedUntil &&
-        now - this.halvedAt >= RATE_CLIMB_INTERVAL_MS
+        now - this.loweredAt >= RATE_CLIMB_INTERVAL_MS
       ) {
-        this.halveRate();
+        this.lowerRate();
       }
       const retryAfter = seconds(headers['retry-after']);
-      this.pause(retryAfter ?? DEFAULT_PAUSE_MS, 429, 'deep-limit');
+      this.pause(retryAfter ?? DEEP_LIMIT_PAUSE_MS, 429, 'deep-limit');
     }
   }
 
@@ -373,10 +381,13 @@ class RateLimiter {
     this.processQueue();
   }
 
-  private halveRate() {
+  private lowerRate() {
     const now = Date.now();
-    this.rateBase = Math.max(1, Math.floor(this.currentRate(now) / 2));
-    this.halvedAt = now;
+    this.rateBase = Math.max(
+      1,
+      Math.floor(this.currentRate(now) * RATE_DECREASE),
+    );
+    this.loweredAt = now;
   }
 
   private pause(ms: number, status: 420 | 429, kind: EsiThrottleKind) {

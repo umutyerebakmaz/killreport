@@ -182,7 +182,7 @@ describe('esiRateLimiter brake', () => {
     expect(await settledAfter(limiter.acquire(route), 0)).toBe(true);
   });
 
-  it('a header-less 429 pauses for Retry-After, 60 s if missing or not a number', async () => {
+  it('a header-less 429 pauses for Retry-After, 15 s if missing or not a number', async () => {
     const limiter = await limiterAt(50);
     limiter.observe(route, 429, { 'retry-after': '5' });
     const first = limiter.acquire(route);
@@ -191,12 +191,12 @@ describe('esiRateLimiter brake', () => {
 
     limiter.observe(route, 429, { 'retry-after': 'abc' });
     const second = limiter.acquire(route);
-    expect(await settledAfter(second, 59_999)).toBe(false);
+    expect(await settledAfter(second, 14_999)).toBe(false);
     expect(await settledAfter(second, 1)).toBe(true);
 
     limiter.observe(route, 429, {});
     const third = limiter.acquire(route);
-    expect(await settledAfter(third, 59_999)).toBe(false);
+    expect(await settledAfter(third, 14_999)).toBe(false);
     expect(await settledAfter(third, 1)).toBe(true);
   });
 
@@ -241,22 +241,23 @@ describe('esiRateLimiter brake', () => {
     for (let i = 0; i < 25; i++) limiter.observe(route, 429, {});
 
     expect(logger.warn).toHaveBeenCalledTimes(1);
-    expect(logger.warn.mock.calls[0][0]).toMatch(/429.*60 s/);
+    expect(logger.warn.mock.calls[0][0]).toMatch(/429.*15 s/);
   });
 });
 
 describe('esiRateLimiter adaptive rate', () => {
-  it('a header-less 429 halves the rate', async () => {
+  it('a header-less 429 cuts the rate by a quarter', async () => {
     const limiter = await limiterAt(50);
     limiter.observe(route, 429, {});
 
-    expect(limiter.getStats().currentRate).toBe(25);
+    expect(limiter.getStats().currentRate).toBe(37);
   });
 
   it('never goes below 1 req/s', async () => {
     const limiter = await limiterAt(50);
     // 10 s apart, so each 429 is a new event rather than an echo.
-    for (let i = 0; i < 8; i++) {
+    // 50 → 37 → 27 → 20 → 15 → 11 → 8 → 6 → 4 → 3 → 2 → 1
+    for (let i = 0; i < 14; i++) {
       limiter.observe(route, 429, { 'retry-after': '1' });
       await vi.advanceTimersByTimeAsync(10_000);
     }
@@ -264,50 +265,50 @@ describe('esiRateLimiter adaptive rate', () => {
     expect(limiter.getStats().currentRate).toBe(1);
   });
 
-  it('429s that arrive while a pause is in force halve only once', async () => {
+  it('429s that arrive while a pause is in force lower the rate only once', async () => {
     const limiter = await limiterAt(50);
     for (let i = 0; i < 25; i++) limiter.observe(route, 429, {});
 
-    expect(limiter.getStats().currentRate).toBe(25);
+    expect(limiter.getStats().currentRate).toBe(37);
   });
 
-  it('429s within 10 s of a halving halve only once, even with no brake', async () => {
+  it('429s within 10 s of a decrease lower the rate only once, even with no brake', async () => {
     const limiter = await limiterAt(50);
     for (let i = 0; i < 25; i++) {
       limiter.observe(route, 429, { 'retry-after': '0' });
       await vi.advanceTimersByTimeAsync(300);
     }
 
-    expect(limiter.getStats().currentRate).toBe(25);
+    expect(limiter.getStats().currentRate).toBe(37);
   });
 
   it('climbs +1 req/s per 10 s once requests resume, up to ESI_MAX_RPS', async () => {
     const limiter = await limiterAt(50);
-    limiter.observe(route, 429, {}); // 60 s brake
+    limiter.observe(route, 429, {}); // 15 s brake
 
-    await vi.advanceTimersByTimeAsync(60_000);
-    expect(limiter.getStats().currentRate).toBe(25);
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(limiter.getStats().currentRate).toBe(37);
     await vi.advanceTimersByTimeAsync(9_999);
-    expect(limiter.getStats().currentRate).toBe(25);
+    expect(limiter.getStats().currentRate).toBe(37);
     await vi.advanceTimersByTimeAsync(1);
-    expect(limiter.getStats().currentRate).toBe(26);
-    await vi.advanceTimersByTimeAsync(240_000);
+    expect(limiter.getStats().currentRate).toBe(38);
+    await vi.advanceTimersByTimeAsync(120_000);
     expect(limiter.getStats().currentRate).toBe(50);
     await vi.advanceTimersByTimeAsync(3_600_000);
     expect(limiter.getStats().currentRate).toBe(50);
   });
 
   it('dispatches at the lowered rate', async () => {
-    const limiter = await limiterAt(4); // 250 ms spacing
-    limiter.observe(route, 429, { 'retry-after': '1' }); // rate 2
+    const limiter = await limiterAt(8); // 125 ms spacing
+    limiter.observe(route, 429, { 'retry-after': '1' }); // rate 6, 166 ms
     await vi.advanceTimersByTimeAsync(1000);
-    const tasks = Array.from({ length: 4 }, () => occupy(limiter));
+    const tasks = Array.from({ length: 5 }, () => occupy(limiter));
     const dispatched = () => tasks.filter((t) => t.isGranted()).length;
 
-    await vi.advanceTimersByTimeAsync(999);
-    expect(dispatched()).toBe(2);
-    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(497);
     expect(dispatched()).toBe(3);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(dispatched()).toBe(4);
   });
 });
 
@@ -346,7 +347,7 @@ describe('esiRateLimiter maxWaitMs', () => {
     const unbounded = limiter.acquire(route);
     const boundedSettled =
       expect(bounded).rejects.toBeInstanceOf(EsiThrottledError);
-    limiter.observe(route, 429, {}); // 60 s brake
+    limiter.observe(route, 429, {}); // 15 s brake
 
     await boundedSettled;
     await expect(bounded).rejects.toMatchObject({
@@ -354,7 +355,7 @@ describe('esiRateLimiter maxWaitMs', () => {
       kind: 'deep-limit',
     });
     tasks[0].release();
-    expect(await settledAfter(unbounded, 59_999)).toBe(false);
+    expect(await settledAfter(unbounded, 14_999)).toBe(false);
     expect(await settledAfter(unbounded, 1)).toBe(true);
   });
 

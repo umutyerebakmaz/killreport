@@ -86,7 +86,8 @@ The worker holds `ESI_PREFETCH` characters in flight (default 25) and
 the limiter caps it at `ESI_MAX_RPS` (default 50), one request per
 character. This route is rate limited inside the EVE server with no
 `X-Ratelimit-*` header, so the limiter learns the pace from the 429s: it brakes
-for `Retry-After`, halves its rate and climbs back +1 req/s per 10 s. That keeps
+for `Retry-After` (15 s when absent), cuts its rate by a quarter and climbs back
++1 req/s per 10 s. That keeps
 the run going but still burns requests, so a backfill is gentler below the
 limit. (Historical note: on 2026-10-25, before the limiter adapted, the route
 answered 429 after about 20 seconds at 25 req/sec while 5 req/sec ran clean.)

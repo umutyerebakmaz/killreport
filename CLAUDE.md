@@ -514,8 +514,9 @@ speak through response headers:
   the header is missing).
 
 A 429 with no group header is the deeper server limiter: the process brakes for
-`Retry-After` and the dispatch rate halves (floor 1 req/s, at most once per
-10 s), then climbs +1 req/s per 10 s once requests resume. Brakes are capped at
+`Retry-After` (15 s when it is missing, as it always has been so far) and the
+dispatch rate drops by a quarter (floor 1 req/s, at most once per 10 s), then
+climbs +1 req/s per 10 s once requests resume. Brakes are capped at
 15 minutes. `backend/src/services/rate-limiter.ts` is the source of truth.
 
 **Every ESI request goes through `esiClient.get`**
