@@ -1,4 +1,5 @@
 import { RETRY_TOPOLOGY } from '@services/queue-names';
+import { EsiThrottledError } from '@services/rate-limiter';
 import type amqp from 'amqplib';
 
 /**
@@ -142,6 +143,16 @@ export async function handleWorkerError(
   error: unknown,
   logger: WorkerLogger,
 ): Promise<void> {
+  // esiClient already put the process-wide brake in the limiter when it threw
+  // this, so there is nothing to sleep for here: requeue at once, untouched,
+  // and the message waits in the limiter's brake when it comes back. Being
+  // throttled is not a defect in the message, so no attempt is burnt.
+  if (error instanceof EsiThrottledError) {
+    logger.warn(`⏸ esi throttled (${error.kind}), requeueing`);
+    channel.nack(msg, false, true);
+    return;
+  }
+
   // 420/429: throttled. Wait, requeue untouched, burn no attempt — being
   // throttled is not a defect in the message. The log names which one: 420 is
   // ESI's error limit (too many failed requests), 429 a plain rate limit (too
