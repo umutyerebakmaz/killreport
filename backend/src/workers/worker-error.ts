@@ -44,10 +44,9 @@ export function deathCount(msg: amqp.ConsumeMessage): number {
 /**
  * The first line of an error's message, which is where a status belongs.
  *
- * The status detectors below fall back to the message text because four
- * services — `zkillboard.ts`, `killmail.service.ts`, `character.service.ts`
- * and `corporation.service.ts` — use `fetch` and throw a plain `Error` that
- * carries the status only there. Every one of them puts it on the first line.
+ * The status detectors below fall back to the message text because
+ * `services/zkillboard.ts` uses `fetch` and throws a plain `Error` that
+ * carries the status only there. It puts it on the first line.
  *
  * A Prisma failure, by contrast, embeds `file.ts:LINE:COL` and a numbered code
  * frame in its message, so matching the whole text meant a database error
@@ -156,7 +155,9 @@ export async function handleWorkerError(
   // 420/429: throttled. Wait, requeue untouched, burn no attempt — being
   // throttled is not a defect in the message. The log names which one: 420 is
   // ESI's error limit (too many failed requests), 429 a plain rate limit (too
-  // many requests), and they call for different fixes.
+  // many requests), and they call for different fixes. Errors from esiClient
+  // never get here: the EsiThrottledError branch above has already handled
+  // them.
   const throttled = throttleStatus(error);
   if (throttled) {
     logger.warn(
