@@ -160,6 +160,16 @@ describe('esiRateLimiter brake', () => {
     expect(await settledAfter(next, 1)).toBe(true);
   });
 
+  it('a blank error-limit-remain is no value, so it never brakes', async () => {
+    const limiter = await limiterAt(50);
+    limiter.observe(route, 200, {
+      'x-esi-error-limit-remain': '',
+      'x-esi-error-limit-reset': '30',
+    });
+
+    expect(await settledAfter(limiter.acquire(route), 0)).toBe(true);
+  });
+
   it('error-limit-reset 0 or negative never pauses', async () => {
     const limiter = await limiterAt(50);
     limiter.observe(route, 200, {

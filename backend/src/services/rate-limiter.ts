@@ -280,7 +280,12 @@ class RateLimiter {
       if (status === 429) return;
     }
 
-    const remain = Number(headers['x-esi-error-limit-remain']);
+    // Blank or absent is no value: Number('') would be 0 and brake.
+    const remainRaw = headers['x-esi-error-limit-remain'];
+    const remain =
+      remainRaw === undefined || remainRaw.trim() === ''
+        ? NaN
+        : Number(remainRaw);
     const reset = seconds(headers['x-esi-error-limit-reset']);
     if (status === 420) {
       this.pause(reset ?? DEFAULT_PAUSE_MS, 420, 'error-limit');

@@ -123,6 +123,29 @@ describe('esiClient', () => {
     expect(calls).toEqual(['acquire', 'observe', 'release']);
   });
 
+  it('sets a 30 s request timeout on the instance', async () => {
+    const { adapter, requests } = makeAdapter({ status: 200 });
+    await createEsiClient(adapter).get('/universe/types/34/');
+    expect(requests[0].timeout).toBe(30_000);
+  });
+
+  it('releases once and rethrows an axios error when a request times out', async () => {
+    const timedOut = async (cfg: InternalAxiosRequestConfig) => {
+      throw new AxiosError(
+        'timeout of 30000ms exceeded',
+        AxiosError.ECONNABORTED,
+        cfg,
+      );
+    };
+    const err = await createEsiClient(timedOut)
+      .get('/universe/types/34/')
+      .catch((e) => e);
+    expect(err).toBeInstanceOf(AxiosError);
+    expect(err).not.toBeInstanceOf(EsiThrottledError);
+    expect(err.code).toBe('ECONNABORTED');
+    expect(calls).toEqual(['acquire', 'release']);
+  });
+
   it('does not release when acquire itself rejects', async () => {
     vi.spyOn(esiRateLimiter, 'acquire').mockRejectedValue(new Error('maxWait'));
     const { adapter, requests } = makeAdapter({ status: 200 });

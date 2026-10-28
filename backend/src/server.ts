@@ -304,11 +304,11 @@ server.listen(port, async () => {
   );
   logger.info('='.repeat(80));
 
-  // Ensure all RabbitMQ queues exist before anything in this process
-  // publishes or consumes - the crons below are the first publishers.
   // A request-path caller must not hang for the length of an ESI brake.
   setEsiMaxWait(10_000);
 
+  // Ensure all RabbitMQ queues exist before anything in this process
+  // publishes or consumes - the crons below are the first publishers.
   try {
     await ensureAllQueuesExist();
   } catch (error) {

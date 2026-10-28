@@ -71,6 +71,8 @@ export function createEsiClient(adapter?: AxiosAdapter) {
       'User-Agent': `KillReport/${pkg.version} (+https://github.com/umutyerebakmaz/killreport)`,
       'X-Compatibility-Date': COMPATIBILITY_DATE,
     },
+    // A stalled socket would never reach the finally below and would hold a limiter slot forever.
+    timeout: 30_000,
     ...(adapter ? { adapter } : {}),
   });
 
