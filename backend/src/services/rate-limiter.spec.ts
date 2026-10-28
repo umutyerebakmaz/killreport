@@ -51,6 +51,48 @@ afterEach(() => {
   vi.doUnmock('@config/config');
 });
 
+describe('esiRateLimiter dispatch', () => {
+  const grantedCount = (slots: ReturnType<typeof occupy>[]) =>
+    slots.filter((slot) => slot.isGranted()).length;
+
+  it('grants the first slot at once and the rest 1000/rps ms apart', async () => {
+    const limiter = await limiterAt(50); // 20 ms spacing
+    const slots = Array.from({ length: 3 }, () => occupy(limiter));
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(grantedCount(slots)).toBe(1);
+    await vi.advanceTimersByTimeAsync(19);
+    expect(grantedCount(slots)).toBe(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(grantedCount(slots)).toBe(2);
+    await vi.advanceTimersByTimeAsync(20);
+    expect(grantedCount(slots)).toBe(3);
+  });
+
+  it('holds the per-second ceiling until the window rolls over', async () => {
+    // 3/sec => 333 ms spacing, so the fourth would fall at 999 ms, one ms
+    // inside the window. The ceiling has to push it to 1000 ms.
+    const limiter = await limiterAt(3);
+    const slots = Array.from({ length: 4 }, () => occupy(limiter));
+
+    await vi.advanceTimersByTimeAsync(999);
+    expect(grantedCount(slots)).toBe(3);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(grantedCount(slots)).toBe(4);
+  });
+
+  it('raises the in-flight cap with the rate so it never becomes the ceiling', async () => {
+    const limiter = await limiterAt(150); // 6 ms spacing, cap 150
+    const slots = Array.from({ length: 151 }, () => occupy(limiter));
+
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(grantedCount(slots)).toBe(150);
+    slots[0].release();
+    await vi.advanceTimersByTimeAsync(6);
+    expect(grantedCount(slots)).toBe(151);
+  });
+});
+
 describe('esiRateLimiter.getStats', () => {
   it('reports the queue depth, the current and configured rate and the brake', async () => {
     const limiter = await limiterAt(50);
