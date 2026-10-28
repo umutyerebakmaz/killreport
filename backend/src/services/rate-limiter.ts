@@ -57,8 +57,15 @@ function seconds(value: string | undefined): number | null {
   return Number.isFinite(n) ? n * 1000 : null;
 }
 
+interface Waiter {
+  grant: () => void;
+  /** Absolute time past which an acquire with maxWaitMs gives up. */
+  deadline?: number;
+  reject?: (error: EsiThrottledError) => void;
+}
+
 class RateLimiter {
-  private queue: Array<() => void> = [];
+  private queue: Waiter[] = [];
   private processing = false;
   private requestCount = 0;
   private windowStart = Date.now();
@@ -77,34 +84,52 @@ class RateLimiter {
 
   // AIMD: the rate right after the last halving, and when that happened.
   private rateBase = config.esi.maxRequestsPerSecond;
-  private rateBaseAt = 0;
+  private halvedAt = -Infinity;
 
-  /** The adapted dispatch rate: +1 req/s per full 10 s since the last halving. */
+  /**
+   * The adapted dispatch rate: +1 req/s per full 10 s since requests resumed,
+   * so the time spent braked never counts towards the climb.
+   */
   private currentRate(now = Date.now()): number {
-    const climbed = Math.floor(
-      (now - this.rateBaseAt) / RATE_CLIMB_INTERVAL_MS,
+    const climbFrom = Math.max(this.halvedAt, this.pausedUntil);
+    const climbed = Math.max(
+      0,
+      Math.floor((now - climbFrom) / RATE_CLIMB_INTERVAL_MS),
     );
     return Math.min(this.maxRequestsPerSecond, this.rateBase + climbed);
   }
 
+  private throttledError(maxWaitMs: number): EsiThrottledError {
+    const waitS = Math.ceil((this.pausedUntil - Date.now()) / 1000);
+    return new EsiThrottledError(
+      this.pauseStatus,
+      this.pauseKind,
+      `ESI is throttled for another ${waitS} s (${this.pauseKind}), longer than the ${maxWaitMs} ms this caller waits`,
+    );
+  }
+
   /**
    * Wait for a dispatch slot. The slot counts as in flight until `release`.
-   * With `maxWaitMs`, a brake that ends later than that rejects at once with
-   * EsiThrottledError instead of waiting.
+   * With `maxWaitMs`, a brake that ends later than that rejects with
+   * EsiThrottledError instead of waiting: at once if the brake is already on,
+   * or when it starts if the acquire is still queued.
    */
   acquire(_route: EsiRoute, opts?: { maxWaitMs?: number }): Promise<void> {
     const maxWaitMs = opts?.maxWaitMs;
-    if (maxWaitMs !== undefined && this.pausedUntil > Date.now() + maxWaitMs) {
-      const waitS = Math.ceil((this.pausedUntil - Date.now()) / 1000);
-      return Promise.reject(
-        new EsiThrottledError(
-          this.pauseStatus,
-          this.pauseKind,
-          `ESI is throttled for another ${waitS} s (${this.pauseKind}), longer than the ${maxWaitMs} ms this caller waits`,
-        ),
-      );
+    if (maxWaitMs === undefined) {
+      return new Promise((resolve) => this.enqueue({ grant: resolve }));
     }
-    return new Promise((resolve) => this.enqueue(resolve));
+    const deadline = Date.now() + maxWaitMs;
+    if (this.pausedUntil > deadline) {
+      return Promise.reject(this.throttledError(maxWaitMs));
+    }
+    return new Promise((resolve, reject) =>
+      this.enqueue({
+        grant: resolve,
+        deadline,
+        reject,
+      }),
+    );
   }
 
   release(): void {
@@ -129,8 +154,15 @@ class RateLimiter {
     }
 
     if (status === 429) {
-      // 429s that land during a pause were sent before it: one event, one halving.
-      if (Date.now() >= this.pausedUntil) this.halveRate();
+      // 429s that land during a pause, or within 10 s of a halving, were sent
+      // before the rate dropped: one event, one halving.
+      const now = Date.now();
+      if (
+        now >= this.pausedUntil &&
+        now - this.halvedAt >= RATE_CLIMB_INTERVAL_MS
+      ) {
+        this.halveRate();
+      }
       const retryAfter = seconds(headers['retry-after']);
       this.pause(retryAfter ?? DEFAULT_PAUSE_MS, 429, 'deep-limit');
     }
@@ -139,7 +171,7 @@ class RateLimiter {
   private halveRate() {
     const now = Date.now();
     this.rateBase = Math.max(1, Math.floor(this.currentRate(now) / 2));
-    this.rateBaseAt = now;
+    this.halvedAt = now;
   }
 
   private pause(ms: number, status: 420 | 429, kind: EsiThrottleKind) {
@@ -159,6 +191,19 @@ class RateLimiter {
         `⏸️  ESI ${status} (${kind}): pausing all requests for ${Math.round((until - now) / 1000)} s, rate ${this.currentRate(now)} req/s`,
       );
     }
+    this.rejectWaitersBefore(until);
+  }
+
+  /** Give up on every queued acquire whose maxWaitMs deadline falls before `until`. */
+  private rejectWaitersBefore(until: number) {
+    const now = Date.now();
+    this.queue = this.queue.filter((waiter) => {
+      if (waiter.deadline === undefined || waiter.deadline >= until) {
+        return true;
+      }
+      waiter.reject?.(this.throttledError(waiter.deadline - now));
+      return false;
+    });
   }
 
   /**
@@ -170,25 +215,24 @@ class RateLimiter {
   execute<T>(fn: () => Promise<T>): Promise<T> {
     return new Promise((resolve, reject) => {
       // The slot callback runs fn synchronously, so dispatch timing is exact.
-      this.enqueue(() => {
-        (async () => {
-          try {
-            resolve(await fn());
-          } catch (error) {
-            reject(error);
-          } finally {
-            this.release();
-          }
-        })();
+      this.enqueue({
+        grant: () => {
+          (async () => {
+            try {
+              resolve(await fn());
+            } catch (error) {
+              reject(error);
+            } finally {
+              this.release();
+            }
+          })();
+        },
       });
     });
   }
 
-  private enqueue(onSlot: () => void) {
-    this.queue.push(() => {
-      this.inFlight++;
-      onSlot();
-    });
+  private enqueue(waiter: Waiter) {
+    this.queue.push(waiter);
     this.processQueue();
   }
 
@@ -231,10 +275,11 @@ class RateLimiter {
       }
 
       // Dispatch next item WITHOUT awaiting its completion so requests overlap
-      const fn = this.queue.shift();
-      if (fn) {
+      const waiter = this.queue.shift();
+      if (waiter) {
         this.requestCount++;
-        fn();
+        this.inFlight++;
+        waiter.grant();
 
         // Space out dispatches at the current rate.
         await this.sleep(spacing);

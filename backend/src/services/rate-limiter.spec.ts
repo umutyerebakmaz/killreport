@@ -301,9 +301,10 @@ describe('esiRateLimiter adaptive rate', () => {
 
   it('never goes below 1 req/s', async () => {
     const limiter = await limiterAt(50);
+    // 10 s apart, so each 429 is a new event rather than an echo.
     for (let i = 0; i < 8; i++) {
       limiter.observe(route, 429, { 'retry-after': '1' });
-      await vi.advanceTimersByTimeAsync(1000);
+      await vi.advanceTimersByTimeAsync(10_000);
     }
 
     expect(limiter.getStats().currentRate).toBe(1);
@@ -316,10 +317,22 @@ describe('esiRateLimiter adaptive rate', () => {
     expect(limiter.getStats().currentRate).toBe(25);
   });
 
-  it('climbs +1 req/s per 10 s without a 429, up to ESI_MAX_RPS', async () => {
+  it('429s within 10 s of a halving halve only once, even with no brake', async () => {
     const limiter = await limiterAt(50);
-    limiter.observe(route, 429, {});
+    for (let i = 0; i < 25; i++) {
+      limiter.observe(route, 429, { 'retry-after': '0' });
+      await vi.advanceTimersByTimeAsync(300);
+    }
 
+    expect(limiter.getStats().currentRate).toBe(25);
+  });
+
+  it('climbs +1 req/s per 10 s once requests resume, up to ESI_MAX_RPS', async () => {
+    const limiter = await limiterAt(50);
+    limiter.observe(route, 429, {}); // 60 s brake
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(limiter.getStats().currentRate).toBe(25);
     await vi.advanceTimersByTimeAsync(9_999);
     expect(limiter.getStats().currentRate).toBe(25);
     await vi.advanceTimersByTimeAsync(1);
@@ -368,6 +381,30 @@ describe('esiRateLimiter maxWaitMs', () => {
       kind: 'error-limit',
       response: { status: 420 },
     });
+  });
+
+  it('rejects a queued acquire when a brake set after it outlasts its maxWaitMs', async () => {
+    const limiter = await limiterAt(50);
+    const { EsiThrottledError } = await import('./rate-limiter.js');
+    const tasks = Array.from({ length: 50 }, pending);
+    for (const { fn } of tasks) void limiter.execute(fn);
+    await vi.advanceTimersByTimeAsync(3000);
+
+    // Both wait behind the full in-flight cap when the brake starts.
+    const bounded = limiter.acquire(route, { maxWaitMs: 10_000 });
+    const unbounded = limiter.acquire(route);
+    const boundedSettled =
+      expect(bounded).rejects.toBeInstanceOf(EsiThrottledError);
+    limiter.observe(route, 429, {}); // 60 s brake
+
+    await boundedSettled;
+    await expect(bounded).rejects.toMatchObject({
+      status: 429,
+      kind: 'deep-limit',
+    });
+    tasks[0].release('done');
+    expect(await settledAfter(unbounded, 59_999)).toBe(false);
+    expect(await settledAfter(unbounded, 1)).toBe(true);
   });
 
   it('waits when the brake ends within maxWaitMs', async () => {
