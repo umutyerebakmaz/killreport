@@ -77,7 +77,7 @@ export class CorporationService {
         break;
       }
 
-      logger.info(`     📄 page ${page}: ${killmails.length} killmails`);
+      logger.debug(`     📄 page ${page}: ${killmails.length} killmails`);
 
       // If no killmails returned, we've reached the end
       if (killmails.length === 0) {
@@ -119,7 +119,7 @@ export class CorporationService {
         break;
       }
 
-      logger.info(`     ➡️  continuing to page ${page + 1}...`);
+      logger.debug(`     ➡️  continuing to page ${page + 1}...`);
     }
 
     logger.info(`     ✅ total: ${allKillmails.length} killmails from ESI`);

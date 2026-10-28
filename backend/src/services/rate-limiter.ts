@@ -127,7 +127,7 @@ interface Waiter {
   /** Absolute time past which an acquire with maxWaitMs gives up. */
   deadline?: number;
   reject?: (error: EsiThrottledError) => void;
-  /** Absent for `execute`, which never belongs to a group. */
+  /** The route being acquired, for its group bucket. */
   route?: EsiRoute;
 }
 
@@ -453,31 +453,6 @@ class RateLimiter {
     );
     this.parked.set(waiter, timer);
     return true;
-  }
-
-  /**
-   * Execute a function with rate limiting. Kept for existing callers; it is an
-   * acquire, the call, then a release.
-   * Requests are DISPATCHED at up to the current rate and run concurrently
-   * (we do not wait for one request to finish before dispatching the next).
-   */
-  execute<T>(fn: () => Promise<T>): Promise<T> {
-    return new Promise((resolve, reject) => {
-      // The slot callback runs fn synchronously, so dispatch timing is exact.
-      this.enqueue({
-        grant: () => {
-          (async () => {
-            try {
-              resolve(await fn());
-            } catch (error) {
-              reject(error);
-            } finally {
-              this.release();
-            }
-          })();
-        },
-      });
-    });
   }
 
   private enqueue(waiter: Waiter) {

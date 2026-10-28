@@ -17,6 +17,7 @@ import { createRateLimitPlugin } from '@plugins/rate-limit.plugin';
 import { createResponseCachePlugin } from '@plugins/response-cache.plugin';
 import { trackActiveUser } from '@resolvers/analytics';
 import { createDataLoaders } from '@services/dataloaders';
+import { setEsiMaxWait } from '@services/esi-client';
 import { verifyToken } from '@services/eve-sso';
 import logger from '@services/logger';
 import { ensureAllQueuesExist } from '@services/rabbitmq';
@@ -305,6 +306,9 @@ server.listen(port, async () => {
 
   // Ensure all RabbitMQ queues exist before anything in this process
   // publishes or consumes - the crons below are the first publishers.
+  // A request-path caller must not hang for the length of an ESI brake.
+  setEsiMaxWait(10_000);
+
   try {
     await ensureAllQueuesExist();
   } catch (error) {

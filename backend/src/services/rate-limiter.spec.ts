@@ -31,12 +31,14 @@ async function settledAfter(promise: Promise<unknown>, ms: number) {
   return settled;
 }
 
-/** A task that stays in flight until the test releases it. */
-function pending() {
-  let release!: (value: string) => void;
-  const promise = new Promise<string>((resolve) => (release = resolve));
-  const fn = vi.fn(() => promise);
-  return { fn, release };
+/** A slot that stays held until the test releases it. */
+function occupy(limiter: Awaited<ReturnType<typeof limiterAt>>) {
+  let granted = false;
+  void limiter.acquire(route).then(() => (granted = true));
+  return {
+    isGranted: () => granted,
+    release: () => limiter.release(),
+  };
 }
 
 beforeEach(() => {
@@ -49,112 +51,10 @@ afterEach(() => {
   vi.doUnmock('@config/config');
 });
 
-describe('esiRateLimiter.execute', () => {
-  it('runs the task and resolves with its value', async () => {
-    const limiter = await limiterAt(50);
-
-    const result = limiter.execute(async () => 'ok');
-    await vi.advanceTimersByTimeAsync(0);
-
-    await expect(result).resolves.toBe('ok');
-  });
-
-  it('propagates a rejection and keeps serving later tasks', async () => {
-    const limiter = await limiterAt(50);
-    const failure = new Error('ESI 500');
-
-    const first = limiter.execute(async () => {
-      throw failure;
-    });
-    const second = limiter.execute(async () => 'still alive');
-    // Attach the handler before time moves, or the rejection is unhandled.
-    const firstSettled = expect(first).rejects.toBe(failure);
-    await vi.advanceTimersByTimeAsync(20);
-
-    await firstSettled;
-    await expect(second).resolves.toBe('still alive');
-  });
-
-  it('dispatches the first task synchronously and the rest 1000/rps ms apart', async () => {
-    const limiter = await limiterAt(50); // 20 ms spacing
-    const tasks = [pending(), pending(), pending()];
-
-    for (const { fn } of tasks) void limiter.execute(fn);
-    const calls = () => tasks.map(({ fn }) => fn.mock.calls.length);
-
-    expect(calls()).toEqual([1, 0, 0]);
-    await vi.advanceTimersByTimeAsync(19);
-    expect(calls()).toEqual([1, 0, 0]);
-    await vi.advanceTimersByTimeAsync(1);
-    expect(calls()).toEqual([1, 1, 0]);
-    await vi.advanceTimersByTimeAsync(20);
-    expect(calls()).toEqual([1, 1, 1]);
-  });
-
-  it('does not wait for a slow task to finish before dispatching the next one', async () => {
-    const limiter = await limiterAt(50);
-    const slow = pending();
-    const next = pending();
-
-    void limiter.execute(slow.fn);
-    void limiter.execute(next.fn);
-    await vi.advanceTimersByTimeAsync(20);
-
-    expect(slow.fn).toHaveBeenCalledTimes(1);
-    expect(next.fn).toHaveBeenCalledTimes(1);
-  });
-
-  it('holds the per-second ceiling until the window rolls over', async () => {
-    // 3/sec => 333 ms spacing, so the third dispatch lands at 666 ms and the
-    // fourth would fall at 999 ms, one ms inside the window. The ceiling has to
-    // push it to 1000 ms.
-    const limiter = await limiterAt(3);
-    const tasks = Array.from({ length: 7 }, pending);
-    for (const { fn } of tasks) void limiter.execute(fn);
-    const dispatched = () =>
-      tasks.filter(({ fn }) => fn.mock.calls.length > 0).length;
-
-    await vi.advanceTimersByTimeAsync(999);
-    expect(dispatched()).toBe(3);
-    await vi.advanceTimersByTimeAsync(1);
-    expect(dispatched()).toBe(4);
-    await vi.advanceTimersByTimeAsync(999);
-    expect(dispatched()).toBe(6);
-    await vi.advanceTimersByTimeAsync(1);
-    expect(dispatched()).toBe(7);
-  });
-
-  it('caps in-flight tasks at 50 and resumes when one settles', async () => {
-    const limiter = await limiterAt(50);
-    const tasks = Array.from({ length: 51 }, pending);
-    for (const { fn } of tasks) void limiter.execute(fn);
-    const dispatched = () =>
-      tasks.filter(({ fn }) => fn.mock.calls.length > 0).length;
-
-    await vi.advanceTimersByTimeAsync(3000);
-    expect(dispatched()).toBe(50);
-
-    tasks[0].release('done');
-    await vi.advanceTimersByTimeAsync(20);
-    expect(dispatched()).toBe(51);
-  });
-
-  it('raises the in-flight cap with the rate so it never becomes the ceiling', async () => {
-    const limiter = await limiterAt(150); // 6 ms spacing, cap 150
-    const tasks = Array.from({ length: 151 }, pending);
-    for (const { fn } of tasks) void limiter.execute(fn);
-    const dispatched = () =>
-      tasks.filter(({ fn }) => fn.mock.calls.length > 0).length;
-
-    await vi.advanceTimersByTimeAsync(3000);
-    expect(dispatched()).toBe(150);
-  });
-});
-
 describe('esiRateLimiter.getStats', () => {
   it('reports the queue depth, the current and configured rate and the brake', async () => {
     const limiter = await limiterAt(50);
-    for (let i = 0; i < 3; i++) void limiter.execute(pending().fn);
+    for (let i = 0; i < 3; i++) occupy(limiter);
 
     expect(limiter.getStats()).toEqual({
       queueLength: 2,
@@ -171,14 +71,13 @@ describe('esiRateLimiter.getStats', () => {
 describe('esiRateLimiter.acquire', () => {
   it('grants a slot that is held until release', async () => {
     const limiter = await limiterAt(50);
-    const tasks = Array.from({ length: 50 }, pending);
-    for (const { fn } of tasks) void limiter.execute(fn);
+    const tasks = Array.from({ length: 50 }, () => occupy(limiter));
     await vi.advanceTimersByTimeAsync(3000);
 
     // The in-flight cap is full, so an acquire waits for a release.
     const next = limiter.acquire(route);
     expect(await settledAfter(next, 1000)).toBe(false);
-    tasks[0].release('done');
+    tasks[0].release();
     expect(await settledAfter(next, 20)).toBe(true);
   });
 });
@@ -350,10 +249,8 @@ describe('esiRateLimiter adaptive rate', () => {
     const limiter = await limiterAt(4); // 250 ms spacing
     limiter.observe(route, 429, { 'retry-after': '1' }); // rate 2
     await vi.advanceTimersByTimeAsync(1000);
-    const tasks = Array.from({ length: 4 }, pending);
-    for (const { fn } of tasks) void limiter.execute(fn);
-    const dispatched = () =>
-      tasks.filter(({ fn }) => fn.mock.calls.length > 0).length;
+    const tasks = Array.from({ length: 4 }, () => occupy(limiter));
+    const dispatched = () => tasks.filter((t) => t.isGranted()).length;
 
     await vi.advanceTimersByTimeAsync(999);
     expect(dispatched()).toBe(2);
@@ -389,8 +286,7 @@ describe('esiRateLimiter maxWaitMs', () => {
   it('rejects a queued acquire when a brake set after it outlasts its maxWaitMs', async () => {
     const limiter = await limiterAt(50);
     const { EsiThrottledError } = await import('./rate-limiter.js');
-    const tasks = Array.from({ length: 50 }, pending);
-    for (const { fn } of tasks) void limiter.execute(fn);
+    const tasks = Array.from({ length: 50 }, () => occupy(limiter));
     await vi.advanceTimersByTimeAsync(3000);
 
     // Both wait behind the full in-flight cap when the brake starts.
@@ -405,7 +301,7 @@ describe('esiRateLimiter maxWaitMs', () => {
       status: 429,
       kind: 'deep-limit',
     });
-    tasks[0].release('done');
+    tasks[0].release();
     expect(await settledAfter(unbounded, 59_999)).toBe(false);
     expect(await settledAfter(unbounded, 1)).toBe(true);
   });

@@ -1,7 +1,7 @@
 import { MutationResolvers } from '@generated-types';
 import logger from '@services/logger';
 import { getRabbitMQChannel } from '@services/rabbitmq';
-import axios from 'axios';
+import { esiClient } from '@services/esi-client';
 
 /**
  * Constellation Mutation Resolvers
@@ -13,8 +13,8 @@ export const constellationMutations: MutationResolvers = {
       logger.info('🚀 starting constellation sync via GraphQL...');
 
       // Get all constellation IDs from ESI
-      const response = await axios.get(
-        'https://esi.evetech.net/latest/universe/constellations/',
+      const response = await esiClient.get<number[]>(
+        '/latest/universe/constellations/',
       );
       const constellationIds: number[] = response.data;
 

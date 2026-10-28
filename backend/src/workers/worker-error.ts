@@ -69,11 +69,10 @@ function messageHead(error: unknown): string {
  *
  * Checking the status first means this does not rest on a particular message
  * string once the next task moves ~25 workers, not all of them Axios-shaped,
- * onto this function — same reasoning as `isNotFound` below. `zkillboard.ts`,
- * `killmail.service.ts`, `character.service.ts` and `corporation.service.ts`
- * all use `fetch` and throw a plain `Error` carrying the status only in its
- * message text, so without the fallback a 420/429 from any of those workers
- * reads as an ordinary message defect and burns an attempt instead of waiting.
+ * onto this function — same reasoning as `isNotFound` below. `zkillboard.ts`
+ * uses `fetch` and throws a plain `Error` carrying the status only in its
+ * message text, so without the fallback a 420/429 from it reads as an ordinary
+ * message defect and burns an attempt instead of waiting.
  * The word boundary keeps "1420" from matching, and `messageHead` keeps
  * anything below the first line — a Prisma code frame — out of it entirely.
  */

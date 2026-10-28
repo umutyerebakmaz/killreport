@@ -1,6 +1,6 @@
 import { MutationResolvers } from '@generated-types';
 import { getRabbitMQChannel } from '@services/rabbitmq';
-import axios from 'axios';
+import { esiClient } from '@services/esi-client';
 
 /**
  * Region Mutation Resolvers
@@ -12,8 +12,8 @@ export const regionMutations: MutationResolvers = {
       console.log('🚀 starting region sync via GraphQL...');
 
       // Get all region IDs from ESI
-      const response = await axios.get(
-        'https://esi.evetech.net/latest/universe/regions/',
+      const response = await esiClient.get<number[]>(
+        '/latest/universe/regions/',
       );
       const regionIds: number[] = response.data;
 
