@@ -93,5 +93,5 @@ const BATCH_SIZE = 100; // Add 100 alliances to the queue at a time
 - Worker processes **1 message** at a time (prefetch=1)
 - Skips if already in the database (avoids unnecessary ESI requests)
 - Ignores 404 (not found) errors
-- Waits 60 seconds on 420 (error limit) responses
+- Requeues at once on 420 (error limit) responses; the limiter's brake does the waiting
 - Graceful shutdown with Ctrl+C

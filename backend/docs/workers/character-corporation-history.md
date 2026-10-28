@@ -88,15 +88,14 @@ character. This route is rate limited inside the EVE server with no
 `X-Ratelimit-*` header, so the limiter learns the pace from the 429s: it brakes
 for `Retry-After`, halves its rate and climbs back +1 req/s per 10 s. That keeps
 the run going but still burns requests, so a backfill is gentler below the
-limit. Historically (2026-10-25, before the limiter adapted) the route answered
-429 after about 20 seconds at 25 req/sec while 5 req/sec ran clean:
+limit. (Historical note: on 2026-10-25, before the limiter adapted, the route
+answered 429 after about 20 seconds at 25 req/sec while 5 req/sec ran clean.)
+No hand-set rate is needed now: the limiter finds it itself, and `ESI_MAX_RPS`
+is only the upper bound.
 
-```bash
-ESI_MAX_RPS=15 ESI_PREFETCH=8 yarn worker:character-corporation-history
-```
-
-The worker logs `rate limited (429)` when it happens; drop to 10 if it does.
-Both values are environment variables — the worker takes no arguments. Stop it
+A throttle shows up as `⏸ esi throttled (<kind>), requeueing` from the worker
+and a `⏸️  ESI 429 (...): pausing all requests for N s, rate N req/s` line from
+the limiter. Both values are environment variables — the worker takes no arguments. Stop it
 with Ctrl+C, not Ctrl+Z: a suspended worker keeps its messages and works on
 none.
 

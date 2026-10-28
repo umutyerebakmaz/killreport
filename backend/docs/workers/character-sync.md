@@ -87,7 +87,7 @@ yarn worker:zkillboard
 | Problem               | Solution                                                |
 | --------------------- | ------------------------------------------------------- |
 | No killmails found    | Verify character ID at zkillboard.com                   |
-| 420 Error Limited     | Worker auto-waits 60s                                   |
+| 420 Error Limited     | Worker requeues at once; the limiter waits              |
 | Worker not processing | Check RabbitMQ: `sudo systemctl status rabbitmq-server` |
 | Duplicate errors      | Normal, worker skips them                               |
 

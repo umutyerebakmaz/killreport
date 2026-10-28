@@ -281,10 +281,10 @@ model Killmail {
 **420 - Error Limited**
 
 ```
-🛑 Error limited (420)! Waiting 60 seconds...
+⏸ esi throttled (error-limit), requeueing
 ```
 
-→ Auto-wait 60 seconds and retry
+→ Requeued at once; the limiter's brake does the waiting
 
 **Network errors**
 
@@ -391,12 +391,12 @@ sudo rabbitmqctl list_queues
 ### Problem: Rate limited
 
 ```
-🛑 Error limited (420)!
+⏸ esi throttled (error-limit), requeueing
 ```
 
 **Solutions:**
 
-- Worker automatically waits 60 seconds
+- Worker requeues at once; the limiter's brake does the waiting
 - Reduce `PREFETCH_COUNT` in worker
 - Increase delay between requests
 

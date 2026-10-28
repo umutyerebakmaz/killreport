@@ -291,7 +291,7 @@ every non-404, non-error-limited failure logs the same generic
 Prisma code, attached as the second log argument.)
 
 **HTTP 420 (or 429).** ESI error limiting (420) or a generic rate limit (429).
-The worker waits 60 seconds and requeues on its own. If it keeps happening,
+The worker requeues at once without sleeping; the limiter's brake does the waiting. If it keeps happening,
 you have too many workers running — drop to two.
 
 **`406 PRECONDITION_FAILED` on startup.** A queue was declared without
