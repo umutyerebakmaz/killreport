@@ -279,7 +279,10 @@ describe('esiRateLimiter brake', () => {
       pausedUntil: 0,
       currentRate: 50,
     });
-    expect(await settledAfter(limiter.acquire(route), 0)).toBe(true);
+    // The 429 taught the limiter that this route is in 'killmail'; any other
+    // route is still free to go.
+    const other = { path: '/universe/types/587/' };
+    expect(await settledAfter(limiter.acquire(other), 0)).toBe(true);
   });
 
   it('logs a pause once, not once per throttled response', async () => {
@@ -425,5 +428,223 @@ describe('esiRateLimiter maxWaitMs', () => {
     expect(await settledAfter(next, 599_999)).toBe(false);
     expect(await settledAfter(next, 1)).toBe(true);
     await expect(next).resolves.toBeUndefined();
+  });
+});
+
+const HASH = '0a1b2c3d4e5f60718293a4b5c6d7e8f901234567';
+const killmail = { path: `/killmails/123/${HASH}/` };
+const status = { path: '/status/' };
+
+/** Headers of a response from a grouped route. */
+function grouped(group: string, limit: string, remaining: number | string) {
+  return {
+    'x-ratelimit-group': group,
+    'x-ratelimit-limit': limit,
+    'x-ratelimit-remaining': String(remaining),
+  };
+}
+
+describe('routeTemplate', () => {
+  it('maps ids and the killmail hash', async () => {
+    const { routeTemplate } = await import('./rate-limiter.js');
+    expect(routeTemplate(`/killmails/123/${HASH}/`)).toBe(
+      '/killmails/{id}/{hash}/',
+    );
+  });
+
+  it('drops the query string', async () => {
+    const { routeTemplate } = await import('./rate-limiter.js');
+    expect(routeTemplate('/characters/9/killmails/recent/?page=3')).toBe(
+      '/characters/{id}/killmails/recent/',
+    );
+  });
+
+  it('keeps a path without a trailing slash as it is', async () => {
+    const { routeTemplate } = await import('./rate-limiter.js');
+    expect(routeTemplate('/sovereignty/map')).toBe('/sovereignty/map');
+  });
+});
+
+describe('esiRateLimiter group buckets', () => {
+  it('above 20% remaining, a grouped route is not spaced', async () => {
+    const limiter = await limiterAt(50);
+    limiter.observe(killmail, 200, grouped('killmail', '3600/15m', 720));
+
+    const first = limiter.acquire(killmail);
+    const second = limiter.acquire(killmail);
+    expect(await settledAfter(first, 0)).toBe(true);
+    // Only the base 20 ms dispatch spacing applies.
+    expect(await settledAfter(second, 20)).toBe(true);
+  });
+
+  it('below 20% remaining, spaces requests window / (remaining / 2) apart', async () => {
+    const limiter = await limiterAt(50);
+    // 900_000 / (600 / 2) = 3_000 ms
+    limiter.observe(killmail, 200, grouped('killmail', '3600/15m', 600));
+
+    const first = limiter.acquire(killmail);
+    const second = limiter.acquire(killmail);
+    expect(await settledAfter(first, 0)).toBe(true);
+    expect(await settledAfter(second, 2_999)).toBe(false);
+    expect(await settledAfter(second, 1)).toBe(true);
+  });
+
+  it('remaining below 2 holds the request until a token is due back', async () => {
+    const limiter = await limiterAt(50);
+    // window / limit * 2 = 900_000 / 3600 * 2 = 500 ms
+    limiter.observe(killmail, 200, grouped('killmail', '3600/15m', 1));
+
+    const next = limiter.acquire(killmail);
+    expect(await settledAfter(next, 0)).toBe(false);
+    expect(await settledAfter(next, 499)).toBe(false);
+    expect(await settledAfter(next, 1)).toBe(true);
+  });
+
+  it('a grouped 429 pauses only that group for Retry-After', async () => {
+    const limiter = await limiterAt(50);
+    limiter.observe(status, 200, grouped('status', '600/15m', 600));
+    limiter.observe(killmail, 429, {
+      ...grouped('killmail', '3600/15m', 0),
+      'retry-after': '30',
+    });
+
+    // Queued first, yet it does not hold up the two behind it.
+    const paused = limiter.acquire(killmail);
+    const otherGroup = limiter.acquire(status);
+    const ungrouped = limiter.acquire(route);
+    expect(await settledAfter(otherGroup, 20)).toBe(true);
+    expect(await settledAfter(ungrouped, 20)).toBe(true);
+    expect(await settledAfter(paused, 29_959)).toBe(false);
+    expect(await settledAfter(paused, 1)).toBe(true);
+    expect(limiter.getStats()).toMatchObject({
+      pausedUntil: 0,
+      currentRate: 50,
+    });
+  });
+
+  it('a grouped 429 without Retry-After pauses the group 60 s, capped at 15 min', async () => {
+    const limiter = await limiterAt(50);
+    limiter.observe(killmail, 429, { 'x-ratelimit-group': 'killmail' });
+    const first = limiter.acquire(killmail);
+    expect(await settledAfter(first, 59_999)).toBe(false);
+    expect(await settledAfter(first, 1)).toBe(true);
+
+    limiter.observe(killmail, 429, {
+      'x-ratelimit-group': 'killmail',
+      'retry-after': '99999',
+    });
+    const second = limiter.acquire(killmail);
+    expect(await settledAfter(second, 899_999)).toBe(false);
+    expect(await settledAfter(second, 1)).toBe(true);
+  });
+
+  it('a shorter group pause never shortens a longer one', async () => {
+    const limiter = await limiterAt(50);
+    const header = { 'x-ratelimit-group': 'killmail' };
+    limiter.observe(killmail, 429, { ...header, 'retry-after': '60' });
+    limiter.observe(killmail, 429, { ...header, 'retry-after': '5' });
+
+    const next = limiter.acquire(killmail);
+    expect(await settledAfter(next, 59_999)).toBe(false);
+    expect(await settledAfter(next, 1)).toBe(true);
+  });
+
+  it('logs a group pause once, naming the group', async () => {
+    const limiter = await limiterAt(50);
+    for (let i = 0; i < 10; i++) {
+      limiter.observe(killmail, 429, {
+        'x-ratelimit-group': 'killmail',
+        'retry-after': '30',
+      });
+    }
+
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+    expect(logger.warn.mock.calls[0][0]).toMatch(/429.*killmail.*30 s/);
+  });
+
+  it('a fresh response replaces the remembered remaining', async () => {
+    const limiter = await limiterAt(50);
+    limiter.observe(killmail, 200, grouped('killmail', '3600/15m', 0));
+    const held = limiter.acquire(killmail);
+    expect(await settledAfter(held, 100)).toBe(false);
+
+    limiter.observe(killmail, 200, grouped('killmail', '3600/15m', 3000));
+    expect(await settledAfter(held, 0)).toBe(true);
+    expect(await settledAfter(limiter.acquire(killmail), 20)).toBe(true);
+  });
+
+  it('separates buckets by bucketKey', async () => {
+    const limiter = await limiterAt(50);
+    const recent = '/characters/365974960/killmails/recent/';
+    limiter.observe(
+      { path: recent, bucketKey: '1' },
+      200,
+      grouped('char-killmail', '30/15m', 0),
+    );
+
+    const one = limiter.acquire({ path: recent, bucketKey: '1' });
+    const two = limiter.acquire({ path: recent, bucketKey: '2' });
+    expect(await settledAfter(two, 20)).toBe(true);
+    expect(await settledAfter(one, 0)).toBe(false);
+  });
+
+  it('an unseen route template is not spaced', async () => {
+    const limiter = await limiterAt(50);
+    limiter.observe(killmail, 200, grouped('killmail', '3600/15m', 0));
+
+    const other = { path: '/characters/9/killmails/recent/' };
+    expect(await settledAfter(limiter.acquire(other), 0)).toBe(true);
+  });
+
+  it('parses limits in hours as well as minutes', async () => {
+    const limiter = await limiterAt(50);
+    // window 3_600_000 → 3_600_000 / 150 * 2 = 48_000 ms
+    limiter.observe(status, 200, grouped('status', '150/1h', 0));
+
+    const next = limiter.acquire(status);
+    expect(await settledAfter(next, 47_999)).toBe(false);
+    expect(await settledAfter(next, 1)).toBe(true);
+  });
+
+  it('rejects at once when the group wait outlasts maxWaitMs', async () => {
+    const limiter = await limiterAt(50);
+    const { EsiThrottledError } = await import('./rate-limiter.js');
+    limiter.observe(killmail, 429, {
+      'x-ratelimit-group': 'killmail',
+      'retry-after': '30',
+    });
+
+    const bounded = limiter.acquire(killmail, { maxWaitMs: 10_000 });
+    await expect(bounded).rejects.toBeInstanceOf(EsiThrottledError);
+    await expect(bounded).rejects.toMatchObject({
+      status: 429,
+      kind: 'rate-limit',
+      response: { status: 429 },
+    });
+    const within = limiter.acquire(killmail, { maxWaitMs: 40_000 });
+    expect(await settledAfter(within, 30_000)).toBe(true);
+    await expect(within).resolves.toBeUndefined();
+  });
+
+  it('rejects a waiting acquire when a group pause set after it outlasts maxWaitMs', async () => {
+    const limiter = await limiterAt(50);
+    const { EsiThrottledError } = await import('./rate-limiter.js');
+    limiter.observe(killmail, 200, grouped('killmail', '3600/15m', 1));
+
+    // Held 500 ms for a token when the 429 arrives.
+    const bounded = limiter.acquire(killmail, { maxWaitMs: 10_000 });
+    const unbounded = limiter.acquire(killmail);
+    const boundedSettled =
+      expect(bounded).rejects.toBeInstanceOf(EsiThrottledError);
+    await vi.advanceTimersByTimeAsync(100);
+    limiter.observe(killmail, 429, {
+      'x-ratelimit-group': 'killmail',
+      'retry-after': '60',
+    });
+
+    await boundedSettled;
+    await expect(bounded).rejects.toMatchObject({ kind: 'rate-limit' });
+    expect(await settledAfter(unbounded, 59_999)).toBe(false);
+    expect(await settledAfter(unbounded, 1)).toBe(true);
   });
 });

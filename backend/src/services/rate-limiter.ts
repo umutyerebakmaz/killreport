@@ -13,6 +13,14 @@
  * 429 sets a process-wide brake (`pausedUntil`), and a header-less 429 also
  * halves the dispatch rate, which climbs back +1 req/s per 10 s (AIMD).
  *
+ * A response that carries X-Ratelimit-Group teaches the limiter which group
+ * its route template belongs to, and records that bucket's limit and
+ * remaining tokens. Below 20% remaining the group's requests are spread over
+ * the window; below one 2xx's worth they wait for a token to come back; a
+ * grouped 429 pauses only that group (and bucketKey) for Retry-After. A request
+ * waiting on its bucket leaves the queue and re-enters on its own timer, so it
+ * never holds up other routes.
+ *
  * The base ceiling is per PROCESS and comes from ESI_MAX_RPS (default 50).
  * Every worker runs in its own process with its own instance, so the budget is
  * shared by however many are running at once.
@@ -49,6 +57,17 @@ const ERROR_LIMIT_FLOOR = 20;
 const DEFAULT_PAUSE_MS = 60_000;
 const MAX_PAUSE_MS = 15 * 60_000;
 const RATE_CLIMB_INTERVAL_MS = 10_000;
+/** Below this share of the limit, a group's requests are spaced out. */
+const LOW_TOKEN_SHARE = 0.2;
+/** Tokens a 2xx costs; the unit the spacing is measured in. */
+const SUCCESS_TOKEN_COST = 2;
+
+const WINDOW_UNIT_MS: Record<string, number> = {
+  s: 1000,
+  m: 60_000,
+  h: 3_600_000,
+  d: 86_400_000,
+};
 
 /** Header value in seconds → ms, or null when absent or not a number. */
 function seconds(value: string | undefined): number | null {
@@ -57,11 +76,59 @@ function seconds(value: string | undefined): number | null {
   return Number.isFinite(n) ? n * 1000 : null;
 }
 
+/** X-Ratelimit-Limit, e.g. '150/15m' → { limit: 150, windowMs: 900_000 }. */
+function parseLimit(
+  value: string | undefined,
+): { limit: number; windowMs: number } | null {
+  const match = value?.trim().match(/^(\d+)\/(\d+)([smhd])$/);
+  if (!match) return null;
+  const limit = Number(match[1]);
+  const windowMs = Number(match[2]) * WINDOW_UNIT_MS[match[3]];
+  return limit > 0 && windowMs > 0 ? { limit, windowMs } : null;
+}
+
+/**
+ * The route a path belongs to, as ESI groups it: the query string goes, a
+ * numeric segment becomes {id} and a killmail hash {hash}.
+ */
+export function routeTemplate(path: string): string {
+  return path
+    .split('?')[0]
+    .split('/')
+    .map((segment) =>
+      /^[0-9a-f]{40}$/.test(segment)
+        ? '{hash}'
+        : /^\d+$/.test(segment)
+          ? '{id}'
+          : segment,
+    )
+    .join('/');
+}
+
+/** The last known state of one route group's token bucket. */
+interface Bucket {
+  /** NaN until a response has carried X-Ratelimit-Limit. */
+  limit: number;
+  windowMs: number;
+  /** NaN until a response has carried X-Ratelimit-Remaining. */
+  remaining: number;
+  /** When `remaining` was last read from a response. */
+  updatedAt: number;
+  /** When this bucket last had a request dispatched. */
+  sentAt: number;
+  /** Earliest dispatch the spacing allows; kept by `respace`. */
+  nextAllowedAt: number;
+  /** Set by a grouped 429. */
+  pausedUntil: number;
+}
+
 interface Waiter {
   grant: () => void;
   /** Absolute time past which an acquire with maxWaitMs gives up. */
   deadline?: number;
   reject?: (error: EsiThrottledError) => void;
+  /** Absent for `execute`, which never belongs to a group. */
+  route?: EsiRoute;
 }
 
 class RateLimiter {
@@ -86,6 +153,13 @@ class RateLimiter {
   private rateBase = config.esi.maxRequestsPerSecond;
   private halvedAt = -Infinity;
 
+  // Route template → group, learnt from responses; group:bucketKey → bucket.
+  private groups = new Map<string, string>();
+  private buckets = new Map<string, Bucket>();
+  // Grouped acquires waiting out their bucket, off the queue, with the timer
+  // that puts them back on it.
+  private parked = new Map<Waiter, ReturnType<typeof setTimeout>>();
+
   /**
    * The adapted dispatch rate: +1 req/s per full 10 s since requests resumed,
    * so the time spent braked never counts towards the climb.
@@ -108,26 +182,80 @@ class RateLimiter {
     );
   }
 
+  private groupThrottledError(
+    key: string,
+    maxWaitMs: number,
+  ): EsiThrottledError {
+    const bucket = this.buckets.get(key);
+    const waitS = bucket
+      ? Math.ceil((this.readyAt(bucket) - Date.now()) / 1000)
+      : 0;
+    return new EsiThrottledError(
+      429,
+      'rate-limit',
+      `ESI group ${key} is throttled for another ${waitS} s, longer than the ${maxWaitMs} ms this caller waits`,
+    );
+  }
+
+  /** The bucket a route draws on, once its group has been learnt. */
+  private bucketKeyOf(route: EsiRoute | undefined): string | undefined {
+    if (route === undefined) return undefined;
+    const group = this.groups.get(routeTemplate(route.path));
+    return group === undefined
+      ? undefined
+      : `${group}:${route.bucketKey ?? ''}`;
+  }
+
+  private readyAt(bucket: Bucket): number {
+    return Math.max(bucket.pausedUntil, bucket.nextAllowedAt);
+  }
+
+  /**
+   * Below 20% remaining, keep the tokens left lasting the whole window: one
+   * 2xx per window / (remaining / 2). Below one 2xx's worth, wait for a token
+   * to come back, estimated as window / limit × 2 — ESI does not say when, and
+   * the next response corrects the guess.
+   */
+  private respace(bucket: Bucket) {
+    const { limit, windowMs, remaining } = bucket;
+    if (!(limit > 0) || !(remaining < limit * LOW_TOKEN_SHARE)) {
+      bucket.nextAllowedAt = 0;
+    } else if (remaining < SUCCESS_TOKEN_COST) {
+      bucket.nextAllowedAt =
+        Math.max(bucket.sentAt, bucket.updatedAt) +
+        (windowMs / limit) * SUCCESS_TOKEN_COST;
+    } else {
+      bucket.nextAllowedAt =
+        bucket.sentAt + windowMs / (remaining / SUCCESS_TOKEN_COST);
+    }
+  }
+
   /**
    * Wait for a dispatch slot. The slot counts as in flight until `release`.
-   * With `maxWaitMs`, a brake that ends later than that rejects with
-   * EsiThrottledError instead of waiting: at once if the brake is already on,
-   * or when it starts if the acquire is still queued.
+   * With `maxWaitMs`, a brake or a group wait that ends later than that
+   * rejects with EsiThrottledError instead of waiting: at once if it is
+   * already known, or when it is discovered if the acquire is still waiting.
    */
-  acquire(_route: EsiRoute, opts?: { maxWaitMs?: number }): Promise<void> {
+  acquire(route: EsiRoute, opts?: { maxWaitMs?: number }): Promise<void> {
     const maxWaitMs = opts?.maxWaitMs;
     if (maxWaitMs === undefined) {
-      return new Promise((resolve) => this.enqueue({ grant: resolve }));
+      return new Promise((resolve) => this.enqueue({ grant: resolve, route }));
     }
     const deadline = Date.now() + maxWaitMs;
     if (this.pausedUntil > deadline) {
       return Promise.reject(this.throttledError(maxWaitMs));
+    }
+    const key = this.bucketKeyOf(route);
+    const bucket = key === undefined ? undefined : this.buckets.get(key);
+    if (key !== undefined && bucket && this.readyAt(bucket) > deadline) {
+      return Promise.reject(this.groupThrottledError(key, maxWaitMs));
     }
     return new Promise((resolve, reject) =>
       this.enqueue({
         grant: resolve,
         deadline,
         reject,
+        route,
       }),
     );
   }
@@ -138,12 +266,16 @@ class RateLimiter {
 
   /** Read a response's throttling headers. Keys are lowercase. */
   observe(
-    _route: EsiRoute,
+    route: EsiRoute,
     status: number,
     headers: Record<string, string | undefined>,
   ): void {
-    // A grouped 429 throttles only its group; the group buckets own that path.
-    if (status === 429 && headers['x-ratelimit-group'] !== undefined) return;
+    const group = headers['x-ratelimit-group'];
+    if (group !== undefined) {
+      this.observeGroup(route, group, status, headers);
+      // A grouped 429 throttles only its group, never the whole process.
+      if (status === 429) return;
+    }
 
     const remain = Number(headers['x-esi-error-limit-remain']);
     const reset = seconds(headers['x-esi-error-limit-reset']);
@@ -166,6 +298,71 @@ class RateLimiter {
       const retryAfter = seconds(headers['retry-after']);
       this.pause(retryAfter ?? DEFAULT_PAUSE_MS, 429, 'deep-limit');
     }
+  }
+
+  private observeGroup(
+    route: EsiRoute,
+    group: string,
+    status: number,
+    headers: Record<string, string | undefined>,
+  ) {
+    const now = Date.now();
+    this.groups.set(routeTemplate(route.path), group);
+    const key = `${group}:${route.bucketKey ?? ''}`;
+    let bucket = this.buckets.get(key);
+    if (!bucket) {
+      bucket = {
+        limit: NaN,
+        windowMs: NaN,
+        remaining: NaN,
+        updatedAt: now,
+        sentAt: -Infinity,
+        nextAllowedAt: 0,
+        pausedUntil: 0,
+      };
+      this.buckets.set(key, bucket);
+    }
+
+    const limit = parseLimit(headers['x-ratelimit-limit']);
+    if (limit) {
+      bucket.limit = limit.limit;
+      bucket.windowMs = limit.windowMs;
+    }
+    const remainingHeader = headers['x-ratelimit-remaining'];
+    const remaining = Number(remainingHeader);
+    if (remainingHeader?.trim() && Number.isFinite(remaining)) {
+      bucket.remaining = remaining;
+      bucket.updatedAt = now;
+    }
+    this.respace(bucket);
+
+    if (status === 429) {
+      const retryAfter = seconds(headers['retry-after']) ?? DEFAULT_PAUSE_MS;
+      if (retryAfter > 0) {
+        const until = now + Math.min(retryAfter, MAX_PAUSE_MS);
+        if (until > bucket.pausedUntil) {
+          // Same once-per-event logging as the process brake.
+          const isNew = until - Math.max(bucket.pausedUntil, now) >= 1000;
+          bucket.pausedUntil = until;
+          if (isNew) {
+            logger.warn(
+              `⏸️  ESI 429 (rate-limit): pausing group ${key} for ${Math.round((until - now) / 1000)} s`,
+            );
+          }
+        }
+      }
+    }
+
+    // The bucket changed, so every acquire waiting on it looks again: one that
+    // can no longer make its deadline rejects, the rest wait the new time.
+    this.rejectWaitersBefore(this.readyAt(bucket), key);
+    for (const [waiter, timer] of this.parked) {
+      if (this.bucketKeyOf(waiter.route) !== key) continue;
+      clearTimeout(timer);
+      this.parked.delete(waiter);
+      this.queue.push(waiter);
+    }
+    this.processQueue();
   }
 
   private halveRate() {
@@ -194,16 +391,65 @@ class RateLimiter {
     this.rejectWaitersBefore(until);
   }
 
-  /** Give up on every queued acquire whose maxWaitMs deadline falls before `until`. */
-  private rejectWaitersBefore(until: number) {
+  /**
+   * Give up on every waiting acquire whose maxWaitMs deadline falls before
+   * `until`: all of them for the process brake, or only those drawing on
+   * bucket `key` for a group wait.
+   */
+  private rejectWaitersBefore(until: number, key?: string) {
     const now = Date.now();
+    const expires = (waiter: Waiter) =>
+      waiter.deadline !== undefined &&
+      waiter.deadline < until &&
+      (key === undefined || this.bucketKeyOf(waiter.route) === key);
+    const reject = (waiter: Waiter) => {
+      const maxWaitMs = waiter.deadline! - now;
+      waiter.reject?.(
+        key === undefined
+          ? this.throttledError(maxWaitMs)
+          : this.groupThrottledError(key, maxWaitMs),
+      );
+    };
+
     this.queue = this.queue.filter((waiter) => {
-      if (waiter.deadline === undefined || waiter.deadline >= until) {
-        return true;
-      }
-      waiter.reject?.(this.throttledError(waiter.deadline - now));
+      if (!expires(waiter)) return true;
+      reject(waiter);
       return false;
     });
+    for (const [waiter, timer] of this.parked) {
+      if (!expires(waiter)) continue;
+      clearTimeout(timer);
+      this.parked.delete(waiter);
+      reject(waiter);
+    }
+  }
+
+  /**
+   * Take the head waiter off the queue if its bucket is not ready, and put it
+   * back when it is, so it never holds up other routes. Returns whether it did.
+   */
+  private parkHeadIfWaiting(now: number): boolean {
+    const waiter = this.queue[0];
+    const key = this.bucketKeyOf(waiter.route);
+    const bucket = key === undefined ? undefined : this.buckets.get(key);
+    if (key === undefined || !bucket) return false;
+    const readyAt = this.readyAt(bucket);
+    if (readyAt <= now) return false;
+
+    this.queue.shift();
+    if (waiter.deadline !== undefined && waiter.deadline < readyAt) {
+      waiter.reject?.(this.groupThrottledError(key, waiter.deadline - now));
+      return true;
+    }
+    const timer = setTimeout(
+      () => {
+        this.parked.delete(waiter);
+        this.enqueue(waiter);
+      },
+      Math.ceil(readyAt - now),
+    );
+    this.parked.set(waiter, timer);
+    return true;
   }
 
   /**
@@ -259,6 +505,9 @@ class RateLimiter {
         this.windowStart = now;
       }
 
+      // A grouped request whose bucket says wait steps aside.
+      if (this.parkHeadIfWaiting(now)) continue;
+
       // Respect the per-second dispatch ceiling
       const rate = this.currentRate(now);
       // Dispatch spacing that produces the rate: 50/sec => 20ms apart.
@@ -279,6 +528,12 @@ class RateLimiter {
       if (waiter) {
         this.requestCount++;
         this.inFlight++;
+        const key = this.bucketKeyOf(waiter.route);
+        const bucket = key === undefined ? undefined : this.buckets.get(key);
+        if (bucket) {
+          bucket.sentAt = now;
+          this.respace(bucket);
+        }
         waiter.grant();
 
         // Space out dispatches at the current rate.
@@ -298,7 +553,8 @@ class RateLimiter {
    */
   getStats() {
     return {
-      queueLength: this.queue.length,
+      // Grouped acquires waiting out their bucket are still waiting.
+      queueLength: this.queue.length + this.parked.size,
       currentRate: this.currentRate(),
       pausedUntil: this.pausedUntil,
       maxRequestsPerSecond: this.maxRequestsPerSecond,
