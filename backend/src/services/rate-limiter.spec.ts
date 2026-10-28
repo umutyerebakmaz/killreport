@@ -477,15 +477,45 @@ describe('esiRateLimiter group buckets', () => {
     expect(await settledAfter(second, 20)).toBe(true);
   });
 
-  it('below 20% remaining, spaces requests window / (remaining / 2) apart', async () => {
+  it('below 20% remaining, spaces requests window / limit * 2 apart', async () => {
     const limiter = await limiterAt(50);
-    // 900_000 / (600 / 2) = 3_000 ms
+    // 900_000 / 3600 * 2 = 500 ms, the pace the bucket refills at
     limiter.observe(killmail, 200, grouped('killmail', '3600/15m', 600));
 
     const first = limiter.acquire(killmail);
     const second = limiter.acquire(killmail);
     expect(await settledAfter(first, 0)).toBe(true);
-    expect(await settledAfter(second, 2_999)).toBe(false);
+    expect(await settledAfter(second, 499)).toBe(false);
+    expect(await settledAfter(second, 1)).toBe(true);
+  });
+
+  it('the gap does not grow as the remaining tokens shrink', async () => {
+    for (const remaining of [2, 3]) {
+      const limiter = await limiterAt(50);
+      limiter.observe(
+        killmail,
+        200,
+        grouped('killmail', '3600/15m', remaining),
+      );
+
+      const first = limiter.acquire(killmail);
+      const second = limiter.acquire(killmail);
+      expect(await settledAfter(first, 0)).toBe(true);
+      expect(await settledAfter(second, 499)).toBe(false);
+      expect(await settledAfter(second, 1)).toBe(true);
+    }
+  });
+
+  it('spaces char-killmail 60 s apart below 20% remaining', async () => {
+    const limiter = await limiterAt(50);
+    const recent = { path: '/characters/9/killmails/recent/', bucketKey: '9' };
+    // 900_000 / 30 * 2 = 60_000 ms
+    limiter.observe(recent, 200, grouped('char-killmail', '30/15m', 5));
+
+    const first = limiter.acquire(recent);
+    const second = limiter.acquire(recent);
+    expect(await settledAfter(first, 0)).toBe(true);
+    expect(await settledAfter(second, 59_999)).toBe(false);
     expect(await settledAfter(second, 1)).toBe(true);
   });
 

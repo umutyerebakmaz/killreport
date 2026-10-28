@@ -15,11 +15,11 @@
  *
  * A response that carries X-Ratelimit-Group teaches the limiter which group
  * its route template belongs to, and records that bucket's limit and
- * remaining tokens. Below 20% remaining the group's requests are spread over
- * the window; below one 2xx's worth they wait for a token to come back; a
- * grouped 429 pauses only that group (and bucketKey) for Retry-After. A request
- * waiting on its bucket leaves the queue and re-enters on its own timer, so it
- * never holds up other routes.
+ * remaining tokens. Below 20% remaining the group's requests go at the pace
+ * the bucket refills; below one 2xx's worth they wait for a token to come
+ * back; a grouped 429 pauses only that group (and bucketKey) for Retry-After.
+ * A request waiting on its bucket leaves the queue and re-enters on its own
+ * timer, so it never holds up other routes.
  *
  * The base ceiling is per PROCESS and comes from ESI_MAX_RPS (default 50).
  * Every worker runs in its own process with its own instance, so the budget is
@@ -211,23 +211,26 @@ class RateLimiter {
   }
 
   /**
-   * Below 20% remaining, keep the tokens left lasting the whole window: one
-   * 2xx per window / (remaining / 2). Below one 2xx's worth, wait for a token
-   * to come back, estimated as window / limit × 2 — ESI does not say when, and
-   * the next response corrects the guess.
+   * Below 20% remaining, send no faster than the bucket refills: the sliding
+   * window returns `limit` tokens per window and a 2xx costs 2, so one request
+   * per window / limit × 2 is the pace the group can sustain. Below one 2xx's
+   * worth, the same gap is counted from the last response too, so the request
+   * waits for a token to come back — ESI does not say when, and the next
+   * response corrects the guess. One model for both, so the gap never grows
+   * as the tokens shrink.
    */
   private respace(bucket: Bucket) {
     const { limit, windowMs, remaining } = bucket;
     if (!(limit > 0) || !(remaining < limit * LOW_TOKEN_SHARE)) {
       bucket.nextAllowedAt = 0;
-    } else if (remaining < SUCCESS_TOKEN_COST) {
-      bucket.nextAllowedAt =
-        Math.max(bucket.sentAt, bucket.updatedAt) +
-        (windowMs / limit) * SUCCESS_TOKEN_COST;
-    } else {
-      bucket.nextAllowedAt =
-        bucket.sentAt + windowMs / (remaining / SUCCESS_TOKEN_COST);
+      return;
     }
+    const pace = (windowMs / limit) * SUCCESS_TOKEN_COST;
+    const from =
+      remaining < SUCCESS_TOKEN_COST
+        ? Math.max(bucket.sentAt, bucket.updatedAt)
+        : bucket.sentAt;
+    bucket.nextAllowedAt = from + pace;
   }
 
   /**
