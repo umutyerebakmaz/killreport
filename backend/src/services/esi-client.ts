@@ -53,6 +53,17 @@ function throttleKind(
   return headers['x-ratelimit-group'] ? 'rate-limit' : 'deep-limit';
 }
 
+/** Axios errors carry the outgoing Authorization header; callers log whole errors. */
+function redactAuthorization(error: AxiosError): void {
+  const headers = error.config?.headers;
+  for (const key of Object.keys(headers ?? {})) {
+    if (key.toLowerCase() === 'authorization') headers![key] = '[redacted]';
+  }
+  // the raw request (and its header text) also lives on the response
+  delete (error as { request?: unknown }).request;
+  if (error.response) delete (error.response as { request?: unknown }).request;
+}
+
 export function createEsiClient(adapter?: AxiosAdapter) {
   const instance = axios.create({
     baseURL: ESI_BASE_URL,
@@ -81,7 +92,9 @@ export function createEsiClient(adapter?: AxiosAdapter) {
         esiRateLimiter.observe(route, res.status, plainHeaders(res.headers));
         return res;
       } catch (error) {
-        if (!(error instanceof AxiosError) || !error.response) throw error;
+        if (!(error instanceof AxiosError)) throw error;
+        redactAuthorization(error);
+        if (!error.response) throw error;
         const { status } = error.response;
         const headers = plainHeaders(error.response.headers);
         esiRateLimiter.observe(route, status, headers);

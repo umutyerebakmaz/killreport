@@ -1,4 +1,5 @@
 import { AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import { inspect } from 'node:util';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import pkg from '../../package.json';
 import { createEsiClient, setEsiMaxWait } from './esi-client';
@@ -16,7 +17,9 @@ function makeAdapter(reply: Reply | 'network-error') {
   const adapter = async (cfg: InternalAxiosRequestConfig) => {
     requests.push(cfg);
     if (reply === 'network-error') {
-      throw new AxiosError('socket hang up', 'ECONNRESET', cfg);
+      throw new AxiosError('socket hang up', 'ECONNRESET', cfg, {
+        _header: `GET / HTTP/1.1\r\nAuthorization: ${cfg.headers.get('Authorization')}\r\n`,
+      });
     }
     const response = {
       status: reply.status,
@@ -24,14 +27,16 @@ function makeAdapter(reply: Reply | 'network-error') {
       headers: reply.headers ?? {},
       data: reply.data ?? {},
       config: cfg,
-      request: {},
+      request: {
+        _header: `Authorization: ${cfg.headers.get('Authorization')}`,
+      },
     };
     if (reply.status >= 200 && reply.status < 300) return response;
     throw new AxiosError(
       `status ${reply.status}`,
       AxiosError.ERR_BAD_RESPONSE,
       cfg,
-      {},
+      response.request,
       response,
     );
   };
@@ -220,5 +225,42 @@ describe('esiClient', () => {
       { path: '/characters/9/', bucketKey: undefined },
       {},
     );
+  });
+
+  describe('bearer token', () => {
+    const headers = { Authorization: 'Bearer secret' };
+    const leaks = (e: unknown) =>
+      JSON.stringify(e).includes('secret') ||
+      inspect(e, { depth: 8 }).includes('secret');
+
+    it.each([500, 404])('is redacted from a %i error', async (status) => {
+      const { adapter } = makeAdapter({ status });
+      const err = await createEsiClient(adapter)
+        .get('/characters/1/', { headers })
+        .catch((e) => e);
+      expect(err).toBeInstanceOf(AxiosError);
+      expect(err.response.status).toBe(status);
+      expect(err.config.headers.Authorization).not.toBe('Bearer secret');
+      expect(leaks(err)).toBe(false);
+    });
+
+    it('is redacted from the cause of an EsiThrottledError', async () => {
+      const { adapter } = makeAdapter({ status: 429 });
+      const err = await createEsiClient(adapter)
+        .get('/characters/1/', { headers })
+        .catch((e) => e);
+      expect(err).toBeInstanceOf(EsiThrottledError);
+      expect(err.cause.response.status).toBe(429);
+      expect(leaks(err)).toBe(false);
+    });
+
+    it('is redacted from a network error', async () => {
+      const { adapter } = makeAdapter('network-error');
+      const err = await createEsiClient(adapter)
+        .get('/characters/1/', { headers })
+        .catch((e) => e);
+      expect(err.code).toBe('ECONNRESET');
+      expect(leaks(err)).toBe(false);
+    });
   });
 });
