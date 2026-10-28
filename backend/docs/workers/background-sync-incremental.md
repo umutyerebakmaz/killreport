@@ -51,7 +51,7 @@ On each execution:
 🕐 [25.12.2025 14:30:00] Running background sync...
 ──────────────────────────────────────────────────────────────────────
    📊 Found 3 user(s) to sync
-   ⏳ John Doe (last: 20m ago)
+   ⏳ General XAN (last: 20m ago)
    ⏳ Jane Smith (never)
    ⏳ Bob Wilson (last: 45m ago)
 
@@ -211,7 +211,7 @@ static async getCharacterKillmails(
 **Initial sync (no lastKillmailId):**
 
 ```
-📡 [John Doe] Fetching killmails from ESI (full sync)...
+📡 [General XAN] Fetching killmails from ESI (full sync)...
    📄 Page 1: 50 killmails
    📄 Page 2: 50 killmails
    ...
@@ -223,7 +223,7 @@ static async getCharacterKillmails(
 **Second sync (lastKillmailId: 123456789):**
 
 ```
-📡 [John Doe] Fetching NEW killmails from ESI (incremental sync)...
+📡 [General XAN] Fetching NEW killmails from ESI (incremental sync)...
    🔍 Will stop at killmail ID: 123456789
    📄 Page 1: 50 killmails
    ✅ Incremental sync: Found last synced killmail (ID: 123456789)
@@ -317,7 +317,7 @@ yarn worker:user-killmails
 Initial sync: **Full sync** (no lastKillmailId)
 
 ```
-📡 [John Doe] Fetching killmails from ESI (full sync)...
+📡 [General XAN] Fetching killmails from ESI (full sync)...
    📄 Page 1: 50 killmails
    📄 Page 2: 50 killmails
    ...
@@ -332,7 +332,7 @@ Cron will run automatically:
 🕐 [25.12.2025 14:40:00] Running background sync...
 ──────────────────────────────────────────────────────────────────────
    📊 Found 1 user(s) to sync
-   ⏳ John Doe (last: 10m ago)
+   ⏳ General XAN (last: 10m ago)
 ```
 
 ### 5. Watch Second Sync
@@ -340,7 +340,7 @@ Cron will run automatically:
 Second sync: **Incremental sync** (lastKillmailId exists)
 
 ```
-📡 [John Doe] Fetching NEW killmails from ESI (incremental sync)...
+📡 [General XAN] Fetching NEW killmails from ESI (incremental sync)...
    🔍 Will stop at killmail ID: 123456789
    📄 Page 1: 50 killmails
    ✅ Incremental sync: Found last synced killmail (ID: 123456789)

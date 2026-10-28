@@ -483,7 +483,7 @@ No auth needed for public character history. Fetch IDs from zKillboard, then
 details from ESI, then save. 200 killmails per page.
 `worker-zkillboard-sync.ts` defaults to `MAX_PAGES = 100` (20,000 killmails);
 the direct script defaults to 50 and takes an override:
-`yarn sync:character 95465499 10`.
+`yarn sync:character 365974960 10`.
 
 ### Declaring a queue
 

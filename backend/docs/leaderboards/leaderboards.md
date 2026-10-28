@@ -792,7 +792,7 @@ Example:
 
 - `alliance_stats:99000001:alliances:LAST_7_DAYS`
 - `corporation_stats:98000001:ships:ALL_TIME`
-- `character_stats:12345678:ship_targets:TODAY`
+- `character_stats:365974960:ship_targets:TODAY`
 
 ---
 

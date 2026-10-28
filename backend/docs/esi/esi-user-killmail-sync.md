@@ -50,7 +50,7 @@ This command:
 ✓ Found 3 active user(s) with valid tokens
 📤 Adding to queue: esi_user_killmails_queue
 
-  ⏳ Queued: John Doe (ID: 95465499)
+  ⏳ Queued: General XAN (ID: 365974960)
   ⏳ Queued: Jane Smith (ID: 123456789)
   ⏳ Queued: Bob Wilson (ID: 987654321)
 
@@ -89,11 +89,11 @@ Worker does the following:
 ⏳ Waiting for user killmail jobs...
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-👤 Processing: John Doe (ID: 95465499)
+👤 Processing: General XAN (ID: 365974960)
 🆔 User ID: 1
 📅 Queued at: 2025-12-24T10:30:00.000Z
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  📡 [John Doe] Fetching killmails from ESI...
+  📡 [General XAN] Fetching killmails from ESI...
      📄 Page 1: 50 killmails
      📄 Page 2: 50 killmails
      📄 Page 3: 12 killmails
@@ -112,7 +112,7 @@ Worker does the following:
   📊 Total processed: 112
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-✅ Completed: John Doe
+✅ Completed: General XAN
 ```
 
 ### Production Environment (PM2)

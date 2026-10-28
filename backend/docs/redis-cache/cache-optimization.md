@@ -44,7 +44,7 @@ entity_type:detail:id
 Examples:
 
 - `killmail:detail:123456`
-- `character:detail:95465499`
+- `character:detail:365974960`
 - `corporation:detail:98388312`
 
 ### 2. GraphQL Response Cache
@@ -133,7 +133,7 @@ mutation {
     message
   }
 
-  clearCharacterCache(characterId: 95465499) {
+  clearCharacterCache(characterId: 365974960) {
     success
     message
   }
@@ -165,7 +165,7 @@ import CacheManager from '../utils/cache-manager';
 
 // Clear specific entity
 await CacheManager.clearKillmail(123456);
-await CacheManager.clearCharacter(95465499);
+await CacheManager.clearCharacter(365974960);
 
 // Clear by pattern
 await CacheManager.clearPattern('killmail:detail:*');
@@ -260,7 +260,7 @@ In GraphQL Yoga logs, response cache plugin reports hits/misses:
 
 ```
 ✅ Response cache HIT for Killmail:123456
-❌ Response cache MISS for Character:95465499
+❌ Response cache MISS for Character:365974960
 ```
 
 ### Redis Memory Usage

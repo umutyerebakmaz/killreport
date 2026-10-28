@@ -31,7 +31,7 @@
 
 ```bash
 cd backend
-yarn queue:character-killmails 2117325769  # Killman Blu character ID
+yarn queue:character-killmails 365974960  # General XAN
 ```
 
 ### Automatic Backfill (Via GraphQL Mutation)
@@ -40,7 +40,7 @@ yarn queue:character-killmails 2117325769  # Killman Blu character ID
 mutation {
   startKillmailBackfill(
     input: {
-      characterId: 2117325769
+      characterId: 365974960
       options: { fromDate: "2023-01-01", maxPages: 10 }
     }
   ) {
@@ -109,7 +109,7 @@ interface BackfillOptions {
 mutation {
   startKillmailBackfill(
     input: {
-      characterId: 2117325769
+      characterId: 365974960
       options: { fromDate: "2024-01-01", maxPages: 5, limit: 200 }
     }
   ) {
