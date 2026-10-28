@@ -1,7 +1,5 @@
-import axios from 'axios';
-import { esiRateLimiter } from '../rate-limiter';
-
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
+import { esiClient } from '@services/esi-client';
+import { EsiThrottledError } from '@services/rate-limiter';
 
 /**
  * Dogma Effect service for ESI API interactions
@@ -13,10 +11,8 @@ export class DogmaEffectService {
    * @returns Array of dogma effect IDs
    */
   static async getAllEffectIds(): Promise<number[]> {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(`${ESI_BASE_URL}/dogma/effects/`);
-      return response.data;
-    });
+    const response = await esiClient.get<number[]>(`/latest/dogma/effects/`);
+    return response.data;
   }
 
   /**
@@ -25,12 +21,10 @@ export class DogmaEffectService {
    * @returns Dogma effect information including name, display_name, modifiers, etc.
    */
   static async getEffectInfo(effectId: number) {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(
-        `${ESI_BASE_URL}/dogma/effects/${effectId}/`,
-      );
-      return response.data;
-    });
+    const response = await esiClient.get<any>(
+      `/latest/dogma/effects/${effectId}/`,
+    );
+    return response.data;
   }
 
   /**
@@ -46,6 +40,7 @@ export class DogmaEffectService {
         const info = await this.getEffectInfo(effectId);
         results.push(info);
       } catch (error) {
+        if (error instanceof EsiThrottledError) throw error;
         console.error(`failed to fetch effect ${effectId}:`, error);
       }
     }

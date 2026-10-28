@@ -1,7 +1,4 @@
-import axios from 'axios';
-import { esiRateLimiter } from '../rate-limiter';
-
-const ESI_BASE_URL = 'https://esi.evetech.net';
+import { esiClient } from '@services/esi-client';
 
 /**
  * Region service for ESI API interactions
@@ -12,10 +9,8 @@ export class RegionService {
    * @returns Array of region IDs
    */
   static async getAllRegionIds(): Promise<number[]> {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(`${ESI_BASE_URL}/universe/regions/`);
-      return response.data;
-    });
+    const response = await esiClient.get<number[]>(`/universe/regions/`);
+    return response.data;
   }
 
   /**
@@ -24,11 +19,7 @@ export class RegionService {
    * @returns Region information
    */
   static async getRegionInfo(regionId: number) {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(
-        `${ESI_BASE_URL}/universe/regions/${regionId}/`,
-      );
-      return response.data;
-    });
+    const response = await esiClient.get<any>(`/universe/regions/${regionId}/`);
+    return response.data;
   }
 }

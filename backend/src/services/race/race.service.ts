@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { esiRateLimiter } from '../rate-limiter';
+import { esiClient } from '@services/esi-client';
 
 export interface ESIRace {
   race_id: number;
@@ -7,7 +6,6 @@ export interface ESIRace {
   description: string;
 }
 
-const ESI_BASE_URL = 'https://esi.evetech.net';
 /**
  * Race service for ESI API interactions
  */
@@ -17,11 +15,7 @@ export class RaceService {
    * @returns Array of race objects
    */
   static async getRaces(): Promise<ESIRace[]> {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get<ESIRace[]>(
-        `${ESI_BASE_URL}/universe/races`,
-      );
-      return response.data;
-    });
+    const response = await esiClient.get<ESIRace[]>(`/universe/races`);
+    return response.data;
   }
 }

@@ -1,7 +1,5 @@
-import axios from 'axios';
-import { esiRateLimiter } from '../rate-limiter';
-
-const ESI_BASE_URL = 'https://esi.evetech.net';
+import { esiClient } from '@services/esi-client';
+import { EsiThrottledError } from '@services/rate-limiter';
 
 /**
  * Dogma Attribute service for ESI API interactions
@@ -13,10 +11,8 @@ export class DogmaAttributeService {
    * @returns Array of dogma attribute IDs
    */
   static async getAllAttributeIds(): Promise<number[]> {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(`${ESI_BASE_URL}/dogma/attributes/`);
-      return response.data;
-    });
+    const response = await esiClient.get<number[]>(`/dogma/attributes/`);
+    return response.data;
   }
 
   /**
@@ -25,12 +21,10 @@ export class DogmaAttributeService {
    * @returns Dogma attribute information including name, display_name, unit_id, etc.
    */
   static async getAttributeInfo(attributeId: number) {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(
-        `${ESI_BASE_URL}/dogma/attributes/${attributeId}/`,
-      );
-      return response.data;
-    });
+    const response = await esiClient.get<any>(
+      `/dogma/attributes/${attributeId}/`,
+    );
+    return response.data;
   }
 
   /**
@@ -46,6 +40,7 @@ export class DogmaAttributeService {
         const info = await this.getAttributeInfo(attributeId);
         results.push(info);
       } catch (error) {
+        if (error instanceof EsiThrottledError) throw error;
         console.error(`failed to fetch attribute ${attributeId}:`, error);
       }
     }
