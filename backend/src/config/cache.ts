@@ -165,6 +165,7 @@ export const TTL_PER_SCHEMA_COORDINATE: Record<string, number> = {
 
   // Per-user, never cached: a shared bucket would serve one user's data to another.
   'Query.me': 0,
+  'Query.myTracker': 0,
   'Query.mySessions': 0,
 };
 
