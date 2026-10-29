@@ -2,6 +2,7 @@
 
 import type { TrackedEntityType } from '@/generated/graphql';
 import { useTracker } from '@/hooks/useTracker';
+import type { ReactNode } from 'react';
 
 /*
  * Add/remove button for one character, corporation or alliance. `xs` has no
@@ -18,11 +19,24 @@ export default function TrackButton({
   id: number;
   size?: 'sm' | 'xs';
 }) {
-  const { signedIn, status, track, untrack, pending } = useTracker();
-  if (!signedIn) return null;
+  const { signedIn, status, track, untrack, pending, loading, error } =
+    useTracker();
+  if (!signedIn || loading) return null;
 
   const current = status(type, id);
   if (current === 'self') return null;
+
+  const withError = (button: ReactNode) =>
+    error ? (
+      <span className="inline-flex flex-col items-start gap-1">
+        {button}
+        <span role="alert" className="text-xs text-ink-faint">
+          {error}
+        </span>
+      </span>
+    ) : (
+      button
+    );
 
   const sizeClass = size === 'xs' ? 'button-sm px-2 py-0.5' : 'button-sm';
 
@@ -39,7 +53,7 @@ export default function TrackButton({
   }
 
   if (current === 'tracked') {
-    return (
+    return withError(
       <button
         type="button"
         disabled={pending}
@@ -52,11 +66,11 @@ export default function TrackButton({
         <span className="hidden group-hover:inline group-focus-visible:inline">
           UNTRACK
         </span>
-      </button>
+      </button>,
     );
   }
 
-  return (
+  return withError(
     <button
       type="button"
       disabled={pending}
@@ -64,6 +78,6 @@ export default function TrackButton({
       className={`button button-primary ${sizeClass}`}
     >
       + TRACK
-    </button>
+    </button>,
   );
 }

@@ -69,4 +69,17 @@ describe('TrackButton', () => {
     setup('untracked', { pending: true });
     expect(screen.getByRole('button')).toBeDisabled();
   });
+
+  it('renders nothing while the tracker is loading', () => {
+    const { container } = setup('untracked', { loading: true });
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('shows the error under the button', () => {
+    setup('untracked', { error: 'Tracker is limited to 200 entries' });
+    expect(
+      screen.getByText('Tracker is limited to 200 entries'),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button')).toBeInTheDocument();
+  });
 });

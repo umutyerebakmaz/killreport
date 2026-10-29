@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const useMyTrackerQuery = vi.fn();
@@ -52,7 +52,10 @@ describe('useTracker', () => {
     const { result } = renderHook(() => useTracker());
     expect(result.current.signedIn).toBe(false);
     expect(result.current.ownCharacterId).toBeNull();
-    expect(useMyTrackerQuery).toHaveBeenCalledWith({ skip: true });
+    expect(useMyTrackerQuery).toHaveBeenCalledWith({
+      skip: true,
+      fetchPolicy: 'cache-first',
+    });
   });
 
   it('refetches MyTracker after a mutation', async () => {
@@ -69,5 +72,42 @@ describe('useTracker', () => {
       refetchQueries: ['MyTracker'],
       awaitRefetchQueries: true,
     });
+  });
+
+  it('catches a rejected mutation and exposes its message', async () => {
+    trackMutation.mockRejectedValueOnce({
+      graphQLErrors: [{ message: 'Tracker is limited to 200 entries' }],
+    });
+    const { result } = renderHook(() => useTracker());
+    await act(async () => {
+      await result.current.track(TrackedEntityType.Character, 200);
+    });
+    expect(result.current.error).toBe('Tracker is limited to 200 entries');
+    await act(async () => {
+      await result.current.track(TrackedEntityType.Character, 200);
+    });
+    expect(result.current.error).toBeNull();
+  });
+
+  it('falls back to a generic message', async () => {
+    untrackMutation.mockRejectedValueOnce(new Error('network'));
+    const { result } = renderHook(() => useTracker());
+    await act(async () => {
+      await result.current.untrack(TrackedEntityType.Character, 200);
+    });
+    expect(result.current.error).toBe('Could not update the tracker.');
+  });
+
+  it('is loading while signed in without data', () => {
+    useMyTrackerQuery.mockReturnValue({ data: undefined });
+    const { result } = renderHook(() => useTracker());
+    expect(result.current.loading).toBe(true);
+  });
+
+  it('is not loading when signed out', () => {
+    useAuth.mockReturnValue({ user: null });
+    useMyTrackerQuery.mockReturnValue({ data: undefined });
+    const { result } = renderHook(() => useTracker());
+    expect(result.current.loading).toBe(false);
   });
 });

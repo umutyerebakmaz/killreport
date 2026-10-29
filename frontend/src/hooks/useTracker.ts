@@ -8,7 +8,7 @@ import {
   type MyTrackerQuery,
 } from '@/generated/graphql';
 import { useAuth } from '@/hooks/useAuth';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 
 export type TrackerEntityType = TrackedEntityType;
 export type TrackerStatus = 'self' | 'automatic' | 'tracked' | 'untracked';
@@ -23,7 +23,11 @@ export function useTracker() {
   const signedIn = !!user;
   const ownCharacterId = user ? Number(user.characterId) : null;
 
-  const { data } = useMyTrackerQuery({ skip: !signedIn });
+  const { data } = useMyTrackerQuery({
+    skip: !signedIn,
+    fetchPolicy: 'cache-first',
+  });
+  const [error, setError] = useState<string | null>(null);
   const [trackMutation, { loading: tracking }] = useTrackMutation();
   const [untrackMutation, { loading: untracking }] = useUntrackMutation();
 
@@ -49,18 +53,27 @@ export function useTracker() {
     [tracker, ownCharacterId],
   );
 
+  const run = useCallback(async (call: () => Promise<unknown>) => {
+    try {
+      await call();
+      setError(null);
+    } catch (e) {
+      const message = (e as { graphQLErrors?: { message?: string }[] })
+        .graphQLErrors?.[0]?.message;
+      setError(message || 'Could not update the tracker.');
+    }
+  }, []);
+
   const track = useCallback(
-    async (type: TrackedEntityType, id: number) => {
-      await trackMutation({ variables: { type, id }, ...REFETCH });
-    },
-    [trackMutation],
+    (type: TrackedEntityType, id: number) =>
+      run(() => trackMutation({ variables: { type, id }, ...REFETCH })),
+    [run, trackMutation],
   );
 
   const untrack = useCallback(
-    async (type: TrackedEntityType, id: number) => {
-      await untrackMutation({ variables: { type, id }, ...REFETCH });
-    },
-    [untrackMutation],
+    (type: TrackedEntityType, id: number) =>
+      run(() => untrackMutation({ variables: { type, id }, ...REFETCH })),
+    [run, untrackMutation],
   );
 
   return {
@@ -71,5 +84,7 @@ export function useTracker() {
     track,
     untrack,
     pending: tracking || untracking,
+    loading: signedIn && !tracker,
+    error,
   };
 }
