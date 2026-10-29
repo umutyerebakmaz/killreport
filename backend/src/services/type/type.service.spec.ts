@@ -1,6 +1,11 @@
 import { EsiThrottledError } from '@services/rate-limiter';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+// rate-limiter builds its singleton from config at import time, and the real
+// config exits the process when EVE_CLIENT_ID is unset, as it is in CI.
+vi.mock('@config/config', () => ({
+  config: { esi: { maxRequestsPerSecond: 50, prefetch: 25 } },
+}));
 vi.mock('@services/esi-client', () => ({ esiClient: { get: vi.fn() } }));
 
 import { esiClient } from '@services/esi-client';

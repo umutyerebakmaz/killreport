@@ -5,6 +5,12 @@ import pkg from '../../package.json';
 import { createEsiClient, setEsiMaxWait } from './esi-client';
 import { EsiThrottledError, esiRateLimiter } from './rate-limiter';
 
+// rate-limiter builds its singleton from config at import time, and the real
+// config exits the process when EVE_CLIENT_ID is unset, as it is in CI.
+vi.mock('@config/config', () => ({
+  config: { esi: { maxRequestsPerSecond: 50, prefetch: 25 } },
+}));
+
 type Reply = {
   status: number;
   headers?: Record<string, string>;

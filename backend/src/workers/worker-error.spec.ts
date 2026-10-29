@@ -9,6 +9,12 @@ import {
   MAX_ATTEMPTS,
 } from './worker-error';
 
+// rate-limiter builds its singleton from config at import time, and the real
+// config exits the process when EVE_CLIENT_ID is unset, as it is in CI.
+vi.mock('@config/config', () => ({
+  config: { esi: { maxRequestsPerSecond: 50, prefetch: 25 } },
+}));
+
 const channel = {
   nack: vi.fn(),
   ack: vi.fn(),
