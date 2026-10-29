@@ -1045,6 +1045,8 @@ export type Mutation = {
    * Requires: Authentication
    */
   syncMyKillmails: SyncMyKillmailsPayload;
+  track: Scalars['Boolean']['output'];
+  untrack: Scalars['Boolean']['output'];
   updateUser: UpdateUserPayload;
 };
 
@@ -1136,6 +1138,18 @@ export type MutationStartTypeSyncArgs = {
 
 export type MutationSyncMyKillmailsArgs = {
   input: SyncMyKillmailsInput;
+};
+
+
+export type MutationTrackArgs = {
+  id: Scalars['Int']['input'];
+  type: TrackedEntityType;
+};
+
+
+export type MutationUntrackArgs = {
+  id: Scalars['Int']['input'];
+  type: TrackedEntityType;
 };
 
 
@@ -1279,6 +1293,7 @@ export type Query = {
   mostValuableKillmails: Array<Killmail>;
   /** The user's open sessions */
   mySessions: Array<Session>;
+  myTracker: Tracker;
   race?: Maybe<Race>;
   races: Array<Race>;
   /** Most recently detected territory ownership changes. */
@@ -2430,6 +2445,37 @@ export enum TopTargetFilter {
   Today = 'TODAY'
 }
 
+export type TrackedAlliance = {
+  __typename?: 'TrackedAlliance';
+  alliance: Alliance;
+  automatic: Scalars['Boolean']['output'];
+};
+
+export type TrackedCharacter = {
+  __typename?: 'TrackedCharacter';
+  automatic: Scalars['Boolean']['output'];
+  character: Character;
+};
+
+export type TrackedCorporation = {
+  __typename?: 'TrackedCorporation';
+  automatic: Scalars['Boolean']['output'];
+  corporation: Corporation;
+};
+
+export enum TrackedEntityType {
+  Alliance = 'ALLIANCE',
+  Character = 'CHARACTER',
+  Corporation = 'CORPORATION'
+}
+
+export type Tracker = {
+  __typename?: 'Tracker';
+  alliances: Array<TrackedAlliance>;
+  characters: Array<TrackedCharacter>;
+  corporations: Array<TrackedCorporation>;
+};
+
 export type Type = {
   __typename?: 'Type';
   capacity?: Maybe<Scalars['Float']['output']>;
@@ -3221,6 +3267,27 @@ export type TopSystemsQueryVariables = Exact<{
 
 
 export type TopSystemsQuery = { __typename?: 'Query', topSystems: Array<{ __typename?: 'TopSystem', rank: number, killCount: number, solarSystem?: { __typename?: 'SolarSystem', id: number, name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', region?: { __typename?: 'Region', name: string } | null } | null } | null }> };
+
+export type MyTrackerQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyTrackerQuery = { __typename?: 'Query', myTracker: { __typename?: 'Tracker', characters: Array<{ __typename?: 'TrackedCharacter', automatic: boolean, character: { __typename?: 'Character', id: number, name: string } }>, corporations: Array<{ __typename?: 'TrackedCorporation', automatic: boolean, corporation: { __typename?: 'Corporation', id: number, name: string } }>, alliances: Array<{ __typename?: 'TrackedAlliance', automatic: boolean, alliance: { __typename?: 'Alliance', id: number, name: string } }> } };
+
+export type TrackMutationVariables = Exact<{
+  type: TrackedEntityType;
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type TrackMutation = { __typename?: 'Mutation', track: boolean };
+
+export type UntrackMutationVariables = Exact<{
+  type: TrackedEntityType;
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type UntrackMutation = { __typename?: 'Mutation', untrack: boolean };
 
 export type WorkerStatusSubscriptionSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -9512,6 +9579,132 @@ export type TopSystemsQueryHookResult = ReturnType<typeof useTopSystemsQuery>;
 export type TopSystemsLazyQueryHookResult = ReturnType<typeof useTopSystemsLazyQuery>;
 export type TopSystemsSuspenseQueryHookResult = ReturnType<typeof useTopSystemsSuspenseQuery>;
 export type TopSystemsQueryResult = Apollo.QueryResult<TopSystemsQuery, TopSystemsQueryVariables>;
+export const MyTrackerDocument = gql`
+    query MyTracker {
+  myTracker {
+    characters {
+      automatic
+      character {
+        id
+        name
+      }
+    }
+    corporations {
+      automatic
+      corporation {
+        id
+        name
+      }
+    }
+    alliances {
+      automatic
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useMyTrackerQuery__
+ *
+ * To run a query within a React component, call `useMyTrackerQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyTrackerQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyTrackerQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyTrackerQuery(baseOptions?: Apollo.QueryHookOptions<MyTrackerQuery, MyTrackerQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyTrackerQuery, MyTrackerQueryVariables>(MyTrackerDocument, options);
+      }
+export function useMyTrackerLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyTrackerQuery, MyTrackerQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyTrackerQuery, MyTrackerQueryVariables>(MyTrackerDocument, options);
+        }
+// @ts-ignore
+export function useMyTrackerSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyTrackerQuery, MyTrackerQueryVariables>): Apollo.UseSuspenseQueryResult<MyTrackerQuery, MyTrackerQueryVariables>;
+export function useMyTrackerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyTrackerQuery, MyTrackerQueryVariables>): Apollo.UseSuspenseQueryResult<MyTrackerQuery | undefined, MyTrackerQueryVariables>;
+export function useMyTrackerSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyTrackerQuery, MyTrackerQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyTrackerQuery, MyTrackerQueryVariables>(MyTrackerDocument, options);
+        }
+export type MyTrackerQueryHookResult = ReturnType<typeof useMyTrackerQuery>;
+export type MyTrackerLazyQueryHookResult = ReturnType<typeof useMyTrackerLazyQuery>;
+export type MyTrackerSuspenseQueryHookResult = ReturnType<typeof useMyTrackerSuspenseQuery>;
+export type MyTrackerQueryResult = Apollo.QueryResult<MyTrackerQuery, MyTrackerQueryVariables>;
+export const TrackDocument = gql`
+    mutation Track($type: TrackedEntityType!, $id: Int!) {
+  track(type: $type, id: $id)
+}
+    `;
+export type TrackMutationFn = Apollo.MutationFunction<TrackMutation, TrackMutationVariables>;
+
+/**
+ * __useTrackMutation__
+ *
+ * To run a mutation, you first call `useTrackMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useTrackMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [trackMutation, { data, loading, error }] = useTrackMutation({
+ *   variables: {
+ *      type: // value for 'type'
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useTrackMutation(baseOptions?: Apollo.MutationHookOptions<TrackMutation, TrackMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<TrackMutation, TrackMutationVariables>(TrackDocument, options);
+      }
+export type TrackMutationHookResult = ReturnType<typeof useTrackMutation>;
+export type TrackMutationResult = Apollo.MutationResult<TrackMutation>;
+export type TrackMutationOptions = Apollo.BaseMutationOptions<TrackMutation, TrackMutationVariables>;
+export const UntrackDocument = gql`
+    mutation Untrack($type: TrackedEntityType!, $id: Int!) {
+  untrack(type: $type, id: $id)
+}
+    `;
+export type UntrackMutationFn = Apollo.MutationFunction<UntrackMutation, UntrackMutationVariables>;
+
+/**
+ * __useUntrackMutation__
+ *
+ * To run a mutation, you first call `useUntrackMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUntrackMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [untrackMutation, { data, loading, error }] = useUntrackMutation({
+ *   variables: {
+ *      type: // value for 'type'
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useUntrackMutation(baseOptions?: Apollo.MutationHookOptions<UntrackMutation, UntrackMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UntrackMutation, UntrackMutationVariables>(UntrackDocument, options);
+      }
+export type UntrackMutationHookResult = ReturnType<typeof useUntrackMutation>;
+export type UntrackMutationResult = Apollo.MutationResult<UntrackMutation>;
+export type UntrackMutationOptions = Apollo.BaseMutationOptions<UntrackMutation, UntrackMutationVariables>;
 export const WorkerStatusSubscriptionDocument = gql`
     subscription WorkerStatusSubscription {
   workerStatusUpdates {

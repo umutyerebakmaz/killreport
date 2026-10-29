@@ -1,0 +1,33 @@
+query MyTracker {
+  myTracker {
+    characters {
+      automatic
+      character {
+        id
+        name
+      }
+    }
+    corporations {
+      automatic
+      corporation {
+        id
+        name
+      }
+    }
+    alliances {
+      automatic
+      alliance {
+        id
+        name
+      }
+    }
+  }
+}
+
+mutation Track($type: TrackedEntityType!, $id: Int!) {
+  track(type: $type, id: $id)
+}
+
+mutation Untrack($type: TrackedEntityType!, $id: Int!) {
+  untrack(type: $type, id: $id)
+}
