@@ -17,6 +17,7 @@ model User {
   last_corp_killmail_id      Int? // Last synced corporation killmail ID (for incremental sync)
   corporation_id             Int? // The user's corporation ID
   sessions                   Session[]
+  tracked_entities           TrackedEntity[]
 
   @@index([character_id])
   @@index([expires_at])
