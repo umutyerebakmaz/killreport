@@ -242,7 +242,7 @@ const { data } = useKillmailsQuery({
 
 2. **Memory Limits**: Redis has 256MB limit (DigitalOcean), cache large queries carefully
 
-3. **Rate Limiting**: ESI API rate limit (50 req/sec) still applies, important for workers
+3. **Rate Limiting**: ESI's rate limits (enforced by `esiClient` and the limiter, up to `ESI_MAX_RPS`) still apply, important for workers
 
 ## 🔗 Related Files
 

@@ -340,7 +340,7 @@ SELECT COUNT(*) FROM users WHERE expires_at < NOW();
 ### Rate Limiting (420)
 
 - Workers automatically retry with backoff
-- ESI allows 150 req/sec, we use 50 req/sec per worker
+- ESI publishes no single req/sec ceiling; each worker's limiter paces from ESI's headers, up to `ESI_MAX_RPS`
 - Multiple workers share the limit safely
 
 ## 🎛️ Advanced: Multi-Region Deployment

@@ -207,7 +207,7 @@ yarn remove:all       # Clean all dependencies
 - **Cache & Pub/Sub**: Redis (ioredis)
 - **Subscriptions**: `graphql-ws` over `ws`
 - **Authentication**: EVE Online SSO (OAuth2) + JWT (jose)
-- **Rate Limiting**: Custom ESI rate limiter (50 req/sec)
+- **Rate Limiting**: Header-driven ESI client and rate limiter (`esiClient`, up to `ESI_MAX_RPS`)
 
 ### External API Integrations
 

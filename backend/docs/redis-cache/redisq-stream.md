@@ -148,8 +148,8 @@ Press `Ctrl+C` to gracefully shutdown:
 
 ### ESI Limit
 
-- **Rate**: 150 requests per second (official)
-- **Our Config**: 50 req/sec (conservative, via `esiRateLimiter`)
+- **Rate**: no single published ceiling; ESI limits by route-group token buckets and an error limit, both reported in response headers
+- **Our Config**: every ESI call goes through `esiClient`, and the limiter paces it from those headers (up to `ESI_MAX_RPS`)
 - **Impact**: RedisQ is the bottleneck (2 req/sec), not ESI
 
 ### Typical Performance
@@ -354,7 +354,7 @@ Worker logs include:
 1. **Check worker is running**: `ps aux | grep redisq`
 2. **Verify RedisQ is accessible**: `curl https://zkillredisq.stream/listen.php?queueID=test`
 3. **Check database connection**: Worker logs show connection errors
-4. **Verify ESI is responding**: Check `esiRateLimiter` errors
+4. **Verify ESI is responding**: Check `EsiThrottledError` errors from `esiClient`
 
 ### Too Many Rate Limit Errors (429)
 

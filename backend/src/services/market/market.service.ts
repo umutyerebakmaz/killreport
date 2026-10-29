@@ -1,9 +1,8 @@
+import { esiClient } from '@services/esi-client';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { esiRateLimiter } from '@services/rate-limiter';
-import axios from 'axios';
+import { EsiThrottledError } from '@services/rate-limiter';
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
 const THE_FORGE_REGION_ID = 10000002; // Jita's region
 
 export interface MarketPrice {
@@ -38,35 +37,36 @@ export class MarketService {
    * @returns Price data from ESI
    */
   static async getJitaPrice(typeId: number): Promise<MarketPrice | null> {
-    return esiRateLimiter.execute(async () => {
-      try {
-        const url = `${ESI_BASE_URL}/markets/${THE_FORGE_REGION_ID}/orders/?type_id=${typeId}`;
-        const response = await axios.get<ESIMarketOrder[]>(url);
+    try {
+      const response = await esiClient.get<ESIMarketOrder[]>(
+        `/latest/markets/${THE_FORGE_REGION_ID}/orders/`,
+        { params: { type_id: typeId } },
+      );
 
-        const orders = response.data;
-        const buyOrders = orders
-          .filter((o) => o.is_buy_order)
-          .map((o) => o.price);
-        const sellOrders = orders
-          .filter((o) => !o.is_buy_order)
-          .map((o) => o.price);
+      const orders = response.data;
+      const buyOrders = orders
+        .filter((o) => o.is_buy_order)
+        .map((o) => o.price);
+      const sellOrders = orders
+        .filter((o) => !o.is_buy_order)
+        .map((o) => o.price);
 
-        const highestBuy = buyOrders.length > 0 ? Math.max(...buyOrders) : 0;
-        const lowestSell = sellOrders.length > 0 ? Math.min(...sellOrders) : 0;
-        const totalVolume = orders.reduce((sum, o) => sum + o.volume_remain, 0);
+      const highestBuy = buyOrders.length > 0 ? Math.max(...buyOrders) : 0;
+      const lowestSell = sellOrders.length > 0 ? Math.min(...sellOrders) : 0;
+      const totalVolume = orders.reduce((sum, o) => sum + o.volume_remain, 0);
 
-        return {
-          type_id: typeId,
-          buy: highestBuy,
-          sell: lowestSell,
-          average: (highestBuy + lowestSell) / 2,
-          volume: totalVolume,
-        };
-      } catch (error) {
-        logger.error(`failed to fetch ESI price for type ${typeId}:`, error);
-        return null;
-      }
-    });
+      return {
+        type_id: typeId,
+        buy: highestBuy,
+        sell: lowestSell,
+        average: (highestBuy + lowestSell) / 2,
+        volume: totalVolume,
+      };
+    } catch (error) {
+      if (error instanceof EsiThrottledError) throw error;
+      logger.error(`failed to fetch ESI price for type ${typeId}:`, error);
+      return null;
+    }
   }
 
   /**

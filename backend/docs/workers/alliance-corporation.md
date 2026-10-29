@@ -133,7 +133,7 @@ yarn worker:info:corporations
    GET https://esi.evetech.net/latest/alliances/{alliance_id}/corporations/
    ```
 
-   - Rate limit: ESI rate limiter (50 req/sec)
+   - Rate limit: ESI client and limiter (up to `ESI_MAX_RPS`)
    - Response: Array of corporation IDs
    - Public endpoint (no auth required)
 
@@ -143,7 +143,7 @@ yarn worker:info:corporations
    GET https://esi.evetech.net/latest/corporations/{corporation_id}/
    ```
 
-   - Rate limit: ESI rate limiter (50 req/sec)
+   - Rate limit: ESI client and limiter (up to `ESI_MAX_RPS`)
    - Response: Corporation details
    - Public endpoint (no auth required)
 
@@ -172,11 +172,10 @@ interface EntityQueueMessage {
 
 ### Rate Limiting
 
-All ESI calls are made using `esiRateLimiter`:
+All ESI calls are made through `esiClient`, which takes a limiter slot per request:
 
-- Max: 50 requests/second
-- Min delay: 20ms between requests
-- Automatic retry mechanism
+- The limiter paces dispatch from ESI's response headers, up to `ESI_MAX_RPS`
+- On a 420/429 it brakes the process; the worker requeues at once
 
 ## Monitoring
 

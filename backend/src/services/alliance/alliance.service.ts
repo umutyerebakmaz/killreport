@@ -1,7 +1,4 @@
-import axios from 'axios';
-import { esiRateLimiter } from '../rate-limiter';
-
-const ESI_BASE_URL = 'https://esi.evetech.net';
+import { esiClient } from '@services/esi-client';
 
 /**
  * Alliance service for ESI API interactions
@@ -12,10 +9,8 @@ export class AllianceService {
    * @returns Array of alliance IDs
    */
   static async getAllAllianceIds(): Promise<number[]> {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(`${ESI_BASE_URL}/alliances`);
-      return response.data;
-    });
+    const response = await esiClient.get<number[]>(`/alliances`);
+    return response.data;
   }
 
   /**
@@ -24,12 +19,8 @@ export class AllianceService {
    * @returns Alliance information
    */
   static async getAllianceInfo(allianceId: number) {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(
-        `${ESI_BASE_URL}/alliances/${allianceId}`,
-      );
-      return response.data;
-    });
+    const response = await esiClient.get<any>(`/alliances/${allianceId}`);
+    return response.data;
   }
 
   /**
@@ -38,12 +29,10 @@ export class AllianceService {
    * @returns Array of corporation IDs
    */
   static async getAllianceCorporations(allianceId: number): Promise<number[]> {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(
-        `${ESI_BASE_URL}/alliances/${allianceId}/corporations`,
-      );
-      return response.data;
-    });
+    const response = await esiClient.get<number[]>(
+      `/alliances/${allianceId}/corporations`,
+    );
+    return response.data;
   }
 
   /**
@@ -56,11 +45,11 @@ export class AllianceService {
     px128x128?: string;
     px256x256?: string;
   }> {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(
-        `${ESI_BASE_URL}/alliances/${allianceId}/icons`,
-      );
-      return response.data;
-    });
+    const response = await esiClient.get<{
+      px64x64?: string;
+      px128x128?: string;
+      px256x256?: string;
+    }>(`/alliances/${allianceId}/icons`);
+    return response.data;
   }
 }

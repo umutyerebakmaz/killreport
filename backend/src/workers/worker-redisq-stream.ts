@@ -20,7 +20,7 @@
  *
  * Rate Limits:
  * - R2Z2: 15 requests per second per IP (aggressive polling risks HTTP 403)
- * - ESI: 150 req/sec (we use conservative 50 req/sec)
+ * - ESI: no fixed ceiling; esiClient and the limiter pace requests from its headers
  *
  * Usage:
  *   yarn worker:redisq
@@ -29,6 +29,7 @@
 import { AllianceService } from '@services/alliance/alliance.service';
 import { CharacterService } from '@services/character/character.service';
 import { CorporationService } from '@services/corporation/corporation.service';
+import { setEsiMaxWait } from '@services/esi-client';
 import { KillmailDetail, KillmailService } from '@services/killmail';
 import { saveKillmail } from '@services/killmail-writer';
 import logger from '@services/logger';
@@ -109,6 +110,9 @@ let stats = {
  * Main worker loop
  */
 export async function redisQStreamWorker() {
+  // Live stream: a killmail must not stall behind a long ESI brake (10 s cap).
+  setEsiMaxWait(10_000);
+
   while (!isShuttingDown) {
     logger.info('🌊 R2Z2 stream worker started');
     logger.info(`📡 endpoint: ${R2Z2_BASE}/{sequence}.json`);

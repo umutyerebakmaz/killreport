@@ -4,21 +4,17 @@
  * The six by-ID celestial endpoints. None of them has a list form, so callers
  * get their IDs from the database (see the queue-* scripts).
  *
- * Every call goes through esiRateLimiter, which dispatches at up to 50 req/sec
- * with up to 50 concurrent in flight. Workers therefore do not sleep between
- * requests; they set PREFETCH_COUNT and let the limiter be the ceiling.
+ * Every call goes through esiClient, which takes a limiter slot per request.
+ * The limiter paces dispatch from ESI's response headers, up to ESI_MAX_RPS.
+ * Workers therefore do not sleep between requests; they set PREFETCH_COUNT and
+ * let the limiter set the rate.
  */
 
-import axios from 'axios';
-import { esiRateLimiter } from '../rate-limiter';
-
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
+import { esiClient } from '@services/esi-client';
 
 async function get(path: string) {
-  return esiRateLimiter.execute(async () => {
-    const response = await axios.get(`${ESI_BASE_URL}${path}`);
-    return response.data;
-  });
+  const response = await esiClient.get<any>(`/latest${path}`);
+  return response.data;
 }
 
 export class UniverseService {

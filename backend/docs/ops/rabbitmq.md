@@ -227,8 +227,8 @@ failure it is meant to catch, not after.
 ## ♻️ Retry belongs to the broker, not to a publisher
 
 A publisher must not re-send work that failed. Since #234 the broker holds it:
-[`../../src/workers/worker-error.ts`](../../src/workers/worker-error.ts) waits
-60 seconds on a 420/429 and requeues the same message, and everything else
+[`../../src/workers/worker-error.ts`](../../src/workers/worker-error.ts) requeues
+the same message at once on an ESI 420/429 (the limiter holds the brake), and everything else
 nacks into `killreport.dlx` for the 30-second round trip. The message is never
 dropped, so nothing outside the broker has to remember it.
 

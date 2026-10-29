@@ -313,7 +313,7 @@ yarn queue:type-dogma && yarn worker:type-dogma
 **Solution**: Worker automatically retries, please wait
 
 - Reduce worker's `PREFETCH_COUNT` value
-- `esiRateLimiter.execute()` automatically enforces 50 req/sec limit
+- `esiClient` takes a limiter slot per request and paces it from ESI's response headers (up to `ESI_MAX_RPS`)
 
 ---
 
@@ -388,7 +388,7 @@ query KillmailWithDogma($id: ID!) {
 3. **Foreign Key Validation**: Check before insert
 4. **Monitoring**: Regularly monitor logs
 5. **Re-sync**: Junction tables can be safely re-synced
-6. **Rate Limiting**: Be mindful of ESI limits (50 req/sec max)
+6. **Rate Limiting**: Be mindful of ESI limits (the limiter paces requests from ESI's headers, up to `ESI_MAX_RPS`)
 
 ---
 

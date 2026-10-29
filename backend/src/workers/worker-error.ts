@@ -1,4 +1,5 @@
 import { RETRY_TOPOLOGY } from '@services/queue-names';
+import { EsiThrottledError } from '@services/rate-limiter';
 import type amqp from 'amqplib';
 
 /**
@@ -43,10 +44,9 @@ export function deathCount(msg: amqp.ConsumeMessage): number {
 /**
  * The first line of an error's message, which is where a status belongs.
  *
- * The status detectors below fall back to the message text because four
- * services — `zkillboard.ts`, `killmail.service.ts`, `character.service.ts`
- * and `corporation.service.ts` — use `fetch` and throw a plain `Error` that
- * carries the status only there. Every one of them puts it on the first line.
+ * The status detectors below fall back to the message text because
+ * `services/zkillboard.ts` uses `fetch` and throws a plain `Error` that
+ * carries the status only there. It puts it on the first line.
  *
  * A Prisma failure, by contrast, embeds `file.ts:LINE:COL` and a numbered code
  * frame in its message, so matching the whole text meant a database error
@@ -69,11 +69,10 @@ function messageHead(error: unknown): string {
  *
  * Checking the status first means this does not rest on a particular message
  * string once the next task moves ~25 workers, not all of them Axios-shaped,
- * onto this function — same reasoning as `isNotFound` below. `zkillboard.ts`,
- * `killmail.service.ts`, `character.service.ts` and `corporation.service.ts`
- * all use `fetch` and throw a plain `Error` carrying the status only in its
- * message text, so without the fallback a 420/429 from any of those workers
- * reads as an ordinary message defect and burns an attempt instead of waiting.
+ * onto this function — same reasoning as `isNotFound` below. `zkillboard.ts`
+ * uses `fetch` and throws a plain `Error` carrying the status only in its
+ * message text, so without the fallback a 420/429 from it reads as an ordinary
+ * message defect and burns an attempt instead of waiting.
  * The word boundary keeps "1420" from matching, and `messageHead` keeps
  * anything below the first line — a Prisma code frame — out of it entirely.
  */
@@ -130,7 +129,7 @@ export function isForbidden(error: unknown): boolean {
  *
  * It replaces ~25 copies of the same try/catch, of which 17 called
  * `nack(msg, false, true)` — an unbounded requeue, so a message that fails
- * deterministically retried forever against the 50 req/sec ESI ceiling and
+ * deterministically retried forever against ESI and
  * surfaced nowhere.
  *
  * It always settles the message itself: exactly one ack or nack on every path.
@@ -142,10 +141,22 @@ export async function handleWorkerError(
   error: unknown,
   logger: WorkerLogger,
 ): Promise<void> {
+  // esiClient already put the process-wide brake in the limiter when it threw
+  // this, so there is nothing to sleep for here: requeue at once, untouched,
+  // and the message waits in the limiter's brake when it comes back. Being
+  // throttled is not a defect in the message, so no attempt is burnt.
+  if (error instanceof EsiThrottledError) {
+    logger.warn(`⏸ esi throttled (${error.kind}), requeueing`);
+    channel.nack(msg, false, true);
+    return;
+  }
+
   // 420/429: throttled. Wait, requeue untouched, burn no attempt — being
   // throttled is not a defect in the message. The log names which one: 420 is
   // ESI's error limit (too many failed requests), 429 a plain rate limit (too
-  // many requests), and they call for different fixes.
+  // many requests), and they call for different fixes. Errors from esiClient
+  // never get here: the EsiThrottledError branch above has already handled
+  // them.
   const throttled = throttleStatus(error);
   if (throttled) {
     logger.warn(

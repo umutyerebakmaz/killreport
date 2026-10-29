@@ -1,7 +1,4 @@
-import axios from 'axios';
-import { esiRateLimiter } from '../rate-limiter';
-
-const ESI_BASE_URL = 'https://esi.evetech.net';
+import { esiClient } from '@services/esi-client';
 
 /**
  * SolarSystem service for ESI API interactions
@@ -12,10 +9,8 @@ export class SolarSystemService {
    * @returns Array of solar system IDs
    */
   static async getAllSystemIds(): Promise<number[]> {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(`${ESI_BASE_URL}/universe/systems/`);
-      return response.data;
-    });
+    const response = await esiClient.get<number[]>(`/universe/systems/`);
+    return response.data;
   }
 
   /**
@@ -24,12 +19,8 @@ export class SolarSystemService {
    * @returns Solar system information
    */
   static async getSystemInfo(systemId: number) {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(
-        `${ESI_BASE_URL}/universe/systems/${systemId}`,
-      );
-      return response.data;
-    });
+    const response = await esiClient.get<any>(`/universe/systems/${systemId}`);
+    return response.data;
   }
 
   /**
@@ -63,19 +54,14 @@ export class SolarSystemService {
    * @see https://developers.eveonline.com/api-explorer#/operations/GetUniverseSystemKills
    */
   static async getSystemKills() {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(
-        `${ESI_BASE_URL}/universe/system_kills`,
-        {
-          headers: {
-            'X-Compatibility-Date': '2025-12-16',
-            'Accept-Language': 'en',
-            'X-Tenant': 'tranquility',
-          },
-        },
-      );
-      return response.data;
+    const response = await esiClient.get<any>(`/universe/system_kills`, {
+      headers: {
+        'X-Compatibility-Date': '2025-12-16',
+        'Accept-Language': 'en',
+        'X-Tenant': 'tranquility',
+      },
     });
+    return response.data;
   }
 
   /**
@@ -108,18 +94,13 @@ export class SolarSystemService {
    * @see https://developers.eveonline.com/api-explorer#/operations/GetUniverseSystemJumps
    */
   static async getSystemJumps() {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(
-        `${ESI_BASE_URL}/universe/system_jumps`,
-        {
-          headers: {
-            'X-Compatibility-Date': '2025-12-16',
-            'Accept-Language': 'en',
-            'X-Tenant': 'tranquility',
-          },
-        },
-      );
-      return response.data;
+    const response = await esiClient.get<any>(`/universe/system_jumps`, {
+      headers: {
+        'X-Compatibility-Date': '2025-12-16',
+        'Accept-Language': 'en',
+        'X-Tenant': 'tranquility',
+      },
     });
+    return response.data;
   }
 }

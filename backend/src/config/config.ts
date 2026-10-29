@@ -34,12 +34,12 @@ const envSchema = z.object({
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'http', 'debug']).default('info'),
 
   // ESI
-  // ESI's own ceiling is 150 req/sec. 50 is the project's safety margin and the
-  // right default when several workers run at once; raise it for a single
-  // process that has the budget to itself.
+  // Upper bound for the adaptive rate; the limiter finds the real rate from
+  // ESI's responses. ESI publishes no single req/sec ceiling - see
+  // services/rate-limiter.ts.
   ESI_MAX_RPS: z.string().default('50').transform(Number),
-  // Messages a worker holds unacked at once. Concurrency only - the dispatch
-  // ceiling above still applies. Raise it per run when one worker has the
+  // Messages a worker holds unacked at once. Concurrency only - the limiter
+  // still sets the request rate. Raise it per run when one worker has the
   // budget to itself, as the universe run did with 100.
   ESI_PREFETCH: z.string().default('25').transform(Number),
 

@@ -146,9 +146,10 @@ Running the same worker in two terminals doubles throughput — both consume the
 same queue, and every write is an `upsert` keyed on the primary key, so there is
 nothing to collide over.
 
-**Do not go past two.** `esiRateLimiter` caps each _process_ at `ESI_MAX_RPS`
-requests per second — 50 by default — and ESI's ceiling is 150. Two workers is
-100 req/sec with margin; three sits on the limit and starts earning HTTP 420s.
+**Do not go past two.** The limiter caps each _process_ at `ESI_MAX_RPS`
+requests per second — 50 by default — and ESI publishes no single ceiling to
+add them up against. Each process brakes on its own when ESI pushes back, so more
+processes only mean more braking; two is the tested number.
 
 That applies across workers too: two workers of any kind at once, not two of each.
 
@@ -160,8 +161,8 @@ ESI_MAX_RPS=120 yarn worker:moons
 ```
 
 `ESI_PREFETCH` (default 25) is the other half: how many messages a worker holds
-unacked at once. That is concurrency, not a rate — the dispatch ceiling still
-applies — but set too low it starves the limiter and becomes the real ceiling.
+unacked at once. That is concurrency, not a rate — the limiter still sets the
+request rate — but set too low it starves the limiter and becomes the real ceiling.
 The effective value is never below half the configured rate.
 
 ### Rough timings
@@ -290,7 +291,7 @@ every non-404, non-error-limited failure logs the same generic
 Prisma code, attached as the second log argument.)
 
 **HTTP 420 (or 429).** ESI error limiting (420) or a generic rate limit (429).
-The worker waits 60 seconds and requeues on its own. If it keeps happening,
+The worker requeues at once without sleeping; the limiter's brake does the waiting. If it keeps happening,
 you have too many workers running — drop to two.
 
 **`406 PRECONDITION_FAILED` on startup.** A queue was declared without

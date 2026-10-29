@@ -162,8 +162,8 @@ yarn worker:zkillboard
 **ESI:**
 
 - Error limit: 100 errors per window
-- Monitored via `x-esi-error-limit-remain` header
-- Auto-slowdown when limit < 20
+- Tracked by the limiter from the `X-ESI-Error-Limit-Remain` header
+- Below 20 remaining the process brakes until the reset (handled in `esiClient`/limiter, not in the worker)
 
 **Processing:**
 
@@ -281,10 +281,10 @@ model Killmail {
 **420 - Error Limited**
 
 ```
-🛑 Error limited (420)! Waiting 60 seconds...
+⏸ esi throttled (error-limit), requeueing
 ```
 
-→ Auto-wait 60 seconds and retry
+→ Requeued at once; the limiter's brake does the waiting
 
 **Network errors**
 
@@ -324,7 +324,7 @@ Based on real-world testing:
 ### Optimization Tips
 
 1. **Start small**: Test with 5 pages first
-2. **Monitor errors**: Check `x-esi-error-limit-remain`
+2. **Monitor errors**: Check the limiter's brake logs
 3. **Use queue system**: For multiple characters
 4. **Run overnight**: For large history syncs
 
@@ -391,12 +391,12 @@ sudo rabbitmqctl list_queues
 ### Problem: Rate limited
 
 ```
-🛑 Error limited (420)!
+⏸ esi throttled (error-limit), requeueing
 ```
 
 **Solutions:**
 
-- Worker automatically waits 60 seconds
+- Worker requeues at once; the limiter's brake does the waiting
 - Reduce `PREFETCH_COUNT` in worker
 - Increase delay between requests
 

@@ -1,7 +1,4 @@
-import { esiRateLimiter } from '@services/rate-limiter';
-import axios from 'axios';
-
-const ESI_BASE_URL = 'https://esi.evetech.net';
+import { esiClient } from '@services/esi-client';
 
 interface SovereigntyCampaign {
   attackers_score: number;
@@ -46,10 +43,10 @@ export class SovereigntyService {
    * @returns Array of active sovereignty campaigns
    */
   static async getSovereigntyCampaigns(): Promise<SovereigntyCampaign[]> {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(`${ESI_BASE_URL}/sovereignty/campaigns`);
-      return response.data;
-    });
+    const response = await esiClient.get<SovereigntyCampaign[]>(
+      `/sovereignty/campaigns`,
+    );
+    return response.data;
   }
 
   /**
@@ -57,10 +54,8 @@ export class SovereigntyService {
    * @returns Array of sovereignty map entries
    */
   static async getSovereigntyMap(): Promise<SovereigntyMap[]> {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(`${ESI_BASE_URL}/sovereignty/map`);
-      return response.data;
-    });
+    const response = await esiClient.get<SovereigntyMap[]>(`/sovereignty/map`);
+    return response.data;
   }
 
   /**
@@ -68,11 +63,9 @@ export class SovereigntyService {
    * @returns Array of sovereignty structures
    */
   static async getSovereigntyStructures(): Promise<SovereigntyStructure[]> {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get(
-        `${ESI_BASE_URL}/sovereignty/structures`,
-      );
-      return response.data;
-    });
+    const response = await esiClient.get<SovereigntyStructure[]>(
+      `/sovereignty/structures`,
+    );
+    return response.data;
   }
 }

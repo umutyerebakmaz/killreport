@@ -1,5 +1,4 @@
-import axios from 'axios';
-import { esiRateLimiter } from '../rate-limiter';
+import { esiClient } from '@services/esi-client';
 
 export interface ESIFaction {
   faction_id: number;
@@ -14,8 +13,6 @@ export interface ESIFaction {
   is_unique?: boolean;
 }
 
-const ESI_BASE_URL = 'https://esi.evetech.net';
-
 /**
  * Faction service for ESI API interactions.
  *
@@ -29,11 +26,7 @@ export class FactionService {
    * @returns Array of faction objects
    */
   static async getFactions(): Promise<ESIFaction[]> {
-    return esiRateLimiter.execute(async () => {
-      const response = await axios.get<ESIFaction[]>(
-        `${ESI_BASE_URL}/universe/factions`,
-      );
-      return response.data;
-    });
+    const response = await esiClient.get<ESIFaction[]>(`/universe/factions`);
+    return response.data;
   }
 }

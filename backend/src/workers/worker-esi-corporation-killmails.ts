@@ -15,6 +15,7 @@ const PREFETCH_COUNT = 1; // Process 1 corporation at a time to avoid rate limit
 /** What one corporation sync needs, resolved from the database up front. */
 interface CorporationSyncContext {
   userId: number;
+  characterId: number;
   characterName: string;
   corporationId: number;
   corporationName: string;
@@ -128,6 +129,7 @@ export async function esiCorporationKillmailWorker() {
           await syncCorporationKillmailsFromESI(
             {
               userId: user.id,
+              characterId: user.character_id,
               characterName: user.character_name,
               corporationId: user.corporation_id,
               corporationName,
@@ -248,6 +250,7 @@ async function syncCorporationKillmailsFromESI(
     const killmailList = await CorporationService.getCorporationKillmails(
       ctx.corporationId,
       ctx.accessToken,
+      ctx.characterId,
       50, // Max pages (50 killmails per page)
       lastKillmailId, // Stop when we hit this ID (incremental sync)
     );

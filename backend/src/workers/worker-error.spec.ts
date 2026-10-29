@@ -1,12 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type amqp from 'amqplib';
 import { RETRY_TOPOLOGY } from '@services/queue-names';
+import { EsiThrottledError } from '@services/rate-limiter';
 import {
   deathCount,
   handleWorkerError,
   isForbidden,
   MAX_ATTEMPTS,
 } from './worker-error';
+
+// rate-limiter builds its singleton from config at import time, and the real
+// config exits the process when EVE_CLIENT_ID is unset, as it is in CI.
+vi.mock('@config/config', () => ({
+  config: { esi: { maxRequestsPerSecond: 50, prefetch: 25 } },
+}));
 
 const channel = {
   nack: vi.fn(),
@@ -43,6 +50,51 @@ describe('deathCount', () => {
 });
 
 describe('handleWorkerError', () => {
+  it('requeues an EsiThrottledError at once, without sleeping or burning an attempt', async () => {
+    vi.useFakeTimers();
+    try {
+      // Resolves without advancing timers: the brake is in the limiter, so
+      // the worker has nothing to wait for.
+      await handleWorkerError(
+        channel,
+        message(2),
+        'esi_type_info_queue',
+        new EsiThrottledError(429, 'deep-limit', 'x'),
+        logger,
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(channel.nack).toHaveBeenCalledTimes(1);
+    expect(channel.nack).toHaveBeenCalledWith(expect.anything(), false, true);
+    expect(channel.ack).not.toHaveBeenCalled();
+    expect(channel.publish).not.toHaveBeenCalled();
+    expect(logger.warn).toHaveBeenCalledWith(
+      '⏸ esi throttled (deep-limit), requeueing',
+    );
+  });
+
+  it('still sleeps 60 s for a 429 that did not come from esiClient', async () => {
+    vi.useFakeTimers();
+    const done = handleWorkerError(
+      channel,
+      message(2),
+      'zkillboard_character_queue',
+      { response: { status: 429 } },
+      logger,
+    );
+    expect(channel.nack).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(60_000);
+    await done;
+    vi.useRealTimers();
+
+    expect(channel.nack).toHaveBeenCalledWith(expect.anything(), false, true);
+    expect(logger.warn).toHaveBeenCalledWith(
+      '🛑 rate limited (429)! waiting 60 seconds...',
+    );
+  });
+
   it('waits and requeues on 420 without burning an attempt', async () => {
     vi.useFakeTimers();
     const error = { response: { status: 420 } };

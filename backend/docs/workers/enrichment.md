@@ -35,7 +35,7 @@ flowchart LR
 1. **Scanner**: `scan-killmail-entities.ts` scans all killmails and detects missing entities
 2. **Queuing**: Missing entities are queued to 4 separate RabbitMQ queues
 3. **Workers**: Specialized workers process their respective queues independently
-4. **ESI Fetching**: All workers use rate-limited ESI calls (50 req/sec max)
+4. **ESI Fetching**: All workers use rate-limited ESI calls (through `esiClient`, up to `ESI_MAX_RPS` per process)
 5. **Database**: Enriched data is saved to PostgreSQL
 
 ### Benefits
@@ -112,7 +112,7 @@ Each worker will:
 
 - Process its own queue independently
 - Skip entities that already exist in database
-- Fetch data from ESI with rate limiting (50 req/sec shared)
+- Fetch data from ESI with rate limiting (through `esiClient`)
 - Save to database
 - Show progress every N items (varies by worker)
 - Handle 404 errors (deleted entities) gracefully
@@ -214,7 +214,7 @@ The info fetch system gracefully handles common errors:
 
 - **404 errors**: Silently skipped (deleted/invalid characters, corporations, alliances, or types)
 - **NPC filtering**: Automatically filters NPC characters and corporations
-- **Smart rate limiting**: Built-in rate limiter ensures we never exceed ESI limits (50 req/sec max, ESI allows 150)
+- **Smart rate limiting**: Built-in rate limiter paces requests from ESI's response headers (up to `ESI_MAX_RPS`)
 - **Partial failures**: Other entities continue processing even if one fails
 - **Conservative processing**: 2 killmails processed concurrently to avoid overwhelming ESI
 - **Guaranteed compliance**: 100ms minimum delay between ESI requests, automatic queue management

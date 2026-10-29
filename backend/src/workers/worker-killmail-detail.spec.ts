@@ -24,6 +24,11 @@ const { saveKillmail, getKillmailDetail, loggerMock } = vi.hoisted(() => ({
   },
 }));
 
+// rate-limiter builds its singleton from config at import time, and the real
+// config exits the process when EVE_CLIENT_ID is unset, as it is in CI.
+vi.mock('@config/config', () => ({
+  config: { esi: { maxRequestsPerSecond: 50, prefetch: 25 } },
+}));
 vi.mock('@services/killmail-writer', () => ({ saveKillmail }));
 vi.mock('@services/killmail/killmail.service', () => ({
   KillmailService: { getKillmailDetail },

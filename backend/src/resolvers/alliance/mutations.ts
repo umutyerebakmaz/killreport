@@ -1,7 +1,7 @@
 import { MutationResolvers } from '@generated-types';
 import logger from '@services/logger';
 import { getRabbitMQChannel } from '@services/rabbitmq';
-import axios from 'axios';
+import { esiClient } from '@services/esi-client';
 
 /**
  * Alliance Mutation Resolvers
@@ -13,9 +13,7 @@ export const allianceMutations: MutationResolvers = {
       logger.info('🚀 starting alliance sync via GraphQL...');
 
       // Get all alliance IDs from ESI
-      const response = await axios.get(
-        'https://esi.evetech.net/latest/alliances/',
-      );
+      const response = await esiClient.get<number[]>('/latest/alliances/');
       const allianceIds: number[] = response.data;
 
       logger.info(`✓ found ${allianceIds.length} alliances`);

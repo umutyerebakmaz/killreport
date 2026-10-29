@@ -2,9 +2,7 @@
  * Killmail service for ESI API interactions
  */
 
-import { esiRateLimiter } from '../rate-limiter';
-
-const ESI_BASE_URL = 'https://esi.evetech.net';
+import { esiClient } from '@services/esi-client';
 
 export interface EsiKillmail {
   killmail_id: number;
@@ -69,19 +67,9 @@ export class KillmailService {
     killmailId: number,
     killmailHash: string,
   ): Promise<KillmailDetail> {
-    return esiRateLimiter.execute(async () => {
-      const url = `${ESI_BASE_URL}/killmails/${killmailId}/${killmailHash}/`;
-
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(
-          `Failed to fetch killmail detail: ${response.status} - ${error}`,
-        );
-      }
-
-      return response.json();
-    });
+    const response = await esiClient.get<KillmailDetail>(
+      `/killmails/${killmailId}/${killmailHash}/`,
+    );
+    return response.data;
   }
 }

@@ -163,7 +163,7 @@ First login: ~100 killmails, 1-2 minutes
 ```
 Database: ~10,000 killmails/week
 Storage:  ~50MB/week (indexed)
-API calls: ~600/hour (ESI rate limit: 150 req/sec)
+API calls: ~600/hour (well within ESI's limits)
 ```
 
 ### 1000 Users

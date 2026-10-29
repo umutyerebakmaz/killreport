@@ -1,10 +1,15 @@
-import axios from 'axios';
+import { esiClient } from '@services/esi-client';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { handleWorkerError } from './worker-error';
 
-const ESI_BASE_URL = 'https://esi.evetech.net/latest';
+interface EsiConstellation {
+  name: string;
+  region_id?: number;
+  position?: { x: number; y: number; z: number };
+}
+
 const QUEUE_NAME = 'esi_constellations_queue';
 const RATE_LIMIT_DELAY = 100; // Wait 100ms between each request (10 requests per second)
 
@@ -25,19 +30,10 @@ async function constellationExists(constellationId: number): Promise<boolean> {
  */
 async function processConstellation(constellationId: number): Promise<boolean> {
   // Fetch constellation information from ESI
-  const response = await axios.get(
-    `${ESI_BASE_URL}/universe/constellations/${constellationId}/`,
+  const response = await esiClient.get<EsiConstellation>(
+    `/latest/universe/constellations/${constellationId}/`,
   );
   const data = response.data;
-
-  // Check rate limit headers
-  const errorLimitRemain = response.headers['x-esi-error-limit-remain'];
-  if (errorLimitRemain && parseInt(errorLimitRemain) < 20) {
-    logger.warn(
-      `⚠️  error limit low (${errorLimitRemain}/100), slowing down...`,
-    );
-    await sleep(2000); // Wait 2 seconds
-  }
 
   // Save to database using Prisma
   await prismaWorker.constellation.upsert({

@@ -1,14 +1,14 @@
 /**
  * Bloodline Info Worker - fetches bloodline info from ESI and saves it to the database
  *
- * ESI endpoint: https://esi.evetech.net/latest/universe/bloodlines/
+ * ESI endpoint: /latest/universe/bloodlines/
  *
  * Fetches every bloodline in EVE Online.
  */
 
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import axios from 'axios';
+import { esiClient } from '@services/esi-client';
 
 interface ESIBloodline {
   bloodline_id: number;
@@ -21,8 +21,8 @@ async function fetchAndSaveBloodlines() {
   try {
     logger.info('🚀 starting bloodline sync...');
 
-    const response = await axios.get<ESIBloodline[]>(
-      'https://esi.evetech.net/latest/universe/bloodlines/',
+    const response = await esiClient.get<ESIBloodline[]>(
+      '/latest/universe/bloodlines/',
     );
 
     const bloodlines = response.data;

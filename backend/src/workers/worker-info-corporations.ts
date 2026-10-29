@@ -10,7 +10,7 @@ import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_corporation_info_queue';
-const PREFETCH_COUNT = 25; // Process up to 25 corporations concurrently (ESI throughput is capped at 50/sec by esiRateLimiter)
+const PREFETCH_COUNT = 25; // Process up to 25 corporations concurrently (ESI throughput is paced by the limiter)
 
 interface EntityQueueMessage {
   entityId: number;
