@@ -17,6 +17,7 @@ const prismaMock = vi.hoisted(() => ({
 }));
 vi.mock('@services/prisma', () => ({ default: prismaMock }));
 
+import { Prisma } from '@generated/prisma/client';
 import {
   getTrackerRefs,
   TRACKER_LIMIT,
@@ -136,6 +137,27 @@ describe('trackEntity', () => {
       trackEntity(CHARACTER_ID, 'ALLIANCE', 5),
     ).resolves.toBeUndefined();
     expect(prismaMock.trackedEntity.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('trackEntity concurrent duplicate', () => {
+  it('treats a P2002 on create as a silent no-op', async () => {
+    prismaMock.trackedEntity.create.mockRejectedValue(
+      new Prisma.PrismaClientKnownRequestError('dup', {
+        code: 'P2002',
+        clientVersion: 'test',
+      }),
+    );
+    await expect(
+      trackEntity(CHARACTER_ID, 'ALLIANCE', 5),
+    ).resolves.toBeUndefined();
+  });
+
+  it('rethrows any other create error', async () => {
+    prismaMock.trackedEntity.create.mockRejectedValue(new Error('boom'));
+    await expect(trackEntity(CHARACTER_ID, 'ALLIANCE', 5)).rejects.toThrow(
+      'boom',
+    );
   });
 });
 

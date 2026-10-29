@@ -5,7 +5,7 @@
  * Per-user data, so it is never cached.
  */
 
-import type { TrackedEntityType } from '@generated/prisma/client';
+import { Prisma, type TrackedEntityType } from '@generated/prisma/client';
 import prisma from '@services/prisma';
 
 export const TRACKER_LIMIT = 200;
@@ -115,9 +115,20 @@ export async function trackEntity(
     );
   }
 
-  await prisma.trackedEntity.create({
-    data: { user_id: user.id, entity_type: type, entity_id: id },
-  });
+  try {
+    await prisma.trackedEntity.create({
+      data: { user_id: user.id, entity_type: type, entity_id: id },
+    });
+  } catch (error) {
+    // A concurrent duplicate track hit the unique index: treat as a no-op.
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === 'P2002'
+    ) {
+      return;
+    }
+    throw error;
+  }
 }
 
 export async function untrackEntity(
