@@ -132,6 +132,17 @@ describe('UserMenu', () => {
     expect(screen.queryByText('Test Alliance')).toBeNull();
   });
 
+  it('links MY KILLMAILS to the own killmails tab', async () => {
+    const user = userEvent.setup();
+    const { button } = renderUserMenu();
+    await user.click(button);
+
+    expect(screen.getByRole('link', { name: /my killmails/i })).toHaveAttribute(
+      'href',
+      '/characters/95465499?tab=killmails',
+    );
+  });
+
   it('opens on hover alone when the pointer can hover', async () => {
     stubPointer({ canHover: true });
     const user = userEvent.setup();

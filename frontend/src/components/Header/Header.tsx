@@ -20,6 +20,7 @@ import Logo from '../ui/Logo';
 import { NAV, isNavGroup } from './navItems';
 import { NavLink } from './NavLink';
 import { NavPopover, NavPopoverLink } from './NavPopover';
+import TrackerMenu from '../Tracker/TrackerMenu';
 import StatusReadout from './StatusReadout';
 
 export default function Header() {
@@ -103,6 +104,7 @@ export default function Header() {
             </div>
             <NotificationBell />
           </div>
+          <TrackerMenu variant="header" />
           <AuthButton />
         </div>
       </nav>
@@ -169,7 +171,8 @@ export default function Header() {
                 )}
               </div>
               <div className="py-6">
-                <div className="px-3">
+                <div className="px-3 space-y-6">
+                  <TrackerMenu variant="drawer" />
                   <AuthButton variant="drawer" />
                 </div>
               </div>
