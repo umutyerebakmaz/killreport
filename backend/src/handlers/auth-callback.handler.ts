@@ -8,6 +8,7 @@ import { consumeAuthState } from '@services/auth-state-store';
 import { exchangeCodeForToken, verifyToken } from '@services/eve-sso';
 import logger from '@services/logger';
 import prisma from '@services/prisma';
+import { queueOwnCharacterIfMissing } from '@services/character/queue-own-character';
 import { createSession } from '@services/session-store';
 import { serializeSessionCookie } from '@services/session-cookie';
 
@@ -102,6 +103,9 @@ export async function handleAuthCallback(
     });
 
     logger.debug(`user ${user.character_name} saved to database`);
+
+    // Never throws; a missing character row is queued for ESI enrichment.
+    await queueOwnCharacterIfMissing(character.characterId);
 
     // The redirect used to carry the token pair in its query string, which
     // wrote a refresh token into whatever serves the frontend, its access log
