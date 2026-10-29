@@ -52,6 +52,22 @@ describe('killmailTrackEntries', () => {
     expect(e.find((x) => x.id === 2)?.role).toBe('top damage');
     expect(e.find((x) => x.id === 3)?.role).toBe('final blow');
   });
+  it('labels only the attacking pilot, not its corp or alliance', () => {
+    const e = killmailTrackEntries(
+      km([
+        atk({
+          character: n(2),
+          corporation: n(20),
+          alliance: n(30),
+          damageDone: 500,
+          finalBlow: true,
+        }),
+      ]),
+    );
+    expect(e.find((x) => x.id === 2)?.role).toBe('final blow');
+    expect(e.find((x) => x.id === 20)?.role).toBeUndefined();
+    expect(e.find((x) => x.id === 30)?.role).toBeUndefined();
+  });
   it('prefers final blow when the same attacker has both', () => {
     const e = killmailTrackEntries(
       km([atk({ character: n(2), damageDone: 500, finalBlow: true })]),

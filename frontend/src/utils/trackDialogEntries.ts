@@ -46,7 +46,7 @@ function participants(
         id: Number(entity.id),
         name: entity.name,
         section,
-        role,
+        role: type === TrackedEntityType.Character ? role : undefined,
       });
   };
   add(TrackedEntityType.Character, who.character);
