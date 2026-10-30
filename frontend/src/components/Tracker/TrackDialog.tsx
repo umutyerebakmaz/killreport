@@ -112,7 +112,7 @@ export default function TrackDialog({
                             />
                             <Link
                               href={`/${t.path}/${e.id}?tab=killmails`}
-                              className="flex-1 truncate text-white hover:underline"
+                              className="flex-1 truncate text-ink-muted hover:text-accent-link focus-visible:text-accent-link focus:outline-none"
                             >
                               {e.name}
                             </Link>
