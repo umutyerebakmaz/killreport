@@ -46,7 +46,7 @@ function TrackerRow({
       <CloseButton
         as={Link}
         href={`/${group.path}/${row.id}?tab=killmails`}
-        className="flex-auto font-medium text-white truncate focus:outline-none"
+        className="flex-auto font-medium truncate text-ink-muted group-hover:text-white group-has-[a:focus-visible]:text-white focus:outline-none"
       >
         {row.name}
         <span className="absolute inset-0" />
