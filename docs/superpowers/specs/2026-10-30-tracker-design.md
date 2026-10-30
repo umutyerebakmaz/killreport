@@ -101,8 +101,8 @@ leaderboard ya da sistem sayfası kendi listesiyle aynı pencereyi açabilir.
 
 ### Killmail detayı
 
-- Başlıkta, victim gemisi ve "… lost a …" satırının sağında **＋ TRACK…**
-  butonu. Tıklayınca Track penceresi açılır.
+- Sayfanın üstteki eylem satırının (zKillboard / ESI Verified / Share)
+  sağında **TRACK** butonu. Tıklayınca Track penceresi açılır.
 - Pencereye victim (karakter, corp, alliance) ve tüm attacker'lar verilir;
   victim üstte VICTIM bölümünde, attacker'lar ATTACKERS bölümünde. Final blow
   ve top damage rol etiketiyle işaretlenir.

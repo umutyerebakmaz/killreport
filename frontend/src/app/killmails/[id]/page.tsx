@@ -140,7 +140,7 @@ export default function KillmailDetailPage({
                   onClick={() => setTrackOpen(true)}
                   className="button button-outline button-sm"
                 >
-                  TRACK…
+                  TRACK
                 </button>
                 <TrackDialog
                   open={trackOpen}
