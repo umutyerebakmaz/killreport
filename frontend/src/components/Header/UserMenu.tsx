@@ -6,7 +6,11 @@ import {
   PopoverButton,
   PopoverPanel,
 } from '@headlessui/react';
-import { ArrowRightStartOnRectangleIcon } from '@heroicons/react/20/solid';
+import {
+  ArrowRightStartOnRectangleIcon,
+  FireIcon,
+} from '@heroicons/react/20/solid';
+import Link from 'next/link';
 import { useRef } from 'react';
 
 import EveImage from '@/components/ui/EveImage';
@@ -121,6 +125,23 @@ export function UserMenu({
                     </div>
                   )}
                 </div>
+              </div>
+              {/* NavPopoverLink's padding and hit area, with an icon in place of
+                  the description. The destination is the own character's
+                  killmails tab. */}
+              <div className="relative flex items-center p-4 gap-x-3 text-sm/6 hover:bg-cyan-900/50 has-[a:focus-visible]:bg-cyan-900/50">
+                <FireIcon
+                  aria-hidden="true"
+                  className="flex-none size-5 text-ink-muted"
+                />
+                <CloseButton
+                  as={Link}
+                  href={`/characters/${user.characterId}?tab=killmails`}
+                  className="block font-medium text-white focus:outline-none"
+                >
+                  MY KILLMAILS
+                  <span className="absolute inset-0" />
+                </CloseButton>
               </div>
               {/* NavPopoverLink's padding and hit area, with an icon in place of
                   the description, and red where it is cyan: the row is not a

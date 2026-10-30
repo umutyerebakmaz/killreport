@@ -66,6 +66,7 @@ import {
 import { sovereigntyQueries, sovereigntySubscriptions } from './sovereignty';
 import { systemActivityFields } from './system-activity/fields';
 import { systemActivityQueries } from './system-activity/queries';
+import { trackerMutations, trackerQueries } from './tracker';
 import { typeFields, typeMutations, typeQueries } from './type';
 import { universeMapQueries } from './universe-map';
 import { userMutations, userQueries } from './user';
@@ -74,6 +75,7 @@ import { workerQueries, workerSubscriptions } from './worker';
 export const resolvers: Resolvers = {
   Query: {
     ...authQueries,
+    ...trackerQueries,
     ...userQueries,
     ...characterQueries,
     ...characterStatsQueries,
@@ -105,6 +107,7 @@ export const resolvers: Resolvers = {
   },
   Mutation: {
     ...authMutations,
+    ...trackerMutations,
     ...userMutations,
     ...characterMutations,
     ...killmailMutations,

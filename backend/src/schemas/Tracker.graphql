@@ -1,0 +1,35 @@
+enum TrackedEntityType {
+  CHARACTER
+  CORPORATION
+  ALLIANCE
+}
+
+type TrackedCharacter {
+  automatic: Boolean!
+  character: Character!
+}
+
+type TrackedCorporation {
+  automatic: Boolean!
+  corporation: Corporation!
+}
+
+type TrackedAlliance {
+  automatic: Boolean!
+  alliance: Alliance!
+}
+
+type Tracker {
+  characters: [TrackedCharacter!]!
+  corporations: [TrackedCorporation!]!
+  alliances: [TrackedAlliance!]!
+}
+
+extend type Query {
+  myTracker: Tracker!
+}
+
+extend type Mutation {
+  track(type: TrackedEntityType!, id: Int!): Boolean!
+  untrack(type: TrackedEntityType!, id: Int!): Boolean!
+}

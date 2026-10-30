@@ -25,12 +25,14 @@ import {
   useAllianceTopShipsQuery,
   useAllianceTopShipTargetsQuery,
   useKillmailsDateCountsQuery,
+  TrackedEntityType,
 } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import EveImage from '@/components/ui/EveImage';
+import TrackButton from '@/components/Tracker/TrackButton';
 
 interface AllianceDetailPageProps {
   params: Promise<{ id: string }>;
@@ -356,6 +358,12 @@ export default function AllianceDetailPage({
                 <span className="py-1 text-base font-bold text-yellow-400">
                   [{alliance.ticker}]
                 </span>
+              </div>
+              <div className="mt-3">
+                <TrackButton
+                  type={TrackedEntityType.Alliance}
+                  id={alliance.id}
+                />
               </div>
             </div>
           </div>

@@ -1015,6 +1015,8 @@ type Mutation {
   Requires: Authentication
   """
   syncMyKillmails(input: SyncMyKillmailsInput!): SyncMyKillmailsPayload!
+  track(id: Int!, type: TrackedEntityType!): Boolean!
+  untrack(id: Int!, type: TrackedEntityType!): Boolean!
   updateUser(input: UpdateUserInput!): UpdateUserPayload!
 }
 
@@ -1186,6 +1188,7 @@ type Query {
 
   """The user's open sessions"""
   mySessions: [Session!]!
+  myTracker: Tracker!
   race(id: Int!): Race
   races: [Race!]!
 
@@ -1958,6 +1961,33 @@ enum TopTargetFilter {
   LAST_7_DAYS
   LAST_90_DAYS
   TODAY
+}
+
+type TrackedAlliance {
+  alliance: Alliance!
+  automatic: Boolean!
+}
+
+type TrackedCharacter {
+  automatic: Boolean!
+  character: Character!
+}
+
+type TrackedCorporation {
+  automatic: Boolean!
+  corporation: Corporation!
+}
+
+enum TrackedEntityType {
+  ALLIANCE
+  CHARACTER
+  CORPORATION
+}
+
+type Tracker {
+  alliances: [TrackedAlliance!]!
+  characters: [TrackedCharacter!]!
+  corporations: [TrackedCorporation!]!
 }
 
 type Type {

@@ -23,12 +23,14 @@ import {
   useCorporationTopShipTargetsQuery,
   useCorporationTopShipsQuery,
   useKillmailsDateCountsQuery,
+  TrackedEntityType,
 } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import EveImage from '@/components/ui/EveImage';
+import TrackButton from '@/components/Tracker/TrackButton';
 
 interface CorporationDetailPageProps {
   params: Promise<{ id: string }>;
@@ -373,6 +375,13 @@ export default function CorporationDetailPage({
                   </Tooltip>
                 </div>
               )}
+
+              <div className="mt-3">
+                <TrackButton
+                  type={TrackedEntityType.Corporation}
+                  id={corporation.id}
+                />
+              </div>
             </div>
           </div>
 

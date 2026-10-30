@@ -5,6 +5,9 @@ import FitScreen from '@/components/FitScreen/FitScreen';
 import KillmailSummaryCard from '@/components/KillmailSummaryCard/KillmailSummaryCard';
 import { Loader } from '@/components/Loader/Loader';
 import Tooltip from '@/components/Tooltip/Tooltip';
+import TrackDialog from '@/components/Tracker/TrackDialog';
+import { useTracker } from '@/hooks/useTracker';
+import { killmailTrackEntries } from '@/utils/trackDialogEntries';
 import SummaryRow from '@/components/ui/SummaryRow';
 import { useKillmailQuery } from '@/generated/graphql';
 import { formatEveDateTime, formatTimeAgo } from '@/utils/date';
@@ -27,6 +30,8 @@ export default function KillmailDetailPage({
 }) {
   const { id } = use(params);
   const [copied, setCopied] = useState(false);
+  const [trackOpen, setTrackOpen] = useState(false);
+  const { signedIn } = useTracker();
   const { data, loading, error } = useKillmailQuery({
     variables: { id },
   });
@@ -129,6 +134,22 @@ export default function KillmailDetailPage({
                 )}
               </button>
             </div>
+            {signedIn && (
+              <div className="pb-6">
+                <button
+                  onClick={() => setTrackOpen(true)}
+                  className="button button-outline button-sm"
+                >
+                  TRACK
+                </button>
+                <TrackDialog
+                  open={trackOpen}
+                  onClose={() => setTrackOpen(false)}
+                  entries={killmailTrackEntries(km)}
+                  title="Track from this killmail"
+                />
+              </div>
+            )}
           </div>
           <FitScreen shipType={victim?.shipType} fitting={fitting} />
         </div>

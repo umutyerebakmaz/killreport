@@ -1,0 +1,18 @@
+enum TrackedEntityType {
+  CHARACTER
+  CORPORATION
+  ALLIANCE
+}
+
+model TrackedEntity {
+  id          Int               @id @default(autoincrement())
+  user_id     Int
+  entity_type TrackedEntityType
+  entity_id   Int
+  created_at  DateTime          @default(now())
+  user        User              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, entity_type, entity_id])
+  @@index([user_id])
+  @@map("tracked_entities")
+}

@@ -1044,6 +1044,8 @@ export type Mutation = {
    * Requires: Authentication
    */
   syncMyKillmails: SyncMyKillmailsPayload;
+  track: Scalars['Boolean']['output'];
+  untrack: Scalars['Boolean']['output'];
   updateUser: UpdateUserPayload;
 };
 
@@ -1135,6 +1137,18 @@ export type MutationStartTypeSyncArgs = {
 
 export type MutationSyncMyKillmailsArgs = {
   input: SyncMyKillmailsInput;
+};
+
+
+export type MutationTrackArgs = {
+  id: Scalars['Int']['input'];
+  type: TrackedEntityType;
+};
+
+
+export type MutationUntrackArgs = {
+  id: Scalars['Int']['input'];
+  type: TrackedEntityType;
 };
 
 
@@ -1278,6 +1292,7 @@ export type Query = {
   mostValuableKillmails: Array<Killmail>;
   /** The user's open sessions */
   mySessions: Array<Session>;
+  myTracker: Tracker;
   race?: Maybe<Race>;
   races: Array<Race>;
   /** Most recently detected territory ownership changes. */
@@ -2429,6 +2444,37 @@ export enum TopTargetFilter {
   Today = 'TODAY'
 }
 
+export type TrackedAlliance = {
+  __typename?: 'TrackedAlliance';
+  alliance: Alliance;
+  automatic: Scalars['Boolean']['output'];
+};
+
+export type TrackedCharacter = {
+  __typename?: 'TrackedCharacter';
+  automatic: Scalars['Boolean']['output'];
+  character: Character;
+};
+
+export type TrackedCorporation = {
+  __typename?: 'TrackedCorporation';
+  automatic: Scalars['Boolean']['output'];
+  corporation: Corporation;
+};
+
+export enum TrackedEntityType {
+  Alliance = 'ALLIANCE',
+  Character = 'CHARACTER',
+  Corporation = 'CORPORATION'
+}
+
+export type Tracker = {
+  __typename?: 'Tracker';
+  alliances: Array<TrackedAlliance>;
+  characters: Array<TrackedCharacter>;
+  corporations: Array<TrackedCorporation>;
+};
+
 export type Type = {
   __typename?: 'Type';
   capacity?: Maybe<Scalars['Float']['output']>;
@@ -2779,6 +2825,11 @@ export type ResolversTypes = {
   TopShip: ResolverTypeWrapper<TopShip>;
   TopSystem: ResolverTypeWrapper<TopSystem>;
   TopTargetFilter: TopTargetFilter;
+  TrackedAlliance: ResolverTypeWrapper<TrackedAlliance>;
+  TrackedCharacter: ResolverTypeWrapper<TrackedCharacter>;
+  TrackedCorporation: ResolverTypeWrapper<TrackedCorporation>;
+  TrackedEntityType: TrackedEntityType;
+  Tracker: ResolverTypeWrapper<Tracker>;
   Type: ResolverTypeWrapper<Type>;
   TypeDogmaAttribute: ResolverTypeWrapper<TypeDogmaAttribute>;
   TypeDogmaEffect: ResolverTypeWrapper<TypeDogmaEffect>;
@@ -2936,6 +2987,10 @@ export type ResolversParentTypes = {
   TopRegion: TopRegion;
   TopShip: TopShip;
   TopSystem: TopSystem;
+  TrackedAlliance: TrackedAlliance;
+  TrackedCharacter: TrackedCharacter;
+  TrackedCorporation: TrackedCorporation;
+  Tracker: Tracker;
   Type: Type;
   TypeDogmaAttribute: TypeDogmaAttribute;
   TypeDogmaEffect: TypeDogmaEffect;
@@ -3527,6 +3582,8 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   startTypeDogmaSync?: Resolver<ResolversTypes['StartTypeDogmaSyncPayload'], ParentType, ContextType, RequireFields<MutationStartTypeDogmaSyncArgs, 'input'>>;
   startTypeSync?: Resolver<ResolversTypes['StartTypeSyncPayload'], ParentType, ContextType, RequireFields<MutationStartTypeSyncArgs, 'input'>>;
   syncMyKillmails?: Resolver<ResolversTypes['SyncMyKillmailsPayload'], ParentType, ContextType, RequireFields<MutationSyncMyKillmailsArgs, 'input'>>;
+  track?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationTrackArgs, 'id' | 'type'>>;
+  untrack?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationUntrackArgs, 'id' | 'type'>>;
   updateUser?: Resolver<ResolversTypes['UpdateUserPayload'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'input'>>;
 };
 
@@ -3616,6 +3673,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   mostDefensiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostDefensiveAlliancesArgs>>;
   mostValuableKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryMostValuableKillmailsArgs, 'days' | 'limit' | 'scope'>>;
   mySessions?: Resolver<Array<ResolversTypes['Session']>, ParentType, ContextType>;
+  myTracker?: Resolver<ResolversTypes['Tracker'], ParentType, ContextType>;
   race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType, RequireFields<QueryRaceArgs, 'id'>>;
   races?: Resolver<Array<ResolversTypes['Race']>, ParentType, ContextType>;
   recentTerritoryChanges?: Resolver<Array<ResolversTypes['TerritoryChange']>, ParentType, ContextType, Partial<QueryRecentTerritoryChangesArgs>>;
@@ -4053,6 +4111,27 @@ export type TopSystemResolvers<ContextType = any, ParentType extends ResolversPa
   solarSystem?: Resolver<Maybe<ResolversTypes['SolarSystem']>, ParentType, ContextType>;
 };
 
+export type TrackedAllianceResolvers<ContextType = any, ParentType extends ResolversParentTypes['TrackedAlliance'] = ResolversParentTypes['TrackedAlliance']> = {
+  alliance?: Resolver<ResolversTypes['Alliance'], ParentType, ContextType>;
+  automatic?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type TrackedCharacterResolvers<ContextType = any, ParentType extends ResolversParentTypes['TrackedCharacter'] = ResolversParentTypes['TrackedCharacter']> = {
+  automatic?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  character?: Resolver<ResolversTypes['Character'], ParentType, ContextType>;
+};
+
+export type TrackedCorporationResolvers<ContextType = any, ParentType extends ResolversParentTypes['TrackedCorporation'] = ResolversParentTypes['TrackedCorporation']> = {
+  automatic?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  corporation?: Resolver<ResolversTypes['Corporation'], ParentType, ContextType>;
+};
+
+export type TrackerResolvers<ContextType = any, ParentType extends ResolversParentTypes['Tracker'] = ResolversParentTypes['Tracker']> = {
+  alliances?: Resolver<Array<ResolversTypes['TrackedAlliance']>, ParentType, ContextType>;
+  characters?: Resolver<Array<ResolversTypes['TrackedCharacter']>, ParentType, ContextType>;
+  corporations?: Resolver<Array<ResolversTypes['TrackedCorporation']>, ParentType, ContextType>;
+};
+
 export type TypeResolvers<ContextType = any, ParentType extends ResolversParentTypes['Type'] = ResolversParentTypes['Type']> = {
   capacity?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -4236,6 +4315,10 @@ export type Resolvers<ContextType = any> = {
   TopRegion?: TopRegionResolvers<ContextType>;
   TopShip?: TopShipResolvers<ContextType>;
   TopSystem?: TopSystemResolvers<ContextType>;
+  TrackedAlliance?: TrackedAllianceResolvers<ContextType>;
+  TrackedCharacter?: TrackedCharacterResolvers<ContextType>;
+  TrackedCorporation?: TrackedCorporationResolvers<ContextType>;
+  Tracker?: TrackerResolvers<ContextType>;
   Type?: TypeResolvers<ContextType>;
   TypeDogmaAttribute?: TypeDogmaAttributeResolvers<ContextType>;
   TypeDogmaEffect?: TypeDogmaEffectResolvers<ContextType>;

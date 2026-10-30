@@ -19,6 +19,7 @@ import {
   useCharacterTopShipsQuery,
   useCharacterTopShipTargetsQuery,
   useKillmailsDateCountsQuery,
+  TrackedEntityType,
 } from '@/generated/graphql';
 import { useTabList } from '@/hooks/useTabList';
 import { calculateAge, humanReadableDate } from '@/utils/date';
@@ -26,6 +27,7 @@ import { getSecurityStatusColor } from '@/utils/securityStatus';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import EveImage from '@/components/ui/EveImage';
+import TrackButton from '@/components/Tracker/TrackButton';
 
 interface CharacterDetailPageProps {
   params: Promise<{ id: string }>;
@@ -283,6 +285,10 @@ export default function CharacterDetailPage({
               )}
             </div>
           )}
+
+          <div>
+            <TrackButton type={TrackedEntityType.Character} id={character.id} />
+          </div>
 
           {/* Age */}
           <div>
