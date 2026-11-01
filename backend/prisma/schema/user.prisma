@@ -18,6 +18,7 @@ model User {
   corporation_id             Int? // The user's corporation ID
   sessions                   Session[]
   tracked_entities           TrackedEntity[]
+  discord_webhooks           DiscordWebhook[]
 
   @@index([character_id])
   @@index([expires_at])

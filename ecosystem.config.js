@@ -220,6 +220,26 @@ module.exports = {
       time: true,
     },
 
+    // Discord Webhook Worker - posts killmails to matching webhooks
+    {
+      name: 'worker-discord-webhook',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'worker:discord-webhook',
+      instances: 1,
+      exec_mode: 'fork',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'debug',
+      },
+      max_memory_restart: '512M',
+      autorestart: true,
+      restart_delay: 5000,
+      error_file: '/var/www/killreport/logs/worker-discord-webhook-error.log',
+      out_file: '/var/www/killreport/logs/worker-discord-webhook-out.log',
+      time: true,
+    },
+
     // Queue Characters - Monthly (1st of every month at 00:00 UTC)
     {
       name: 'queue-characters',

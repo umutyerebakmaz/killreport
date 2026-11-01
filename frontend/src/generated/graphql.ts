@@ -471,6 +471,15 @@ export type CreateUserPayload = {
   user?: Maybe<User>;
 };
 
+export type DiscordWebhook = {
+  __typename?: 'DiscordWebhook';
+  createdAt: Scalars['String']['output'];
+  disabled: Scalars['Boolean']['output'];
+  entityId: Scalars['Int']['output'];
+  entityType: TrackedEntityType;
+  name?: Maybe<Scalars['String']['output']>;
+};
+
 export type DogmaAttribute = {
   __typename?: 'DogmaAttribute';
   created_at: Scalars['String']['output'];
@@ -1029,8 +1038,10 @@ export type Mutation = {
   refreshCharacter: RefreshCharacterResult;
   /** Gets a fresh EVE access token using the session cookie */
   refreshSession: AuthPayload;
+  removeDiscordWebhook: Scalars['Boolean']['output'];
   /** Ends another of the user's sessions */
   revokeSession: Scalars['Boolean']['output'];
+  setDiscordWebhook: DiscordWebhook;
   startAllianceSync: StartAllianceSyncPayload;
   startCategorySync: StartCategorySyncPayload;
   startConstellationSync: StartConstellationSyncPayload;
@@ -1086,8 +1097,21 @@ export type MutationRefreshCharacterArgs = {
 };
 
 
+export type MutationRemoveDiscordWebhookArgs = {
+  id: Scalars['Int']['input'];
+  type: TrackedEntityType;
+};
+
+
 export type MutationRevokeSessionArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationSetDiscordWebhookArgs = {
+  id: Scalars['Int']['input'];
+  type: TrackedEntityType;
+  url: Scalars['String']['input'];
 };
 
 
@@ -1291,6 +1315,7 @@ export type Query = {
    * Scope is matched against the victim's hull, never an attacker's.
    */
   mostValuableKillmails: Array<Killmail>;
+  myDiscordWebhooks: Array<DiscordWebhook>;
   /** The user's open sessions */
   mySessions: Array<Session>;
   myTracker: Tracker;
@@ -2862,6 +2887,28 @@ export type CorporationsQueryVariables = Exact<{
 
 
 export type CorporationsQuery = { __typename?: 'Query', corporations: { __typename?: 'CorporationsResponse', items: Array<{ __typename?: 'Corporation', id: number, name: string, ticker: string, member_count: number, date_founded?: string | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null, metrics?: { __typename?: 'CorporationMetrics', memberCountDelta1d?: number | null, memberCountDelta7d?: number | null, memberCountDelta30d?: number | null, memberCountGrowthRate1d?: number | null, memberCountGrowthRate7d?: number | null, memberCountGrowthRate30d?: number | null } | null }>, pageInfo: { __typename?: 'PageInfo', currentPage: number, totalPages: number, totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type MyDiscordWebhooksQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyDiscordWebhooksQuery = { __typename?: 'Query', myDiscordWebhooks: Array<{ __typename?: 'DiscordWebhook', entityType: TrackedEntityType, entityId: number, name?: string | null, disabled: boolean }> };
+
+export type SetDiscordWebhookMutationVariables = Exact<{
+  type: TrackedEntityType;
+  id: Scalars['Int']['input'];
+  url: Scalars['String']['input'];
+}>;
+
+
+export type SetDiscordWebhookMutation = { __typename?: 'Mutation', setDiscordWebhook: { __typename?: 'DiscordWebhook', entityType: TrackedEntityType, entityId: number, name?: string | null, disabled: boolean } };
+
+export type RemoveDiscordWebhookMutationVariables = Exact<{
+  type: TrackedEntityType;
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type RemoveDiscordWebhookMutation = { __typename?: 'Mutation', removeDiscordWebhook: boolean };
 
 export type FactionQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -5504,6 +5551,121 @@ export type CorporationsQueryHookResult = ReturnType<typeof useCorporationsQuery
 export type CorporationsLazyQueryHookResult = ReturnType<typeof useCorporationsLazyQuery>;
 export type CorporationsSuspenseQueryHookResult = ReturnType<typeof useCorporationsSuspenseQuery>;
 export type CorporationsQueryResult = Apollo.QueryResult<CorporationsQuery, CorporationsQueryVariables>;
+export const MyDiscordWebhooksDocument = gql`
+    query MyDiscordWebhooks {
+  myDiscordWebhooks {
+    entityType
+    entityId
+    name
+    disabled
+  }
+}
+    `;
+
+/**
+ * __useMyDiscordWebhooksQuery__
+ *
+ * To run a query within a React component, call `useMyDiscordWebhooksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyDiscordWebhooksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyDiscordWebhooksQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyDiscordWebhooksQuery(baseOptions?: Apollo.QueryHookOptions<MyDiscordWebhooksQuery, MyDiscordWebhooksQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyDiscordWebhooksQuery, MyDiscordWebhooksQueryVariables>(MyDiscordWebhooksDocument, options);
+      }
+export function useMyDiscordWebhooksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyDiscordWebhooksQuery, MyDiscordWebhooksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyDiscordWebhooksQuery, MyDiscordWebhooksQueryVariables>(MyDiscordWebhooksDocument, options);
+        }
+// @ts-ignore
+export function useMyDiscordWebhooksSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<MyDiscordWebhooksQuery, MyDiscordWebhooksQueryVariables>): Apollo.UseSuspenseQueryResult<MyDiscordWebhooksQuery, MyDiscordWebhooksQueryVariables>;
+export function useMyDiscordWebhooksSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyDiscordWebhooksQuery, MyDiscordWebhooksQueryVariables>): Apollo.UseSuspenseQueryResult<MyDiscordWebhooksQuery | undefined, MyDiscordWebhooksQueryVariables>;
+export function useMyDiscordWebhooksSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyDiscordWebhooksQuery, MyDiscordWebhooksQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyDiscordWebhooksQuery, MyDiscordWebhooksQueryVariables>(MyDiscordWebhooksDocument, options);
+        }
+export type MyDiscordWebhooksQueryHookResult = ReturnType<typeof useMyDiscordWebhooksQuery>;
+export type MyDiscordWebhooksLazyQueryHookResult = ReturnType<typeof useMyDiscordWebhooksLazyQuery>;
+export type MyDiscordWebhooksSuspenseQueryHookResult = ReturnType<typeof useMyDiscordWebhooksSuspenseQuery>;
+export type MyDiscordWebhooksQueryResult = Apollo.QueryResult<MyDiscordWebhooksQuery, MyDiscordWebhooksQueryVariables>;
+export const SetDiscordWebhookDocument = gql`
+    mutation SetDiscordWebhook($type: TrackedEntityType!, $id: Int!, $url: String!) {
+  setDiscordWebhook(type: $type, id: $id, url: $url) {
+    entityType
+    entityId
+    name
+    disabled
+  }
+}
+    `;
+export type SetDiscordWebhookMutationFn = Apollo.MutationFunction<SetDiscordWebhookMutation, SetDiscordWebhookMutationVariables>;
+
+/**
+ * __useSetDiscordWebhookMutation__
+ *
+ * To run a mutation, you first call `useSetDiscordWebhookMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSetDiscordWebhookMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [setDiscordWebhookMutation, { data, loading, error }] = useSetDiscordWebhookMutation({
+ *   variables: {
+ *      type: // value for 'type'
+ *      id: // value for 'id'
+ *      url: // value for 'url'
+ *   },
+ * });
+ */
+export function useSetDiscordWebhookMutation(baseOptions?: Apollo.MutationHookOptions<SetDiscordWebhookMutation, SetDiscordWebhookMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SetDiscordWebhookMutation, SetDiscordWebhookMutationVariables>(SetDiscordWebhookDocument, options);
+      }
+export type SetDiscordWebhookMutationHookResult = ReturnType<typeof useSetDiscordWebhookMutation>;
+export type SetDiscordWebhookMutationResult = Apollo.MutationResult<SetDiscordWebhookMutation>;
+export type SetDiscordWebhookMutationOptions = Apollo.BaseMutationOptions<SetDiscordWebhookMutation, SetDiscordWebhookMutationVariables>;
+export const RemoveDiscordWebhookDocument = gql`
+    mutation RemoveDiscordWebhook($type: TrackedEntityType!, $id: Int!) {
+  removeDiscordWebhook(type: $type, id: $id)
+}
+    `;
+export type RemoveDiscordWebhookMutationFn = Apollo.MutationFunction<RemoveDiscordWebhookMutation, RemoveDiscordWebhookMutationVariables>;
+
+/**
+ * __useRemoveDiscordWebhookMutation__
+ *
+ * To run a mutation, you first call `useRemoveDiscordWebhookMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRemoveDiscordWebhookMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [removeDiscordWebhookMutation, { data, loading, error }] = useRemoveDiscordWebhookMutation({
+ *   variables: {
+ *      type: // value for 'type'
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useRemoveDiscordWebhookMutation(baseOptions?: Apollo.MutationHookOptions<RemoveDiscordWebhookMutation, RemoveDiscordWebhookMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RemoveDiscordWebhookMutation, RemoveDiscordWebhookMutationVariables>(RemoveDiscordWebhookDocument, options);
+      }
+export type RemoveDiscordWebhookMutationHookResult = ReturnType<typeof useRemoveDiscordWebhookMutation>;
+export type RemoveDiscordWebhookMutationResult = Apollo.MutationResult<RemoveDiscordWebhookMutation>;
+export type RemoveDiscordWebhookMutationOptions = Apollo.BaseMutationOptions<RemoveDiscordWebhookMutation, RemoveDiscordWebhookMutationVariables>;
 export const FactionDocument = gql`
     query Faction($id: Int!) {
   faction(id: $id) {

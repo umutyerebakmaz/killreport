@@ -1,0 +1,25 @@
+query MyDiscordWebhooks {
+  myDiscordWebhooks {
+    entityType
+    entityId
+    name
+    disabled
+  }
+}
+
+mutation SetDiscordWebhook(
+  $type: TrackedEntityType!
+  $id: Int!
+  $url: String!
+) {
+  setDiscordWebhook(type: $type, id: $id, url: $url) {
+    entityType
+    entityId
+    name
+    disabled
+  }
+}
+
+mutation RemoveDiscordWebhook($type: TrackedEntityType!, $id: Int!) {
+  removeDiscordWebhook(type: $type, id: $id)
+}

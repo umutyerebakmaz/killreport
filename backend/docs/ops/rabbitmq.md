@@ -3,7 +3,7 @@
 This documents how to attach the retry topology (`killreport.dlx`,
 `killreport.retry`, `killreport.wait`, `killreport.parking`) — declared in code
 by `ensureAllQueuesExist()` in
-[`../../src/services/rabbitmq.ts`](../../src/services/rabbitmq.ts) — to the 24
+[`../../src/services/rabbitmq.ts`](../../src/services/rabbitmq.ts) — to the 27
 application queues listed in
 [`../../src/services/queue-names.ts`](../../src/services/queue-names.ts).
 
@@ -24,7 +24,7 @@ processes and the schedules; this covers the broker.
 broker refuses it.
 
 Adding `x-dead-letter-exchange` directly to that `assertQueue` call would
-change the declared arguments for every one of the 24 queues that already
+change the declared arguments for every one of the 27 queues that already
 exist. The next time the server starts and re-declares them, the broker sees a
 queue that already exists with `x-max-priority: 10` only, and a declaration
 that now also asks for `x-dead-letter-exchange`, and refuses it:
@@ -75,7 +75,7 @@ Primary form, on a box with `rabbitmqctl` (the production droplet):
 
 ```bash
 sudo rabbitmqctl set_policy killreport-dlx \
-  "^(esi_|zkillboard_|backfill_|alliance_)" \
+  "^(esi_|zkillboard_|backfill_|alliance_|discord_)" \
   '{"dead-letter-exchange":"killreport.dlx"}' \
   --apply-to queues
 sudo rabbitmqctl list_policies
@@ -89,7 +89,7 @@ curl -u guest:guest -X PUT \
   http://localhost:15672/api/policies/%2F/killreport-dlx \
   -H 'content-type: application/json' \
   -d '{
-    "pattern": "^(esi_|zkillboard_|backfill_|alliance_)",
+    "pattern": "^(esi_|zkillboard_|backfill_|alliance_|discord_)",
     "definition": { "dead-letter-exchange": "killreport.dlx" },
     "apply-to": "queues"
   }'
@@ -130,10 +130,15 @@ console.log(ALL_QUEUES.join('\n'));
 "
 ```
 
-That prints 24 names today (25 before Task 11 retired `esi_topology_dlq` — see
+That prints 27 names today (25 before Task 11 retired `esi_topology_dlq` — see
 "Retired: `esi_topology_dlq`" below), and every one of them begins with
-`esi_`, `zkillboard_`, or `backfill_` — so
-`^(esi_|zkillboard_|backfill_|alliance_)` matches all 24 with room to spare.
+`esi_`, `zkillboard_`, `backfill_`, or `discord_` — so
+`^(esi_|zkillboard_|backfill_|alliance_|discord_)` matches all 27. A new
+notification queue with a prefix outside that list is the failure to watch
+for: without a DLX, `handleWorkerError`'s `nack(false, false)` deletes the
+message. `src/services/queue-names.spec.ts` reads the pattern from the
+`rabbitmq:policy` script in `package.json` and fails if any `ALL_QUEUES` name
+is not matched, so the pattern and the list cannot drift apart silently.
 The `alliance_` branch matches nothing in `ALL_QUEUES` (every alliance queue is
 named `esi_alliance_*`); it is there on purpose to also cover `alliance_queue`,
 an orphaned queue that exists on the broker with no reference anywhere in the
@@ -160,7 +165,7 @@ Treat that count as a floor, not an exact match: on a broker that has
 accumulated queues from an earlier naming scheme (this project has had at
 least one rename — see `alliance_queue` above, and possibly others left over
 from before `queue-names.ts` became the single list), the same pattern matches
-those too and inflates the number past 24. That is not a bug in the pattern;
+those too and inflates the number past 27. That is not a bug in the pattern;
 it is the pattern doing exactly what it is asked to do — match by prefix, not
 by an enumerated list. The `comm` check above is what actually proves
 coverage; the bare count is a sanity check, not the verification.

@@ -17,6 +17,7 @@ const {
   insertKillmailFilter,
   calculateKillmailValues,
   publish,
+  publishToQueue,
   loggerMock,
 } = vi.hoisted(() => {
   const txMock = {
@@ -41,6 +42,7 @@ const {
       droppedValue: 400,
     })),
     publish: vi.fn(),
+    publishToQueue: vi.fn(),
     loggerMock: {
       debug: vi.fn(),
       info: vi.fn(),
@@ -52,6 +54,7 @@ const {
 
 vi.mock('@services/prisma-worker', () => ({ default: prismaMock }));
 vi.mock('@services/logger', () => ({ default: loggerMock }));
+vi.mock('@services/rabbitmq', () => ({ publishToQueue }));
 vi.mock('@services/pubsub', () => ({ pubsub: { publish } }));
 vi.mock('@services/kill-stats-realtime', () => ({
   updateDailyAggregatesRealtime,
@@ -302,6 +305,32 @@ describe('the publish option', () => {
     // The write path runs unchanged; only the announcement is silent.
     expect(txMock.killmail.create).toHaveBeenCalled();
     expect(insertKillmailFilter).toHaveBeenCalled();
+  });
+});
+
+describe('the discord webhook queue', () => {
+  it('publishes to discord_webhook_queue when publish is true', async () => {
+    await saveKillmail(detail(), HASH);
+
+    expect(publishToQueue).toHaveBeenCalledWith(
+      'discord_webhook_queue',
+      JSON.stringify({ killmailId: 128431979 }),
+    );
+  });
+
+  it('does not publish to discord_webhook_queue when publish is false', async () => {
+    await saveKillmail(detail(), HASH, { publish: false });
+
+    expect(publishToQueue).not.toHaveBeenCalled();
+  });
+
+  it('does not publish to discord_webhook_queue for an already-stored killmail (P2002)', async () => {
+    prismaMock.$transaction.mockRejectedValueOnce(
+      Object.assign(new Error('Unique constraint failed'), { code: 'P2002' }),
+    );
+
+    await expect(saveKillmail(detail(), HASH)).resolves.toBe(false);
+    expect(publishToQueue).not.toHaveBeenCalled();
   });
 });
 

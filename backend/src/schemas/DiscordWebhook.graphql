@@ -1,0 +1,20 @@
+type DiscordWebhook {
+  entityType: TrackedEntityType!
+  entityId: Int!
+  name: String
+  disabled: Boolean!
+  createdAt: String!
+}
+
+extend type Query {
+  myDiscordWebhooks: [DiscordWebhook!]!
+}
+
+extend type Mutation {
+  setDiscordWebhook(
+    type: TrackedEntityType!
+    id: Int!
+    url: String!
+  ): DiscordWebhook!
+  removeDiscordWebhook(type: TrackedEntityType!, id: Int!): Boolean!
+}

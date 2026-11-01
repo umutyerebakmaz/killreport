@@ -4,11 +4,11 @@ This documentation explains in detail all services, workers, and scheduled tasks
 
 ## 📊 Overview
 
-KillReport project uses **15 different PM2 processes**:
+KillReport project uses **22 different PM2 processes**:
 
 - **2** Main Services (Backend + Frontend)
-- **8** Continuously Active Workers (runs 7/24)
-- **5** Scheduled Tasks (Cron jobs)
+- **12** Continuously Active Workers (runs 7/24)
+- **8** Scheduled Tasks (Cron jobs)
 
 ---
 
@@ -354,11 +354,33 @@ killmail history walk waits behind anything a person is waiting on.
 
 ---
 
+### 13. worker-discord-webhook
+
+```bash
+pm2 start ecosystem.config.js --only worker-discord-webhook
+pm2 logs worker-discord-webhook
+```
+
+| Property          | Value                                                   |
+| ----------------- | ------------------------------------------------------- |
+| **Command**       | `yarn worker:discord-webhook`                           |
+| **Description**   | Posts a saved killmail to matching Discord webhooks     |
+| **Queue**         | `discord_webhook_queue`                                 |
+| **Concurrency**   | 5 (prefetch)                                            |
+| **Memory Limit**  | 512 MB                                                  |
+| **Restart Delay** | 5 seconds                                               |
+| **Log**           | `/var/www/killreport/logs/worker-discord-webhook-*.log` |
+
+**Fed by:** `saveKillmail`, right after `NEW_KILLMAIL`. Details in
+[discord-webhook.md](../workers/discord-webhook.md).
+
+---
+
 ## ⏰ Scheduled Tasks (PM2 Cron Mode)
 
 These jobs run automatically at specific times and close when complete.
 
-### 13. queue-characters
+### 14. queue-characters
 
 ```bash
 pm2 start ecosystem.config.js --only queue-characters
@@ -390,7 +412,7 @@ pm2 logs queue-characters
 
 ---
 
-### 14. queue-alliances
+### 15. queue-alliances
 
 ```bash
 pm2 start ecosystem.config.js --only queue-alliances
@@ -422,7 +444,7 @@ pm2 logs queue-alliances
 
 ---
 
-### 15. queue-alliance-corporations
+### 16. queue-alliance-corporations
 
 ```bash
 pm2 start ecosystem.config.js --only queue-alliance-corporations
@@ -454,7 +476,7 @@ pm2 logs queue-alliance-corporations
 
 ---
 
-### 16. queue-character-corporations
+### 17. queue-character-corporations
 
 ```bash
 pm2 start ecosystem.config.js --only queue-character-corporations
@@ -486,7 +508,7 @@ employment-history corporation whose message from
 
 ---
 
-### 17. snapshot-alliances
+### 18. snapshot-alliances
 
 ```bash
 pm2 start ecosystem.config.js --only snapshot-alliances
@@ -513,7 +535,7 @@ pm2 logs snapshot-alliances
 
 ---
 
-### 18. snapshot-corporations
+### 19. snapshot-corporations
 
 ```bash
 pm2 start ecosystem.config.js --only snapshot-corporations
@@ -539,7 +561,7 @@ pm2 logs snapshot-corporations
 
 ---
 
-### 18. update-alliance-counts
+### 20. update-alliance-counts
 
 ```bash
 pm2 start ecosystem.config.js --only update-alliance-counts
@@ -564,7 +586,7 @@ pm2 logs update-alliance-counts
 
 ---
 
-### 19. queue-character-corporation-history
+### 21. queue-character-corporation-history
 
 ```bash
 pm2 start ecosystem.config.js --only queue-character-corporation-history
@@ -698,7 +720,7 @@ pm2 plus
 | `killreport-backend`  | `yarn start` | 4000 | 1GB    | GraphQL API |
 | `killreport-frontend` | `yarn start` | 3000 | 1GB    | Next.js UI  |
 
-### Continuously Active Workers (10)
+### Continuously Active Workers (12)
 
 | PM2 Name                               | Command                                     | Queue                                     | Concurrency | Description                   |
 | -------------------------------------- | ------------------------------------------- | ----------------------------------------- | ----------- | ----------------------------- |
@@ -712,9 +734,10 @@ pm2 plus
 | `worker-user-killmails`                | `yarn worker:user-killmails`                | `esi_user_killmails_queue`                | 1           | User ESI sync                 |
 | `worker-corporation-killmails`         | `yarn worker:corporation-killmails`         | `esi_corporation_killmails_queue`         | 1           | Corporation ESI sync          |
 | `worker-killmail-detail`               | `yarn worker:killmail-detail`               | `esi_killmail_detail_queue`               | 10          | Killmail detail fetch         |
+| `worker-discord-webhook`               | `yarn worker:discord-webhook`               | `discord_webhook_queue`                   | 5           | Discord killmail delivery     |
 | `worker-character-corporation-history` | `yarn worker:character-corporation-history` | `esi_character_corporation_history_queue` | 5           | Character corporation history |
 
-### Scheduled Tasks (5)
+### Scheduled Tasks (8)
 
 | PM2 Name                              | Command                                    | Run Time               | Description                          |
 | ------------------------------------- | ------------------------------------------ | ---------------------- | ------------------------------------ |
