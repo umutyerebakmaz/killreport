@@ -1,0 +1,17 @@
+model DiscordWebhook {
+  id           Int               @id @default(autoincrement())
+  user_id      Int
+  entity_type  TrackedEntityType
+  entity_id    Int
+  url          String
+  name         String?
+  disabled_at  DateTime?
+  active_since DateTime          @default(now())
+  created_at   DateTime          @default(now())
+  user         User              @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, entity_type, entity_id])
+  @@index([entity_type, entity_id])
+  @@index([url])
+  @@map("discord_webhooks")
+}
