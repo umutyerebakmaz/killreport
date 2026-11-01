@@ -123,7 +123,6 @@ export type NamedRef = { id: number | null; name: string | null };
 export type EmbedInput = {
   kind: 'kill' | 'loss';
   killmailId: number;
-  killmailTime: Date;
   frontendUrl: string;
   shipTypeId: number;
   shipName: string | null;
@@ -164,6 +163,16 @@ const IMAGE_BASE = 'https://images.evetech.net';
  * much taller, which the card design rules out.
  */
 const RENDER_SIZE = 256;
+
+/**
+ * Discord sizes an embed to its longest line, so cards with short names come
+ * out narrower. The footer is padded with U+2800 (braille blank, which Discord
+ * does not trim) to push every card to the same width; 70 was picked from
+ * sample cards in a real channel. The embed carries no `timestamp`: Discord
+ * would join it to the footer with a bullet that the padding pushes to the
+ * far right on its own. The message's own post time is shown anyway.
+ */
+export const EMBED_WIDTH_PAD = 70;
 
 const cap = (value: string, limit = FIELD_LIMIT): string =>
   value.slice(0, limit);
@@ -283,9 +292,11 @@ export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
     thumbnail: {
       url: `${IMAGE_BASE}/types/${input.shipTypeId}/render?size=${RENDER_SIZE}`,
     },
-    timestamp: input.killmailTime.toISOString(),
     footer: {
-      text: cap(entityNames, FOOTER_LIMIT),
+      text: cap(
+        `${entityNames} ${'\u2800'.repeat(EMBED_WIDTH_PAD)}`,
+        FOOTER_LIMIT,
+      ),
       icon_url: imageOf(lead.type, lead.id, 64),
     },
   };

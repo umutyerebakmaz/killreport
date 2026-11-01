@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildKillmailEmbed,
+  EMBED_WIDTH_PAD,
   formatIsk,
   isEligible,
   normalizeWebhookUrl,
@@ -199,11 +200,11 @@ describe('formatIsk', () => {
 });
 
 describe('buildKillmailEmbed', () => {
+  const PAD = '\u2800'.repeat(70);
   const site = 'https://killreport.example';
   const base: EmbedInput = {
     kind: 'loss',
     killmailId: 555,
-    killmailTime: new Date('2026-11-01T11:59:00Z'),
     frontendUrl: site,
     shipTypeId: 670,
     shipName: 'Capsule',
@@ -228,7 +229,7 @@ describe('buildKillmailEmbed', () => {
     url: string;
     description: string;
     color: number;
-    timestamp: string;
+    timestamp?: string;
     image?: unknown;
     thumbnail: { url: string };
     footer: { text: string; icon_url: string };
@@ -315,7 +316,7 @@ describe('buildKillmailEmbed', () => {
   it('footer names the matched entities, with the first one’s logo', () => {
     const e = embedOf(base);
     expect(e.footer).toEqual({
-      text: 'Fraternity.',
+      text: `Fraternity. ${PAD}`,
       icon_url: 'https://images.evetech.net/corporations/98814817/logo?size=64',
     });
     const multi = embedOf({
@@ -326,10 +327,19 @@ describe('buildKillmailEmbed', () => {
         { type: 'CHARACTER', id: 365974960, name: 'General XAN' },
       ],
     });
-    expect(multi.footer.text).toBe('Fraternity, General XAN');
+    expect(multi.footer.text).toBe(`Fraternity, General XAN ${PAD}`);
     expect(multi.footer.icon_url).toBe(
       'https://images.evetech.net/alliances/99003581/logo?size=64',
     );
+  });
+
+  it('pads the footer to a fixed width and carries no timestamp, so Discord adds no stray bullet', () => {
+    expect(EMBED_WIDTH_PAD).toBe(70);
+    const short = embedOf({ ...base, victim: { id: 1, name: 'A' } });
+    const long = embedOf({ ...base, victim: { id: 1, name: 'B'.repeat(40) } });
+    expect(short.footer.text).toBe(long.footer.text);
+    expect(short.footer.text.endsWith('\u2800'.repeat(70))).toBe(true);
+    expect(short.timestamp).toBeUndefined();
   });
 
   it('escapes markdown in names', () => {
@@ -372,7 +382,7 @@ describe('buildKillmailEmbed', () => {
     expect(field(e, 'TOTAL')?.value).toBe('**Unknown**');
     expect(field(e, 'FINAL BLOW')?.value).toBe('Unknown');
     expect(field(e, 'LOCATION')?.value).toBe('Unknown');
-    expect(e.footer.text).toBe('Unknown');
+    expect(e.footer.text).toBe(`Unknown ${PAD}`);
     expect(JSON.stringify(e)).not.toContain('null');
     expect(JSON.stringify(e)).not.toContain('](');
   });

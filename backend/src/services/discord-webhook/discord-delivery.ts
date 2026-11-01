@@ -177,7 +177,6 @@ export async function deliverKillmail(
     const payload = buildKillmailEmbed({
       kind: delivery.kind,
       killmailId,
-      killmailTime: killmail.killmail_time,
       frontendUrl: config.eveSso.frontendUrl,
       shipTypeId: victim.ship_type_id,
       shipName: lookup(typeNames, victim.ship_type_id),
