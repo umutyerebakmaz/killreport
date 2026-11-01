@@ -41,8 +41,6 @@ export async function deliverKillmail(
     select: {
       killmail_time: true,
       total_value: true,
-      destroyed_value: true,
-      dropped_value: true,
       attacker_count: true,
       solar_system_id: true,
     },
@@ -198,8 +196,6 @@ export async function deliverKillmail(
       },
       finalBlowShipName: lookup(typeNames, finalBlow?.ship_type_id),
       totalValue: killmail.total_value,
-      destroyedValue: killmail.destroyed_value,
-      droppedValue: killmail.dropped_value,
       attackerCount: killmail.attacker_count ?? attackers.length,
       system: { id: system?.id ?? null, name: system?.name ?? null },
       securityStatus: system?.security_status ?? null,

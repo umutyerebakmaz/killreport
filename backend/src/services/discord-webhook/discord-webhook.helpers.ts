@@ -132,8 +132,6 @@ export type EmbedInput = {
   finalBlow: NamedRef;
   finalBlowShipName: string | null;
   totalValue: number | null;
-  destroyedValue: number | null;
-  droppedValue: number | null;
   attackerCount: number;
   system: NamedRef;
   securityStatus: number | null;
@@ -214,6 +212,8 @@ const PAGE: Record<PageType, string> = {
   REGION: 'regions',
 };
 
+const article = (word: string): string => (/^[aeiou]/i.test(word) ? 'an' : 'a');
+
 const imageOf = (type: EntityRef['type'], id: number, size: number): string =>
   type === 'CHARACTER'
     ? `${IMAGE_BASE}/characters/${id}/portrait?size=${size}`
@@ -229,8 +229,6 @@ export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
     const text = escapeMd(cap(ref.name, NAME_LIMIT));
     return ref.id === null ? text : `[${text}](${pageOf(type, ref.id)})`;
   };
-  const isk = (value: number | null) =>
-    value === null ? UNKNOWN : formatIsk(value);
 
   // The victim is a character, or for a structure its corporation.
   const authorRef: { type: EntityRef['type']; ref: NamedRef } =
@@ -258,19 +256,31 @@ export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
             : [link('ALLIANCE', input.victimAlliance)]),
         ].join(', ');
 
-  const finalBlow =
-    input.finalBlow.name === null && input.finalBlowShipName === null
-      ? UNKNOWN
-      : `${link('CHARACTER', input.finalBlow)}\n${escapeMd(input.finalBlowShipName ?? UNKNOWN)}`;
+  const place = [
+    ...(input.system.name === null
+      ? []
+      : [
+          `${link('SYSTEM', input.system)}${
+            input.securityStatus === null
+              ? ''
+              : ` (${input.securityStatus.toFixed(1)})`
+          }`,
+        ]),
+    ...(input.region.name === null ? [] : [link('REGION', input.region)]),
+  ];
+  const location = `Lost in ${place.length === 0 ? UNKNOWN : place.join(', ')}`;
 
-  const location =
-    input.system.name === null && input.region.name === null
-      ? UNKNOWN
-      : `${link('SYSTEM', input.system)}${
-          input.securityStatus === null
-            ? ''
-            : ` (${input.securityStatus.toFixed(1)})`
-        }\n${link('REGION', input.region)}`;
+  const others = input.attackerCount - 1;
+  const company =
+    others <= 0 ? 'solo' : `with ${others} other${others === 1 ? '' : 's'}`;
+  const ship = input.finalBlowShipName;
+  const finalBlow = `Final blow by ${link('CHARACTER', input.finalBlow)}${
+    ship === null ? '' : ` in ${article(ship)} ${escapeMd(ship)}`
+  }, ${company}`;
+
+  const value = `**${
+    input.totalValue === null ? 'Unknown value' : formatIsk(input.totalValue)
+  }**`;
 
   const lead = input.entities[0];
   const entityNames = input.entities.map((e) => e.name ?? UNKNOWN).join(', ');
@@ -279,16 +289,11 @@ export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
     author,
     title: cap(input.shipName ?? UNKNOWN, TITLE_LIMIT),
     url: `${base}/killmails/${input.killmailId}`,
-    description: cap(affiliation, 4096),
+    description: cap(
+      [affiliation, location, finalBlow, value].join('\n'),
+      4096,
+    ),
     color: input.kind === 'loss' ? LOSS_COLOR : KILL_COLOR,
-    fields: [
-      { name: 'DESTROYED', value: isk(input.destroyedValue), inline: true },
-      { name: 'DROPPED', value: isk(input.droppedValue), inline: true },
-      { name: 'TOTAL', value: `**${isk(input.totalValue)}**`, inline: true },
-      { name: 'FINAL BLOW', value: cap(finalBlow), inline: true },
-      { name: 'ATTACKERS', value: String(input.attackerCount), inline: true },
-      { name: 'LOCATION', value: cap(location), inline: true },
-    ],
     thumbnail: {
       url: `${IMAGE_BASE}/types/${input.shipTypeId}/render?size=${RENDER_SIZE}`,
     },
