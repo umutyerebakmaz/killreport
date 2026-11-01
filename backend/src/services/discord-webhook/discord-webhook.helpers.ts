@@ -256,7 +256,7 @@ export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
           ...(input.victimAlliance.name === null
             ? []
             : [link('ALLIANCE', input.victimAlliance)]),
-        ].join(' / ');
+        ].join(', ');
 
   const finalBlow =
     input.finalBlow.name === null && input.finalBlowShipName === null

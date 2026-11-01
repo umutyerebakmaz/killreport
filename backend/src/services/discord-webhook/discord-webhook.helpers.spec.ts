@@ -265,12 +265,12 @@ describe('buildKillmailEmbed', () => {
     });
   });
 
-  it('title is the ship, linked to the killmail; description is the linked corp / alliance', () => {
+  it('title is the ship, linked to the killmail; description is the linked corp, alliance', () => {
     const e = embedOf(base);
     expect(e.title).toBe('Capsule');
     expect(e.url).toBe(`${site}/killmails/555`);
     expect(e.description).toBe(
-      `[Fraternity.](${site}/corporations/98814817) / [Fraternity](${site}/alliances/99003581)`,
+      `[Fraternity.](${site}/corporations/98814817), [Fraternity](${site}/alliances/99003581)`,
     );
     expect(
       embedOf({ ...base, victimAlliance: { id: null, name: null } })
