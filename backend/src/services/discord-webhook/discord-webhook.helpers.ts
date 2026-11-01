@@ -281,10 +281,7 @@ export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
     },
     timestamp: input.killmailTime.toISOString(),
     footer: {
-      text: cap(
-        `${input.kind === 'loss' ? 'LOSS' : 'KILL'} | ${entityNames}`,
-        FOOTER_LIMIT,
-      ),
+      text: cap(entityNames, FOOTER_LIMIT),
       icon_url: imageOf(lead.type, lead.id, 64),
     },
   };

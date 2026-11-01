@@ -312,10 +312,10 @@ describe('buildKillmailEmbed', () => {
     expect(e.thumbnail).toBeUndefined();
   });
 
-  it('footer names kill or loss and the matched entities, with the first one’s logo', () => {
+  it('footer names the matched entities, with the first one’s logo', () => {
     const e = embedOf(base);
     expect(e.footer).toEqual({
-      text: 'LOSS | Fraternity.',
+      text: 'Fraternity.',
       icon_url: 'https://images.evetech.net/corporations/98814817/logo?size=64',
     });
     const multi = embedOf({
@@ -326,7 +326,7 @@ describe('buildKillmailEmbed', () => {
         { type: 'CHARACTER', id: 365974960, name: 'General XAN' },
       ],
     });
-    expect(multi.footer.text).toBe('KILL | Fraternity, General XAN');
+    expect(multi.footer.text).toBe('Fraternity, General XAN');
     expect(multi.footer.icon_url).toBe(
       'https://images.evetech.net/alliances/99003581/logo?size=64',
     );
@@ -372,7 +372,7 @@ describe('buildKillmailEmbed', () => {
     expect(field(e, 'TOTAL')?.value).toBe('**Unknown**');
     expect(field(e, 'FINAL BLOW')?.value).toBe('Unknown');
     expect(field(e, 'LOCATION')?.value).toBe('Unknown');
-    expect(e.footer.text).toBe('LOSS | Unknown');
+    expect(e.footer.text).toBe('Unknown');
     expect(JSON.stringify(e)).not.toContain('null');
     expect(JSON.stringify(e)).not.toContain('](');
   });
