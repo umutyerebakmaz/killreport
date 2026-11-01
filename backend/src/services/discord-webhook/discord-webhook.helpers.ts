@@ -282,12 +282,12 @@ export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
     description: cap(affiliation, 4096),
     color: input.kind === 'loss' ? LOSS_COLOR : KILL_COLOR,
     fields: [
-      { name: 'DESTROYED', value: isk(input.destroyedValue), inline: true },
-      { name: 'DROPPED', value: isk(input.droppedValue), inline: true },
-      { name: 'TOTAL', value: `**${isk(input.totalValue)}**`, inline: true },
-      { name: 'FINAL BLOW', value: cap(finalBlow), inline: true },
-      { name: 'ATTACKERS', value: String(input.attackerCount), inline: true },
-      { name: 'LOCATION', value: cap(location), inline: true },
+      { name: 'Destroyed', value: isk(input.destroyedValue), inline: true },
+      { name: 'Dropped', value: isk(input.droppedValue), inline: true },
+      { name: 'Total', value: `**${isk(input.totalValue)}**`, inline: true },
+      { name: 'Final blow', value: cap(finalBlow), inline: true },
+      { name: 'Attackers', value: String(input.attackerCount), inline: true },
+      { name: 'Location', value: cap(location), inline: true },
     ],
     thumbnail: {
       url: `${IMAGE_BASE}/types/${input.shipTypeId}/render?size=${RENDER_SIZE}`,
