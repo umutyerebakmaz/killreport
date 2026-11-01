@@ -9,7 +9,11 @@
 import type { TrackedEntityType } from '@generated/prisma/client';
 import prisma from '@services/prisma';
 import { getWebhookName, postWebhook } from './discord-client';
-import { normalizeWebhookUrl, WEBHOOK_LIMIT } from './discord-webhook.helpers';
+import {
+  normalizeWebhookUrl,
+  NO_MENTIONS,
+  WEBHOOK_LIMIT,
+} from './discord-webhook.helpers';
 
 export class DiscordWebhookError extends Error {
   constructor(
@@ -135,6 +139,7 @@ export async function setWebhook(
 
   const result = await postWebhook(url, {
     content: `KillReport will post ${entityName} kills and losses to this channel.`,
+    allowed_mentions: NO_MENTIONS,
   });
   if (result.outcome !== 'ok') {
     throw new DiscordWebhookError(

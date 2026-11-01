@@ -72,10 +72,14 @@ export function useDiscordWebhooks() {
     try {
       await call();
       setError(null);
+      return true;
     } catch (e) {
       setError(messageOf(e));
+      return false;
     }
   }, []);
+
+  const clearError = useCallback(() => setError(null), []);
 
   const set = useCallback(
     (type: TrackedEntityType, id: number, url: string) =>
@@ -98,5 +102,6 @@ export function useDiscordWebhooks() {
     remove,
     pending: setting || removing,
     error,
+    clearError,
   };
 }

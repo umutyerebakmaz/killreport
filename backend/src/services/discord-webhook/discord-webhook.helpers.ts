@@ -139,7 +139,10 @@ export type EmbedInput = {
 export type DiscordPayload = {
   content?: string;
   embeds?: Record<string, unknown>[];
+  allowed_mentions?: { parse: never[] };
 };
+
+export const NO_MENTIONS: { parse: never[] } = { parse: [] };
 
 const KILL_COLOR = 0x2ecc71;
 const LOSS_COLOR = 0xe74c3c;
@@ -170,7 +173,7 @@ export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
 
   const embed = {
     title: cap(`${ship} — ${orUnknown(input.victimName)}`).slice(0, 256),
-    url: `${input.frontendUrl}/killmails/${input.killmailId}`,
+    url: `${input.frontendUrl.replace(/\/+$/, '')}/killmails/${input.killmailId}`,
     color: input.kind === 'loss' ? LOSS_COLOR : KILL_COLOR,
     thumbnail: {
       url: `https://images.evetech.net/types/${input.shipTypeId}/render?size=128`,
@@ -196,5 +199,5 @@ export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
       text: `KillReport · ${input.footerEntityNames.join(', ')}`.slice(0, 2048),
     },
   };
-  return { embeds: [embed] };
+  return { embeds: [embed], allowed_mentions: NO_MENTIONS };
 }

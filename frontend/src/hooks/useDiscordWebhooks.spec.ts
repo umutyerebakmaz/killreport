@@ -91,6 +91,40 @@ describe('useDiscordWebhooks', () => {
     }
   });
 
+  it('set resolves true on success and false on error, keeping the error', async () => {
+    const { result } = renderHook(() => useDiscordWebhooks());
+    let ok: boolean | undefined;
+    await act(async () => {
+      ok = await result.current.set(TrackedEntityType.Character, 200, 'u');
+    });
+    expect(ok).toBe(true);
+    expect(result.current.error).toBeNull();
+
+    setMutation.mockRejectedValueOnce({
+      graphQLErrors: [{ extensions: { reason: 'LIMIT' } }],
+    });
+    await act(async () => {
+      ok = await result.current.set(TrackedEntityType.Character, 200, 'u');
+    });
+    expect(ok).toBe(false);
+    expect(result.current.error).toBe('You can connect up to 10 webhooks.');
+
+    removeMutation.mockRejectedValueOnce(new Error('x'));
+    await act(async () => {
+      ok = await result.current.remove(TrackedEntityType.Character, 200);
+    });
+    expect(ok).toBe(false);
+  });
+
+  it('clearError resets the error', async () => {
+    const { result } = renderHook(() => useDiscordWebhooks());
+    setMutation.mockRejectedValueOnce(new Error('x'));
+    await act(() => result.current.set(TrackedEntityType.Character, 200, 'u'));
+    expect(result.current.error).not.toBeNull();
+    act(() => result.current.clearError());
+    expect(result.current.error).toBeNull();
+  });
+
   it('signedIn false yields no query', () => {
     useAuth.mockReturnValue({ user: null });
     const { result } = renderHook(() => useDiscordWebhooks());

@@ -4,7 +4,7 @@ import type { TrackedEntityType } from '@/generated/graphql';
 import type { useDiscordWebhooks } from '@/hooks/useDiscordWebhooks';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function DiscordWebhookDialog({
   open,
@@ -20,7 +20,12 @@ export default function DiscordWebhookDialog({
   webhooks: ReturnType<typeof useDiscordWebhooks>;
 }) {
   const [url, setUrl] = useState('');
-  const { statusOf, webhookOf, set, remove, pending, error } = webhooks;
+  const { statusOf, webhookOf, set, remove, pending, error, clearError } =
+    webhooks;
+
+  useEffect(() => {
+    clearError();
+  }, [open, clearError]);
   const status = statusOf(type, id);
   const connected = status !== 'none';
   const webhook = webhookOf(type, id);
@@ -28,8 +33,7 @@ export default function DiscordWebhookDialog({
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url.trim()) return;
-    await set(type, id, url.trim());
-    setUrl('');
+    if (await set(type, id, url.trim())) setUrl('');
   };
 
   return (

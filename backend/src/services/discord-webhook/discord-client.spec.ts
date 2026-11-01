@@ -72,6 +72,18 @@ describe('postWebhook', () => {
     expect(RATE_LIMIT_BUDGET_MS).toBe(60_000);
   });
 
+  it('floors a retry_after of 0 so the budget always ends the loop', async () => {
+    const f = vi.fn(async () => res(429, JSON.stringify({ retry_after: 0 })));
+    const sleep = vi.fn(async () => {});
+    const r = await postWebhook(URL_, {}, { fetch: f, sleep });
+    expect(r.outcome).toBe('transient');
+    expect(r.status).toBe(429);
+    expect(f.mock.calls.length).toBeLessThanOrEqual(
+      RATE_LIMIT_BUDGET_MS / 250 + 1,
+    );
+    expect(sleep).toHaveBeenCalledWith(250);
+  });
+
   it('treats a thrown fetch (network/timeout) as transient', async () => {
     const f = fakeFetch(new Error('boom'));
     const r = await postWebhook(URL_, {}, { fetch: f });

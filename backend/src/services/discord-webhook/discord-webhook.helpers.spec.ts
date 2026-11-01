@@ -230,6 +230,16 @@ describe('buildKillmailEmbed', () => {
     expect(kill.timestamp).toBe('2026-11-01T11:59:00.000Z');
   });
 
+  it('strips trailing slashes from the frontend url', () => {
+    expect(
+      embedOf({ ...base, frontendUrl: 'https://killreport.example//' }).url,
+    ).toBe('https://killreport.example/killmails/555');
+  });
+
+  it('sets allowed_mentions to parse nothing', () => {
+    expect(buildKillmailEmbed(base).allowed_mentions).toEqual({ parse: [] });
+  });
+
   it('embed falls back to Unknown for missing names', () => {
     const e = embedOf({
       ...base,

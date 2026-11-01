@@ -210,6 +210,7 @@ export async function deliverKillmail(
         logger.error(
           `discord delivery dropped: killmail ${killmailId}, webhook(s) ${delivery.webhookIds.join(',')}, status ${result.status}, body ${result.body ?? ''}`,
         );
+        await redis.set(key, '1', 'EX', SENT_TTL_SECONDS, 'NX');
         break;
       case 'transient':
         pending += 1;

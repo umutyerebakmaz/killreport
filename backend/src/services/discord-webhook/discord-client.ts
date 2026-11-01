@@ -12,6 +12,7 @@ export const DISCORD_TIMEOUT_MS = 10_000;
 
 const BODY_LIMIT = 500;
 const DEFAULT_RETRY_AFTER_MS = 1_000;
+const MIN_RETRY_AFTER_MS = 250;
 
 const defaultSleep = (ms: number) =>
   new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -71,7 +72,10 @@ export async function postWebhook(
       return { outcome: 'disable', status };
     }
     if (status === 429) {
-      const delay = await readRetryAfterMs(response);
+      const delay = Math.max(
+        await readRetryAfterMs(response),
+        MIN_RETRY_AFTER_MS,
+      );
       if (waited + delay > RATE_LIMIT_BUDGET_MS) {
         return { outcome: 'transient', status };
       }

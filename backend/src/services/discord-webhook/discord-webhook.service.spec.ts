@@ -111,6 +111,7 @@ describe('setWebhook', () => {
     expect(postWebhook).toHaveBeenCalledWith(URL_OK, {
       content:
         'KillReport will post Acme Corp kills and losses to this channel.',
+      allowed_mentions: { parse: [] },
     });
   });
 

@@ -185,7 +185,8 @@ describe('deliverKillmail', () => {
     await expect(deliverKillmail(123, NOW)).resolves.toBeUndefined();
     expect(logger.error).toHaveBeenCalledTimes(1);
     expect(prisma.discordWebhook.updateMany).not.toHaveBeenCalled();
-    expect(redisMock.set).not.toHaveBeenCalled();
+    expect(redisMock.set).toHaveBeenCalledTimes(1);
+    expect(redisMock.set.mock.calls[0][0]).toContain(webhookUrlHash(URL_A));
   });
 
   it('throws DiscordDeliveryError when any url is transient, after trying all urls', async () => {
