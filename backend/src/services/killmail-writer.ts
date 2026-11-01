@@ -1,3 +1,4 @@
+import { DISCORD_WEBHOOK_QUEUE } from '@services/discord-webhook/discord-webhook-message';
 import { calculateKillmailValues } from '@helpers/calculate-killmail-values';
 import { updateDailyAggregatesRealtime } from '@services/kill-stats-realtime';
 import { toAggregateInput, toFilterInput } from '@services/killmail-derived';
@@ -6,6 +7,7 @@ import type { KillmailDetail } from '@services/killmail/killmail.service';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { pubsub } from '@services/pubsub';
+import { publishToQueue } from '@services/rabbitmq';
 
 export interface SaveKillmailOptions {
   /**
@@ -137,6 +139,10 @@ export async function saveKillmail(
 
     if (options.publish ?? true) {
       await pubsub.publish('NEW_KILLMAIL', { killmailId: detail.killmail_id });
+      await publishToQueue(
+        DISCORD_WEBHOOK_QUEUE,
+        JSON.stringify({ killmailId: detail.killmail_id }),
+      );
     }
 
     return true;

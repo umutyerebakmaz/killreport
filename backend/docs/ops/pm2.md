@@ -354,6 +354,28 @@ killmail history walk waits behind anything a person is waiting on.
 
 ---
 
+### 13. worker-discord-webhook
+
+```bash
+pm2 start ecosystem.config.js --only worker-discord-webhook
+pm2 logs worker-discord-webhook
+```
+
+| Property          | Value                                                   |
+| ----------------- | ------------------------------------------------------- |
+| **Command**       | `yarn worker:discord-webhook`                           |
+| **Description**   | Posts a saved killmail to matching Discord webhooks     |
+| **Queue**         | `discord_webhook_queue`                                 |
+| **Concurrency**   | 5 (prefetch)                                            |
+| **Memory Limit**  | 512 MB                                                  |
+| **Restart Delay** | 5 seconds                                               |
+| **Log**           | `/var/www/killreport/logs/worker-discord-webhook-*.log` |
+
+**Fed by:** `saveKillmail`, right after `NEW_KILLMAIL`. Details in
+[discord-webhook.md](../workers/discord-webhook.md).
+
+---
+
 ## ⏰ Scheduled Tasks (PM2 Cron Mode)
 
 These jobs run automatically at specific times and close when complete.
@@ -698,7 +720,7 @@ pm2 plus
 | `killreport-backend`  | `yarn start` | 4000 | 1GB    | GraphQL API |
 | `killreport-frontend` | `yarn start` | 3000 | 1GB    | Next.js UI  |
 
-### Continuously Active Workers (10)
+### Continuously Active Workers (11)
 
 | PM2 Name                               | Command                                     | Queue                                     | Concurrency | Description                   |
 | -------------------------------------- | ------------------------------------------- | ----------------------------------------- | ----------- | ----------------------------- |
@@ -712,6 +734,7 @@ pm2 plus
 | `worker-user-killmails`                | `yarn worker:user-killmails`                | `esi_user_killmails_queue`                | 1           | User ESI sync                 |
 | `worker-corporation-killmails`         | `yarn worker:corporation-killmails`         | `esi_corporation_killmails_queue`         | 1           | Corporation ESI sync          |
 | `worker-killmail-detail`               | `yarn worker:killmail-detail`               | `esi_killmail_detail_queue`               | 10          | Killmail detail fetch         |
+| `worker-discord-webhook`               | `yarn worker:discord-webhook`               | `discord_webhook_queue`                   | 5           | Discord killmail delivery     |
 | `worker-character-corporation-history` | `yarn worker:character-corporation-history` | `esi_character_corporation_history_queue` | 5           | Character corporation history |
 
 ### Scheduled Tasks (5)

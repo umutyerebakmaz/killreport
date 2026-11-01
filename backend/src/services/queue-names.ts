@@ -49,6 +49,9 @@ export const ALL_QUEUES: readonly string[] = [
   // zKillboard workers
   'zkillboard_character_queue',
 
+  // Notification workers
+  'discord_webhook_queue',
+
   // Maintenance and backfill workers
   'backfill_killmail_values_queue',
 ];

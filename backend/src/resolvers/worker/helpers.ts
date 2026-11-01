@@ -61,6 +61,8 @@ export const QUEUE_WORKER_MAP: Record<string, string[]> = {
     'worker-killmail-detail',
   ],
 
+  discord_webhook_queue: ['worker:discord-webhook', 'worker-discord-webhook'],
+
   zkillboard_character_queue: ['worker:zkillboard', 'worker-zkillboard'],
 
   backfill_killmail_values_queue: [
