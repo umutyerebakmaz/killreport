@@ -398,6 +398,14 @@ type CreateUserPayload {
   user: User
 }
 
+type DiscordWebhook {
+  createdAt: String!
+  disabled: Boolean!
+  entityId: Int!
+  entityType: TrackedEntityType!
+  name: String
+}
+
 type DogmaAttribute {
   created_at: String!
   default_value: Float
@@ -997,9 +1005,11 @@ type Mutation {
 
   """Gets a fresh EVE access token using the session cookie"""
   refreshSession: AuthPayload!
+  removeDiscordWebhook(id: Int!, type: TrackedEntityType!): Boolean!
 
   """Ends another of the user's sessions"""
   revokeSession(id: ID!): Boolean!
+  setDiscordWebhook(id: Int!, type: TrackedEntityType!, url: String!): DiscordWebhook!
   startAllianceSync(input: StartAllianceSyncInput!): StartAllianceSyncPayload!
   startCategorySync(input: StartCategorySyncInput!): StartCategorySyncPayload!
   startConstellationSync(input: StartConstellationSyncInput!): StartConstellationSyncPayload!
@@ -1185,6 +1195,7 @@ type Query {
     regionId: Int
     scope: MostValuableScope!
   ): [Killmail!]!
+  myDiscordWebhooks: [DiscordWebhook!]!
 
   """The user's open sessions"""
   mySessions: [Session!]!

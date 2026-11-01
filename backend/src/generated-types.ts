@@ -470,6 +470,15 @@ export type CreateUserPayload = {
   user?: Maybe<User>;
 };
 
+export type DiscordWebhook = {
+  __typename?: 'DiscordWebhook';
+  createdAt: Scalars['String']['output'];
+  disabled: Scalars['Boolean']['output'];
+  entityId: Scalars['Int']['output'];
+  entityType: TrackedEntityType;
+  name?: Maybe<Scalars['String']['output']>;
+};
+
 export type DogmaAttribute = {
   __typename?: 'DogmaAttribute';
   created_at: Scalars['String']['output'];
@@ -1028,8 +1037,10 @@ export type Mutation = {
   refreshCharacter: RefreshCharacterResult;
   /** Gets a fresh EVE access token using the session cookie */
   refreshSession: AuthPayload;
+  removeDiscordWebhook: Scalars['Boolean']['output'];
   /** Ends another of the user's sessions */
   revokeSession: Scalars['Boolean']['output'];
+  setDiscordWebhook: DiscordWebhook;
   startAllianceSync: StartAllianceSyncPayload;
   startCategorySync: StartCategorySyncPayload;
   startConstellationSync: StartConstellationSyncPayload;
@@ -1085,8 +1096,21 @@ export type MutationRefreshCharacterArgs = {
 };
 
 
+export type MutationRemoveDiscordWebhookArgs = {
+  id: Scalars['Int']['input'];
+  type: TrackedEntityType;
+};
+
+
 export type MutationRevokeSessionArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationSetDiscordWebhookArgs = {
+  id: Scalars['Int']['input'];
+  type: TrackedEntityType;
+  url: Scalars['String']['input'];
 };
 
 
@@ -1290,6 +1314,7 @@ export type Query = {
    * Scope is matched against the victim's hull, never an attacker's.
    */
   mostValuableKillmails: Array<Killmail>;
+  myDiscordWebhooks: Array<DiscordWebhook>;
   /** The user's open sessions */
   mySessions: Array<Session>;
   myTracker: Tracker;
@@ -2707,6 +2732,7 @@ export type ResolversTypes = {
   CorporationsResponse: ResolverTypeWrapper<CorporationsResponse>;
   CreateUserInput: CreateUserInput;
   CreateUserPayload: ResolverTypeWrapper<CreateUserPayload>;
+  DiscordWebhook: ResolverTypeWrapper<DiscordWebhook>;
   DogmaAttribute: ResolverTypeWrapper<DogmaAttribute>;
   DogmaAttributeFilter: DogmaAttributeFilter;
   DogmaAttributesResponse: ResolverTypeWrapper<DogmaAttributesResponse>;
@@ -2883,6 +2909,7 @@ export type ResolversParentTypes = {
   CorporationsResponse: CorporationsResponse;
   CreateUserInput: CreateUserInput;
   CreateUserPayload: CreateUserPayload;
+  DiscordWebhook: DiscordWebhook;
   DogmaAttribute: DogmaAttribute;
   DogmaAttributeFilter: DogmaAttributeFilter;
   DogmaAttributesResponse: DogmaAttributesResponse;
@@ -3277,6 +3304,14 @@ export type CreateUserPayloadResolvers<ContextType = any, ParentType extends Res
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
 };
 
+export type DiscordWebhookResolvers<ContextType = any, ParentType extends ResolversParentTypes['DiscordWebhook'] = ResolversParentTypes['DiscordWebhook']> = {
+  createdAt?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  disabled?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  entityId?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  entityType?: Resolver<ResolversTypes['TrackedEntityType'], ParentType, ContextType>;
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+};
+
 export type DogmaAttributeResolvers<ContextType = any, ParentType extends ResolversParentTypes['DogmaAttribute'] = ResolversParentTypes['DogmaAttribute']> = {
   created_at?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   default_value?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
@@ -3571,7 +3606,9 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   logout?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   refreshCharacter?: Resolver<ResolversTypes['RefreshCharacterResult'], ParentType, ContextType, RequireFields<MutationRefreshCharacterArgs, 'characterId'>>;
   refreshSession?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType>;
+  removeDiscordWebhook?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRemoveDiscordWebhookArgs, 'id' | 'type'>>;
   revokeSession?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationRevokeSessionArgs, 'id'>>;
+  setDiscordWebhook?: Resolver<ResolversTypes['DiscordWebhook'], ParentType, ContextType, RequireFields<MutationSetDiscordWebhookArgs, 'id' | 'type' | 'url'>>;
   startAllianceSync?: Resolver<ResolversTypes['StartAllianceSyncPayload'], ParentType, ContextType, RequireFields<MutationStartAllianceSyncArgs, 'input'>>;
   startCategorySync?: Resolver<ResolversTypes['StartCategorySyncPayload'], ParentType, ContextType, RequireFields<MutationStartCategorySyncArgs, 'input'>>;
   startConstellationSync?: Resolver<ResolversTypes['StartConstellationSyncPayload'], ParentType, ContextType, RequireFields<MutationStartConstellationSyncArgs, 'input'>>;
@@ -3672,6 +3709,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   mostAggressiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostAggressiveAlliancesArgs>>;
   mostDefensiveAlliances?: Resolver<Array<ResolversTypes['AllianceActivityRank']>, ParentType, ContextType, Partial<QueryMostDefensiveAlliancesArgs>>;
   mostValuableKillmails?: Resolver<Array<ResolversTypes['Killmail']>, ParentType, ContextType, RequireFields<QueryMostValuableKillmailsArgs, 'days' | 'limit' | 'scope'>>;
+  myDiscordWebhooks?: Resolver<Array<ResolversTypes['DiscordWebhook']>, ParentType, ContextType>;
   mySessions?: Resolver<Array<ResolversTypes['Session']>, ParentType, ContextType>;
   myTracker?: Resolver<ResolversTypes['Tracker'], ParentType, ContextType>;
   race?: Resolver<Maybe<ResolversTypes['Race']>, ParentType, ContextType, RequireFields<QueryRaceArgs, 'id'>>;
@@ -4233,6 +4271,7 @@ export type Resolvers<ContextType = any> = {
   CorporationTopTarget?: CorporationTopTargetResolvers<ContextType>;
   CorporationsResponse?: CorporationsResponseResolvers<ContextType>;
   CreateUserPayload?: CreateUserPayloadResolvers<ContextType>;
+  DiscordWebhook?: DiscordWebhookResolvers<ContextType>;
   DogmaAttribute?: DogmaAttributeResolvers<ContextType>;
   DogmaAttributesResponse?: DogmaAttributesResponseResolvers<ContextType>;
   DogmaEffect?: DogmaEffectResolvers<ContextType>;
