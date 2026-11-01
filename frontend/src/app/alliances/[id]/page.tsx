@@ -32,6 +32,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import EveImage from '@/components/ui/EveImage';
+import DiscordWebhookButton from '@/components/DiscordWebhook/DiscordWebhookButton';
 import TrackButton from '@/components/Tracker/TrackButton';
 
 interface AllianceDetailPageProps {
@@ -359,8 +360,12 @@ export default function AllianceDetailPage({
                   [{alliance.ticker}]
                 </span>
               </div>
-              <div className="mt-3">
+              <div className="flex items-center gap-2 mt-3">
                 <TrackButton
+                  type={TrackedEntityType.Alliance}
+                  id={alliance.id}
+                />
+                <DiscordWebhookButton
                   type={TrackedEntityType.Alliance}
                   id={alliance.id}
                 />

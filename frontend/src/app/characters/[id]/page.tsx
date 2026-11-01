@@ -27,6 +27,7 @@ import { getSecurityStatusColor } from '@/utils/securityStatus';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { use, useCallback, useEffect, useMemo, useState } from 'react';
 import EveImage from '@/components/ui/EveImage';
+import DiscordWebhookButton from '@/components/DiscordWebhook/DiscordWebhookButton';
 import TrackButton from '@/components/Tracker/TrackButton';
 
 interface CharacterDetailPageProps {
@@ -286,8 +287,12 @@ export default function CharacterDetailPage({
             </div>
           )}
 
-          <div>
+          <div className="flex items-center gap-2">
             <TrackButton type={TrackedEntityType.Character} id={character.id} />
+            <DiscordWebhookButton
+              type={TrackedEntityType.Character}
+              id={character.id}
+            />
           </div>
 
           {/* Age */}
