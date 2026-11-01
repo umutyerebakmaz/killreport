@@ -270,37 +270,37 @@ describe('buildKillmailEmbed', () => {
     expect(e.title).toBe('Capsule');
     expect(e.url).toBe(`${site}/killmails/555`);
     expect(e.description).toBe(
-      `[Fraternity.](${site}/corporations/98814817), [Fraternity](${site}/alliances/99003581)`,
+      `[Fraternity.](${site}/corporations/98814817), [Fraternity](${site}/alliances/99003581) ${PAD}`,
     );
     expect(
       embedOf({ ...base, victimAlliance: { id: null, name: null } })
         .description,
-    ).toBe(`[Fraternity.](${site}/corporations/98814817)`);
+    ).toBe(`[Fraternity.](${site}/corporations/98814817) ${PAD}`);
   });
 
-  it('six inline fields in two rows of three, uppercase labels, site ISK format', () => {
+  it('six inline fields in two rows of three, sentence-case labels, site ISK format', () => {
     const e = embedOf(base);
     expect(e.fields.map((f) => f.name)).toEqual([
-      'DESTROYED',
-      'DROPPED',
-      'TOTAL',
-      'FINAL BLOW',
-      'ATTACKERS',
-      'LOCATION',
+      'Destroyed',
+      'Dropped',
+      'Total',
+      'Final blow',
+      'Attackers',
+      'Location',
     ]);
     expect(e.fields.every((f) => f.inline === true)).toBe(true);
-    expect(field(e, 'DESTROYED')?.value).toBe('10.00K ISK');
-    expect(field(e, 'DROPPED')?.value).toBe('46.22M ISK');
-    expect(field(e, 'TOTAL')?.value).toBe('**46.23M ISK**');
-    expect(field(e, 'ATTACKERS')?.value).toBe('9');
+    expect(field(e, 'Destroyed')?.value).toBe('10.00K ISK');
+    expect(field(e, 'Dropped')?.value).toBe('46.22M ISK');
+    expect(field(e, 'Total')?.value).toBe('**46.23M ISK**');
+    expect(field(e, 'Attackers')?.value).toBe('9');
   });
 
   it('final blow and location link every entity', () => {
     const e = embedOf(base);
-    expect(field(e, 'FINAL BLOW')?.value).toBe(
+    expect(field(e, 'Final blow')?.value).toBe(
       `[Alik Organa](${site}/characters/9001)\nHarpy`,
     );
-    expect(field(e, 'LOCATION')?.value).toBe(
+    expect(field(e, 'Location')?.value).toBe(
       `[4-P4FE](${site}/solar-systems/30004500) (-0.3)\n[Tenerifis](${site}/regions/10000061)`,
     );
   });
@@ -316,7 +316,7 @@ describe('buildKillmailEmbed', () => {
   it('footer names the matched entities, with the first one’s logo', () => {
     const e = embedOf(base);
     expect(e.footer).toEqual({
-      text: `Fraternity. ${PAD}`,
+      text: 'Fraternity.',
       icon_url: 'https://images.evetech.net/corporations/98814817/logo?size=64',
     });
     const multi = embedOf({
@@ -327,19 +327,18 @@ describe('buildKillmailEmbed', () => {
         { type: 'CHARACTER', id: 365974960, name: 'General XAN' },
       ],
     });
-    expect(multi.footer.text).toBe(`Fraternity, General XAN ${PAD}`);
+    expect(multi.footer.text).toBe('Fraternity, General XAN');
     expect(multi.footer.icon_url).toBe(
       'https://images.evetech.net/alliances/99003581/logo?size=64',
     );
   });
 
-  it('pads the footer to a fixed width and carries no timestamp, so Discord adds no stray bullet', () => {
+  it('pads the description, not the footer, so the footer text stays level with its logo', () => {
     expect(EMBED_WIDTH_PAD).toBe(70);
-    const short = embedOf({ ...base, victim: { id: 1, name: 'A' } });
-    const long = embedOf({ ...base, victim: { id: 1, name: 'B'.repeat(40) } });
-    expect(short.footer.text).toBe(long.footer.text);
-    expect(short.footer.text.endsWith('\u2800'.repeat(70))).toBe(true);
-    expect(short.timestamp).toBeUndefined();
+    const e = embedOf(base);
+    expect(e.description.endsWith(` ${PAD}`)).toBe(true);
+    expect(e.footer.text).not.toContain('\u2800');
+    expect(e.timestamp).toBeUndefined();
   });
 
   it('escapes markdown in names', () => {
@@ -378,11 +377,11 @@ describe('buildKillmailEmbed', () => {
     });
     expect(e.author.name).toBe('Unknown');
     expect(e.title).toBe('Unknown');
-    expect(e.description).toBe('Unknown');
-    expect(field(e, 'TOTAL')?.value).toBe('**Unknown**');
-    expect(field(e, 'FINAL BLOW')?.value).toBe('Unknown');
-    expect(field(e, 'LOCATION')?.value).toBe('Unknown');
-    expect(e.footer.text).toBe(`Unknown ${PAD}`);
+    expect(e.description).toBe(`Unknown ${PAD}`);
+    expect(field(e, 'Total')?.value).toBe('**Unknown**');
+    expect(field(e, 'Final blow')?.value).toBe('Unknown');
+    expect(field(e, 'Location')?.value).toBe('Unknown');
+    expect(e.footer.text).toBe('Unknown');
     expect(JSON.stringify(e)).not.toContain('null');
     expect(JSON.stringify(e)).not.toContain('](');
   });
