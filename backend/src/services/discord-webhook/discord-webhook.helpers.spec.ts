@@ -214,6 +214,8 @@ describe('buildKillmailEmbed', () => {
     finalBlow: { id: 9001, name: 'Alik Organa' },
     finalBlowShipName: 'Harpy',
     totalValue: 46_234_300.7,
+    destroyedValue: 10_000,
+    droppedValue: 46_224_300.7,
     attackerCount: 9,
     system: { id: 30004500, name: '4-P4FE' },
     securityStatus: -0.31,
@@ -231,10 +233,12 @@ describe('buildKillmailEmbed', () => {
     image?: unknown;
     thumbnail: { url: string };
     footer: { text: string; icon_url: string };
-    fields?: Field[];
+    fields: Field[];
   };
   const embedOf = (input: EmbedInput): Embed =>
     buildKillmailEmbed(input).embeds![0] as unknown as Embed;
+  const field = (e: Embed, name: string) =>
+    e.fields.find((f) => f.name === name);
 
   it('kill is green, loss is red; the colour is the only colour', () => {
     expect(embedOf(base).color).toBe(0xe74c3c);
@@ -261,45 +265,44 @@ describe('buildKillmailEmbed', () => {
     });
   });
 
-  it('title is the ship, linked to the killmail', () => {
+  it('title is the ship, linked to the killmail; description is the linked corp, alliance', () => {
     const e = embedOf(base);
     expect(e.title).toBe('Capsule');
     expect(e.url).toBe(`${site}/killmails/555`);
-  });
-
-  it('description is four short lines: affiliation, location, final blow, value', () => {
-    expect(embedOf(base).description).toBe(
-      [
-        `[Fraternity.](${site}/corporations/98814817), [Fraternity](${site}/alliances/99003581)`,
-        `Lost in [4-P4FE](${site}/solar-systems/30004500) (-0.3), [Tenerifis](${site}/regions/10000061)`,
-        `Final blow by [Alik Organa](${site}/characters/9001) in a Harpy, with 8 others`,
-        '**46.23M ISK**',
-      ].join('\n'),
+    expect(e.description).toBe(
+      `[Fraternity.](${site}/corporations/98814817), [Fraternity](${site}/alliances/99003581)`,
     );
+    expect(
+      embedOf({ ...base, victimAlliance: { id: null, name: null } })
+        .description,
+    ).toBe(`[Fraternity.](${site}/corporations/98814817)`);
   });
 
-  it('no fields: the description carries everything', () => {
-    expect(embedOf(base).fields).toBeUndefined();
+  it('six inline fields in two rows of three, uppercase labels, site ISK format', () => {
+    const e = embedOf(base);
+    expect(e.fields.map((f) => f.name)).toEqual([
+      'DESTROYED',
+      'DROPPED',
+      'TOTAL',
+      'FINAL BLOW',
+      'ATTACKERS',
+      'LOCATION',
+    ]);
+    expect(e.fields.every((f) => f.inline === true)).toBe(true);
+    expect(field(e, 'DESTROYED')?.value).toBe('10.00K ISK');
+    expect(field(e, 'DROPPED')?.value).toBe('46.22M ISK');
+    expect(field(e, 'TOTAL')?.value).toBe('**46.23M ISK**');
+    expect(field(e, 'ATTACKERS')?.value).toBe('9');
   });
 
-  it('affiliation without an alliance is just the corporation', () => {
-    const lines = embedOf({
-      ...base,
-      victimAlliance: { id: null, name: null },
-    }).description.split('\n');
-    expect(lines[0]).toBe(`[Fraternity.](${site}/corporations/98814817)`);
-  });
-
-  it('a solo kill says solo, one other says "1 other", articles follow the ship', () => {
-    const line = (input: Partial<EmbedInput>) =>
-      embedOf({ ...base, ...input }).description.split('\n')[2];
-    expect(line({ attackerCount: 1 })).toBe(
-      `Final blow by [Alik Organa](${site}/characters/9001) in a Harpy, solo`,
+  it('final blow and location link every entity', () => {
+    const e = embedOf(base);
+    expect(field(e, 'FINAL BLOW')?.value).toBe(
+      `[Alik Organa](${site}/characters/9001)\nHarpy`,
     );
-    expect(line({ attackerCount: 2 })).toBe(
-      `Final blow by [Alik Organa](${site}/characters/9001) in a Harpy, with 1 other`,
+    expect(field(e, 'LOCATION')?.value).toBe(
+      `[4-P4FE](${site}/solar-systems/30004500) (-0.3)\n[Tenerifis](${site}/regions/10000061)`,
     );
-    expect(line({ finalBlowShipName: 'Ishtar' })).toContain('in an Ishtar,');
   });
 
   it('ship render as a retina thumbnail on the right, no large image', () => {
@@ -366,6 +369,8 @@ describe('buildKillmailEmbed', () => {
       finalBlow: { id: null, name: null },
       finalBlowShipName: null,
       totalValue: null,
+      destroyedValue: null,
+      droppedValue: null,
       system: { id: null, name: null },
       securityStatus: null,
       region: { id: null, name: null },
@@ -373,20 +378,16 @@ describe('buildKillmailEmbed', () => {
     });
     expect(e.author.name).toBe('Unknown');
     expect(e.title).toBe('Unknown');
-    expect(e.description).toBe(
-      [
-        'Unknown',
-        'Lost in Unknown',
-        'Final blow by Unknown, with 8 others',
-        '**Unknown value**',
-      ].join('\n'),
-    );
+    expect(e.description).toBe('Unknown');
+    expect(field(e, 'TOTAL')?.value).toBe('**Unknown**');
+    expect(field(e, 'FINAL BLOW')?.value).toBe('Unknown');
+    expect(field(e, 'LOCATION')?.value).toBe('Unknown');
     expect(e.footer.text).toBe(`Unknown ${PAD}`);
     expect(JSON.stringify(e)).not.toContain('null');
     expect(JSON.stringify(e)).not.toContain('](');
   });
 
-  it('caps title, author, description and footer at their limits', () => {
+  it('caps field values at 1024, title, author and footer at their limits', () => {
     const long = 'x'.repeat(3000);
     const e = embedOf({
       ...base,
@@ -396,6 +397,7 @@ describe('buildKillmailEmbed', () => {
       finalBlow: { id: 3, name: long },
       entities: [{ type: 'ALLIANCE', id: 4, name: long }],
     });
+    for (const f of e.fields) expect(f.value.length).toBeLessThanOrEqual(1024);
     expect(e.title.length).toBeLessThanOrEqual(256);
     expect(e.author.name.length).toBeLessThanOrEqual(256);
     expect(e.description.length).toBeLessThanOrEqual(4096);
