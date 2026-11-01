@@ -133,11 +133,13 @@ export type EmbedInput = {
   finalBlow: NamedRef;
   finalBlowShipName: string | null;
   totalValue: number | null;
+  destroyedValue: number | null;
+  droppedValue: number | null;
   attackerCount: number;
-  systemName: string | null;
+  system: NamedRef;
   securityStatus: number | null;
-  regionName: string | null;
-  /** The entities this channel matched on; the first one gives the author logo. */
+  region: NamedRef;
+  /** The entities this channel matched on; the first one gives the footer logo. */
   entities: { type: EntityRef['type']; id: number; name: string | null }[];
 };
 export type DiscordPayload = {
@@ -152,17 +154,12 @@ const KILL_COLOR = 0x2ecc71;
 const LOSS_COLOR = 0xe74c3c;
 const FIELD_LIMIT = 1024;
 const TITLE_LIMIT = 256;
+const FOOTER_LIMIT = 2048;
 const NAME_LIMIT = 100;
 const UNKNOWN = 'Unknown';
 const IMAGE_BASE = 'https://images.evetech.net';
-
-/**
- * Discord sizes an embed to its longest line, so short kills render narrower
- * than long ones. A footer line of U+2800 (braille blank — Discord does not
- * trim it) longer than the embed's maximum width makes every card open to
- * that maximum. Tune the count if cards still differ.
- */
-export const EMBED_WIDTH_PAD = 60;
+/** Discord shows an embed image at up to ~400px; 1024 stays sharp on 2x screens. */
+const RENDER_SIZE = 1024;
 
 const cap = (value: string, limit = FIELD_LIMIT): string =>
   value.slice(0, limit);
@@ -181,103 +178,115 @@ const ISK_UNITS: [number, string][] = [
   [1e3, 'K'],
 ];
 
-/** `1240512330` → `1.24B ISK`: at most two decimals, trailing zeros dropped. */
+/**
+ * The site's `formatISK` (frontend/src/utils/formatISK.ts) with an ISK
+ * suffix: two decimals above a thousand, whole ISK below.
+ */
 export function formatIsk(value: number): string {
   for (const [size, unit] of ISK_UNITS) {
     if (Math.abs(value) >= size) {
-      return `${Number((value / size).toFixed(2))}${unit} ISK`;
+      return `${(value / size).toFixed(2)}${unit} ISK`;
     }
   }
-  return `${Math.round(value)} ISK`;
+  return `${Math.round(value).toLocaleString('en-US')} ISK`;
 }
 
-const PAGE: Record<EntityRef['type'], string> = {
+type PageType = EntityRef['type'] | 'SYSTEM' | 'REGION';
+
+const PAGE: Record<PageType, string> = {
   CHARACTER: 'characters',
   CORPORATION: 'corporations',
   ALLIANCE: 'alliances',
+  SYSTEM: 'solar-systems',
+  REGION: 'regions',
 };
 
-const ICON: Record<EntityRef['type'], string> = {
-  CHARACTER: 'portrait',
-  CORPORATION: 'logo',
-  ALLIANCE: 'logo',
-};
-
-const article = (word: string): string => (/^[aeiou]/i.test(word) ? 'an' : 'a');
+const imageOf = (type: EntityRef['type'], id: number, size: number): string =>
+  type === 'CHARACTER'
+    ? `${IMAGE_BASE}/characters/${id}/portrait?size=${size}`
+    : `${IMAGE_BASE}/${PAGE[type]}/${id}/logo?size=${size}`;
 
 export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
   const base = input.frontendUrl.replace(/\/+$/, '');
+  const pageOf = (type: PageType, id: number) => `${base}/${PAGE[type]}/${id}`;
 
   /** A linked, escaped name; an unknown name is plain `Unknown`, unlinked. */
-  const link = (type: EntityRef['type'], ref: NamedRef): string =>
-    ref.name === null
-      ? UNKNOWN
-      : ref.id === null
-        ? escapeMd(cap(ref.name, NAME_LIMIT))
-        : `[${escapeMd(cap(ref.name, NAME_LIMIT))}](${base}/${PAGE[type]}/${ref.id})`;
+  const link = (type: PageType, ref: NamedRef): string => {
+    if (ref.name === null) return UNKNOWN;
+    const text = escapeMd(cap(ref.name, NAME_LIMIT));
+    return ref.id === null ? text : `[${text}](${pageOf(type, ref.id)})`;
+  };
+  const isk = (value: number | null) =>
+    value === null ? UNKNOWN : formatIsk(value);
 
-  const ship = input.shipName ?? UNKNOWN;
-  const victimLabel = input.victim.name ?? input.victimCorp.name ?? UNKNOWN;
+  // The victim is a character, or for a structure its corporation.
+  const authorRef: { type: EntityRef['type']; ref: NamedRef } =
+    input.victim.name !== null
+      ? { type: 'CHARACTER', ref: input.victim }
+      : { type: 'CORPORATION', ref: input.victimCorp };
+  const author =
+    authorRef.ref.name === null || authorRef.ref.id === null
+      ? { name: cap(authorRef.ref.name ?? UNKNOWN, TITLE_LIMIT) }
+      : {
+          name: cap(authorRef.ref.name, TITLE_LIMIT),
+          icon_url: imageOf(authorRef.type, authorRef.ref.id, 128),
+          url: pageOf(authorRef.type, authorRef.ref.id),
+        };
 
-  const victimLines =
-    input.victim.name === null && input.victimCorp.name === null
+  const affiliation =
+    input.victimCorp.name === null && input.victimAlliance.name === null
       ? UNKNOWN
       : [
-          ...(input.victim.name === null
+          ...(input.victimCorp.name === null
             ? []
-            : [link('CHARACTER', input.victim)]),
-          [
-            link('CORPORATION', input.victimCorp),
-            ...(input.victimAlliance.name === null
-              ? []
-              : [link('ALLIANCE', input.victimAlliance)]),
-          ].join(' / '),
-        ].join('\n');
+            : [link('CORPORATION', input.victimCorp)]),
+          ...(input.victimAlliance.name === null
+            ? []
+            : [link('ALLIANCE', input.victimAlliance)]),
+        ].join(' / ');
 
   const finalBlow =
     input.finalBlow.name === null && input.finalBlowShipName === null
       ? UNKNOWN
-      : `${link('CHARACTER', input.finalBlow)} (${escapeMd(input.finalBlowShipName ?? UNKNOWN)})`;
+      : `${link('CHARACTER', input.finalBlow)}\n${escapeMd(input.finalBlowShipName ?? UNKNOWN)}`;
 
   const location =
-    input.systemName === null && input.regionName === null
+    input.system.name === null && input.region.name === null
       ? UNKNOWN
-      : `${escapeMd(input.systemName ?? UNKNOWN)}${
+      : `${link('SYSTEM', input.system)}${
           input.securityStatus === null
             ? ''
             : ` (${input.securityStatus.toFixed(1)})`
-        } · ${escapeMd(input.regionName ?? UNKNOWN)}`;
-
-  const value =
-    input.totalValue === null ? 'Unknown value' : formatIsk(input.totalValue);
-  const attackers = `${input.attackerCount} attacker${input.attackerCount === 1 ? '' : 's'}`;
+        }\n${link('REGION', input.region)}`;
 
   const lead = input.entities[0];
   const entityNames = input.entities.map((e) => e.name ?? UNKNOWN).join(', ');
 
   const embed = {
-    author: {
-      name: cap(
-        `${input.kind === 'loss' ? 'LOSS' : 'KILL'} · ${entityNames}`,
-        TITLE_LIMIT,
-      ),
-      icon_url: `${IMAGE_BASE}/${PAGE[lead.type]}/${lead.id}/${ICON[lead.type]}?size=64`,
-      url: `${base}/${PAGE[lead.type]}/${lead.id}`,
-    },
-    title: cap(`${victimLabel} lost ${article(ship)} ${ship}`, TITLE_LIMIT),
+    author,
+    title: cap(input.shipName ?? UNKNOWN, TITLE_LIMIT),
     url: `${base}/killmails/${input.killmailId}`,
-    description: `**${value}** · ${attackers}`,
+    description: cap(affiliation, 4096),
     color: input.kind === 'loss' ? LOSS_COLOR : KILL_COLOR,
-    thumbnail: {
-      url: `${IMAGE_BASE}/types/${input.shipTypeId}/render?size=128`,
-    },
     fields: [
-      { name: 'Victim', value: cap(victimLines) },
-      { name: 'Final blow', value: cap(finalBlow) },
-      { name: 'Location', value: cap(location) },
+      { name: 'DESTROYED', value: isk(input.destroyedValue), inline: true },
+      { name: 'DROPPED', value: isk(input.droppedValue), inline: true },
+      { name: 'TOTAL', value: `**${isk(input.totalValue)}**`, inline: true },
+      { name: 'FINAL BLOW', value: cap(finalBlow), inline: true },
+      { name: 'ATTACKERS', value: String(input.attackerCount), inline: true },
+      { name: 'LOCATION', value: cap(location), inline: true },
     ],
+    image: {
+      url: `${IMAGE_BASE}/types/${input.shipTypeId}/render?size=${RENDER_SIZE}`,
+    },
     timestamp: input.killmailTime.toISOString(),
-    footer: { text: `KillReport ${'\u2800'.repeat(EMBED_WIDTH_PAD)}` },
+    footer: {
+      text: cap(
+        `${input.kind === 'loss' ? 'LOSS' : 'KILL'} | ${entityNames}`,
+        FOOTER_LIMIT,
+      ),
+      icon_url: imageOf(lead.type, lead.id, 64),
+    },
   };
   return { embeds: [embed], allowed_mentions: NO_MENTIONS };
 }

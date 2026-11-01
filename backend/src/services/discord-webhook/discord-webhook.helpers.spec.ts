@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildKillmailEmbed,
-  EMBED_WIDTH_PAD,
   formatIsk,
   isEligible,
   normalizeWebhookUrl,
@@ -189,35 +188,40 @@ describe('planDeliveries', () => {
 });
 
 describe('formatIsk', () => {
-  it('shortens to K / M / B / T with up to two decimals', () => {
+  it('matches the site: two decimals with K / M / B / T, whole ISK below 1000', () => {
+    expect(formatIsk(0)).toBe('0 ISK');
     expect(formatIsk(950)).toBe('950 ISK');
-    expect(formatIsk(12_500)).toBe('12.5K ISK');
-    expect(formatIsk(950_000_000)).toBe('950M ISK');
+    expect(formatIsk(10_000)).toBe('10.00K ISK');
+    expect(formatIsk(46_224_300.7)).toBe('46.22M ISK');
     expect(formatIsk(1_240_512_330)).toBe('1.24B ISK');
-    expect(formatIsk(3_000_000_000_000)).toBe('3T ISK');
+    expect(formatIsk(3_000_000_000_000)).toBe('3.00T ISK');
   });
 });
 
 describe('buildKillmailEmbed', () => {
+  const site = 'https://killreport.example';
   const base: EmbedInput = {
     kind: 'loss',
     killmailId: 555,
     killmailTime: new Date('2026-11-01T11:59:00Z'),
-    frontendUrl: 'https://killreport.example',
-    shipTypeId: 29990,
-    shipName: 'Loki',
+    frontendUrl: site,
+    shipTypeId: 670,
+    shipName: 'Capsule',
     victim: { id: 365974960, name: 'General XAN' },
-    victimCorp: { id: 98814817, name: 'Corp X' },
-    victimAlliance: { id: 99005338, name: 'Alliance Y' },
-    finalBlow: { id: 9001, name: 'Killer' },
-    finalBlowShipName: 'Sabre',
-    totalValue: 1_240_512_330,
-    attackerCount: 37,
-    systemName: 'J-GAMP',
-    securityStatus: -0.4,
-    regionName: 'Catch',
-    entities: [{ type: 'ALLIANCE', id: 99005338, name: 'Alliance Y' }],
+    victimCorp: { id: 98814817, name: 'Fraternity.' },
+    victimAlliance: { id: 99003581, name: 'Fraternity' },
+    finalBlow: { id: 9001, name: 'Alik Organa' },
+    finalBlowShipName: 'Harpy',
+    totalValue: 46_234_300.7,
+    destroyedValue: 10_000,
+    droppedValue: 46_224_300.7,
+    attackerCount: 9,
+    system: { id: 30004500, name: '4-P4FE' },
+    securityStatus: -0.31,
+    region: { id: 10000061, name: 'Tenerifis' },
+    entities: [{ type: 'CORPORATION', id: 98814817, name: 'Fraternity.' }],
   };
+  type Field = { name: string; value: string; inline?: boolean };
   type Embed = {
     author: { name: string; icon_url: string; url: string };
     title: string;
@@ -225,108 +229,120 @@ describe('buildKillmailEmbed', () => {
     description: string;
     color: number;
     timestamp: string;
-    thumbnail: { url: string };
-    footer: { text: string };
-    fields: { name: string; value: string; inline?: boolean }[];
+    image: { url: string };
+    thumbnail?: unknown;
+    footer: { text: string; icon_url: string };
+    fields: Field[];
   };
   const embedOf = (input: EmbedInput): Embed =>
     buildKillmailEmbed(input).embeds![0] as unknown as Embed;
   const field = (e: Embed, name: string) =>
-    e.fields.find((f) => f.name === name)?.value;
+    e.fields.find((f) => f.name === name);
 
-  it('uses red for loss, green for kill, links to the killmail page and sets the ship thumbnail', () => {
-    const loss = embedOf(base);
-    expect(loss.color).toBe(0xe74c3c);
+  it('kill is green, loss is red; the colour is the only colour', () => {
+    expect(embedOf(base).color).toBe(0xe74c3c);
     expect(embedOf({ ...base, kind: 'kill' }).color).toBe(0x2ecc71);
-    expect(loss.url).toBe('https://killreport.example/killmails/555');
-    expect(loss.thumbnail.url).toBe(
-      'https://images.evetech.net/types/29990/render?size=128',
-    );
-    expect(loss.timestamp).toBe('2026-11-01T11:59:00.000Z');
   });
 
-  it('author line names kill or loss and the entity, with its logo and page', () => {
-    const loss = embedOf(base);
-    expect(loss.author).toEqual({
-      name: 'LOSS · Alliance Y',
-      icon_url: 'https://images.evetech.net/alliances/99005338/logo?size=64',
-      url: 'https://killreport.example/alliances/99005338',
+  it('author is the victim with portrait, linked to their page', () => {
+    expect(embedOf(base).author).toEqual({
+      name: 'General XAN',
+      icon_url:
+        'https://images.evetech.net/characters/365974960/portrait?size=128',
+      url: `${site}/characters/365974960`,
     });
-    const kill = embedOf({
+  });
+
+  it('a victim without a character (structure) is authored by its corporation', () => {
+    expect(
+      embedOf({ ...base, victim: { id: null, name: null } }).author,
+    ).toEqual({
+      name: 'Fraternity.',
+      icon_url:
+        'https://images.evetech.net/corporations/98814817/logo?size=128',
+      url: `${site}/corporations/98814817`,
+    });
+  });
+
+  it('title is the ship, linked to the killmail; description is the linked corp / alliance', () => {
+    const e = embedOf(base);
+    expect(e.title).toBe('Capsule');
+    expect(e.url).toBe(`${site}/killmails/555`);
+    expect(e.description).toBe(
+      `[Fraternity.](${site}/corporations/98814817) / [Fraternity](${site}/alliances/99003581)`,
+    );
+    expect(
+      embedOf({ ...base, victimAlliance: { id: null, name: null } })
+        .description,
+    ).toBe(`[Fraternity.](${site}/corporations/98814817)`);
+  });
+
+  it('six inline fields in two rows of three, uppercase labels, site ISK format', () => {
+    const e = embedOf(base);
+    expect(e.fields.map((f) => f.name)).toEqual([
+      'DESTROYED',
+      'DROPPED',
+      'TOTAL',
+      'FINAL BLOW',
+      'ATTACKERS',
+      'LOCATION',
+    ]);
+    expect(e.fields.every((f) => f.inline === true)).toBe(true);
+    expect(field(e, 'DESTROYED')?.value).toBe('10.00K ISK');
+    expect(field(e, 'DROPPED')?.value).toBe('46.22M ISK');
+    expect(field(e, 'TOTAL')?.value).toBe('**46.23M ISK**');
+    expect(field(e, 'ATTACKERS')?.value).toBe('9');
+  });
+
+  it('final blow and location link every entity', () => {
+    const e = embedOf(base);
+    expect(field(e, 'FINAL BLOW')?.value).toBe(
+      `[Alik Organa](${site}/characters/9001)\nHarpy`,
+    );
+    expect(field(e, 'LOCATION')?.value).toBe(
+      `[4-P4FE](${site}/solar-systems/30004500) (-0.3)\n[Tenerifis](${site}/regions/10000061)`,
+    );
+  });
+
+  it('large retina ship render as the image, no thumbnail', () => {
+    const e = embedOf(base);
+    expect(e.image).toEqual({
+      url: 'https://images.evetech.net/types/670/render?size=1024',
+    });
+    expect(e.thumbnail).toBeUndefined();
+  });
+
+  it('footer names kill or loss and the matched entities, with the first one’s logo', () => {
+    const e = embedOf(base);
+    expect(e.footer).toEqual({
+      text: 'LOSS | Fraternity.',
+      icon_url: 'https://images.evetech.net/corporations/98814817/logo?size=64',
+    });
+    const multi = embedOf({
       ...base,
       kind: 'kill',
-      entities: [{ type: 'CORPORATION', id: 98814817, name: 'Corp X' }],
-    });
-    expect(kill.author.name).toBe('KILL · Corp X');
-    expect(kill.author.icon_url).toBe(
-      'https://images.evetech.net/corporations/98814817/logo?size=64',
-    );
-    const char = embedOf({
-      ...base,
-      entities: [{ type: 'CHARACTER', id: 365974960, name: 'General XAN' }],
-    });
-    expect(char.author.icon_url).toBe(
-      'https://images.evetech.net/characters/365974960/portrait?size=64',
-    );
-  });
-
-  it('author lists every entity when one channel matched several, logo of the first', () => {
-    const e = embedOf({
-      ...base,
       entities: [
-        { type: 'ALLIANCE', id: 99005338, name: 'Alliance Y' },
-        { type: 'CORPORATION', id: 98814817, name: 'Corp X' },
+        { type: 'ALLIANCE', id: 99003581, name: 'Fraternity' },
+        { type: 'CHARACTER', id: 365974960, name: 'General XAN' },
       ],
     });
-    expect(e.author.name).toBe('LOSS · Alliance Y, Corp X');
-    expect(e.author.icon_url).toContain('/alliances/99005338/');
-  });
-
-  it('title is a sentence and the description carries value and attackers', () => {
-    const e = embedOf(base);
-    expect(e.title).toBe('General XAN lost a Loki');
-    expect(e.description).toBe('**1.24B ISK** · 37 attackers');
-    expect(embedOf({ ...base, attackerCount: 1 }).description).toBe(
-      '**1.24B ISK** · 1 attacker',
+    expect(multi.footer.text).toBe('KILL | Fraternity, General XAN');
+    expect(multi.footer.icon_url).toBe(
+      'https://images.evetech.net/alliances/99003581/logo?size=64',
     );
-    expect(embedOf({ ...base, shipName: 'Ishtar' }).title).toBe(
-      'General XAN lost an Ishtar',
-    );
-  });
-
-  it('a victim without a character (structure) is titled by its corporation', () => {
-    expect(embedOf({ ...base, victim: { id: null, name: null } }).title).toBe(
-      'Corp X lost a Loki',
-    );
-  });
-
-  it('names link to their KillReport pages', () => {
-    const e = embedOf(base);
-    expect(field(e, 'Victim')).toBe(
-      '[General XAN](https://killreport.example/characters/365974960)\n' +
-        '[Corp X](https://killreport.example/corporations/98814817) / ' +
-        '[Alliance Y](https://killreport.example/alliances/99005338)',
-    );
-    expect(field(e, 'Final blow')).toBe(
-      '[Killer](https://killreport.example/characters/9001) (Sabre)',
-    );
-    expect(field(e, 'Location')).toBe('J-GAMP (-0.4) · Catch');
   });
 
   it('escapes markdown in names', () => {
-    const e = embedOf({
-      ...base,
-      victimCorp: { id: 1, name: 'A [B] *C*' },
-    });
-    expect(field(e, 'Victim')).toContain(
-      '[A \\[B\\] \\*C\\*](https://killreport.example/corporations/1)',
+    const e = embedOf({ ...base, victimCorp: { id: 1, name: 'A [B] *C*' } });
+    expect(e.description).toContain(
+      `[A \\[B\\] \\*C\\*](${site}/corporations/1)`,
     );
   });
 
   it('strips trailing slashes from the frontend url', () => {
-    expect(
-      embedOf({ ...base, frontendUrl: 'https://killreport.example//' }).url,
-    ).toBe('https://killreport.example/killmails/555');
+    expect(embedOf({ ...base, frontendUrl: `${site}//` }).url).toBe(
+      `${site}/killmails/555`,
+    );
   });
 
   it('sets allowed_mentions to parse nothing', () => {
@@ -343,47 +359,38 @@ describe('buildKillmailEmbed', () => {
       finalBlow: { id: null, name: null },
       finalBlowShipName: null,
       totalValue: null,
-      systemName: null,
-      regionName: null,
-      entities: [{ type: 'ALLIANCE', id: 99005338, name: null }],
+      destroyedValue: null,
+      droppedValue: null,
+      system: { id: null, name: null },
+      securityStatus: null,
+      region: { id: null, name: null },
+      entities: [{ type: 'ALLIANCE', id: 99003581, name: null }],
     });
-    expect(e.title).toBe('Unknown lost an Unknown');
-    expect(e.author.name).toBe('LOSS · Unknown');
-    expect(e.description).toBe('**Unknown value** · 37 attackers');
-    expect(field(e, 'Victim')).toBe('Unknown');
-    expect(field(e, 'Final blow')).toBe('Unknown');
-    expect(field(e, 'Location')).toBe('Unknown');
+    expect(e.author.name).toBe('Unknown');
+    expect(e.title).toBe('Unknown');
+    expect(e.description).toBe('Unknown');
+    expect(field(e, 'TOTAL')?.value).toBe('**Unknown**');
+    expect(field(e, 'FINAL BLOW')?.value).toBe('Unknown');
+    expect(field(e, 'LOCATION')?.value).toBe('Unknown');
+    expect(e.footer.text).toBe('LOSS | Unknown');
     expect(JSON.stringify(e)).not.toContain('null');
+    expect(JSON.stringify(e)).not.toContain('](');
   });
 
-  it('a victim with no alliance shows only the corporation', () => {
-    const e = embedOf({ ...base, victimAlliance: { id: null, name: null } });
-    expect(field(e, 'Victim')).toBe(
-      '[General XAN](https://killreport.example/characters/365974960)\n' +
-        '[Corp X](https://killreport.example/corporations/98814817)',
-    );
-  });
-
-  it('footer pads every card to the same width with invisible blanks', () => {
-    const short = embedOf({ ...base, victim: { id: 1, name: 'A' } }).footer;
-    const long = embedOf({
-      ...base,
-      victim: { id: 1, name: 'B'.repeat(40) },
-    }).footer;
-    expect(short.text).toBe(`KillReport ${'\u2800'.repeat(EMBED_WIDTH_PAD)}`);
-    expect(long.text).toBe(short.text);
-  });
-
-  it('caps field values at 1024, title and author at 256 characters', () => {
+  it('caps field values at 1024, title, author and footer at their limits', () => {
     const long = 'x'.repeat(3000);
     const e = embedOf({
       ...base,
+      shipName: long,
       victim: { id: 1, name: long },
       victimCorp: { id: 2, name: long },
-      entities: [{ type: 'ALLIANCE', id: 3, name: long }],
+      finalBlow: { id: 3, name: long },
+      entities: [{ type: 'ALLIANCE', id: 4, name: long }],
     });
     for (const f of e.fields) expect(f.value.length).toBeLessThanOrEqual(1024);
     expect(e.title.length).toBeLessThanOrEqual(256);
     expect(e.author.name.length).toBeLessThanOrEqual(256);
+    expect(e.description.length).toBeLessThanOrEqual(4096);
+    expect(e.footer.text.length).toBeLessThanOrEqual(2048);
   });
 });
