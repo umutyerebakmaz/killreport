@@ -229,8 +229,8 @@ describe('buildKillmailEmbed', () => {
     description: string;
     color: number;
     timestamp: string;
-    image: { url: string };
-    thumbnail?: unknown;
+    image?: unknown;
+    thumbnail: { url: string };
     footer: { text: string; icon_url: string };
     fields: Field[];
   };
@@ -304,12 +304,12 @@ describe('buildKillmailEmbed', () => {
     );
   });
 
-  it('large retina ship render as the image, no thumbnail', () => {
+  it('ship render as a retina thumbnail on the right, no large image', () => {
     const e = embedOf(base);
-    expect(e.image).toEqual({
-      url: 'https://images.evetech.net/types/670/render?size=1024',
+    expect(e.thumbnail).toEqual({
+      url: 'https://images.evetech.net/types/670/render?size=256',
     });
-    expect(e.thumbnail).toBeUndefined();
+    expect(e.image).toBeUndefined();
   });
 
   it('footer names the matched entities, with the first one’s logo', () => {

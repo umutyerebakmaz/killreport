@@ -158,8 +158,12 @@ const FOOTER_LIMIT = 2048;
 const NAME_LIMIT = 100;
 const UNKNOWN = 'Unknown';
 const IMAGE_BASE = 'https://images.evetech.net';
-/** Discord shows an embed image at up to ~400px; 1024 stays sharp on 2x screens. */
-const RENDER_SIZE = 1024;
+/**
+ * Discord draws an embed thumbnail at up to 80px, top right; 256 keeps it
+ * sharp on 2x screens. A large `image` would sit under the card and make it
+ * much taller, which the card design rules out.
+ */
+const RENDER_SIZE = 256;
 
 const cap = (value: string, limit = FIELD_LIMIT): string =>
   value.slice(0, limit);
@@ -276,7 +280,7 @@ export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
       { name: 'ATTACKERS', value: String(input.attackerCount), inline: true },
       { name: 'LOCATION', value: cap(location), inline: true },
     ],
-    image: {
+    thumbnail: {
       url: `${IMAGE_BASE}/types/${input.shipTypeId}/render?size=${RENDER_SIZE}`,
     },
     timestamp: input.killmailTime.toISOString(),
