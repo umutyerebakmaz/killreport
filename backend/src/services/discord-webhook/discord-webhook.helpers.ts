@@ -117,6 +117,9 @@ export function planDeliveries(
   return [...byUrl.values()];
 }
 
+/** An id/name pair read from the database; either half may be missing. */
+export type NamedRef = { id: number | null; name: string | null };
+
 export type EmbedInput = {
   kind: 'kill' | 'loss';
   killmailId: number;
@@ -124,17 +127,18 @@ export type EmbedInput = {
   frontendUrl: string;
   shipTypeId: number;
   shipName: string | null;
-  victimName: string | null;
-  victimCorpName: string | null;
-  victimAllianceName: string | null;
-  finalBlowName: string | null;
+  victim: NamedRef;
+  victimCorp: NamedRef;
+  victimAlliance: NamedRef;
+  finalBlow: NamedRef;
   finalBlowShipName: string | null;
   totalValue: number | null;
   attackerCount: number;
   systemName: string | null;
   securityStatus: number | null;
   regionName: string | null;
-  footerEntityNames: string[];
+  /** The entities this channel matched on; the first one gives the author logo. */
+  entities: { type: EntityRef['type']; id: number; name: string | null }[];
 };
 export type DiscordPayload = {
   content?: string;
@@ -147,57 +151,133 @@ export const NO_MENTIONS: { parse: never[] } = { parse: [] };
 const KILL_COLOR = 0x2ecc71;
 const LOSS_COLOR = 0xe74c3c;
 const FIELD_LIMIT = 1024;
+const TITLE_LIMIT = 256;
+const NAME_LIMIT = 100;
 const UNKNOWN = 'Unknown';
+const IMAGE_BASE = 'https://images.evetech.net';
 
-const orUnknown = (value: string | null): string => value ?? UNKNOWN;
-const cap = (value: string): string => value.slice(0, FIELD_LIMIT);
+/**
+ * Discord sizes an embed to its longest line, so short kills render narrower
+ * than long ones. A footer line of U+2800 (braille blank — Discord does not
+ * trim it) longer than the embed's maximum width makes every card open to
+ * that maximum. Tune the count if cards still differ.
+ */
+export const EMBED_WIDTH_PAD = 60;
+
+const cap = (value: string, limit = FIELD_LIMIT): string =>
+  value.slice(0, limit);
+
+/**
+ * Backslash the inline markdown characters. `#`, `-` and `>` only mean
+ * something at the start of a line, and no name is ever placed there.
+ */
+const escapeMd = (value: string): string =>
+  value.replace(/[\\*_~`|[\]()]/g, '\\$&');
+
+const ISK_UNITS: [number, string][] = [
+  [1e12, 'T'],
+  [1e9, 'B'],
+  [1e6, 'M'],
+  [1e3, 'K'],
+];
+
+/** `1240512330` → `1.24B ISK`: at most two decimals, trailing zeros dropped. */
+export function formatIsk(value: number): string {
+  for (const [size, unit] of ISK_UNITS) {
+    if (Math.abs(value) >= size) {
+      return `${Number((value / size).toFixed(2))}${unit} ISK`;
+    }
+  }
+  return `${Math.round(value)} ISK`;
+}
+
+const PAGE: Record<EntityRef['type'], string> = {
+  CHARACTER: 'characters',
+  CORPORATION: 'corporations',
+  ALLIANCE: 'alliances',
+};
+
+const ICON: Record<EntityRef['type'], string> = {
+  CHARACTER: 'portrait',
+  CORPORATION: 'logo',
+  ALLIANCE: 'logo',
+};
+
+const article = (word: string): string => (/^[aeiou]/i.test(word) ? 'an' : 'a');
 
 export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
-  const ship = orUnknown(input.shipName);
-  const finalBlow =
-    input.finalBlowName === null && input.finalBlowShipName === null
+  const base = input.frontendUrl.replace(/\/+$/, '');
+
+  /** A linked, escaped name; an unknown name is plain `Unknown`, unlinked. */
+  const link = (type: EntityRef['type'], ref: NamedRef): string =>
+    ref.name === null
       ? UNKNOWN
-      : `${orUnknown(input.finalBlowName)} (${orUnknown(input.finalBlowShipName)})`;
+      : ref.id === null
+        ? escapeMd(cap(ref.name, NAME_LIMIT))
+        : `[${escapeMd(cap(ref.name, NAME_LIMIT))}](${base}/${PAGE[type]}/${ref.id})`;
+
+  const ship = input.shipName ?? UNKNOWN;
+  const victimLabel = input.victim.name ?? input.victimCorp.name ?? UNKNOWN;
+
+  const victimLines =
+    input.victim.name === null && input.victimCorp.name === null
+      ? UNKNOWN
+      : [
+          ...(input.victim.name === null
+            ? []
+            : [link('CHARACTER', input.victim)]),
+          [
+            link('CORPORATION', input.victimCorp),
+            ...(input.victimAlliance.name === null
+              ? []
+              : [link('ALLIANCE', input.victimAlliance)]),
+          ].join(' / '),
+        ].join('\n');
+
+  const finalBlow =
+    input.finalBlow.name === null && input.finalBlowShipName === null
+      ? UNKNOWN
+      : `${link('CHARACTER', input.finalBlow)} (${escapeMd(input.finalBlowShipName ?? UNKNOWN)})`;
+
   const location =
     input.systemName === null && input.regionName === null
       ? UNKNOWN
-      : `${orUnknown(input.systemName)}${
+      : `${escapeMd(input.systemName ?? UNKNOWN)}${
           input.securityStatus === null
             ? ''
             : ` (${input.securityStatus.toFixed(1)})`
-        } · ${orUnknown(input.regionName)}`;
+        } · ${escapeMd(input.regionName ?? UNKNOWN)}`;
+
   const value =
-    input.totalValue === null
-      ? UNKNOWN
-      : `${Math.round(input.totalValue).toLocaleString('en-US')} ISK`;
+    input.totalValue === null ? 'Unknown value' : formatIsk(input.totalValue);
+  const attackers = `${input.attackerCount} attacker${input.attackerCount === 1 ? '' : 's'}`;
+
+  const lead = input.entities[0];
+  const entityNames = input.entities.map((e) => e.name ?? UNKNOWN).join(', ');
 
   const embed = {
-    title: cap(`${ship} — ${orUnknown(input.victimName)}`).slice(0, 256),
-    url: `${input.frontendUrl.replace(/\/+$/, '')}/killmails/${input.killmailId}`,
+    author: {
+      name: cap(
+        `${input.kind === 'loss' ? 'LOSS' : 'KILL'} · ${entityNames}`,
+        TITLE_LIMIT,
+      ),
+      icon_url: `${IMAGE_BASE}/${PAGE[lead.type]}/${lead.id}/${ICON[lead.type]}?size=64`,
+      url: `${base}/${PAGE[lead.type]}/${lead.id}`,
+    },
+    title: cap(`${victimLabel} lost ${article(ship)} ${ship}`, TITLE_LIMIT),
+    url: `${base}/killmails/${input.killmailId}`,
+    description: `**${value}** · ${attackers}`,
     color: input.kind === 'loss' ? LOSS_COLOR : KILL_COLOR,
     thumbnail: {
-      url: `https://images.evetech.net/types/${input.shipTypeId}/render?size=128`,
+      url: `${IMAGE_BASE}/types/${input.shipTypeId}/render?size=128`,
     },
     fields: [
-      {
-        name: 'Corporation',
-        value: cap(orUnknown(input.victimCorpName)),
-        inline: true,
-      },
-      {
-        name: 'Alliance',
-        value: cap(orUnknown(input.victimAllianceName)),
-        inline: true,
-      },
-      { name: 'Final blow', value: cap(finalBlow), inline: false },
-      { name: 'Value', value: cap(value), inline: true },
-      { name: 'Attackers', value: String(input.attackerCount), inline: true },
-      { name: 'System', value: cap(location), inline: false },
+      { name: 'Victim', value: cap(victimLines) },
+      { name: 'Final blow', value: cap(finalBlow) },
+      { name: 'Location', value: cap(location) },
     ],
     timestamp: input.killmailTime.toISOString(),
-    footer: {
-      text: `KillReport · ${input.footerEntityNames.join(', ')}`.slice(0, 2048),
-    },
+    footer: { text: `KillReport ${'\u2800'.repeat(EMBED_WIDTH_PAD)}` },
   };
   return { embeds: [embed], allowed_mentions: NO_MENTIONS };
 }

@@ -160,12 +160,12 @@ export async function deliverKillmail(
   const lookup = (map: Map<number, string>, id: number | null | undefined) =>
     id == null ? null : (map.get(id) ?? null);
 
-  const entityName = (e: Delivery['entities'][number]): string =>
+  const entityName = (e: Delivery['entities'][number]): string | null =>
     (e.type === 'CHARACTER'
       ? characterNames.get(e.id)
       : e.type === 'CORPORATION'
         ? corporationNames.get(e.id)
-        : allianceNames.get(e.id)) ?? 'Unknown';
+        : allianceNames.get(e.id)) ?? null;
 
   let pending = 0;
   for (const delivery of deliveries) {
@@ -179,17 +179,29 @@ export async function deliverKillmail(
       frontendUrl: config.eveSso.frontendUrl,
       shipTypeId: victim.ship_type_id,
       shipName: lookup(typeNames, victim.ship_type_id),
-      victimName: lookup(characterNames, victim.character_id),
-      victimCorpName: lookup(corporationNames, victim.corporation_id),
-      victimAllianceName: lookup(allianceNames, victim.alliance_id),
-      finalBlowName: lookup(characterNames, finalBlow?.character_id),
+      victim: {
+        id: victim.character_id,
+        name: lookup(characterNames, victim.character_id),
+      },
+      victimCorp: {
+        id: victim.corporation_id,
+        name: lookup(corporationNames, victim.corporation_id),
+      },
+      victimAlliance: {
+        id: victim.alliance_id,
+        name: lookup(allianceNames, victim.alliance_id),
+      },
+      finalBlow: {
+        id: finalBlow?.character_id ?? null,
+        name: lookup(characterNames, finalBlow?.character_id),
+      },
       finalBlowShipName: lookup(typeNames, finalBlow?.ship_type_id),
       totalValue: killmail.total_value,
       attackerCount: killmail.attacker_count ?? attackers.length,
       systemName: system?.name ?? null,
       securityStatus: system?.security_status ?? null,
       regionName: regions[0]?.name ?? null,
-      footerEntityNames: delivery.entities.map(entityName),
+      entities: delivery.entities.map((e) => ({ ...e, name: entityName(e) })),
     });
 
     const result = await postWebhook(delivery.url, payload);

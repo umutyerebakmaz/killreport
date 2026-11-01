@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildKillmailEmbed,
+  EMBED_WIDTH_PAD,
+  formatIsk,
   isEligible,
   normalizeWebhookUrl,
   planDeliveries,
@@ -186,48 +188,139 @@ describe('planDeliveries', () => {
   });
 });
 
+describe('formatIsk', () => {
+  it('shortens to K / M / B / T with up to two decimals', () => {
+    expect(formatIsk(950)).toBe('950 ISK');
+    expect(formatIsk(12_500)).toBe('12.5K ISK');
+    expect(formatIsk(950_000_000)).toBe('950M ISK');
+    expect(formatIsk(1_240_512_330)).toBe('1.24B ISK');
+    expect(formatIsk(3_000_000_000_000)).toBe('3T ISK');
+  });
+});
+
 describe('buildKillmailEmbed', () => {
   const base: EmbedInput = {
-    kind: 'kill',
+    kind: 'loss',
     killmailId: 555,
     killmailTime: new Date('2026-11-01T11:59:00Z'),
     frontendUrl: 'https://killreport.example',
-    shipTypeId: 670,
-    shipName: 'Capsule',
-    victimName: 'Some Pilot',
-    victimCorpName: 'Corp X',
-    victimAllianceName: 'Alliance Y',
-    finalBlowName: 'Killer',
-    finalBlowShipName: 'Rifter',
-    totalValue: 1234567.5,
-    attackerCount: 3,
-    systemName: 'Jita',
-    securityStatus: 0.9,
-    regionName: 'The Forge',
-    footerEntityNames: ['Corp X', 'Alliance Y'],
+    shipTypeId: 29990,
+    shipName: 'Loki',
+    victim: { id: 365974960, name: 'General XAN' },
+    victimCorp: { id: 98814817, name: 'Corp X' },
+    victimAlliance: { id: 99005338, name: 'Alliance Y' },
+    finalBlow: { id: 9001, name: 'Killer' },
+    finalBlowShipName: 'Sabre',
+    totalValue: 1_240_512_330,
+    attackerCount: 37,
+    systemName: 'J-GAMP',
+    securityStatus: -0.4,
+    regionName: 'Catch',
+    entities: [{ type: 'ALLIANCE', id: 99005338, name: 'Alliance Y' }],
   };
   type Embed = {
+    author: { name: string; icon_url: string; url: string };
     title: string;
     url: string;
+    description: string;
     color: number;
     timestamp: string;
     thumbnail: { url: string };
     footer: { text: string };
-    fields: { name: string; value: string }[];
+    fields: { name: string; value: string; inline?: boolean }[];
   };
   const embedOf = (input: EmbedInput): Embed =>
     buildKillmailEmbed(input).embeds![0] as unknown as Embed;
+  const field = (e: Embed, name: string) =>
+    e.fields.find((f) => f.name === name)?.value;
 
   it('uses red for loss, green for kill, links to the killmail page and sets the ship thumbnail', () => {
-    const kill = embedOf(base);
-    expect(kill.color).toBe(0x2ecc71);
-    expect(embedOf({ ...base, kind: 'loss' }).color).toBe(0xe74c3c);
-    expect(kill.title).toBe('Capsule — Some Pilot');
-    expect(kill.url).toBe('https://killreport.example/killmails/555');
-    expect(kill.thumbnail.url).toBe(
-      'https://images.evetech.net/types/670/render?size=128',
+    const loss = embedOf(base);
+    expect(loss.color).toBe(0xe74c3c);
+    expect(embedOf({ ...base, kind: 'kill' }).color).toBe(0x2ecc71);
+    expect(loss.url).toBe('https://killreport.example/killmails/555');
+    expect(loss.thumbnail.url).toBe(
+      'https://images.evetech.net/types/29990/render?size=128',
     );
-    expect(kill.timestamp).toBe('2026-11-01T11:59:00.000Z');
+    expect(loss.timestamp).toBe('2026-11-01T11:59:00.000Z');
+  });
+
+  it('author line names kill or loss and the entity, with its logo and page', () => {
+    const loss = embedOf(base);
+    expect(loss.author).toEqual({
+      name: 'LOSS · Alliance Y',
+      icon_url: 'https://images.evetech.net/alliances/99005338/logo?size=64',
+      url: 'https://killreport.example/alliances/99005338',
+    });
+    const kill = embedOf({
+      ...base,
+      kind: 'kill',
+      entities: [{ type: 'CORPORATION', id: 98814817, name: 'Corp X' }],
+    });
+    expect(kill.author.name).toBe('KILL · Corp X');
+    expect(kill.author.icon_url).toBe(
+      'https://images.evetech.net/corporations/98814817/logo?size=64',
+    );
+    const char = embedOf({
+      ...base,
+      entities: [{ type: 'CHARACTER', id: 365974960, name: 'General XAN' }],
+    });
+    expect(char.author.icon_url).toBe(
+      'https://images.evetech.net/characters/365974960/portrait?size=64',
+    );
+  });
+
+  it('author lists every entity when one channel matched several, logo of the first', () => {
+    const e = embedOf({
+      ...base,
+      entities: [
+        { type: 'ALLIANCE', id: 99005338, name: 'Alliance Y' },
+        { type: 'CORPORATION', id: 98814817, name: 'Corp X' },
+      ],
+    });
+    expect(e.author.name).toBe('LOSS · Alliance Y, Corp X');
+    expect(e.author.icon_url).toContain('/alliances/99005338/');
+  });
+
+  it('title is a sentence and the description carries value and attackers', () => {
+    const e = embedOf(base);
+    expect(e.title).toBe('General XAN lost a Loki');
+    expect(e.description).toBe('**1.24B ISK** · 37 attackers');
+    expect(embedOf({ ...base, attackerCount: 1 }).description).toBe(
+      '**1.24B ISK** · 1 attacker',
+    );
+    expect(embedOf({ ...base, shipName: 'Ishtar' }).title).toBe(
+      'General XAN lost an Ishtar',
+    );
+  });
+
+  it('a victim without a character (structure) is titled by its corporation', () => {
+    expect(embedOf({ ...base, victim: { id: null, name: null } }).title).toBe(
+      'Corp X lost a Loki',
+    );
+  });
+
+  it('names link to their KillReport pages', () => {
+    const e = embedOf(base);
+    expect(field(e, 'Victim')).toBe(
+      '[General XAN](https://killreport.example/characters/365974960)\n' +
+        '[Corp X](https://killreport.example/corporations/98814817) / ' +
+        '[Alliance Y](https://killreport.example/alliances/99005338)',
+    );
+    expect(field(e, 'Final blow')).toBe(
+      '[Killer](https://killreport.example/characters/9001) (Sabre)',
+    );
+    expect(field(e, 'Location')).toBe('J-GAMP (-0.4) · Catch');
+  });
+
+  it('escapes markdown in names', () => {
+    const e = embedOf({
+      ...base,
+      victimCorp: { id: 1, name: 'A [B] *C*' },
+    });
+    expect(field(e, 'Victim')).toContain(
+      '[A \\[B\\] \\*C\\*](https://killreport.example/corporations/1)',
+    );
   });
 
   it('strips trailing slashes from the frontend url', () => {
@@ -240,29 +333,57 @@ describe('buildKillmailEmbed', () => {
     expect(buildKillmailEmbed(base).allowed_mentions).toEqual({ parse: [] });
   });
 
-  it('embed falls back to Unknown for missing names', () => {
+  it('falls back to Unknown, unlinked, for missing names and values', () => {
     const e = embedOf({
       ...base,
       shipName: null,
-      victimName: null,
-      victimCorpName: null,
-      victimAllianceName: null,
-      finalBlowName: null,
+      victim: { id: null, name: null },
+      victimCorp: { id: null, name: null },
+      victimAlliance: { id: null, name: null },
+      finalBlow: { id: null, name: null },
       finalBlowShipName: null,
+      totalValue: null,
       systemName: null,
       regionName: null,
+      entities: [{ type: 'ALLIANCE', id: 99005338, name: null }],
     });
-    expect(e.title).toBe('Unknown — Unknown');
-    expect(e.fields.some((f) => f.value.includes('Unknown'))).toBe(true);
+    expect(e.title).toBe('Unknown lost an Unknown');
+    expect(e.author.name).toBe('LOSS · Unknown');
+    expect(e.description).toBe('**Unknown value** · 37 attackers');
+    expect(field(e, 'Victim')).toBe('Unknown');
+    expect(field(e, 'Final blow')).toBe('Unknown');
+    expect(field(e, 'Location')).toBe('Unknown');
     expect(JSON.stringify(e)).not.toContain('null');
   });
 
-  it('footer lists every entity name', () => {
-    expect(embedOf(base).footer.text).toBe('KillReport · Corp X, Alliance Y');
+  it('a victim with no alliance shows only the corporation', () => {
+    const e = embedOf({ ...base, victimAlliance: { id: null, name: null } });
+    expect(field(e, 'Victim')).toBe(
+      '[General XAN](https://killreport.example/characters/365974960)\n' +
+        '[Corp X](https://killreport.example/corporations/98814817)',
+    );
   });
 
-  it('caps field values at 1024 characters', () => {
-    const e = embedOf({ ...base, victimCorpName: 'x'.repeat(3000) });
+  it('footer pads every card to the same width with invisible blanks', () => {
+    const short = embedOf({ ...base, victim: { id: 1, name: 'A' } }).footer;
+    const long = embedOf({
+      ...base,
+      victim: { id: 1, name: 'B'.repeat(40) },
+    }).footer;
+    expect(short.text).toBe(`KillReport ${'\u2800'.repeat(EMBED_WIDTH_PAD)}`);
+    expect(long.text).toBe(short.text);
+  });
+
+  it('caps field values at 1024, title and author at 256 characters', () => {
+    const long = 'x'.repeat(3000);
+    const e = embedOf({
+      ...base,
+      victim: { id: 1, name: long },
+      victimCorp: { id: 2, name: long },
+      entities: [{ type: 'ALLIANCE', id: 3, name: long }],
+    });
     for (const f of e.fields) expect(f.value.length).toBeLessThanOrEqual(1024);
+    expect(e.title.length).toBeLessThanOrEqual(256);
+    expect(e.author.name.length).toBeLessThanOrEqual(256);
   });
 });
