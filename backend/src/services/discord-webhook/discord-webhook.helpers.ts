@@ -166,11 +166,14 @@ const RENDER_SIZE = 256;
 
 /**
  * Discord sizes an embed to its longest line, so cards with short names come
- * out narrower. The footer is padded with U+2800 (braille blank, which Discord
- * does not trim) to push every card to the same width; 70 was picked from
- * sample cards in a real channel. The embed carries no `timestamp`: Discord
- * would join it to the footer with a bullet that the padding pushes to the
- * far right on its own. The message's own post time is shown anyway.
+ * out narrower. The description line is padded with U+2800 (braille blank —
+ * the only blank Discord neither trims nor collapses) to push every card to
+ * the same width; 70 was picked from sample cards in a real channel.
+ *
+ * The padding sits in the description, not the footer: Discord draws U+2800
+ * from a fallback font with different line metrics, which knocked the footer
+ * text off level with its logo. The embed also carries no `timestamp`, which
+ * Discord would join to the footer with a bullet.
  */
 export const EMBED_WIDTH_PAD = 70;
 
@@ -279,7 +282,10 @@ export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
     author,
     title: cap(input.shipName ?? UNKNOWN, TITLE_LIMIT),
     url: `${base}/killmails/${input.killmailId}`,
-    description: cap(affiliation, 4096),
+    description: cap(
+      `${affiliation} ${'\u2800'.repeat(EMBED_WIDTH_PAD)}`,
+      4096,
+    ),
     color: input.kind === 'loss' ? LOSS_COLOR : KILL_COLOR,
     fields: [
       { name: 'Destroyed', value: isk(input.destroyedValue), inline: true },
@@ -293,10 +299,7 @@ export function buildKillmailEmbed(input: EmbedInput): DiscordPayload {
       url: `${IMAGE_BASE}/types/${input.shipTypeId}/render?size=${RENDER_SIZE}`,
     },
     footer: {
-      text: cap(
-        `${entityNames} ${'\u2800'.repeat(EMBED_WIDTH_PAD)}`,
-        FOOTER_LIMIT,
-      ),
+      text: cap(entityNames, FOOTER_LIMIT),
       icon_url: imageOf(lead.type, lead.id, 64),
     },
   };
