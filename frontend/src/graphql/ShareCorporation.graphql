@@ -1,0 +1,14 @@
+query ShareCorporation($id: Int!) {
+  corporation(id: $id) {
+    name
+    member_count
+    alliance {
+      id
+      name
+    }
+  }
+  corporationKillLossTotals(corporationId: $id) {
+    kills
+    losses
+  }
+}

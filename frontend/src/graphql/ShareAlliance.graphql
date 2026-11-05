@@ -1,0 +1,12 @@
+query ShareAlliance($id: Int!) {
+  alliance(id: $id) {
+    name
+    memberCount
+    corporationCount
+    sovereigntySystemCount
+  }
+  allianceKillLossTotals(allianceId: $id) {
+    kills
+    losses
+  }
+}

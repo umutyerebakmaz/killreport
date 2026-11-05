@@ -1,0 +1,22 @@
+query ShareSolarSystem($id: Int!) {
+  solarSystem(id: $id) {
+    name
+    securityStatus
+    star {
+      typeId
+    }
+    constellation {
+      name
+      region {
+        id
+        name
+      }
+    }
+  }
+  solarSystemStats(systemId: $id) {
+    kills24h
+  }
+  systemActivityHistory(filter: { system_id: $id, hours: 24 }) {
+    npc_kills
+  }
+}

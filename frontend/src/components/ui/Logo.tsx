@@ -17,7 +17,8 @@
  * Geometry on a 24 grid, 3 units thick, no radius, no shadow, in step with the
  * rest of the system. `app/icon.svg` is the same drawing with its colours
  * written out, because a favicon has no stylesheet to inherit from; the two
- * have to be changed together.
+ * have to be changed together. A third copy, with its colours written out for
+ * satori, lives in `ShareCard/ShareCardFrame.tsx`; all three change together.
  */
 export default function Logo({ className }: { className?: string }) {
   return (

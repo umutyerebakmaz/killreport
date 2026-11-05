@@ -44,4 +44,12 @@ export const characterStatsQueries: QueryResolvers = {
   characterTopShips: async (_, { characterId, filter }) => {
     return CharacterStatsService.getTopShips(characterId, filter);
   },
+
+  /**
+   * Lifetime kill and loss totals
+   * Cached in Redis for one hour
+   */
+  characterKillLossTotals: async (_, { characterId }) => {
+    return CharacterStatsService.getKillLossTotals(characterId);
+  },
 };

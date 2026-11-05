@@ -28,4 +28,7 @@ extend type Query {
     allianceId: Int!
     filter: TopTargetFilter
   ): [CharacterTopTarget!]!
+
+  # Lifetime kill and loss totals
+  allianceKillLossTotals(allianceId: Int!): KillLossTotals!
 }

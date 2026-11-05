@@ -31,4 +31,7 @@ extend type Query {
     corporationId: Int!
     filter: TopTargetFilter
   ): [CharacterTopTarget!]!
+
+  # Lifetime kill and loss totals
+  corporationKillLossTotals(corporationId: Int!): KillLossTotals!
 }

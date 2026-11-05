@@ -39,7 +39,21 @@ const robotoCondensed = Roboto_Condensed({
   display: 'swap',
 });
 
+/**
+ * The origin every absolute metadata URL (og:image above all) is built on.
+ * NEXT_PUBLIC_* is inlined at build time, so a production build without it
+ * would send crawlers to localhost; that build warns rather than fails, so a
+ * local `build:check` and CI keep working without a deploy-only variable.
+ */
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+if (!siteUrl && process.env.NODE_ENV === 'production') {
+  console.warn(
+    'NEXT_PUBLIC_SITE_URL is not set: og:image and other metadata URLs point at http://localhost:3000. Set it in the production environment before building.',
+  );
+}
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl ?? 'http://localhost:3000'),
   title: 'KillReport',
   description: 'EVE Online Killmail Tracker',
 };

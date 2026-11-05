@@ -1,0 +1,17 @@
+query ShareCharacter($id: Int!) {
+  character(id: $id) {
+    name
+    corporation {
+      id
+      name
+    }
+    alliance {
+      id
+      name
+    }
+  }
+  characterKillLossTotals(characterId: $id) {
+    kills
+    losses
+  }
+}

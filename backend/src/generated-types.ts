@@ -653,6 +653,12 @@ export type JitaPrice = {
   volume?: Maybe<Scalars['Float']['output']>;
 };
 
+export type KillLossTotals = {
+  __typename?: 'KillLossTotals';
+  kills: Scalars['Int']['output'];
+  losses: Scalars['Int']['output'];
+};
+
 export type Killmail = {
   __typename?: 'Killmail';
   attackerCount: Scalars['Int']['output'];
@@ -1219,6 +1225,7 @@ export type Query = {
   activeCampaignsByRegion: Array<RegionCampaignCount>;
   activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
+  allianceKillLossTotals: KillLossTotals;
   /** Top alliances ranked by number of systems currently controlled. */
   allianceTerritoryRankings: Array<AllianceTerritoryRank>;
   allianceTopAllianceTargets: Array<AllianceTopTarget>;
@@ -1236,6 +1243,7 @@ export type Query = {
   character?: Maybe<Character>;
   /** Newest first; empty until the worker has fetched the character */
   characterCorporationHistory: Array<CharacterCorporationHistory>;
+  characterKillLossTotals: KillLossTotals;
   characterTopAllianceTargets: Array<AllianceTopTarget>;
   characterTopCorporationTargets: Array<CorporationTopTarget>;
   characterTopShipTargets: Array<ShipTopKill>;
@@ -1246,6 +1254,7 @@ export type Query = {
   constellation?: Maybe<Constellation>;
   constellations: ConstellationsResponse;
   corporation?: Maybe<Corporation>;
+  corporationKillLossTotals: KillLossTotals;
   corporationTopAllianceTargets: Array<AllianceTopTarget>;
   corporationTopCharacters: Array<CharacterTopTarget>;
   corporationTopCorporationTargets: Array<CorporationTopTarget>;
@@ -1386,6 +1395,11 @@ export type QueryAllianceArgs = {
 };
 
 
+export type QueryAllianceKillLossTotalsArgs = {
+  allianceId: Scalars['Int']['input'];
+};
+
+
 export type QueryAllianceTerritoryRankingsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -1451,6 +1465,11 @@ export type QueryCharacterCorporationHistoryArgs = {
 };
 
 
+export type QueryCharacterKillLossTotalsArgs = {
+  characterId: Scalars['Int']['input'];
+};
+
+
 export type QueryCharacterTopAllianceTargetsArgs = {
   characterId: Scalars['Int']['input'];
   filter?: InputMaybe<TopTargetFilter>;
@@ -1497,6 +1516,11 @@ export type QueryConstellationsArgs = {
 
 export type QueryCorporationArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryCorporationKillLossTotalsArgs = {
+  corporationId: Scalars['Int']['input'];
 };
 
 
@@ -2751,6 +2775,7 @@ export type ResolversTypes = {
   ItemGroupFilter: ItemGroupFilter;
   ItemGroupsResponse: ResolverTypeWrapper<ItemGroupsResponse>;
   JitaPrice: ResolverTypeWrapper<JitaPrice>;
+  KillLossTotals: ResolverTypeWrapper<KillLossTotals>;
   Killmail: ResolverTypeWrapper<Killmail>;
   KillmailDateCount: ResolverTypeWrapper<KillmailDateCount>;
   KillmailFilter: KillmailFilter;
@@ -2928,6 +2953,7 @@ export type ResolversParentTypes = {
   ItemGroupFilter: ItemGroupFilter;
   ItemGroupsResponse: ItemGroupsResponse;
   JitaPrice: JitaPrice;
+  KillLossTotals: KillLossTotals;
   Killmail: Killmail;
   KillmailDateCount: KillmailDateCount;
   KillmailFilter: KillmailFilter;
@@ -3437,6 +3463,11 @@ export type JitaPriceResolvers<ContextType = any, ParentType extends ResolversPa
   volume?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
 };
 
+export type KillLossTotalsResolvers<ContextType = any, ParentType extends ResolversParentTypes['KillLossTotals'] = ResolversParentTypes['KillLossTotals']> = {
+  kills?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  losses?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+};
+
 export type KillmailResolvers<ContextType = any, ParentType extends ResolversParentTypes['Killmail'] = ResolversParentTypes['Killmail']> = {
   attackerCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   attackers?: Resolver<Array<ResolversTypes['Attacker']>, ParentType, ContextType>;
@@ -3655,6 +3686,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   activeCampaignsByRegion?: Resolver<Array<ResolversTypes['RegionCampaignCount']>, ParentType, ContextType, Partial<QueryActiveCampaignsByRegionArgs>>;
   activeUsersCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType, RequireFields<QueryAllianceArgs, 'id'>>;
+  allianceKillLossTotals?: Resolver<ResolversTypes['KillLossTotals'], ParentType, ContextType, RequireFields<QueryAllianceKillLossTotalsArgs, 'allianceId'>>;
   allianceTerritoryRankings?: Resolver<Array<ResolversTypes['AllianceTerritoryRank']>, ParentType, ContextType, Partial<QueryAllianceTerritoryRankingsArgs>>;
   allianceTopAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, RequireFields<QueryAllianceTopAllianceTargetsArgs, 'allianceId'>>;
   allianceTopCharacters?: Resolver<Array<ResolversTypes['CharacterTopTarget']>, ParentType, ContextType, RequireFields<QueryAllianceTopCharactersArgs, 'allianceId'>>;
@@ -3669,6 +3701,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   category?: Resolver<Maybe<ResolversTypes['Category']>, ParentType, ContextType, RequireFields<QueryCategoryArgs, 'id'>>;
   character?: Resolver<Maybe<ResolversTypes['Character']>, ParentType, ContextType, RequireFields<QueryCharacterArgs, 'id'>>;
   characterCorporationHistory?: Resolver<Array<ResolversTypes['CharacterCorporationHistory']>, ParentType, ContextType, RequireFields<QueryCharacterCorporationHistoryArgs, 'characterId'>>;
+  characterKillLossTotals?: Resolver<ResolversTypes['KillLossTotals'], ParentType, ContextType, RequireFields<QueryCharacterKillLossTotalsArgs, 'characterId'>>;
   characterTopAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, RequireFields<QueryCharacterTopAllianceTargetsArgs, 'characterId'>>;
   characterTopCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, RequireFields<QueryCharacterTopCorporationTargetsArgs, 'characterId'>>;
   characterTopShipTargets?: Resolver<Array<ResolversTypes['ShipTopKill']>, ParentType, ContextType, RequireFields<QueryCharacterTopShipTargetsArgs, 'characterId'>>;
@@ -3678,6 +3711,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   constellation?: Resolver<Maybe<ResolversTypes['Constellation']>, ParentType, ContextType, RequireFields<QueryConstellationArgs, 'id'>>;
   constellations?: Resolver<ResolversTypes['ConstellationsResponse'], ParentType, ContextType, Partial<QueryConstellationsArgs>>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType, RequireFields<QueryCorporationArgs, 'id'>>;
+  corporationKillLossTotals?: Resolver<ResolversTypes['KillLossTotals'], ParentType, ContextType, RequireFields<QueryCorporationKillLossTotalsArgs, 'corporationId'>>;
   corporationTopAllianceTargets?: Resolver<Array<ResolversTypes['AllianceTopTarget']>, ParentType, ContextType, RequireFields<QueryCorporationTopAllianceTargetsArgs, 'corporationId'>>;
   corporationTopCharacters?: Resolver<Array<ResolversTypes['CharacterTopTarget']>, ParentType, ContextType, RequireFields<QueryCorporationTopCharactersArgs, 'corporationId'>>;
   corporationTopCorporationTargets?: Resolver<Array<ResolversTypes['CorporationTopTarget']>, ParentType, ContextType, RequireFields<QueryCorporationTopCorporationTargetsArgs, 'corporationId'>>;
@@ -4284,6 +4318,7 @@ export type Resolvers<ContextType = any> = {
   ItemGroup?: ItemGroupResolvers<ContextType>;
   ItemGroupsResponse?: ItemGroupsResponseResolvers<ContextType>;
   JitaPrice?: JitaPriceResolvers<ContextType>;
+  KillLossTotals?: KillLossTotalsResolvers<ContextType>;
   Killmail?: KillmailResolvers<ContextType>;
   KillmailDateCount?: KillmailDateCountResolvers<ContextType>;
   KillmailItem?: KillmailItemResolvers<ContextType>;

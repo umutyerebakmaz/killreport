@@ -654,6 +654,12 @@ export type JitaPrice = {
   volume?: Maybe<Scalars['Float']['output']>;
 };
 
+export type KillLossTotals = {
+  __typename?: 'KillLossTotals';
+  kills: Scalars['Int']['output'];
+  losses: Scalars['Int']['output'];
+};
+
 export type Killmail = {
   __typename?: 'Killmail';
   attackerCount: Scalars['Int']['output'];
@@ -1220,6 +1226,7 @@ export type Query = {
   activeCampaignsByRegion: Array<RegionCampaignCount>;
   activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
+  allianceKillLossTotals: KillLossTotals;
   /** Top alliances ranked by number of systems currently controlled. */
   allianceTerritoryRankings: Array<AllianceTerritoryRank>;
   allianceTopAllianceTargets: Array<AllianceTopTarget>;
@@ -1237,6 +1244,7 @@ export type Query = {
   character?: Maybe<Character>;
   /** Newest first; empty until the worker has fetched the character */
   characterCorporationHistory: Array<CharacterCorporationHistory>;
+  characterKillLossTotals: KillLossTotals;
   characterTopAllianceTargets: Array<AllianceTopTarget>;
   characterTopCorporationTargets: Array<CorporationTopTarget>;
   characterTopShipTargets: Array<ShipTopKill>;
@@ -1247,6 +1255,7 @@ export type Query = {
   constellation?: Maybe<Constellation>;
   constellations: ConstellationsResponse;
   corporation?: Maybe<Corporation>;
+  corporationKillLossTotals: KillLossTotals;
   corporationTopAllianceTargets: Array<AllianceTopTarget>;
   corporationTopCharacters: Array<CharacterTopTarget>;
   corporationTopCorporationTargets: Array<CorporationTopTarget>;
@@ -1387,6 +1396,11 @@ export type QueryAllianceArgs = {
 };
 
 
+export type QueryAllianceKillLossTotalsArgs = {
+  allianceId: Scalars['Int']['input'];
+};
+
+
 export type QueryAllianceTerritoryRankingsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -1452,6 +1466,11 @@ export type QueryCharacterCorporationHistoryArgs = {
 };
 
 
+export type QueryCharacterKillLossTotalsArgs = {
+  characterId: Scalars['Int']['input'];
+};
+
+
 export type QueryCharacterTopAllianceTargetsArgs = {
   characterId: Scalars['Int']['input'];
   filter?: InputMaybe<TopTargetFilter>;
@@ -1498,6 +1517,11 @@ export type QueryConstellationsArgs = {
 
 export type QueryCorporationArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryCorporationKillLossTotalsArgs = {
+  corporationId: Scalars['Int']['input'];
 };
 
 
@@ -3179,6 +3203,41 @@ export type SearchTypesQueryVariables = Exact<{
 
 
 export type SearchTypesQuery = { __typename?: 'Query', types: { __typename?: 'TypesResponse', items: Array<{ __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', id: number, name: string } | null }> } };
+
+export type ShareAllianceQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type ShareAllianceQuery = { __typename?: 'Query', alliance?: { __typename?: 'Alliance', name: string, memberCount: number, corporationCount: number, sovereigntySystemCount: number } | null, allianceKillLossTotals: { __typename?: 'KillLossTotals', kills: number, losses: number } };
+
+export type ShareCharacterQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type ShareCharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', name: string, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, characterKillLossTotals: { __typename?: 'KillLossTotals', kills: number, losses: number } };
+
+export type ShareCorporationQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type ShareCorporationQuery = { __typename?: 'Query', corporation?: { __typename?: 'Corporation', name: string, member_count: number, alliance?: { __typename?: 'Alliance', id: number, name: string } | null } | null, corporationKillLossTotals: { __typename?: 'KillLossTotals', kills: number, losses: number } };
+
+export type ShareKillmailQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type ShareKillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', killmailTime: string, totalValue?: number | null, destroyedValue?: number | null, droppedValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, metaGroupId?: number | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, solarSystem: { __typename?: 'SolarSystem', name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', region?: { __typename?: 'Region', name: string } | null } | null } } | null };
+
+export type ShareSolarSystemQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type ShareSolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', name: string, securityStatus?: number | null, star?: { __typename?: 'Star', typeId?: number | null } | null, constellation?: { __typename?: 'Constellation', name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null, solarSystemStats: { __typename?: 'SolarSystemStats', kills24h: number }, systemActivityHistory: Array<{ __typename?: 'SystemActivity', npc_kills: number }> };
 
 export type SolarSystemQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -8526,6 +8585,304 @@ export type SearchTypesQueryHookResult = ReturnType<typeof useSearchTypesQuery>;
 export type SearchTypesLazyQueryHookResult = ReturnType<typeof useSearchTypesLazyQuery>;
 export type SearchTypesSuspenseQueryHookResult = ReturnType<typeof useSearchTypesSuspenseQuery>;
 export type SearchTypesQueryResult = Apollo.QueryResult<SearchTypesQuery, SearchTypesQueryVariables>;
+export const ShareAllianceDocument = gql`
+    query ShareAlliance($id: Int!) {
+  alliance(id: $id) {
+    name
+    memberCount
+    corporationCount
+    sovereigntySystemCount
+  }
+  allianceKillLossTotals(allianceId: $id) {
+    kills
+    losses
+  }
+}
+    `;
+
+/**
+ * __useShareAllianceQuery__
+ *
+ * To run a query within a React component, call `useShareAllianceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShareAllianceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShareAllianceQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useShareAllianceQuery(baseOptions: Apollo.QueryHookOptions<ShareAllianceQuery, ShareAllianceQueryVariables> & ({ variables: ShareAllianceQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShareAllianceQuery, ShareAllianceQueryVariables>(ShareAllianceDocument, options);
+      }
+export function useShareAllianceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShareAllianceQuery, ShareAllianceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShareAllianceQuery, ShareAllianceQueryVariables>(ShareAllianceDocument, options);
+        }
+// @ts-ignore
+export function useShareAllianceSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ShareAllianceQuery, ShareAllianceQueryVariables>): Apollo.UseSuspenseQueryResult<ShareAllianceQuery, ShareAllianceQueryVariables>;
+export function useShareAllianceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareAllianceQuery, ShareAllianceQueryVariables>): Apollo.UseSuspenseQueryResult<ShareAllianceQuery | undefined, ShareAllianceQueryVariables>;
+export function useShareAllianceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareAllianceQuery, ShareAllianceQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShareAllianceQuery, ShareAllianceQueryVariables>(ShareAllianceDocument, options);
+        }
+export type ShareAllianceQueryHookResult = ReturnType<typeof useShareAllianceQuery>;
+export type ShareAllianceLazyQueryHookResult = ReturnType<typeof useShareAllianceLazyQuery>;
+export type ShareAllianceSuspenseQueryHookResult = ReturnType<typeof useShareAllianceSuspenseQuery>;
+export type ShareAllianceQueryResult = Apollo.QueryResult<ShareAllianceQuery, ShareAllianceQueryVariables>;
+export const ShareCharacterDocument = gql`
+    query ShareCharacter($id: Int!) {
+  character(id: $id) {
+    name
+    corporation {
+      id
+      name
+    }
+    alliance {
+      id
+      name
+    }
+  }
+  characterKillLossTotals(characterId: $id) {
+    kills
+    losses
+  }
+}
+    `;
+
+/**
+ * __useShareCharacterQuery__
+ *
+ * To run a query within a React component, call `useShareCharacterQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShareCharacterQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShareCharacterQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useShareCharacterQuery(baseOptions: Apollo.QueryHookOptions<ShareCharacterQuery, ShareCharacterQueryVariables> & ({ variables: ShareCharacterQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShareCharacterQuery, ShareCharacterQueryVariables>(ShareCharacterDocument, options);
+      }
+export function useShareCharacterLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShareCharacterQuery, ShareCharacterQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShareCharacterQuery, ShareCharacterQueryVariables>(ShareCharacterDocument, options);
+        }
+// @ts-ignore
+export function useShareCharacterSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ShareCharacterQuery, ShareCharacterQueryVariables>): Apollo.UseSuspenseQueryResult<ShareCharacterQuery, ShareCharacterQueryVariables>;
+export function useShareCharacterSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareCharacterQuery, ShareCharacterQueryVariables>): Apollo.UseSuspenseQueryResult<ShareCharacterQuery | undefined, ShareCharacterQueryVariables>;
+export function useShareCharacterSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareCharacterQuery, ShareCharacterQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShareCharacterQuery, ShareCharacterQueryVariables>(ShareCharacterDocument, options);
+        }
+export type ShareCharacterQueryHookResult = ReturnType<typeof useShareCharacterQuery>;
+export type ShareCharacterLazyQueryHookResult = ReturnType<typeof useShareCharacterLazyQuery>;
+export type ShareCharacterSuspenseQueryHookResult = ReturnType<typeof useShareCharacterSuspenseQuery>;
+export type ShareCharacterQueryResult = Apollo.QueryResult<ShareCharacterQuery, ShareCharacterQueryVariables>;
+export const ShareCorporationDocument = gql`
+    query ShareCorporation($id: Int!) {
+  corporation(id: $id) {
+    name
+    member_count
+    alliance {
+      id
+      name
+    }
+  }
+  corporationKillLossTotals(corporationId: $id) {
+    kills
+    losses
+  }
+}
+    `;
+
+/**
+ * __useShareCorporationQuery__
+ *
+ * To run a query within a React component, call `useShareCorporationQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShareCorporationQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShareCorporationQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useShareCorporationQuery(baseOptions: Apollo.QueryHookOptions<ShareCorporationQuery, ShareCorporationQueryVariables> & ({ variables: ShareCorporationQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShareCorporationQuery, ShareCorporationQueryVariables>(ShareCorporationDocument, options);
+      }
+export function useShareCorporationLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShareCorporationQuery, ShareCorporationQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShareCorporationQuery, ShareCorporationQueryVariables>(ShareCorporationDocument, options);
+        }
+// @ts-ignore
+export function useShareCorporationSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ShareCorporationQuery, ShareCorporationQueryVariables>): Apollo.UseSuspenseQueryResult<ShareCorporationQuery, ShareCorporationQueryVariables>;
+export function useShareCorporationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareCorporationQuery, ShareCorporationQueryVariables>): Apollo.UseSuspenseQueryResult<ShareCorporationQuery | undefined, ShareCorporationQueryVariables>;
+export function useShareCorporationSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareCorporationQuery, ShareCorporationQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShareCorporationQuery, ShareCorporationQueryVariables>(ShareCorporationDocument, options);
+        }
+export type ShareCorporationQueryHookResult = ReturnType<typeof useShareCorporationQuery>;
+export type ShareCorporationLazyQueryHookResult = ReturnType<typeof useShareCorporationLazyQuery>;
+export type ShareCorporationSuspenseQueryHookResult = ReturnType<typeof useShareCorporationSuspenseQuery>;
+export type ShareCorporationQueryResult = Apollo.QueryResult<ShareCorporationQuery, ShareCorporationQueryVariables>;
+export const ShareKillmailDocument = gql`
+    query ShareKillmail($id: ID!) {
+  killmail(id: $id) {
+    killmailTime
+    totalValue
+    destroyedValue
+    droppedValue
+    attackerCount
+    solo
+    npc
+    victim {
+      character {
+        id
+        name
+      }
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+      shipType {
+        id
+        name
+        metaGroupId
+        dogmaAttributes(ids: [422, 1692]) {
+          attribute_id
+          value
+        }
+      }
+    }
+    solarSystem {
+      name
+      securityStatus
+      constellation {
+        region {
+          name
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useShareKillmailQuery__
+ *
+ * To run a query within a React component, call `useShareKillmailQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShareKillmailQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShareKillmailQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useShareKillmailQuery(baseOptions: Apollo.QueryHookOptions<ShareKillmailQuery, ShareKillmailQueryVariables> & ({ variables: ShareKillmailQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShareKillmailQuery, ShareKillmailQueryVariables>(ShareKillmailDocument, options);
+      }
+export function useShareKillmailLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShareKillmailQuery, ShareKillmailQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShareKillmailQuery, ShareKillmailQueryVariables>(ShareKillmailDocument, options);
+        }
+// @ts-ignore
+export function useShareKillmailSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ShareKillmailQuery, ShareKillmailQueryVariables>): Apollo.UseSuspenseQueryResult<ShareKillmailQuery, ShareKillmailQueryVariables>;
+export function useShareKillmailSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareKillmailQuery, ShareKillmailQueryVariables>): Apollo.UseSuspenseQueryResult<ShareKillmailQuery | undefined, ShareKillmailQueryVariables>;
+export function useShareKillmailSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareKillmailQuery, ShareKillmailQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShareKillmailQuery, ShareKillmailQueryVariables>(ShareKillmailDocument, options);
+        }
+export type ShareKillmailQueryHookResult = ReturnType<typeof useShareKillmailQuery>;
+export type ShareKillmailLazyQueryHookResult = ReturnType<typeof useShareKillmailLazyQuery>;
+export type ShareKillmailSuspenseQueryHookResult = ReturnType<typeof useShareKillmailSuspenseQuery>;
+export type ShareKillmailQueryResult = Apollo.QueryResult<ShareKillmailQuery, ShareKillmailQueryVariables>;
+export const ShareSolarSystemDocument = gql`
+    query ShareSolarSystem($id: Int!) {
+  solarSystem(id: $id) {
+    name
+    securityStatus
+    star {
+      typeId
+    }
+    constellation {
+      name
+      region {
+        id
+        name
+      }
+    }
+  }
+  solarSystemStats(systemId: $id) {
+    kills24h
+  }
+  systemActivityHistory(filter: {system_id: $id, hours: 24}) {
+    npc_kills
+  }
+}
+    `;
+
+/**
+ * __useShareSolarSystemQuery__
+ *
+ * To run a query within a React component, call `useShareSolarSystemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShareSolarSystemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShareSolarSystemQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useShareSolarSystemQuery(baseOptions: Apollo.QueryHookOptions<ShareSolarSystemQuery, ShareSolarSystemQueryVariables> & ({ variables: ShareSolarSystemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>(ShareSolarSystemDocument, options);
+      }
+export function useShareSolarSystemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>(ShareSolarSystemDocument, options);
+        }
+// @ts-ignore
+export function useShareSolarSystemSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>): Apollo.UseSuspenseQueryResult<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>;
+export function useShareSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>): Apollo.UseSuspenseQueryResult<ShareSolarSystemQuery | undefined, ShareSolarSystemQueryVariables>;
+export function useShareSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>(ShareSolarSystemDocument, options);
+        }
+export type ShareSolarSystemQueryHookResult = ReturnType<typeof useShareSolarSystemQuery>;
+export type ShareSolarSystemLazyQueryHookResult = ReturnType<typeof useShareSolarSystemLazyQuery>;
+export type ShareSolarSystemSuspenseQueryHookResult = ReturnType<typeof useShareSolarSystemSuspenseQuery>;
+export type ShareSolarSystemQueryResult = Apollo.QueryResult<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>;
 export const SolarSystemDocument = gql`
     query SolarSystem($id: Int!) {
   solarSystem(id: $id) {

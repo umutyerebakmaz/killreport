@@ -377,3 +377,28 @@ export async function getTopCharacters(
 
   return mapped;
 }
+
+/**
+ * Lifetime kill and loss totals for the share cards.
+ * Kills come from the pre-aggregated alliance_kill_stats table, losses from victims.
+ */
+export async function getKillLossTotals(
+  allianceId: number,
+): Promise<{ kills: number; losses: number }> {
+  const cacheKey = getCacheKey(allianceId, 'kill_loss_totals');
+  const cached = await redis.get(cacheKey);
+  if (cached) return JSON.parse(cached);
+
+  const [killRows, losses] = await Promise.all([
+    prisma.$queryRaw<Array<{ kills: bigint | null }>>`
+      SELECT COALESCE(SUM(kill_count), 0) AS kills
+      FROM alliance_kill_stats
+      WHERE alliance_id = ${allianceId}
+    `,
+    prisma.victim.count({ where: { alliance_id: allianceId } }),
+  ]);
+
+  const result = { kills: Number(killRows[0]?.kills ?? 0), losses };
+  await redis.setex(cacheKey, calculateTTL(), JSON.stringify(result));
+  return result;
+}
