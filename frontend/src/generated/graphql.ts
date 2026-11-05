@@ -654,6 +654,12 @@ export type JitaPrice = {
   volume?: Maybe<Scalars['Float']['output']>;
 };
 
+export type KillLossTotals = {
+  __typename?: 'KillLossTotals';
+  kills: Scalars['Int']['output'];
+  losses: Scalars['Int']['output'];
+};
+
 export type Killmail = {
   __typename?: 'Killmail';
   attackerCount: Scalars['Int']['output'];
@@ -1220,6 +1226,7 @@ export type Query = {
   activeCampaignsByRegion: Array<RegionCampaignCount>;
   activeUsersCount: Scalars['Int']['output'];
   alliance?: Maybe<Alliance>;
+  allianceKillLossTotals: KillLossTotals;
   /** Top alliances ranked by number of systems currently controlled. */
   allianceTerritoryRankings: Array<AllianceTerritoryRank>;
   allianceTopAllianceTargets: Array<AllianceTopTarget>;
@@ -1237,6 +1244,7 @@ export type Query = {
   character?: Maybe<Character>;
   /** Newest first; empty until the worker has fetched the character */
   characterCorporationHistory: Array<CharacterCorporationHistory>;
+  characterKillLossTotals: KillLossTotals;
   characterTopAllianceTargets: Array<AllianceTopTarget>;
   characterTopCorporationTargets: Array<CorporationTopTarget>;
   characterTopShipTargets: Array<ShipTopKill>;
@@ -1247,6 +1255,7 @@ export type Query = {
   constellation?: Maybe<Constellation>;
   constellations: ConstellationsResponse;
   corporation?: Maybe<Corporation>;
+  corporationKillLossTotals: KillLossTotals;
   corporationTopAllianceTargets: Array<AllianceTopTarget>;
   corporationTopCharacters: Array<CharacterTopTarget>;
   corporationTopCorporationTargets: Array<CorporationTopTarget>;
@@ -1387,6 +1396,11 @@ export type QueryAllianceArgs = {
 };
 
 
+export type QueryAllianceKillLossTotalsArgs = {
+  allianceId: Scalars['Int']['input'];
+};
+
+
 export type QueryAllianceTerritoryRankingsArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -1452,6 +1466,11 @@ export type QueryCharacterCorporationHistoryArgs = {
 };
 
 
+export type QueryCharacterKillLossTotalsArgs = {
+  characterId: Scalars['Int']['input'];
+};
+
+
 export type QueryCharacterTopAllianceTargetsArgs = {
   characterId: Scalars['Int']['input'];
   filter?: InputMaybe<TopTargetFilter>;
@@ -1498,6 +1517,11 @@ export type QueryConstellationsArgs = {
 
 export type QueryCorporationArgs = {
   id: Scalars['Int']['input'];
+};
+
+
+export type QueryCorporationKillLossTotalsArgs = {
+  corporationId: Scalars['Int']['input'];
 };
 
 
@@ -3179,6 +3203,13 @@ export type SearchTypesQueryVariables = Exact<{
 
 
 export type SearchTypesQuery = { __typename?: 'Query', types: { __typename?: 'TypesResponse', items: Array<{ __typename?: 'Type', id: number, name: string, group?: { __typename?: 'ItemGroup', id: number, name: string } | null }> } };
+
+export type ShareKillmailQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type ShareKillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', killmailTime: string, totalValue?: number | null, destroyedValue?: number | null, droppedValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, metaGroupId?: number | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, solarSystem: { __typename?: 'SolarSystem', name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', region?: { __typename?: 'Region', name: string } | null } | null } } | null };
 
 export type SolarSystemQueryVariables = Exact<{
   id: Scalars['Int']['input'];
@@ -8526,6 +8557,87 @@ export type SearchTypesQueryHookResult = ReturnType<typeof useSearchTypesQuery>;
 export type SearchTypesLazyQueryHookResult = ReturnType<typeof useSearchTypesLazyQuery>;
 export type SearchTypesSuspenseQueryHookResult = ReturnType<typeof useSearchTypesSuspenseQuery>;
 export type SearchTypesQueryResult = Apollo.QueryResult<SearchTypesQuery, SearchTypesQueryVariables>;
+export const ShareKillmailDocument = gql`
+    query ShareKillmail($id: ID!) {
+  killmail(id: $id) {
+    killmailTime
+    totalValue
+    destroyedValue
+    droppedValue
+    attackerCount
+    solo
+    npc
+    victim {
+      character {
+        id
+        name
+      }
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+      shipType {
+        id
+        name
+        metaGroupId
+        dogmaAttributes(ids: [422, 1692]) {
+          attribute_id
+          value
+        }
+      }
+    }
+    solarSystem {
+      name
+      securityStatus
+      constellation {
+        region {
+          name
+        }
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useShareKillmailQuery__
+ *
+ * To run a query within a React component, call `useShareKillmailQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShareKillmailQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShareKillmailQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useShareKillmailQuery(baseOptions: Apollo.QueryHookOptions<ShareKillmailQuery, ShareKillmailQueryVariables> & ({ variables: ShareKillmailQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShareKillmailQuery, ShareKillmailQueryVariables>(ShareKillmailDocument, options);
+      }
+export function useShareKillmailLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShareKillmailQuery, ShareKillmailQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShareKillmailQuery, ShareKillmailQueryVariables>(ShareKillmailDocument, options);
+        }
+// @ts-ignore
+export function useShareKillmailSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ShareKillmailQuery, ShareKillmailQueryVariables>): Apollo.UseSuspenseQueryResult<ShareKillmailQuery, ShareKillmailQueryVariables>;
+export function useShareKillmailSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareKillmailQuery, ShareKillmailQueryVariables>): Apollo.UseSuspenseQueryResult<ShareKillmailQuery | undefined, ShareKillmailQueryVariables>;
+export function useShareKillmailSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareKillmailQuery, ShareKillmailQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShareKillmailQuery, ShareKillmailQueryVariables>(ShareKillmailDocument, options);
+        }
+export type ShareKillmailQueryHookResult = ReturnType<typeof useShareKillmailQuery>;
+export type ShareKillmailLazyQueryHookResult = ReturnType<typeof useShareKillmailLazyQuery>;
+export type ShareKillmailSuspenseQueryHookResult = ReturnType<typeof useShareKillmailSuspenseQuery>;
+export type ShareKillmailQueryResult = Apollo.QueryResult<ShareKillmailQuery, ShareKillmailQueryVariables>;
 export const SolarSystemDocument = gql`
     query SolarSystem($id: Int!) {
   solarSystem(id: $id) {

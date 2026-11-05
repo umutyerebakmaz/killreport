@@ -1,0 +1,43 @@
+query ShareKillmail($id: ID!) {
+  killmail(id: $id) {
+    killmailTime
+    totalValue
+    destroyedValue
+    droppedValue
+    attackerCount
+    solo
+    npc
+    victim {
+      character {
+        id
+        name
+      }
+      corporation {
+        id
+        name
+      }
+      alliance {
+        id
+        name
+      }
+      shipType {
+        id
+        name
+        metaGroupId
+        dogmaAttributes(ids: [422, 1692]) {
+          attribute_id
+          value
+        }
+      }
+    }
+    solarSystem {
+      name
+      securityStatus
+      constellation {
+        region {
+          name
+        }
+      }
+    }
+  }
+}

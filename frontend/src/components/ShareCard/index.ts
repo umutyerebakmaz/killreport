@@ -4,3 +4,4 @@ export { default as NameBlock } from './NameBlock';
 export { default as ShareAttackerBadge } from './ShareAttackerBadge';
 export { default as ShareCardFrame } from './ShareCardFrame';
 export { default as StatNumber } from './StatNumber';
+export { default as KillmailShareCard } from './KillmailShareCard';
