@@ -1,36 +1,21 @@
+import { characterShareText } from '@/lib/shareCard/entityShare';
 import {
-  ShareCharacterDocument,
-  type ShareCharacterQuery,
-  type ShareCharacterQueryVariables,
-} from '@/generated/graphql';
-import {
-  toShareCharacter,
-  characterShareText,
-} from '@/lib/shareCard/entityShare';
-import { fetchGraphQL } from '@/lib/shareCard/fetchGraphQL';
+  loadCharacterShare,
+  SHARE_METADATA_REVALIDATE,
+  shareMetadata,
+} from '@/lib/shareCard/shareRoute';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-export async function generateMetadata({
+export function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const id = Number((await params).id);
-  if (!Number.isInteger(id)) return {};
-  const data = await fetchGraphQL<
-    ShareCharacterQuery,
-    ShareCharacterQueryVariables
-  >(ShareCharacterDocument, { id }, 3600);
-  const entity = toShareCharacter(id, data);
-  if (!entity) return {};
-  const { title, description } = characterShareText(entity);
-  return {
-    title,
-    description,
-    openGraph: { title, description },
-    twitter: { card: 'summary_large_image' },
-  };
+  return shareMetadata(
+    () => loadCharacterShare(params, SHARE_METADATA_REVALIDATE),
+    characterShareText,
+  );
 }
 
 export default function CharacterLayout({ children }: { children: ReactNode }) {

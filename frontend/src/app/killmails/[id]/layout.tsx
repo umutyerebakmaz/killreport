@@ -1,32 +1,21 @@
+import { killmailShareText } from '@/lib/shareCard/killmailShare';
 import {
-  ShareKillmailDocument,
-  type ShareKillmailQuery,
-  type ShareKillmailQueryVariables,
-} from '@/generated/graphql';
-import { fetchGraphQL } from '@/lib/shareCard/fetchGraphQL';
-import { hasVictim, killmailShareText } from '@/lib/shareCard/killmailShare';
+  loadKillmailShare,
+  SHARE_METADATA_REVALIDATE,
+  shareMetadata,
+} from '@/lib/shareCard/shareRoute';
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 
-export async function generateMetadata({
+export function generateMetadata({
   params,
 }: {
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
-  const { id } = await params;
-  const data = await fetchGraphQL<
-    ShareKillmailQuery,
-    ShareKillmailQueryVariables
-  >(ShareKillmailDocument, { id }, false);
-  const km = data?.killmail;
-  if (!hasVictim(km)) return {};
-  const { title, description } = killmailShareText(km);
-  return {
-    title,
-    description,
-    openGraph: { title, description },
-    twitter: { card: 'summary_large_image' },
-  };
+  return shareMetadata(
+    () => loadKillmailShare(params, SHARE_METADATA_REVALIDATE),
+    killmailShareText,
+  );
 }
 
 export default function KillmailLayout({ children }: { children: ReactNode }) {

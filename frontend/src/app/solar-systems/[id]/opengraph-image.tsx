@@ -1,21 +1,19 @@
 import { SolarSystemShareCard } from '@/components/ShareCard';
-import {
-  ShareSolarSystemDocument,
-  type ShareSolarSystemQuery,
-  type ShareSolarSystemQueryVariables,
-} from '@/generated/graphql';
-import { fetchGraphQL } from '@/lib/shareCard/fetchGraphQL';
 import { loadShareCardFonts } from '@/lib/shareCard/fonts';
 import { SHARE_CARD_SIZE } from '@/lib/shareCard/palette';
 import {
-  solarSystemShareProps,
-  toShareSolarSystem,
-} from '@/lib/shareCard/solarSystemShare';
+  loadSolarSystemShare,
+  SHARE_IMAGE_FETCH_REVALIDATE,
+  shareNotFound,
+} from '@/lib/shareCard/shareRoute';
+import { solarSystemShareProps } from '@/lib/shareCard/solarSystemShare';
 import { ImageResponse } from 'next/og';
 
 export const size = SHARE_CARD_SIZE;
 export const contentType = 'image/png';
 export const alt = 'Solar system share card';
+/** ISR: each id is rendered on its first request, then served from the cache. */
+export const dynamic = 'force-static';
 /** Kills and NPC kills are 24 hour windows, so the image is remade every 15 minutes. */
 export const revalidate = 900;
 
@@ -24,14 +22,11 @@ export default async function Image({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const id = Number((await params).id);
-  if (!Number.isInteger(id)) return new Response(null, { status: 404 });
-  const data = await fetchGraphQL<
-    ShareSolarSystemQuery,
-    ShareSolarSystemQueryVariables
-  >(ShareSolarSystemDocument, { id }, 900);
-  const entity = toShareSolarSystem(data);
-  if (!entity) return new Response(null, { status: 404 });
+  const entity = await loadSolarSystemShare(
+    params,
+    SHARE_IMAGE_FETCH_REVALIDATE,
+  );
+  if (!entity) return shareNotFound();
 
   const fonts = await loadShareCardFonts();
   return new ImageResponse(

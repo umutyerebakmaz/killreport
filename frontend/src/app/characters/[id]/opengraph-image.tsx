@@ -1,21 +1,19 @@
 import { CharacterShareCard } from '@/components/ShareCard';
-import {
-  ShareCharacterDocument,
-  type ShareCharacterQuery,
-  type ShareCharacterQueryVariables,
-} from '@/generated/graphql';
-import {
-  toShareCharacter,
-  characterShareProps,
-} from '@/lib/shareCard/entityShare';
-import { fetchGraphQL } from '@/lib/shareCard/fetchGraphQL';
+import { characterShareProps } from '@/lib/shareCard/entityShare';
 import { loadShareCardFonts } from '@/lib/shareCard/fonts';
 import { SHARE_CARD_SIZE } from '@/lib/shareCard/palette';
+import {
+  loadCharacterShare,
+  SHARE_IMAGE_FETCH_REVALIDATE,
+  shareNotFound,
+} from '@/lib/shareCard/shareRoute';
 import { ImageResponse } from 'next/og';
 
 export const size = SHARE_CARD_SIZE;
 export const contentType = 'image/png';
 export const alt = 'Character share card';
+/** ISR: each id is rendered on its first request, then served from the cache. */
+export const dynamic = 'force-static';
 /** Totals move with every killmail, so the image is remade hourly. */
 export const revalidate = 3600;
 
@@ -24,18 +22,15 @@ export default async function Image({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const id = Number((await params).id);
-  if (!Number.isInteger(id)) return new Response(null, { status: 404 });
-  const data = await fetchGraphQL<
-    ShareCharacterQuery,
-    ShareCharacterQueryVariables
-  >(ShareCharacterDocument, { id }, 3600);
-  const entity = toShareCharacter(id, data);
-  if (!entity) return new Response(null, { status: 404 });
+  const entity = await loadCharacterShare(params, SHARE_IMAGE_FETCH_REVALIDATE);
+  if (!entity) return shareNotFound();
 
   const fonts = await loadShareCardFonts();
   return new ImageResponse(
     <CharacterShareCard p={characterShareProps(entity)} />,
-    { ...size, fonts },
+    {
+      ...size,
+      fonts,
+    },
   );
 }

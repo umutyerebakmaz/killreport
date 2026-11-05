@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { fetchGraphQL, ImageResponse } = vi.hoisted(() => ({
   fetchGraphQL: vi.fn(),
@@ -8,24 +8,47 @@ const { fetchGraphQL, ImageResponse } = vi.hoisted(() => ({
 vi.mock('@/lib/shareCard/fetchGraphQL', () => ({ fetchGraphQL }));
 vi.mock('next/og', () => ({ ImageResponse }));
 
-import Image from './opengraph-image';
+import Image, { dynamic } from './opengraph-image';
+
+const params = (id: string) => ({ params: Promise.resolve({ id }) });
+
+beforeEach(() => vi.clearAllMocks());
 
 describe('solar system opengraph-image', () => {
-  it('answers 404 without rendering when there is no data', async () => {
-    fetchGraphQL.mockResolvedValue(null);
-    const res = await Image({ params: Promise.resolve({ id: '1' }) });
-    expect(res.status).toBe(404);
-    expect(ImageResponse).not.toHaveBeenCalled();
+  it('is ISR, rendered on demand and then cached', () => {
+    expect(dynamic).toBe('force-static');
   });
 
-  it('answers 404 when the system is null', async () => {
+  it('answers 404 without rendering when the solar system is null', async () => {
     fetchGraphQL.mockResolvedValue({
       solarSystem: null,
       solarSystemStats: { kills24h: 0 },
       systemActivityHistory: [],
     });
-    const res = await Image({ params: Promise.resolve({ id: '1' }) });
+    const res = await Image(params('30002537'));
     expect(res.status).toBe(404);
     expect(ImageResponse).not.toHaveBeenCalled();
+  });
+
+  it('answers 404 for a malformed id without asking the backend', async () => {
+    const res = await Image(params('abc'));
+    expect(res.status).toBe(404);
+    expect(fetchGraphQL).not.toHaveBeenCalled();
+  });
+
+  it('throws instead of answering 404 when the backend fails', async () => {
+    fetchGraphQL.mockRejectedValue(new Error('GraphQL errors: pool timeout'));
+    await expect(Image(params('30002537'))).rejects.toThrow('pool timeout');
+    expect(ImageResponse).not.toHaveBeenCalled();
+  });
+
+  it('keeps the response out of the data cache', async () => {
+    fetchGraphQL.mockResolvedValue({
+      solarSystem: null,
+      solarSystemStats: { kills24h: 0 },
+      systemActivityHistory: [],
+    });
+    await Image(params('30002537'));
+    expect(fetchGraphQL.mock.calls[0][2]).toBe(0);
   });
 });
