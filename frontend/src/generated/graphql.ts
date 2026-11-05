@@ -3232,6 +3232,13 @@ export type ShareKillmailQueryVariables = Exact<{
 
 export type ShareKillmailQuery = { __typename?: 'Query', killmail?: { __typename?: 'Killmail', killmailTime: string, totalValue?: number | null, destroyedValue?: number | null, droppedValue?: number | null, attackerCount: number, solo: boolean, npc: boolean, victim?: { __typename?: 'Victim', character?: { __typename?: 'Character', id: number, name: string } | null, corporation?: { __typename?: 'Corporation', id: number, name: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string } | null, shipType: { __typename?: 'Type', id: number, name: string, metaGroupId?: number | null, dogmaAttributes: Array<{ __typename?: 'TypeDogmaAttribute', attribute_id: number, value: number }> } } | null, solarSystem: { __typename?: 'SolarSystem', name: string, securityStatus?: number | null, constellation?: { __typename?: 'Constellation', region?: { __typename?: 'Region', name: string } | null } | null } } | null };
 
+export type ShareSolarSystemQueryVariables = Exact<{
+  id: Scalars['Int']['input'];
+}>;
+
+
+export type ShareSolarSystemQuery = { __typename?: 'Query', solarSystem?: { __typename?: 'SolarSystem', name: string, securityStatus?: number | null, star?: { __typename?: 'Star', typeId?: number | null } | null, constellation?: { __typename?: 'Constellation', name: string, region?: { __typename?: 'Region', id: number, name: string } | null } | null } | null, solarSystemStats: { __typename?: 'SolarSystemStats', kills24h: number }, systemActivityHistory: Array<{ __typename?: 'SystemActivity', npc_kills: number }> };
+
 export type SolarSystemQueryVariables = Exact<{
   id: Scalars['Int']['input'];
 }>;
@@ -8816,6 +8823,66 @@ export type ShareKillmailQueryHookResult = ReturnType<typeof useShareKillmailQue
 export type ShareKillmailLazyQueryHookResult = ReturnType<typeof useShareKillmailLazyQuery>;
 export type ShareKillmailSuspenseQueryHookResult = ReturnType<typeof useShareKillmailSuspenseQuery>;
 export type ShareKillmailQueryResult = Apollo.QueryResult<ShareKillmailQuery, ShareKillmailQueryVariables>;
+export const ShareSolarSystemDocument = gql`
+    query ShareSolarSystem($id: Int!) {
+  solarSystem(id: $id) {
+    name
+    securityStatus
+    star {
+      typeId
+    }
+    constellation {
+      name
+      region {
+        id
+        name
+      }
+    }
+  }
+  solarSystemStats(systemId: $id) {
+    kills24h
+  }
+  systemActivityHistory(filter: {system_id: $id, hours: 24}) {
+    npc_kills
+  }
+}
+    `;
+
+/**
+ * __useShareSolarSystemQuery__
+ *
+ * To run a query within a React component, call `useShareSolarSystemQuery` and pass it any options that fit your needs.
+ * When your component renders, `useShareSolarSystemQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useShareSolarSystemQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useShareSolarSystemQuery(baseOptions: Apollo.QueryHookOptions<ShareSolarSystemQuery, ShareSolarSystemQueryVariables> & ({ variables: ShareSolarSystemQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>(ShareSolarSystemDocument, options);
+      }
+export function useShareSolarSystemLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>(ShareSolarSystemDocument, options);
+        }
+// @ts-ignore
+export function useShareSolarSystemSuspenseQuery(baseOptions?: Apollo.SuspenseQueryHookOptions<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>): Apollo.UseSuspenseQueryResult<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>;
+export function useShareSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>): Apollo.UseSuspenseQueryResult<ShareSolarSystemQuery | undefined, ShareSolarSystemQueryVariables>;
+export function useShareSolarSystemSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>(ShareSolarSystemDocument, options);
+        }
+export type ShareSolarSystemQueryHookResult = ReturnType<typeof useShareSolarSystemQuery>;
+export type ShareSolarSystemLazyQueryHookResult = ReturnType<typeof useShareSolarSystemLazyQuery>;
+export type ShareSolarSystemSuspenseQueryHookResult = ReturnType<typeof useShareSolarSystemSuspenseQuery>;
+export type ShareSolarSystemQueryResult = Apollo.QueryResult<ShareSolarSystemQuery, ShareSolarSystemQueryVariables>;
 export const SolarSystemDocument = gql`
     query SolarSystem($id: Int!) {
   solarSystem(id: $id) {

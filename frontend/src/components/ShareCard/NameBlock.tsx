@@ -8,6 +8,34 @@ const ONE_LINE = {
   whiteSpace: 'nowrap',
 } as const;
 
+/** A line of text, or pieces of it each with its own colour. */
+export type Pieces = string | { text: string; color?: string }[];
+
+/**
+ * Pieces go in a flex row (satori wants `display: flex` on any element with
+ * more than one child). Every piece but the last keeps its whitespace and
+ * never shrinks; the last one is the single line that gets the ellipsis.
+ */
+function renderPieces(content: Pieces): ReactNode {
+  if (typeof content === 'string') return content;
+  return content.map((piece, i) => {
+    const last = i === content.length - 1;
+    return (
+      <span
+        key={`${piece.text}-${i}`}
+        style={{
+          color: piece.color,
+          ...(last
+            ? { minWidth: 0, ...ONE_LINE }
+            : { flexShrink: 0, whiteSpace: 'pre' }),
+        }}
+      >
+        {piece.text}
+      </span>
+    );
+  });
+}
+
 /**
  * Name and memberships pinned to the bottom of a panel, one name per line.
  * Sits over an image, so the text carries a shadow rather than a scrim.
@@ -17,9 +45,9 @@ export default function NameBlock({
   memberships = [],
   subtitle,
 }: {
-  title: ReactNode;
+  title: Pieces;
   memberships?: { logo: string; name: string }[];
-  subtitle?: ReactNode;
+  subtitle?: Pieces;
 }) {
   return (
     <div
@@ -39,21 +67,22 @@ export default function NameBlock({
           fontWeight: 500,
           lineHeight: 1.1,
           color: '#ffffff',
-          ...ONE_LINE,
+          ...(typeof title === 'string' ? ONE_LINE : { display: 'flex' }),
         }}
       >
-        {title}
+        {renderPieces(title)}
       </div>
       {subtitle ? (
         <div
           style={{
             marginTop: 10,
-            fontSize: 26,
+            fontSize: 30,
+            fontWeight: 500,
             color: SHARE.text,
-            ...ONE_LINE,
+            ...(typeof subtitle === 'string' ? ONE_LINE : { display: 'flex' }),
           }}
         >
-          {subtitle}
+          {renderPieces(subtitle)}
         </div>
       ) : null}
       {memberships.map((m, i) => (

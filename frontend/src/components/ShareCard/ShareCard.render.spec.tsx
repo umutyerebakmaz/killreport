@@ -25,12 +25,19 @@ describe('share card render', () => {
           <div style={{ display: 'flex', flex: 1, position: 'relative' }}>
             {blurredBackdrop(PNG)}
             <NameBlock
-              title="General XAN"
+              title={[
+                { text: '0.4', color: '#facc15' },
+                { text: 'General XAN' },
+              ]}
               memberships={[
                 { logo: PNG, name: 'Some Corporation' },
                 { logo: PNG, name: 'Some Alliance' },
               ]}
-              subtitle="subtitle"
+              subtitle={[
+                { text: 'Hed', color: SHARE.text },
+                { text: ' \u00b7 ', color: SHARE.muted },
+                { text: 'Heimatar', color: SHARE.region },
+              ]}
             />
           </div>
         }

@@ -8,3 +8,4 @@ export { default as KillmailShareCard } from './KillmailShareCard';
 export { default as CharacterShareCard } from './CharacterShareCard';
 export { default as CorporationShareCard } from './CorporationShareCard';
 export { default as AllianceShareCard } from './AllianceShareCard';
+export { default as SolarSystemShareCard } from './SolarSystemShareCard';

@@ -44,6 +44,47 @@ describe('NameBlock', () => {
     expect(row.style.whiteSpace).toBe('nowrap');
   });
 
+  it('keeps a plain string title as a single text node', () => {
+    render(<NameBlock title="Victim" />);
+    const el = screen.getByText('Victim');
+    expect(el.style.textOverflow).toBe('ellipsis');
+    expect(el.children).toHaveLength(0);
+  });
+
+  it('renders a title given as styled pieces in a flex row', () => {
+    render(
+      <NameBlock
+        title={[{ text: '0.4', color: '#facc15' }, { text: 'Amamake' }]}
+      />,
+    );
+    const sec = screen.getByText('0.4');
+    const name = screen.getByText('Amamake');
+    expect(sec.style.color).toBe('rgb(250, 204, 21)');
+    expect(sec.parentElement?.style.display).toBe('flex');
+    expect(name.parentElement).toBe(sec.parentElement);
+    expect(name.style.textOverflow).toBe('ellipsis');
+    expect(name.style.whiteSpace).toBe('nowrap');
+  });
+
+  it('renders the subtitle at 30px / 500, also as styled pieces', () => {
+    render(
+      <NameBlock
+        title="Amamake"
+        subtitle={[
+          { text: 'Hed', color: '#e5e7eb' },
+          { text: ' \u00b7 ', color: '#b0b0b0' },
+          { text: 'Heimatar', color: '#60a5fa' },
+        ]}
+      />,
+    );
+    const region = screen.getByText('Heimatar');
+    expect(region.style.color).toBe('rgb(96, 165, 250)');
+    const row = region.parentElement as HTMLElement;
+    expect(row.style.fontSize).toBe('30px');
+    expect(row.style.fontWeight).toBe('500');
+    expect(row.style.display).toBe('flex');
+  });
+
   it('has no membership rows without memberships', () => {
     const { container } = render(<NameBlock title="Victim" memberships={[]} />);
     expect(container.querySelectorAll('img')).toHaveLength(0);
