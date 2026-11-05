@@ -14,5 +14,15 @@ describe('fileDataUri', () => {
 
   it('rejects paths that escape public/', async () => {
     expect(await fileDataUri('/../package.json')).toBeNull();
+    expect(await fileDataUri('/icons/../favicon.ico')).toBeNull();
+  });
+
+  it('encodes an existing region map', async () => {
+    const uri = await fileDataUri('/images/regions/10000030.svg');
+    expect(uri?.startsWith('data:image/svg+xml;base64,')).toBe(true);
+  });
+
+  it('reads only from icons/ and images/regions/, even when the file exists', async () => {
+    expect(await fileDataUri('/images/solar-systems/30002537.svg')).toBeNull();
   });
 });
