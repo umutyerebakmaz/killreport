@@ -7,7 +7,10 @@ interface ShipTierBadgeProps {
 }
 
 /** The four tiers that have an icon, and what it is called. */
-const ICONS: Record<Exclude<ShipTier, null>, { src: string; alt: string }> = {
+export const SHIP_TIER_ICONS: Record<
+  Exclude<ShipTier, null>,
+  { src: string; alt: string }
+> = {
   T2: { src: '/icons/t2.svg', alt: 'T2' },
   T3: { src: '/icons/t3.svg', alt: 'T3' },
   faction: { src: '/icons/faction.svg', alt: 'Faction' },
@@ -27,7 +30,7 @@ export default function ShipTierBadge({
 }: ShipTierBadgeProps) {
   if (!tier) return null;
 
-  const icon = ICONS[tier];
+  const icon = SHIP_TIER_ICONS[tier];
 
   return (
     <Image
