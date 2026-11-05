@@ -46,6 +46,30 @@ describe('killmailShareText', () => {
     });
   });
 
+  it('uses an before a vowel-initial hull', () => {
+    const k = km();
+    k.victim.shipType.name = 'Ishtar';
+    expect(killmailShareText(k).title).toBe("Den'orm lost an Ishtar");
+    expect(killmailShareText(km()).title).toBe("Den'orm lost a Kronos");
+  });
+
+  it('falls back to the corporation, then the hull, like the card', () => {
+    const k = km();
+    k.victim.character = null;
+    expect(killmailShareText(k).title).toBe('Some Corp lost a Kronos');
+    k.victim.corporation = null;
+    expect(killmailShareText(k).title).toBe('Kronos lost a Kronos');
+    expect(killmailShareProps(k).victimName).toBe('Kronos');
+  });
+
+  it('leaves the region out when there is none', () => {
+    const k = km();
+    k.solarSystem.constellation = null;
+    expect(killmailShareText(k).description).toBe(
+      '1.10B ISK, Sibot, 5 attackers',
+    );
+  });
+
   it('says solo and NPC', () => {
     expect(killmailShareText(km({ solo: true })).description).toBe(
       '1.10B ISK, Sibot (Domain), solo',

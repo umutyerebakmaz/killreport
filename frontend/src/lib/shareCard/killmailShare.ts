@@ -38,6 +38,14 @@ export interface KillmailShareCardProps {
   attackerCount: number;
 }
 
+/** Who lost the ship: the pilot, else the corporation, else the hull itself. */
+const victimName = ({ victim }: Killmail) =>
+  victim.character?.name ?? victim.corporation?.name ?? victim.shipType.name;
+
+/** `a Kronos`, `an Ishtar`. */
+export const withArticle = (name: string) =>
+  `${/^[aeiou]/i.test(name) ? 'an' : 'a'} ${name}`;
+
 export function killmailShareProps(km: Killmail): KillmailShareCardProps {
   const { victim, solarSystem } = km;
   const { character, corporation, alliance, shipType } = victim;
@@ -63,7 +71,7 @@ export function killmailShareProps(km: Killmail): KillmailShareCardProps {
   const sec = solarSystem.securityStatus;
   return {
     portrait,
-    victimName: character?.name ?? corporation?.name ?? shipType.name,
+    victimName: victimName(km),
     memberships,
     shipImage: eveImageUrl({ kind: 'ship', id: shipType.id, size: 256 }),
     tierIcon: tier ? SHIP_TIER_ICONS[tier].src : null,
@@ -88,8 +96,6 @@ export function killmailShareText(km: Killmail): {
   description: string;
 } {
   const { victim, solarSystem } = km;
-  const who =
-    victim.character?.name ?? victim.corporation?.name ?? 'A structure';
   const region = solarSystem.constellation?.region?.name;
   const attackers = km.npc
     ? 'NPC'
@@ -97,7 +103,7 @@ export function killmailShareText(km: Killmail): {
       ? 'solo'
       : `${km.attackerCount} attackers`;
   return {
-    title: `${who} lost a ${victim.shipType.name}`,
+    title: `${victimName(km)} lost ${withArticle(victim.shipType.name)}`,
     description: `${formatISK(km.totalValue)} ISK, ${solarSystem.name}${region ? ` (${region})` : ''}, ${attackers}`,
   };
 }

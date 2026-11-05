@@ -13,6 +13,21 @@ const fill = {
   objectFit: 'cover',
 } as const;
 
+/** `Hed · Heimatar`, with the separator only between names that exist. */
+export function systemSubtitle(
+  constellationName: string,
+  regionName: string,
+): { text: string; color: string }[] | undefined {
+  const pieces = [
+    constellationName && { text: constellationName, color: SHARE.text },
+    regionName && { text: regionName, color: SHARE.region },
+  ].filter((piece) => !!piece);
+  if (pieces.length === 0) return undefined;
+  return pieces.length === 2
+    ? [pieces[0], { text: ' · ', color: SHARE.muted }, pieces[1]]
+    : pieces;
+}
+
 /** The solar system share card: the star on the left, 24 hour kills on the right. */
 export default function SolarSystemShareCard({
   p,
@@ -45,11 +60,7 @@ export default function SolarSystemShareCard({
               { text: `${p.secText} `, color: p.secColor },
               { text: p.systemName },
             ]}
-            subtitle={[
-              { text: p.constellationName, color: SHARE.text },
-              { text: ' · ', color: SHARE.muted },
-              { text: p.regionName, color: SHARE.region },
-            ]}
+            subtitle={systemSubtitle(p.constellationName, p.regionName)}
           />
         </div>
       }

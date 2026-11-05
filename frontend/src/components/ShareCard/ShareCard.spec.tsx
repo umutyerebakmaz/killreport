@@ -4,6 +4,7 @@ import { killLossBarHeights } from './KillLossBars';
 import NameBlock from './NameBlock';
 import ShareAttackerBadge from './ShareAttackerBadge';
 import ShareCardFrame from './ShareCardFrame';
+import { systemSubtitle } from './SolarSystemShareCard';
 
 describe('killLossBarHeights', () => {
   it('gives the larger side full height', () => {
@@ -103,5 +104,25 @@ describe('ShareCardFrame', () => {
     );
     expect(screen.getByText('KILLREPORT')).toBeTruthy();
     expect(screen.getByText('FOOT')).toBeTruthy();
+  });
+});
+
+describe('systemSubtitle', () => {
+  it('separates constellation and region with a middle dot', () => {
+    expect(systemSubtitle('Hed', 'Heimatar')?.map((p) => p.text)).toEqual([
+      'Hed',
+      ' · ',
+      'Heimatar',
+    ]);
+  });
+
+  it('leaves no dangling separator when a name is empty', () => {
+    expect(systemSubtitle('', 'Heimatar')).toEqual([
+      { text: 'Heimatar', color: expect.any(String) },
+    ]);
+    expect(systemSubtitle('Hed', '')).toEqual([
+      { text: 'Hed', color: expect.any(String) },
+    ]);
+    expect(systemSubtitle('', '')).toBeUndefined();
   });
 });
