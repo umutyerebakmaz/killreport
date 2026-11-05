@@ -572,6 +572,11 @@ type JitaPrice {
   volume: Float
 }
 
+type KillLossTotals {
+  kills: Int!
+  losses: Int!
+}
+
 type Killmail {
   attackerCount: Int!
   attackers: [Attacker!]!
@@ -1068,6 +1073,7 @@ type Query {
   activeCampaignsByRegion(limit: Int): [RegionCampaignCount!]!
   activeUsersCount: Int!
   alliance(id: Int!): Alliance
+  allianceKillLossTotals(allianceId: Int!): KillLossTotals!
 
   """Top alliances ranked by number of systems currently controlled."""
   allianceTerritoryRankings(limit: Int): [AllianceTerritoryRank!]!
@@ -1088,6 +1094,7 @@ type Query {
 
   """Newest first; empty until the worker has fetched the character"""
   characterCorporationHistory(characterId: Int!): [CharacterCorporationHistory!]!
+  characterKillLossTotals(characterId: Int!): KillLossTotals!
   characterTopAllianceTargets(characterId: Int!, filter: TopTargetFilter): [AllianceTopTarget!]!
   characterTopCorporationTargets(characterId: Int!, filter: TopTargetFilter): [CorporationTopTarget!]!
   characterTopShipTargets(characterId: Int!, filter: TopTargetFilter): [ShipTopKill!]!
@@ -1099,6 +1106,7 @@ type Query {
   constellation(id: Int!): Constellation
   constellations(filter: ConstellationFilter): ConstellationsResponse!
   corporation(id: Int!): Corporation
+  corporationKillLossTotals(corporationId: Int!): KillLossTotals!
   corporationTopAllianceTargets(corporationId: Int!, filter: TopTargetFilter): [AllianceTopTarget!]!
   corporationTopCharacters(corporationId: Int!, filter: TopTargetFilter): [CharacterTopTarget!]!
   corporationTopCorporationTargets(corporationId: Int!, filter: TopTargetFilter): [CorporationTopTarget!]!

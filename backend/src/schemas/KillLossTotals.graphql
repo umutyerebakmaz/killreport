@@ -1,0 +1,4 @@
+type KillLossTotals {
+  kills: Int!
+  losses: Int!
+}

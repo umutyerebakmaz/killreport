@@ -55,4 +55,12 @@ export const corporationStatsQueries: QueryResolvers = {
   corporationTopCharacters: async (_, { corporationId, filter }) => {
     return CorporationStatsService.getTopCharacters(corporationId, filter);
   },
+
+  /**
+   * Lifetime kill and loss totals
+   * Cached in Redis for one hour
+   */
+  corporationKillLossTotals: async (_, { corporationId }) => {
+    return CorporationStatsService.getKillLossTotals(corporationId);
+  },
 };

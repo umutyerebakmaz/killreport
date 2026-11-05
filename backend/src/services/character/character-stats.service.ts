@@ -301,3 +301,28 @@ export async function invalidateCharacterStats(
     await redis.del(...keys);
   }
 }
+
+/**
+ * Lifetime kill and loss totals for the share cards.
+ * Kills come from the pre-aggregated character_kill_stats table, losses from victims.
+ */
+export async function getKillLossTotals(
+  characterId: number,
+): Promise<{ kills: number; losses: number }> {
+  const cacheKey = getCacheKey(characterId, 'kill_loss_totals');
+  const cached = await redis.get(cacheKey);
+  if (cached) return JSON.parse(cached);
+
+  const [killRows, losses] = await Promise.all([
+    prisma.$queryRaw<Array<{ kills: bigint | null }>>`
+      SELECT COALESCE(SUM(kill_count), 0) AS kills
+      FROM character_kill_stats
+      WHERE character_id = ${characterId}
+    `,
+    prisma.victim.count({ where: { character_id: characterId } }),
+  ]);
+
+  const result = { kills: Number(killRows[0]?.kills ?? 0), losses };
+  await redis.setex(cacheKey, calculateTTL(), JSON.stringify(result));
+  return result;
+}

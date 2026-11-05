@@ -52,4 +52,12 @@ export const allianceStatsQueries: QueryResolvers = {
   allianceTopCharacters: async (_, { allianceId, filter }) => {
     return AllianceStatsService.getTopCharacters(allianceId, filter);
   },
+
+  /**
+   * Lifetime kill and loss totals
+   * Cached in Redis for one hour
+   */
+  allianceKillLossTotals: async (_, { allianceId }) => {
+    return AllianceStatsService.getKillLossTotals(allianceId);
+  },
 };

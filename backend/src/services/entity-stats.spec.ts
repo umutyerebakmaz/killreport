@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  */
 
 const { prisma, redis, sqlFragment } = vi.hoisted(() => ({
-  prisma: { $queryRaw: vi.fn() },
+  prisma: { $queryRaw: vi.fn(), victim: { count: vi.fn() } },
   redis: { get: vi.fn(), setex: vi.fn(), keys: vi.fn(), del: vi.fn() },
   // Prisma.sql is a tagged template; the mock keeps the fragment's text so a
   // test can say which time filter was spliced into the query.
@@ -51,18 +51,21 @@ function fragmentOf(call = 0) {
 const SERVICES = [
   {
     name: 'alliance',
+    domain: 'alliance',
     service: allianceStats,
     prefix: 'alliance_stats',
     invalidate: allianceStats.invalidateAllianceStats,
   },
   {
     name: 'corporation',
+    domain: 'corporation',
     service: corporationStats,
     prefix: 'corp_stats',
     invalidate: corporationStats.invalidateCorporationStats,
   },
   {
     name: 'character',
+    domain: 'character',
     service: characterStats,
     prefix: 'char_stats',
     invalidate: characterStats.invalidateCharacterStats,
@@ -87,11 +90,12 @@ beforeEach(() => {
   redis.keys.mockResolvedValue([]);
   redis.del.mockResolvedValue(0);
   prisma.$queryRaw.mockResolvedValue([]);
+  prisma.victim.count.mockResolvedValue(0);
 });
 
 describe.each(SERVICES)(
   '$name stats service',
-  ({ service, prefix, invalidate }) => {
+  ({ service, prefix, invalidate, domain }) => {
     describe.each(READERS)('$fn', ({ fn, statType }) => {
       const read = (id: number, filter?: string | null) =>
         (
@@ -240,6 +244,58 @@ describe.each(SERVICES)(
       await service.getTopShipTargets(4242, 'TODAY');
 
       expect(queryValues()).toContain(4242);
+    });
+
+    describe('getKillLossTotals', () => {
+      const key = `${prefix}:99:kill_loss_totals:ALL_TIME`;
+
+      it('serves a cache hit without touching the database', async () => {
+        redis.get.mockResolvedValue(JSON.stringify({ kills: 5, losses: 2 }));
+
+        await expect(service.getKillLossTotals(99)).resolves.toEqual({
+          kills: 5,
+          losses: 2,
+        });
+        expect(prisma.$queryRaw).not.toHaveBeenCalled();
+        expect(prisma.victim.count).not.toHaveBeenCalled();
+      });
+
+      it('keys the cache by entity with TTL 3600', async () => {
+        await service.getKillLossTotals(99);
+
+        expect(redis.get).toHaveBeenCalledWith(key);
+        expect(redis.setex).toHaveBeenCalledWith(key, 3600, expect.any(String));
+      });
+
+      it("sums the domain's kill_stats table and counts victims", async () => {
+        prisma.$queryRaw.mockResolvedValue([{ kills: 11861n }]);
+        prisma.victim.count.mockResolvedValue(9593);
+
+        await expect(service.getKillLossTotals(99)).resolves.toEqual({
+          kills: 11861,
+          losses: 9593,
+        });
+        expect(querySql()).toContain(`${domain}_kill_stats`);
+        expect(querySql()).toContain(`${domain}_id`);
+        expect(queryValues()).toContain(99);
+        expect(prisma.victim.count).toHaveBeenCalledWith({
+          where: { [`${domain}_id`]: 99 },
+        });
+        expect(JSON.parse(redis.setex.mock.calls[0][2] as string)).toEqual({
+          kills: 11861,
+          losses: 9593,
+        });
+      });
+
+      it('returns zeros when the entity has no rows', async () => {
+        prisma.$queryRaw.mockResolvedValue([{ kills: null }]);
+        prisma.victim.count.mockResolvedValue(0);
+
+        await expect(service.getKillLossTotals(99)).resolves.toEqual({
+          kills: 0,
+          losses: 0,
+        });
+      });
     });
 
     describe('invalidate', () => {
