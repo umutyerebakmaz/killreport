@@ -1,4 +1,9 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+const { blurredBackdropUri } = vi.hoisted(() => ({
+  blurredBackdropUri: vi.fn(async (url: string) => `blurred:${url}`),
+}));
+vi.mock('./backdrop', () => ({ blurredBackdropUri }));
 import {
   allianceShareProps,
   allianceShareText,
@@ -82,27 +87,40 @@ describe('allianceShareText', () => {
 });
 
 describe('share props', () => {
-  it('draws no bars without kills or losses', () => {
+  it('draws no bars without kills or losses', async () => {
     expect(
-      characterShareProps(character({ kills: 0, losses: 0 })).bars,
+      (await characterShareProps(character({ kills: 0, losses: 0 }))).bars,
     ).toBeNull();
     expect(
-      corporationShareProps(corporation({ kills: 0, losses: 0 })).bars,
+      (await corporationShareProps(corporation({ kills: 0, losses: 0 }))).bars,
     ).toBeNull();
     expect(
-      allianceShareProps(alliance({ kills: 0, losses: 0 })).bars,
+      (await allianceShareProps(alliance({ kills: 0, losses: 0 }))).bars,
     ).toBeNull();
   });
-  it('formats the numbers', () => {
-    const p = allianceShareProps(alliance());
+  it('formats the numbers', async () => {
+    const p = await allianceShareProps(alliance());
     expect(p.members).toBe('54,429');
     expect(p.kills).toBe('11,861');
     expect(p.bars).toEqual({ kills: 11861, losses: 9593 });
   });
-  it('lists only the alliance on a corporation card', () => {
-    expect(corporationShareProps(corporation()).memberships).toHaveLength(1);
+  it('lists only the alliance on a corporation card', async () => {
     expect(
-      corporationShareProps(corporation({ alliance: null })).memberships,
+      (await corporationShareProps(corporation())).memberships,
+    ).toHaveLength(1);
+    expect(
+      (await corporationShareProps(corporation({ alliance: null })))
+        .memberships,
     ).toEqual([]);
+  });
+  it('blurs a 128px copy of the portrait or logo for the backdrop', async () => {
+    const p = await characterShareProps(character());
+    expect(p.backdrop).toBe(
+      'blurred:https://images.evetech.net/characters/365974960/portrait?size=128',
+    );
+  });
+  it('leaves the backdrop out when the image cannot be fetched', async () => {
+    blurredBackdropUri.mockResolvedValueOnce(null as unknown as string);
+    expect((await allianceShareProps(alliance())).backdrop).toBeNull();
   });
 });

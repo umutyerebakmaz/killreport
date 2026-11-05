@@ -4,6 +4,7 @@ import type {
   ShareCorporationQuery,
 } from '@/generated/graphql';
 import { eveImageUrl } from '@/utils/eveImageUrl';
+import { blurredBackdropUri } from './backdrop';
 
 type Named = { id: number; name: string };
 
@@ -42,7 +43,8 @@ interface Bars {
 
 export interface CharacterShareCardProps {
   portrait: string;
-  backdrop: string;
+  /** Blurred backdrop SVG data URI; null when the image could not be fetched. */
+  backdrop: string | null;
   name: string;
   memberships: { logo: string; name: string }[];
   kills: string;
@@ -52,7 +54,8 @@ export interface CharacterShareCardProps {
 
 export interface CorporationShareCardProps {
   logo: string;
-  backdrop: string;
+  /** Blurred backdrop SVG data URI; null when the image could not be fetched. */
+  backdrop: string | null;
   name: string;
   memberships: { logo: string; name: string }[];
   members: string;
@@ -63,7 +66,8 @@ export interface CorporationShareCardProps {
 
 export interface AllianceShareCardProps {
   logo: string;
-  backdrop: string;
+  /** Blurred backdrop SVG data URI; null when the image could not be fetched. */
+  backdrop: string | null;
   name: string;
   members: string;
   corporations: string;
@@ -137,15 +141,17 @@ export function toShareAlliance(
   };
 }
 
-export function characterShareProps(
+export async function characterShareProps(
   c: ShareCharacter,
-): CharacterShareCardProps {
+): Promise<CharacterShareCardProps> {
   const memberships = [];
   if (c.corporation) memberships.push(membership('corporation', c.corporation));
   if (c.alliance) memberships.push(membership('alliance', c.alliance));
   return {
     portrait: eveImageUrl({ kind: 'character', id: c.id, size: 256 }),
-    backdrop: eveImageUrl({ kind: 'character', id: c.id, size: 16 }),
+    backdrop: await blurredBackdropUri(
+      eveImageUrl({ kind: 'character', id: c.id, size: 64 }),
+    ),
     name: c.name,
     memberships,
     kills: n(c.kills),
@@ -154,12 +160,14 @@ export function characterShareProps(
   };
 }
 
-export function corporationShareProps(
+export async function corporationShareProps(
   c: ShareCorporation,
-): CorporationShareCardProps {
+): Promise<CorporationShareCardProps> {
   return {
     logo: eveImageUrl({ kind: 'corporation', id: c.id, size: 256 }),
-    backdrop: eveImageUrl({ kind: 'corporation', id: c.id, size: 16 }),
+    backdrop: await blurredBackdropUri(
+      eveImageUrl({ kind: 'corporation', id: c.id, size: 64 }),
+    ),
     name: c.name,
     memberships: c.alliance ? [membership('alliance', c.alliance)] : [],
     members: n(c.memberCount),
@@ -169,10 +177,14 @@ export function corporationShareProps(
   };
 }
 
-export function allianceShareProps(a: ShareAlliance): AllianceShareCardProps {
+export async function allianceShareProps(
+  a: ShareAlliance,
+): Promise<AllianceShareCardProps> {
   return {
     logo: eveImageUrl({ kind: 'alliance', id: a.id, size: 256 }),
-    backdrop: eveImageUrl({ kind: 'alliance', id: a.id, size: 16 }),
+    backdrop: await blurredBackdropUri(
+      eveImageUrl({ kind: 'alliance', id: a.id, size: 64 }),
+    ),
     name: a.name,
     members: n(a.memberCount),
     corporations: n(a.corporationCount),

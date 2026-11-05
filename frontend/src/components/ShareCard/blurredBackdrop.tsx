@@ -1,12 +1,13 @@
 import type { ReactNode } from 'react';
 
 /**
- * A soft backdrop without `filter`, which satori lacks: the caller passes a
- * tiny image (size=32), it is scaled to cover the panel, and a dark layer
- * goes over it. One wrapper element, because satori drops a fragment's
- * children.
+ * The blurred backdrop behind a panel: the SVG `blurredBackdropUri` built
+ * (the blur itself is an SVG filter, which resvg renders and satori's CSS
+ * cannot), with a dark layer over it. A null source leaves the panel plain.
+ * One wrapper element, because satori drops a fragment's children.
  */
-export function blurredBackdrop(src: string): ReactNode {
+export function blurredBackdrop(src: string | null): ReactNode {
+  if (!src) return null;
   return (
     <div
       style={{

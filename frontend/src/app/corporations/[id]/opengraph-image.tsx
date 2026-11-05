@@ -28,12 +28,12 @@ export default async function Image({
   );
   if (!entity) return shareNotFound();
 
-  const fonts = await loadShareCardFonts();
-  return new ImageResponse(
-    <CorporationShareCard p={corporationShareProps(entity)} />,
-    {
-      ...size,
-      fonts,
-    },
-  );
+  const [fonts, props] = await Promise.all([
+    loadShareCardFonts(),
+    corporationShareProps(entity),
+  ]);
+  return new ImageResponse(<CorporationShareCard p={props} />, {
+    ...size,
+    fonts,
+  });
 }

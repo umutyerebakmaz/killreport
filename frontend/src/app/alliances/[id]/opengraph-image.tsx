@@ -25,12 +25,9 @@ export default async function Image({
   const entity = await loadAllianceShare(params, SHARE_IMAGE_FETCH_REVALIDATE);
   if (!entity) return shareNotFound();
 
-  const fonts = await loadShareCardFonts();
-  return new ImageResponse(
-    <AllianceShareCard p={allianceShareProps(entity)} />,
-    {
-      ...size,
-      fonts,
-    },
-  );
+  const [fonts, props] = await Promise.all([
+    loadShareCardFonts(),
+    allianceShareProps(entity),
+  ]);
+  return new ImageResponse(<AllianceShareCard p={props} />, { ...size, fonts });
 }

@@ -25,12 +25,12 @@ export default async function Image({
   const entity = await loadCharacterShare(params, SHARE_IMAGE_FETCH_REVALIDATE);
   if (!entity) return shareNotFound();
 
-  const fonts = await loadShareCardFonts();
-  return new ImageResponse(
-    <CharacterShareCard p={characterShareProps(entity)} />,
-    {
-      ...size,
-      fonts,
-    },
-  );
+  const [fonts, props] = await Promise.all([
+    loadShareCardFonts(),
+    characterShareProps(entity),
+  ]);
+  return new ImageResponse(<CharacterShareCard p={props} />, {
+    ...size,
+    fonts,
+  });
 }
