@@ -1,0 +1,6 @@
+model CharacterTitle {
+  id   String @id @db.Uuid
+  name String
+
+  @@map("character_titles")
+}
