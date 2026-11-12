@@ -26,6 +26,7 @@
  *   yarn worker:redisq
  */
 
+import { characterTitleFields } from '@helpers/character-achievement';
 import { AllianceService } from '@services/alliance/alliance.service';
 import { CharacterService } from '@services/character/character.service';
 import { CorporationService } from '@services/corporation/corporation.service';
@@ -611,7 +612,7 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
           // a character first seen on a live kill had no title, description
           // or faction until the monthly character scan came round.
           description: charInfo.description ?? null,
-          title: charInfo.title ?? null,
+          ...characterTitleFields(charInfo),
           faction_id: charInfo.faction_id ?? null,
         },
         update: {},

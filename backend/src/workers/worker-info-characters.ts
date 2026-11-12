@@ -3,6 +3,7 @@
  * Fetches character information from ESI and saves to database
  */
 
+import { characterTitleFields } from '@helpers/character-achievement';
 import { CharacterService } from '@services/character';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
@@ -113,7 +114,7 @@ async function characterInfoWorker() {
                 gender: charInfo.gender,
                 security_status: charInfo.security_status,
                 description: charInfo.description,
-                title: charInfo.title,
+                ...characterTitleFields(charInfo),
                 faction_id: charInfo.faction_id,
               },
               update: {
@@ -124,7 +125,7 @@ async function characterInfoWorker() {
                 alliance_id: charInfo.alliance_id ?? null,
                 security_status: charInfo.security_status ?? null,
                 description: charInfo.description ?? null,
-                title: charInfo.title ?? null,
+                ...characterTitleFields(charInfo),
                 faction_id: charInfo.faction_id ?? null,
                 // name, birthday, bloodline_id, race_id and gender never change
               },

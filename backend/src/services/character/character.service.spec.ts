@@ -29,6 +29,18 @@ function httpError(status: number) {
   } as never);
 }
 
+describe('CharacterService.getCharacterInfo', () => {
+  beforeEach(() => get.mockReset());
+
+  it('asks ESI for the 2026-06-09 shape', async () => {
+    get.mockResolvedValueOnce({ data: { name: 'x' } } as never);
+    await CharacterService.getCharacterInfo(777);
+    expect(get).toHaveBeenCalledWith('/characters/777/', {
+      headers: { 'X-Compatibility-Date': '2026-06-09' },
+    });
+  });
+});
+
 describe('CharacterService.getCharacterKillmails', () => {
   beforeEach(() => {
     get.mockReset();

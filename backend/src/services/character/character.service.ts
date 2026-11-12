@@ -15,6 +15,30 @@ export interface EsiCorporationHistoryRecord {
 }
 
 /**
+ * The compatibility date that adds character_title_id and achievement_score to
+ * /characters/{id}/ and renames the corporation title key to corporation_title.
+ * Only this request is moved to it: raising the client-wide date in
+ * esi-client.ts would change the shape of every other ESI response at once.
+ */
+export const CHARACTER_COMPATIBILITY_DATE = '2026-06-09';
+
+export interface EsiCharacterInfo {
+  name: string;
+  corporation_id: number;
+  alliance_id?: number;
+  birthday: string;
+  bloodline_id: number;
+  race_id: number;
+  gender: string;
+  security_status?: number;
+  description?: string;
+  faction_id?: number;
+  corporation_title?: string;
+  character_title_id?: string;
+  achievement_score?: number;
+}
+
+/**
  * Character service for ESI API interactions
  */
 export class CharacterService {
@@ -23,8 +47,13 @@ export class CharacterService {
    * @param characterId - Character ID
    * @returns Character information
    */
-  static async getCharacterInfo(characterId: number) {
-    const response = await esiClient.get<any>(`/characters/${characterId}/`);
+  static async getCharacterInfo(
+    characterId: number,
+  ): Promise<EsiCharacterInfo> {
+    const response = await esiClient.get<EsiCharacterInfo>(
+      `/characters/${characterId}/`,
+      { headers: { 'X-Compatibility-Date': CHARACTER_COMPATIBILITY_DATE } },
+    );
     return response.data;
   }
 
