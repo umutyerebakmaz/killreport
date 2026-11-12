@@ -607,6 +607,12 @@ async function enrichMissingEntities(killmail: KillmailDetail): Promise<void> {
           race_id: charInfo.race_id,
           gender: charInfo.gender,
           security_status: charInfo.security_status || 0,
+          // The same optional fields worker-info-characters writes. Left out,
+          // a character first seen on a live kill had no title, description
+          // or faction until the monthly character scan came round.
+          description: charInfo.description ?? null,
+          title: charInfo.title ?? null,
+          faction_id: charInfo.faction_id ?? null,
         },
         update: {},
       });
