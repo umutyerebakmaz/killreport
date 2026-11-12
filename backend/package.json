@@ -18,7 +18,6 @@
     "kill": "P=$(grep -m1 '^PORT=' .env 2>/dev/null | cut -d= -f2); [ -n \"$P\" ] || { echo 'PORT is not set in backend/.env - nothing killed'; exit 0; }; sh ../scripts/kill-port.sh $P",
     "prisma:generate": "prisma generate",
     "prisma:migrate:deploy": "prisma migrate deploy",
-    "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
     "db:backup": "bash scripts/backup-db.sh",
     "db:restore": "bash scripts/restore-db.sh",
