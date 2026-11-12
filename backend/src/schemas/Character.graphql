@@ -10,6 +10,10 @@ type Character {
   securityStatus: Float
   description: String
   title: String
+  "Name of the equipped achievement title; null when none or not in the SDE"
+  characterTitle: String
+  "Achievement score from ESI; 0 is a real value, null means not reported"
+  achievementScore: Int
   faction_id: Int
   updatedAt: String
 }

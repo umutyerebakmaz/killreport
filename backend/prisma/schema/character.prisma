@@ -11,6 +11,8 @@ model Character {
   description              String?
   title                    String?
   faction_id               Int?
+  character_title_id       String?                          @db.Uuid
+  achievement_score        Int?
   created_at               DateTime                         @default(now())
   updated_at               DateTime                         @updatedAt
 

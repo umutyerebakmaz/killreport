@@ -57,4 +57,17 @@ export const characterFields: CharacterResolvers = {
     const prismaChar = parent as any;
     return prismaChar.security_status ?? null;
   },
+
+  // Resolve the equipped title UUID to its name; unknown UUIDs yield null
+  characterTitle: async (parent, _args, context) => {
+    const prismaChar = parent as any;
+    if (!prismaChar.character_title_id) return null;
+    return context.loaders.characterTitle.load(prismaChar.character_title_id);
+  },
+
+  // Keep 0 as a real score; only a missing value becomes null
+  achievementScore: (parent) => {
+    const prismaChar = parent as any;
+    return prismaChar.achievement_score ?? null;
+  },
 };

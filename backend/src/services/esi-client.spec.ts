@@ -94,6 +94,14 @@ describe('esiClient', () => {
     expect(requests[0].params).toEqual({ page: 2 });
   });
 
+  it('lets a caller header override the default X-Compatibility-Date', async () => {
+    const { adapter, requests } = makeAdapter({ status: 200 });
+    await createEsiClient(adapter).get('/characters/1/', {
+      headers: { 'X-Compatibility-Date': '2026-06-09' },
+    });
+    expect(requests[0].headers.get('X-Compatibility-Date')).toBe('2026-06-09');
+  });
+
   it('forwards caller headers', async () => {
     const { adapter, requests } = makeAdapter({ status: 200 });
     await createEsiClient(adapter).get('/characters/1/', {
