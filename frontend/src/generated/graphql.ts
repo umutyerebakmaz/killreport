@@ -264,9 +264,13 @@ export type CategoryFilter = {
 
 export type Character = {
   __typename?: 'Character';
+  /** Achievement score from ESI; 0 is a real value, null means not reported */
+  achievementScore?: Maybe<Scalars['Int']['output']>;
   alliance?: Maybe<Alliance>;
   birthday: Scalars['String']['output'];
   bloodline?: Maybe<Bloodline>;
+  /** Name of the equipped achievement title; null when none or not in the SDE */
+  characterTitle?: Maybe<Scalars['String']['output']>;
   corporation?: Maybe<Corporation>;
   description?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
@@ -2761,7 +2765,7 @@ export type CharacterQueryVariables = Exact<{
 }>;
 
 
-export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, securityStatus?: number | null, description?: string | null, title?: string | null, updatedAt?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null };
+export type CharacterQuery = { __typename?: 'Query', character?: { __typename?: 'Character', id: number, name: string, birthday: string, securityStatus?: number | null, description?: string | null, title?: string | null, characterTitle?: string | null, achievementScore?: number | null, updatedAt?: string | null, corporation?: { __typename?: 'Corporation', id: number, name: string, ticker: string } | null, alliance?: { __typename?: 'Alliance', id: number, name: string, ticker: string } | null } | null };
 
 export type CharacterCorporationHistoryQueryVariables = Exact<{
   characterId: Scalars['Int']['input'];
@@ -4297,6 +4301,8 @@ export const CharacterDocument = gql`
     securityStatus
     description
     title
+    characterTitle
+    achievementScore
     updatedAt
     corporation {
       id

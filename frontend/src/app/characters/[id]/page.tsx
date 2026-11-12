@@ -245,8 +245,8 @@ export default function CharacterDetailPage({
           name={character.name}
           size={256}
         />
-        {/* The killmail page's victim card: name and memberships over the
-            portrait's darkened bottom band. */}
+        {/* The killmail page's victim card: achievement title, name and
+            memberships over the portrait's darkened bottom band. */}
         <div className="relative flex-none overflow-hidden size-64 bg-surface-inset">
           <EveImage
             kind="character"
@@ -255,18 +255,19 @@ export default function CharacterDetailPage({
             size={256}
             className="object-cover size-full"
           />
-          {/* Taller than the victim card's h-24: the title line above the
-              name needs the scrim behind it too. */}
+          {/* Taller than the victim card's h-24: the achievement title line
+              above the name needs the scrim behind it too. */}
           <div className="absolute inset-x-0 bottom-0 h-32 pointer-events-none bg-linear-to-t from-black/95 via-black/70 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 p-3 space-y-1.5">
-            {character.title && (
-              <EveHtmlRenderer
-                html={character.title}
-                className="text-sm font-medium text-white truncate"
-              />
+            {character.characterTitle && (
+              <div className="text-sm font-medium text-white truncate">
+                {character.characterTitle}
+              </div>
             )}
             {/* As in the game's info window: the security status in its
-                colour, right after the name. `!= null` so a 0.0 still shows. */}
+                colour, right after the name, then the achievement score in a
+                quiet muted tone. `!= null` so a 0.0 or a score of 0 still
+                shows. */}
             <div className="flex items-baseline min-w-0 gap-2">
               <h1 className="text-[2rem] font-medium text-white truncate">
                 {character.name}
@@ -276,6 +277,14 @@ export default function CharacterDetailPage({
                   className={`flex-none text-sm font-medium tabular-nums ${getSecurityStatusColor(character.securityStatus)}`}
                 >
                   {character.securityStatus.toFixed(1)}
+                </span>
+              )}
+              {character.achievementScore != null && (
+                <span
+                  className="flex-none text-xs tabular-nums text-ink-muted"
+                  title="Achievement score"
+                >
+                  {character.achievementScore.toLocaleString()} pts
                 </span>
               )}
             </div>
@@ -307,6 +316,12 @@ export default function CharacterDetailPage({
         </div>
 
         <div className="relative flex flex-col justify-center flex-1 min-w-0 gap-1 p-6">
+          {character.title && (
+            <EveHtmlRenderer
+              html={character.title}
+              className="text-sm font-medium"
+            />
+          )}
           <div className="flex items-center gap-2">
             <TrackButton type={TrackedEntityType.Character} id={character.id} />
             <DiscordWebhookButton
