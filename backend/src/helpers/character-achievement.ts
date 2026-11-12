@@ -1,5 +1,6 @@
 import type { EsiCharacterInfo } from '@services/character/character.service';
 import logger from '@services/logger';
+import { UUID_PATTERN } from './sde-character-title';
 
 const INT32_MAX = 2_147_483_647;
 
@@ -25,9 +26,18 @@ export function characterTitleFields(info: EsiCharacterInfo): {
       );
     }
   }
+  const titleId = info.character_title_id;
+  let characterTitleId: string | null = null;
+  if (titleId !== undefined && titleId !== null) {
+    if (UUID_PATTERN.test(titleId)) {
+      characterTitleId = titleId;
+    } else {
+      logger.warn(`Ignoring character_title_id ${String(titleId)}: not a UUID`);
+    }
+  }
   return {
     title: info.corporation_title ?? null,
-    character_title_id: info.character_title_id ?? null,
+    character_title_id: characterTitleId,
     achievement_score: achievementScore,
   };
 }

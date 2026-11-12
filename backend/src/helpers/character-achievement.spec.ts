@@ -63,4 +63,12 @@ describe('characterTitleFields', () => {
     ).toBeNull();
     expect(logger.warn).toHaveBeenCalledTimes(3);
   });
+
+  it('drops a character_title_id that is not a UUID', () => {
+    expect(
+      characterTitleFields({ ...base, character_title_id: 'not-a-uuid' })
+        .character_title_id,
+    ).toBeNull();
+    expect(logger.warn).toHaveBeenCalledTimes(1);
+  });
 });
