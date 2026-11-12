@@ -708,6 +708,7 @@ describe('createDataLoaders', () => {
         'bloodline',
         'category',
         'character',
+        'characterTitle',
         'charactersByCorp',
         'constellation',
         'constellationSovereignty',

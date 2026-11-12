@@ -263,9 +263,13 @@ export type CategoryFilter = {
 
 export type Character = {
   __typename?: 'Character';
+  /** Achievement score from ESI; 0 is a real value, null means not reported */
+  achievementScore?: Maybe<Scalars['Int']['output']>;
   alliance?: Maybe<Alliance>;
   birthday: Scalars['String']['output'];
   bloodline?: Maybe<Bloodline>;
+  /** Name of the equipped achievement title; null when none or not in the SDE */
+  characterTitle?: Maybe<Scalars['String']['output']>;
   corporation?: Maybe<Corporation>;
   description?: Maybe<Scalars['String']['output']>;
   faction_id?: Maybe<Scalars['Int']['output']>;
@@ -3224,9 +3228,11 @@ export type CategoryResolvers<ContextType = any, ParentType extends ResolversPar
 };
 
 export type CharacterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Character'] = ResolversParentTypes['Character']> = {
+  achievementScore?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   alliance?: Resolver<Maybe<ResolversTypes['Alliance']>, ParentType, ContextType>;
   birthday?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   bloodline?: Resolver<Maybe<ResolversTypes['Bloodline']>, ParentType, ContextType>;
+  characterTitle?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   corporation?: Resolver<Maybe<ResolversTypes['Corporation']>, ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   faction_id?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;

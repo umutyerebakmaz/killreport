@@ -23,6 +23,7 @@ export interface DataLoaderContext {
     alliance: DataLoader<number, any, number>;
     corporation: DataLoader<number, any, number>;
     character: DataLoader<number, any, number>;
+    characterTitle: DataLoader<string, string | null, string>;
     race: DataLoader<number, any, number>;
     bloodline: DataLoader<number, any, number>;
     corporationsByAlliance: DataLoader<number, any[], number>;

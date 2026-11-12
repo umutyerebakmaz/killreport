@@ -218,9 +218,16 @@ input CategoryFilter {
 }
 
 type Character {
+  """Achievement score from ESI; 0 is a real value, null means not reported"""
+  achievementScore: Int
   alliance: Alliance
   birthday: String!
   bloodline: Bloodline
+
+  """
+  Name of the equipped achievement title; null when none or not in the SDE
+  """
+  characterTitle: String
   corporation: Corporation
   description: String
   faction_id: Int

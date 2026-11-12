@@ -91,6 +91,25 @@ export const createCharacterLoader = () => {
 };
 
 /**
+ * Character title DataLoader - maps title UUID to its English name.
+ * Unknown UUIDs (not yet imported from the SDE) resolve to null.
+ */
+export const createCharacterTitleLoader = () => {
+  return new DataLoader<string, string | null>(async (titleIds) => {
+    logger.debug('DataLoader: batching character title queries', {
+      count: titleIds.length,
+    });
+
+    const titles = await prisma.characterTitle.findMany({
+      where: { id: { in: [...titleIds] } },
+    });
+
+    const titleMap = new Map(titles.map((t) => [t.id, t.name]));
+    return titleIds.map((id) => titleMap.get(id) ?? null);
+  });
+};
+
+/**
  * Race DataLoader - for batch loading
  */
 export const createRaceLoader = () => {
@@ -412,6 +431,7 @@ export interface DataLoaderContext {
     alliance: DataLoader<number, any>;
     corporation: DataLoader<number, any>;
     character: DataLoader<number, any>;
+    characterTitle: DataLoader<string, string | null>;
     race: DataLoader<number, any>;
     bloodline: DataLoader<number, any>;
     corporationsByAlliance: DataLoader<number, any[]>;
@@ -459,6 +479,7 @@ export const createDataLoaders = (): DataLoaderContext => ({
     alliance: createAllianceLoader(),
     corporation: createCorporationLoader(),
     character: createCharacterLoader(),
+    characterTitle: createCharacterTitleLoader(),
     race: createRaceLoader(),
     bloodline: createBloodlineLoader(),
     corporationsByAlliance: createCorporationsByAllianceLoader(),
