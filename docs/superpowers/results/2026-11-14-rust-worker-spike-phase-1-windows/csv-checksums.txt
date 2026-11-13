@@ -1,0 +1,14 @@
+b5175e199f71a77e6d4f8077aac0f1805de7676207238d04bb93f713dbe1e049  alliances-node-1.csv
+b5175e199f71a77e6d4f8077aac0f1805de7676207238d04bb93f713dbe1e049  alliances-node-2.csv
+b5175e199f71a77e6d4f8077aac0f1805de7676207238d04bb93f713dbe1e049  alliances-node-3.csv
+b5175e199f71a77e6d4f8077aac0f1805de7676207238d04bb93f713dbe1e049  alliances-rs-1.csv
+b5175e199f71a77e6d4f8077aac0f1805de7676207238d04bb93f713dbe1e049  alliances-rs-2.csv
+b5175e199f71a77e6d4f8077aac0f1805de7676207238d04bb93f713dbe1e049  alliances-rs-3.csv
+b5175e199f71a77e6d4f8077aac0f1805de7676207238d04bb93f713dbe1e049  alliances-warmup-node.csv
+alliances-node-1.csv rows=4197
+alliances-node-2.csv rows=4197
+alliances-node-3.csv rows=4197
+alliances-rs-1.csv rows=4197
+alliances-rs-2.csv rows=4197
+alliances-rs-3.csv rows=4197
+alliances-warmup-node.csv rows=4197

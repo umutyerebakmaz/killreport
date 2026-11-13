@@ -1,0 +1,36 @@
+== node-1.log
+2026-11-13 23:38:44 info: ✅ queue completed!
+2026-11-13 23:38:44 info: 📊 final: 3644 processed (0 created, 3644 updated, 0 errors)
+alliance lines (✅ [n]): 3644
+failure-path lines outside alliance lines (EsiThrottled|throttl|⚠️|retry|parking|status 4xx|failed): 0
+
+== rs-1.log
+2026-11-13T20:50:49.506253Z  INFO ✅ queue completed!
+2026-11-13T20:50:49.506262Z  INFO 📊 final: 3644 processed (0 created, 3644 updated, 0 errors)
+alliance lines (✅ [n]): 3644
+failure-path lines outside alliance lines (EsiThrottled|throttl|⚠️|retry|parking|status 4xx|failed): 0
+
+== rs-2.log
+2026-11-13T20:53:21.307772Z  INFO ✅ queue completed!
+2026-11-13T20:53:21.307782Z  INFO 📊 final: 3644 processed (0 created, 3644 updated, 0 errors)
+alliance lines (✅ [n]): 3644
+failure-path lines outside alliance lines (EsiThrottled|throttl|⚠️|retry|parking|status 4xx|failed): 0
+
+== node-2.log
+2026-11-13 23:55:53 info: ✅ queue completed!
+2026-11-13 23:55:53 info: 📊 final: 3644 processed (0 created, 3644 updated, 0 errors)
+alliance lines (✅ [n]): 3644
+failure-path lines outside alliance lines (EsiThrottled|throttl|⚠️|retry|parking|status 4xx|failed): 0
+
+== node-3.log
+2026-11-13 23:58:21 info: ✅ queue completed!
+2026-11-13 23:58:21 info: 📊 final: 3644 processed (0 created, 3644 updated, 0 errors)
+alliance lines (✅ [n]): 3644
+failure-path lines outside alliance lines (EsiThrottled|throttl|⚠️|retry|parking|status 4xx|failed): 0
+
+== rs-3.log
+2026-11-13T21:00:53.241747Z  INFO ✅ queue completed!
+2026-11-13T21:00:53.241756Z  INFO 📊 final: 3644 processed (0 created, 3644 updated, 0 errors)
+alliance lines (✅ [n]): 3644
+failure-path lines outside alliance lines (EsiThrottled|throttl|⚠️|retry|parking|status 4xx|failed): 0
+

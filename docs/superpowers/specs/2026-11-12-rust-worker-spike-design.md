@@ -492,6 +492,89 @@ dokümanındaki A yoluna eklenecek bir kalem.
 Ham veriler: [`../results/2026-11-13-rust-worker-spike-precomparison/`](../results/2026-11-13-rust-worker-spike-precomparison/)
 (ölçüm script'i, bellek örnekleri, iki CSV'nin özetleri ve log özetleri).
 
+## Sonuçlar (aşama 1)
+
+Windows 10 Pro, 2026-11-13 gecesi. Yerel PostgreSQL 18, yerel RabbitMQ, gerçek
+ESI, ev bağlantısı. Node worker'ı `yarn worker:info:alliances` ile, Rust
+worker'ı `cargo build --release` ile derlenmiş `.exe` olarak, ikisi de
+`backend/` içinden (aynı `.env`) çalıştı. Önce ölçüme katılmayan bir Node
+ısınma koşusu yapıldı: yerel `alliances` tablosu Temmuz'dan beri
+güncellenmemiş satırlar içeriyordu, koşu 50 yeni alliance ekledi ve tabloyu
+4197 satıra getirdi. Ardından üç koşu çifti, sıra Node→Rust, Rust→Node,
+Node→Rust; her koşuda 3644 alliance.
+
+**Yöntem, _Aşama 1_'deki tariften bir farkla:** worker önce başlatıldı,
+hazır olunca 15 s boşta bellek örneklendi, sonra `queue:alliances` çalıştı.
+Süre kuyruklamanın başından ilk "queue completed" satırına kadar, 5 s'lik
+sessizlik penceresi düşülerek ölçüldü. Bu, ön karşılaştırmanın yöntemi; boşta
+belleği ölçebilmek ve Linux rakamlarıyla karşılaştırılabilir kalmak için
+seçildi. Bellek `Get-Process` ile 5 s'de bir: worker süreci (Node'da
+`preflight.cjs` ile çalışan `node.exe`, Rust'ta `worker-info-alliances.exe`)
+ve onu başlatan `cmd.exe`'nin altındaki bütün süreçler.
+
+| Koşu   | Süre    | Worker, Working Set: boşta / en yüksek | Worker, Private: boşta / en yüksek | Süreç ağacı, Working Set en yüksek |
+| ------ | ------- | -------------------------------------- | ---------------------------------- | ---------------------------------- |
+| node-1 | 109,9 s | 128,9 / 222,8 MB                       | 159,5 / 305,7 MB                   | 389,9 MB, 5 süreç                  |
+| rs-1   | 114,4 s | 25,8 / 26,4 MB                         | 12,8 / 13,0 MB                     | 39,7 MB, 2 süreç                   |
+| rs-2   | 114,2 s | 18,5 / 21,7 MB                         | 12,6 / 12,9 MB                     | 35,0 MB, 2 süreç                   |
+| node-2 | 115,5 s | 128,7 / 263,0 MB                       | 159,4 / 319,8 MB                   | 429,6 MB, 5 süreç                  |
+| node-3 | 110,1 s | 128,9 / 238,3 MB                       | 159,2 / 309,5 MB                   | 403,8 MB, 5 süreç                  |
+| rs-3   | 114,4 s | 18,4 / 21,7 MB                         | 12,7 / 13,0 MB                     | 35,0 MB, 2 süreç                   |
+
+Süreç ağacında iki tarafta da bir `conhost.exe` var; Node tarafında ayrıca
+`yarn`, `cmd.exe` ve `tsx`.
+
+**Ölçümlere göre:**
+
+- **1 (doğruluk) geçti.** Altı koşunun ve ısınma koşusunun CSV'leri (4197
+  satır, sekiz kolon) birebir aynı; yedisinin SHA-256 özeti aynı. `node-1` ile
+  `rs-1` arasında, birinci başlatma denemesindeki bir script hatası yüzünden
+  ~10 dakika geçti; o aralıkta da fark çıkmadı.
+- **2 (sözleşme) bu koşularda ölçülmedi.** Rust tarafı Linux'ta yapıldı
+  (plan, Görev 9); Node tarafı ve Windows'ta tekrarı açık.
+- **3 (bellek) geçti.** En kötü eşleşmede, Rust'ın en yüksek Working Set'i
+  (26,4 MB, `rs-1`) Node'un en düşük tepe değerinin (222,8 MB, `node-1`)
+  %11,8'i; eşik %25. Ortalamalarla Working Set'te ~%10 (23,3 / 241,4 MB),
+  Private'ta ~%4 (13,0 / 311,7 MB). `rs-1`'in boşta değeri diğer iki Rust
+  koşusundan ~7 MB yüksek; derlemeden sonraki ilk başlatma, sonraki
+  koşularda görülmedi.
+- **4 (ESI davranışı) geçti.** Ortalama süre Node 111,8 s, Rust 114,3 s:
+  Rust %2,2 daha yavaş, sınır %20. Hiçbir koşuda `EsiThrottled`, 420, 429,
+  retry veya parking yok; özet satırları yedi koşuda da `0 errors`.
+  `X-ESI-Error-Limit-Remain`'in en düşük değeri iki worker'da da loglanmadığı
+  için kaydedilemedi.
+- **5 (geliştirme deneyimi), bilgi.** Windows'ta cold release build 45 s
+  (bağımlılıklar `~/.cargo`'da indirilmiş, `target/` boş), incremental
+  (`main.rs` değişti) 4 s; `cargo test` derlemeyle 38 s. Derlemek için Visual
+  Studio Build Tools ("Desktop development with C++": MSVC ve Windows SDK)
+  kurmak gerekti; Rust araç zinciri kuruluydu ama MSVC linker'ı ve `ring`'in
+  istediği C derleyicisi yoktu. Node tarafında böyle bir kurulum yok.
+  `.sqlx/` bu koşular için yenilenmedi. Gün gün harcanan saatler kayıt altına
+  alınmadı.
+
+**Ön karşılaştırmanın açık bıraktığı hız farkı:** Linux'taki 515 s / 190 s
+farkı Windows'ta görülmedi; iki worker da 110–115 s sürdü ve sıra
+değiştirildiğinde de değişmedi (`rs-2` önce koştu, `node-2`'den hızlı değildi).
+Linux'taki fark büyük ölçüde Node'un tabloyu ilk kez doldurmasından
+(3639 insert) geliyordu. İki worker da prefetch 3 ile çalıştığı için hızı ESI'nin
+cevap süresi belirliyor; Rust'ın bu worker'da bir hız kazancı yok, kazanç
+bellekte.
+
+**Ortam notları:** yerel RabbitMQ'da `killreport-dlx` policy'si yok. Hiç hata
+olmadığı için koşuları etkilemedi, ama sözleşme kontrolleri (ölçüm 2) bu
+makinede policy kurulmadan yapılamaz. `worker-info-alliances`'in altı upsert
+testi Windows'ta çalıştırılmadı: `sqlx::test`, `DATABASE_URL`'in gösterdiği
+veritabanına bir `_sqlx_test` şeması açıyor, yerel `killreport`
+veritabanında bu istenmedi. Diğer 91 test Windows'ta geçti.
+
+**Aşama 1'in kararı: henüz verilemez.** Kural 1 ve 2'nin geçmesini istiyor;
+1 geçti, 2'nin Node tarafı açık. 3 eşiği rahatça geçiyor. 5'te yeniden
+hesaplama için gerekli saat kaydı yok. 2 tamamlanınca karar bu tabloyla
+verilir.
+
+Ham veriler: [`../results/2026-11-14-rust-worker-spike-phase-1-windows/`](../results/2026-11-14-rust-worker-spike-phase-1-windows/)
+(ölçüm script'i, bellek örnekleri, süreler, CSV özetleri ve log özetleri).
+
 ## Zaman kutusu
 
 **Aşama 1:** beş iş günü, kabaca:

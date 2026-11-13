@@ -1,0 +1,8 @@
+tag,seconds
+warmup-node,110
+node-1,109.9
+rs-1,114.4
+rs-2,114.2
+node-2,115.5
+node-3,110.1
+rs-3,114.4
