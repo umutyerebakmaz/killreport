@@ -1,0 +1,34 @@
+== node.log: açılış
+✅ [API] PostgreSQL pool configured: max=5 connections, min=1, idleTimeout=30s, pid=24365
+◇ injected env (0) from .env // tip: ⌘ enable debugging { debug: true }
+✅ [worker] PostgreSQL pool configured: max=2 connections, min=0, idleTimeout=10s, pid=24365
+2026-11-13 12:23:52 info: 🤝 alliance info worker started
+2026-11-13 12:23:52 info: 📦 queue: esi_alliance_info_queue
+2026-11-13 12:23:52 info: ⚡ prefetch: 3 concurrent
+
+2026-11-13 12:23:52 info: ✅ Redis cache connected
+== node.log: işlenen mesaj satırı (✅ [n])
+3642
+== node.log: worker'ın hata/throttle/retry/404 mesajları
+0
+== node.log: özet
+2026-11-13 12:32:32 info: ✅ queue completed!
+2026-11-13 12:32:32 info: 📊 final: 3642 processed (3639 created, 3 updated, 0 errors)
+
+== rs.log: açılış
+2026-11-13T12:32:39.786742Z  INFO ✅ [worker] PostgreSQL pool configured: max=2 connections, min=0, idleTimeout=10s, pid=28126
+2026-11-13T12:32:39.815650Z  INFO 🤝 alliance info worker started
+2026-11-13T12:32:39.815710Z  INFO 📦 queue: esi_alliance_info_queue
+2026-11-13T12:32:39.815714Z  INFO ⚡ prefetch: 3 concurrent
+
+2026-11-13T12:32:39.852832Z  INFO ✅ connected to RabbitMQ
+2026-11-13T12:32:39.852855Z  INFO ⏳ waiting for alliances...
+
+== rs.log: işlenen mesaj satırı (✅ [n])
+3642
+== rs.log: worker'ın hata/throttle/retry/404 mesajları
+0
+== rs.log: özet
+2026-11-13T12:35:54.855147Z  INFO ✅ queue completed!
+2026-11-13T12:35:54.855149Z  INFO 📊 final: 3642 processed (0 created, 3642 updated, 0 errors)
+

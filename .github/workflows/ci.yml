@@ -88,3 +88,43 @@ jobs:
 
       - run: yarn workspace frontend typecheck
       - run: yarn workspace frontend test
+
+  backend-rs:
+    name: Backend (Rust)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend-rs
+    # The upsert tests (sqlx::test) create a throwaway database per test on
+    # this server; the workflow-level DATABASE_URL already points here.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: killreport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # Compile the checked queries from backend-rs/.sqlx instead of asking
+      # the database, so a stale cache fails the build instead of passing.
+      SQLX_OFFLINE: 'true'
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v4
+      # Installs the version pinned in backend-rs/rust-toolchain.toml.
+      - run: rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend-rs
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets -- -D warnings
+      # Tests marked #[ignore] need RabbitMQ or real data and do not run here.
+      - run: cargo test

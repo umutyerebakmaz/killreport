@@ -72,6 +72,7 @@
     "worker:alliance-corporations": "tsx src/workers/worker-alliance-corporations.ts",
     "worker:constellations": "tsx src/workers/worker-constellations.ts",
     "worker:info:alliances": "tsx src/workers/worker-info-alliances.ts",
+    "worker:info:alliances:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-info-alliances",
     "worker:info:categories": "tsx src/workers/worker-info-categories.ts",
     "worker:info:characters": "tsx src/workers/worker-info-characters.ts",
     "worker:character-corporation-history": "tsx src/workers/worker-character-corporation-history.ts",

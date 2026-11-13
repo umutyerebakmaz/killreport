@@ -13,6 +13,8 @@ backend/src/generated-schema.graphql
 backend/src/generated-schema.ts
 backend/src/generated-types.ts
 frontend/src/generated
+# Written by `cargo sqlx prepare`; the next run overwrites any reformatting.
+backend-rs/.sqlx
 
 # Hand-written SQL migrations. Formatting them would rewrite applied history
 # for no gain, and Prettier has no SQL parser anyway.

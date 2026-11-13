@@ -85,9 +85,19 @@ description farkı frontend build'ini kırar.
 ### Çalışma zamanı ve altyapı
 
 - `ecosystem.config.js`: **31 backend süreci** + 1 frontend. Her worker ayrı bir
-  Node süreci, `max_memory_restart: 512M`.
+  Node süreci, `max_memory_restart: 512M`. Ama bunların yalnızca **15'i
+  sürekli çalışır**: API ve `autorestart: true` olan 14 worker. Kalan
+  **16'sı** `cron_restart` ile tetiklenip işini bitirince çıkan işlerdir
+  (`autorestart: false`: `queue-*`, `snapshot-*`, `update-*`, `worker-sov-*`,
+  `worker-system-activity`). Sürekli bellek tutan backend süreci sayısı 31
+  değil, 15'tir.
 - Tek droplet: 4 vCPU / 8 GB, managed PostgreSQL **25 bağlantı** limiti
-  (22'si kullanımda — `backend/docs/deployment/cost-comparison.md`).
+  (`backend/docs/deployment/cost-comparison.md:20`; CLAUDE.md 22 diyor, ikisi
+  tek yerde uzlaştırılmalı). Aynı dokümandaki "22 kullanımda" hesabı
+  (`cost-comparison.md:64`, "2×5 + 6×2") 6 worker varsayar ve eskidir.
+  Bugünkü teorik üst sınır API `max: 5` (`prisma.ts:26`) + 14 sürekli
+  worker × `max: 2` (`prisma-worker.ts:28`) = **33**, yani limitin üstünde;
+  pratikte `allowExitOnIdle: true` boşta bağlantıları bıraktığı için sığıyor.
 - ESI erişimi tek yerde: her çağrı `esiClient` üzerinden tek bir header
   güdümlü limiter'dan geçer (PR #297, spec
   `2026-10-28-esi-rate-limiter-design.md`). Limiter süreç başına çalışır,
@@ -130,20 +140,50 @@ description farkı frontend build'ini kırar.
 
 ### Gerçekten kazandıranlar
 
-1. **Bellek ve süreç sayısı.** 31 ayrı Node süreci, her biri V8 taban
-   maliyetiyle (boşta ~50–80 MB) 8 GB'lık makinede ~2 GB civarı RSS tutuyor
-   (tahmin; ölçülmedi). Rust worker'ları ~5–15 MB'dan başlar. Daha önemlisi,
-   bütün worker'lar **tek bir binary içinde tokio task'ları** olarak
-   çalışabilir.
+1. **Bellek ve süreç sayısı.** Bu madde ilk yazıldığında süreç başına boşta
+   ~50–80 MB tahmin ediyordu (toplam ~0,75–1,2 GB). Rust worker denemesinin
+   Linux ön karşılaştırması (2026-11-13, `2026-11-12-rust-worker-spike-design.md`,
+   _Ön karşılaştırma_) tek bir worker'ı ölçtü ve tahminin düşük olduğunu
+   gösterdi:
+
+   | Alliance worker'ı (RSS)                | Boşta  | Koşu sırasında en yüksek |
+   | -------------------------------------- | ------ | ------------------------ |
+   | Node, worker süreci                    | 142 MB | 235 MB                   |
+   | Node, `yarn` + `tsx` dahil süreç grubu | 415 MB | 508 MB (4 süreç)         |
+   | Rust                                   | 16 MB  | 19 MB                    |
+
+   Bu rakamlar 15 sürekli backend sürecine (bkz. §1, çalışma zamanı)
+   **çarpılarak** yaklaşık şunu verir; bu bir tahmindir, ölçüm değildir:
+   yalnızca worker süreçleri boşta ~2,1 GB, `yarn`/`tsx` yükü de canlıda
+   aynıysa ~6 GB; Rust karşılığı ~0,25 GB. Tahminin iki zayıf yanı var: her
+   worker'ın ayak izi içe aktardığı servislere göre değişir (alliance worker'ı
+   örneğin kullanmadığı API havuzunu ve Redis'i de yüklüyor, bkz. §5.A), ve
+   canlıda PM2'nin başlattığı süreç sayısı 3 ya da 4 olabilir. Gerçek toplam
+   aşama 2'de `pm2 ls` ile okunur. Cron işleri çalıştıkları birkaç dakika
+   boyunca buna eklenir.
+
+   Kazancın büyük bir kısmı Rust'a geçmeden de alınabilir: `yarn`/`tsx`
+   yükü (worker başına ~270 MB) A yolunun ilk kalemiyle gider. Rust'ın
+   kendine özgü kazancı, geriye kalan worker sürecinin kendisi: 142–235 MB'a
+   karşı 16–19 MB.
+
+   Bütün worker'lar **tek bir binary içinde tokio task'ları** olarak
+   da çalışabilir; ama bu, "her worker self-contained" kuralıyla ilişkisi
+   §5.B'de karara bağlanması gereken bir tasarım tercihidir, bedava bir
+   kazanç değil.
+
 2. **Tek `getStats()`, tek AIMD durumu.** Mevcut limiter zaten tek yerden
    kontrol ediliyor ve çok süreçli çalışmayı header'lar üzerinden doğru
    yönetiyor (spec §4.5). Tek binary'nin eklediği küçük: `ESI_MAX_RPS`
    taban tavanı bir kez tanımlanır, header'sız 429'da hız bir kez düşer ve
    istatistik tek yerden okunur. Bu bir yan kazanç, ana gerekçe değil;
    Node'da worker'lar tek sürece toplanınca da aynı şey olur.
-3. **Tek bağlantı havuzu.** 25 bağlantılık limit 31 süreç × 2 yerine tek
-   `PgPool` ile yönetilir. İki Prisma client ayrımı (`prisma` / `prisma-worker`)
-   ve pool tükenmesi riski ortadan kalkar.
+3. **Tek bağlantı havuzu.** 25 bağlantılık limit, teorik üst sınırı 33 olan
+   (5 + 14 × 2, bkz. §1) süreç başına havuzlar yerine tek `PgPool` ile
+   yönetilir. İki Prisma client ayrımı (`prisma` / `prisma-worker`) ve pool
+   tükenmesi riski ortadan kalkar. Bugün limitin altında kalmak
+   `allowExitOnIdle`'a bağlı, garanti değil; bu madde ilk yazıldığından
+   daha güçlü bir gerekçe.
 4. **`prisma migrate dev` tehlikesi biter.** CLAUDE.md'nin ilk kuralı olan
    "5 tablo drift olarak görünüyor, 72.790 satır silinir" problemi şema
    diff'i yapan bir araç olmayınca var olmaz. `sqlx migrate` sadece sıradaki
@@ -182,7 +222,7 @@ description farkı frontend build'ini kırar.
    düzeltelim" çekimi güçlüdür. CLAUDE.md'nin "uniformity beats the local
    optimum" kuralı tam da bunu yasaklıyor; Rust'ta da geçerli kalmalı.
 3. **349 ORM çağrısının örtük davranışı.** Prisma `upsert`, ilişki yükleme,
-   `Date`/`Decimal` dönüşümleri, `updated_at` otomatikleri. Her biri elle
+   `Date` ve `BigInt` dönüşümleri, `updated_at` otomatikleri. Her biri elle
    yeniden ifade edilir ve her biri bir veri hatası fırsatıdır. En riskli
    nokta `killmail-writer.ts`: transaction + `ON CONFLICT` istatistikleri +
    filtreler + pub/sub, 7 worker'ın tek yazıcıya indirgendiği yer (#244).
@@ -229,6 +269,42 @@ description farkı frontend build'ini kırar.
     tablosu var. `sqlx migrate`'e geçerken baseline alınır; geçiş süresince
     iki araç birden çalışır.
 
+### Dil sınırında korunması gereken sözleşmeler
+
+Strangler'ın "dil-bağımsız sınırlar zaten var" varsayımı (§5.B) doğru, ama
+bu sınırlar kuyruk adlarından ibaret değil. Rust tarafı aşağıdakileri
+birebir korumak zorunda; her biri yazılı bir sözleşme ve bir test ister.
+
+12. **Worker güvenilirlik sözleşmesi.** Spec:
+    `2026-09-20-worker-reliability-contract-design.md`. Retry topolojisi
+    `queue-names.ts:66` (`RETRY_TOPOLOGY`) ve `rabbitmq.ts:124-166`'da:
+    `killreport.dlx` (fanout), `killreport.retry` (direct),
+    `killreport.wait` (30 s TTL, tüketicisiz), `killreport.parking`; her
+    uygulama kuyruğu retry exchange'ine kendi adıyla bağlanır. Deneme sayısı
+    `x-death` başlığından okunur (`worker-error.ts:27`), throttle'da
+    deneme harcamadan requeue, 404'te uyar-geç, aksi halde
+    `nack(requeue: false)` ile DLX yolu (`worker-error.ts:204`). Dead-letter
+    bağlantısı bir kuyruk argümanı değil, bir RabbitMQ **policy**'sidir
+    (`backend/docs/ops/rabbitmq.md:11-44`): Rust `assertQueue` karşılığı da
+    `x-dead-letter-exchange` **vermemeli**, yoksa 406
+    `PRECONDITION_FAILED` alır. "Aynı kuyruk adları ve `x-max-priority`"
+    (§5.B adım 1) bu yüzden eksik bir tanım.
+13. **Redis pub/sub zarfı.** API `@graphql-yoga/redis-event-target` ile
+    abone oluyor (`pubsub.ts:1`, `PubSubChannels` `pubsub.ts:10`). Rust
+    worker'ın `NEW_KILLMAIL` / `SOVEREIGNTY_ALERT` yayını, bu kütüphanenin
+    beklediği kanal adı ve JSON zarfıyla birebir aynı olmalı. Node'un
+    yayınladığı mesajı yakalayıp Rust'ın ürettiğiyle karşılaştıran bir
+    sözleşme testi gerekir. Redis yokken kullanılan in-memory fallback
+    (`pubsub.ts:28`) dil sınırını geçemez; Rust worker'lı kurulumda Redis
+    zorunlu hale gelir.
+14. **Zamanlama.** 16 PM2 girdisi `cron_restart` ile zamanlanıyor (§1).
+    PM2'nin birimi süreçtir: worker'lar tek binary'de task olursa PM2 tek
+    bir işi yeniden başlatamaz, `max_memory_restart` da tek bir worker'ı
+    değil hepsini birden düşürür. Cron işlerinin nereye taşınacağı (ayrı
+    alt komut + PM2 `cron_restart`, OS crontab, binary içi zamanlayıcı)
+    açıkça seçilmeli. OS crontab'daki işler (`backend/docs/ops/crontab.md`)
+    de bu karara dahil.
+
 ---
 
 ## 5. Üç yol
@@ -243,31 +319,93 @@ değiştirmez. Birkaç hafta
 iş, sıfır sözleşme riski. Dezavantaj: Node'un taban belleği kalır, Rust'ın
 tip güvenliği gelmez.
 
+Rust worker denemesinin Linux ön karşılaştırması (2026-11-13,
+`2026-11-12-rust-worker-spike-design.md`, _Ön karşılaştırma_) A yoluna iki
+kalem daha ekledi; ikisi de Rust kararından bağımsız ve küçük:
+
+- **Worker'ları `yarn` ve `tsx` üzerinden değil, doğrudan `node` ile
+  başlatmak.** `yarn workspace backend worker:info:alliances` ile başlayan
+  alliance worker'ı dört Node süreci olarak çalıştı: corepack'in `yarn`
+  kısayolu, `yarn`, `tsx` ve asıl worker. Süreç grubunun en yüksek RSS'i
+  ~508 MB, worker'ın kendisi ~235 MB; aradaki ~270 MB worker'ı başlatan
+  süreçlerin. Canlıda PM2 worker'ları `script: 'yarn'` ile başlatıyor
+  (`ecosystem.config.js`), orada süreç sayısı 3 ya da 4; aşama 2'de `pm2 ls`
+  ile doğrulanacak. İki seçenek var. Daha küçüğü PM2'nin `yarn` yerine `node --import tsx
+src/workers/....ts` çalıştırması: `yarn` süreçleri gider, `tsx` worker
+  sürecinin içinde yüklenir. Daha büyüğü derlenmiş JavaScript'i doğrudan
+  `node` ile çalıştırmak; ama backend bugün JavaScript üretmiyor (`build` ve
+  `typecheck` ikisi de `tsc --noEmit`, `start` de `tsx` ile), yani bu yeni bir
+  derleme adımı demek. Ölçüm Linux'ta, tek worker
+  üzerinde yapıldı; 14 sürekli worker için toplamı canlıda ölçülmeli.
+  Worker sürecinin kendisi de §3.1'in ilk tahmininden (boşta 50–80 MB)
+  yüksek çıktı, boşta 142 MB; §3.1 ölçülen değerlerle güncellendi.
+- **Worker'ların kullanmadıkları servisleri yüklememesi.**
+  `worker-info-alliances.ts`, `AllianceService`'i `@services/alliance`'tan
+  alıyor; o dosya `alliance-stats.service`'i de dışa aktarıyor
+  (`services/alliance/index.ts`), o da API'nin `@services/prisma` havuzunu
+  (`max: 5, min: 1`) ve `@services/redis`'i yüklüyor. Sonuç: worker açılışta
+  API havuzunu kuruyor ve hiç kullanmadığı bir Redis bağlantısı açıyor (log:
+  "Redis cache connected"). API havuzunun bir PostgreSQL bağlantısını da açık
+  tutup tutmadığı doğrulanmadı; `pg.Pool` normalde ilk sorguda bağlanır. Çözüm
+  worker'ın `@services/alliance/alliance.service`'i doğrudan içe aktarması. Diğer worker'larda
+  aynı kalıbın olup olmadığına bakılmadı.
+
 ### B. Strangler: önce worker'lar, API sonra (önerilen)
 
 Worker'lar yeniden yazmanın **en yüksek kazanç / en düşük risk** kısmı:
 
 - Frontend sözleşmesine dokunmaz (GraphQL yok).
-- Bellek ve süreç sorununun tamamı burada (31 sürecin 30'u worker).
+- Bellek ve süreç sorununun neredeyse tamamı burada: sürekli çalışan 15
+  backend sürecinin 14'ü ve cron ile çalışan 16 işin tamamı worker veya
+  kuyruk scripti (§1).
 - ESI limiter zaten tek yerde ve çok süreçli çalışmayı header'larla
   yönetiyor (spec §4.5); Rust portu aynı davranışı korur, yeni bir şey
   kazandırmaz.
 - Dil-bağımsız sınırlar zaten var: RabbitMQ kuyrukları (JSON mesajlar),
   PostgreSQL, Redis pub/sub (`NEW_KILLMAIL` Node API'ye Rust worker'dan
-  ulaşır).
+  ulaşır). Ama bu sınırların her biri yazılı bir sözleşme gerektirir:
+  bkz. §4, madde 12–14.
 
 Sıra:
 
 1. `backend-rs/` Cargo workspace: `esi` crate (client + limiter portu,
    mevcut spec'e birebir, `rate-limiter.spec.ts` test vektörleri taşınır),
    `db` crate (`sqlx`, aynı `DATABASE_URL`), `mq` crate (`lapin`, aynı
-   kuyruk adları ve `x-max-priority`).
+   kuyruk adları, `x-max-priority` ve §4 madde 12'deki retry sözleşmesi;
+   `worker-error.spec.ts` vakaları taşınır).
 2. İlk worker: `worker-redisq-stream` + `killmail-writer` portu. Tek yazıcı
    olduğu için en kritik ve en çok test edilmiş parça. Node worker ile
-   **yan yana, farklı bir kuyruk/sequence ile gölge çalıştırılır**, DB
-   çıktısı karşılaştırılır.
-3. Sonra `info-*` worker'ları (ESI'den tek tablo upsert eden 10 worker,
-   hepsi aynı kalıp — tek generic worker + tablo başına bir `impl`).
+   yan yana **gölge** çalıştırılır. Gölge modun üç kısıtı var:
+   - **Ayrı hedef veritabanı.** Aynı veritabanında karşılaştırma
+     yapılamaz: `saveKillmail` önce `findUnique` ile bakar
+     (`killmail-writer.ts:45-49`), çakışmada P2002'yi `false` olarak
+     yutar (`killmail-writer.ts:150`). İki yazıcıdan hangisi önce kaparsa
+     o yazar, diğeri sessizce atlar; karşılaştırılacak ikinci çıktı oluşmaz.
+     Gölge yazıcı ayrı bir veritabanına (veya ayrı bir şemaya) yazmalı,
+     karşılaştırma `killmail_id` üzerinden satır satır yapılmalı. Hedefte
+     `*_kill_stats` ve `killmail_filters` de bulunmalı, çünkü yazım yolunun
+     en kırılgan kısmı onlar (`kill-stats-realtime.ts:65-90`).
+   - **R2Z2 bütçesi paylaşılır.** Limit IP başına 15 req/s ve aşımı 403
+     (`worker-redisq-stream.ts:22`). İki poller aynı droplet'ten aynı
+     bütçeyi harcar. Ya her biri bütçenin yarısıyla sınırlanmalı, ya da
+     Rust gölgesi R2Z2'yi değil, Node'un çektiği payload'ları okumalı (ör.
+     Node'un ayrıca yayınladığı bir gölge kuyruğu). İkincisi limiti hiç
+     zorlamaz ve iki yazıcıya birebir aynı girdiyi verir; karşılaştırma
+     için daha temiz.
+   - **Yan etkiler kapalı.** `publish` bayrağı (`killmail-writer.ts:14`)
+     iki şeyi birden yönetir: `NEW_KILLMAIL` pub/sub yayını ve
+     `discord_webhook_queue` mesajı (`killmail-writer.ts:140-145`). Gölge
+     yazıcıda ikisi de kapalı olmalı; yoksa her kill Discord'a iki kez
+     düşer.
+3. Sonra `info-*` worker'ları (ESI'den tek tablo upsert eden 10 worker).
+   Hepsi aynı kalıpta olduğu için "tek generic worker + tablo başına bir
+   `impl`" cazip, ama CLAUDE.md bunu açıkça yasaklıyor: "Each worker is
+   **self-contained** — no shared runner" ve "uniformity beats the local
+   optimum". Bu ya Rust için bilinçli olarak değiştirilen bir kural olarak
+   bu dokümanda ve CLAUDE.md'de kayda geçmeli, ya da Rust worker'ları da
+   birer bağımsız worker olarak yazılmalı (paylaşılan şey yalnızca `esi`,
+   `db`, `mq` crate'leri). Aynı soru §3.1'deki "tek binary, tokio task'ları"
+   fikri için de geçerli.
 4. Kalan worker'lar. Her adımda PM2'den bir Node süreci düşer.
 5. API en son ve **ayrı bir karar**: worker'lar bittiğinde Node API'de kalan
    sorun sadece Prisma hazard'ı olur; o da API'yi taşımadan çözülebilir
@@ -287,9 +425,22 @@ taşınması en çok iş (121 query, 39 loader, response cache) ve en az kazanç
 Tam yeniden yazmaya **şimdi** girilmemeli. Worker katmanıyla başlayan
 strangler (B) başlatılmalı; ilk kilometre taşı `worker-redisq-stream` +
 `killmail-writer` portunun gölge modda Node ile aynı satırları yazdığını
-göstermek. Bu noktada elde üç ölçüm olur: Rust worker'ın RSS'i, Rust
-limiter portunun ESI başlık istatistikleri (`getStats()` karşılığı, Node
-limiter'ınkiyle karşılaştırılır) ve yazım farkları. Karar oradan devam eder.
+göstermek (ayrı hedef veritabanında, bkz. §5.B adım 2). Bu noktada elde üç
+ölçüm olur: Rust worker'ın RSS'i, Rust limiter portunun ESI başlık
+istatistikleri (`getStats()` karşılığı, Node limiter'ınkiyle karşılaştırılır)
+ve yazım farkları. Karar oradan devam eder.
+
+Ölçümlerin bir karar üretmesi için iki şey önceden sabitlenmeli:
+
+- **Taban çizgisi A yolu olmalı, bugünkü durum değil.** Rust'ın getirdiği
+  bellek kazancı, Node worker'larının tek bir süreçte toplandığı hale
+  karşı ölçülmeli; yoksa ölçüm Rust'ı değil süreç sayısını ödüllendirir.
+  Sıra bu yüzden: önce A (Node worker host), RSS ve bağlantı sayısı
+  ölçülür; sonra B'nin ilk adımı.
+- **Eşik.** Gölge mod başlamadan şu yazılmalı: aynı iş yükünde RSS'te ne
+  kadar düşüş (ör. A'ya göre en az %X) ve kaç günlük sıfır yazım farkı C
+  yolunu haklı çıkarır, ne kadarının altı B'yi orada durdurur. Eşiksiz bir
+  ölçüm sonradan her iki yöne de okunabilir.
 
 Rust'tan bağımsız, hemen yapılabilecekler:
 
@@ -308,6 +459,32 @@ Rust'tan bağımsız, hemen yapılabilecekler:
 - Tek binary + alt komut (`killreport-worker redisq`, `killreport-worker
 info-characters`) mi, worker başına binary mi? PM2 ile uyum için alt
   komut daha pratik.
-- Gölge çalıştırma sırasında `NEW_KILLMAIL` iki kez yayınlanmasın diye
-  Rust worker'da publish kapalı başlamalı (`killmail-writer.ts:14`'teki
-  bayrağın karşılığı).
+- Gölge çalıştırma sırasında `NEW_KILLMAIL` ve Discord mesajı iki kez
+  gitmesin diye Rust worker'da publish kapalı başlamalı
+  (`killmail-writer.ts:14`'teki bayrağın karşılığı, bkz. §5.B adım 2).
+- Gölge hedefi: ayrı bir PostgreSQL veritabanı mı, aynı sunucuda ayrı bir
+  şema mı? Managed PostgreSQL'in 25 bağlantı limiti ikisinde de paylaşılır.
+- Gölge girdisi: Rust da R2Z2'yi mi poll edecek (bütçe yarıya bölünür), yoksa
+  Node'un aldığı payload'ları bir gölge kuyruğundan mı okuyacak?
+- Cron işleri tek binary'de nerede yaşayacak (§4 madde 14)?
+- "Self-contained worker" kuralı Rust için değişiyor mu (§5.B adım 3)?
+- Bağlantı limiti 25 mi, 22 mi? `cost-comparison.md` ile CLAUDE.md
+  uzlaştırılmalı.
+- **Süreç yöneticisi: PM2 mi, systemd mi?** Rust'tan bağımsız bir karar ve
+  droplet yeniden kurulurken değerlendirilecek; çalışan bir sistemde sonradan
+  değiştirmekten o an çok daha ucuz. Rust worker'larının PM2'ye ihtiyacı yok,
+  systemd de Node süreçlerini çalıştırabildiği için seçim "hepsi PM2" ile
+  "hepsi systemd" arasında. Worker'ların systemd'de, API ve frontend'in
+  PM2'de olduğu bir ara dönem iki yönetici, iki log yeri ve iki zamanlama
+  mekanizması demek; geçilecekse API, frontend ve worker'lar birlikte geçer.
+  systemd'nin getirisi bellek değil (PM2 tek bir daemon, birkaç on MB):
+  `MemoryMax=` ile cgroup tabanlı sert bellek sınırı (PM2'nin
+  `max_memory_restart`'ı sonradan kontrol eder), kaçırılan çalıştırmayı
+  telafi eden timer'lar (`Persistent=true`; `cron_restart` bunu yapmaz),
+  journald ile log rotasyonu ve işletimde Node bağımlılığının kalkması.
+  Bedeli: 31 PM2 girdisinin unit'e, 16 `cron_restart` işinin timer'a
+  çevrilmesi, `backend/docs/ops/pm2.md` ve `crontab.md`'nin yeniden
+  yazılması, `pm2 ls` / `pm2 monit` yerine `systemctl` / `journalctl`. Rust
+  worker denemesinin aşama 2'si bilerek PM2'de kalır: ölçülen tek değişiklik
+  Node'dan Rust'a geçiş olsun ve geri dönüş tek komut kalsın
+  (`2026-11-12-rust-worker-spike-design.md`, _Aşama 2_).

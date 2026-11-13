@@ -24,3 +24,6 @@ logs/
 
 # Superpowers scratch: brainstorm mockups, subagent briefs and reports
 .superpowers/
+
+# Rust worker spike build output
+backend-rs/target/
