@@ -82,8 +82,8 @@ wiremock.
 
 **Arayüzler:**
 
-- Üretir: `pub async fn worker_pool(database_url: &str) ->
-Result<sqlx::PgPool, sqlx::Error>`.
+- Üretir: `pub fn worker_pool(database_url: &str) -> Result<sqlx::PgPool, sqlx::Error>` (senkron; havuz tembel bağlanır, `pg.Pool` gibi: ilk sorgu ilk bağlantıyı açar) ve test için `worker_pool_options()`.
+  Result<sqlx::PgPool, sqlx::Error>`.
 
 - [ ] **Adım 1:** `PgPoolOptions`: `max_connections(2)`, `min_connections(0)`, `idle_timeout(10 s)`, `acquire_timeout(10 s)`. Her değerin yanına karşılığı olan `prisma-worker.ts:28-31` satırını yorum olarak yaz.
 - [ ] **Adım 2:** Açılışta Node'daki gibi tek satır log: `✅ [worker] PostgreSQL pool configured: max=2 connections, min=0, idleTimeout=10s, pid=<pid>`.
