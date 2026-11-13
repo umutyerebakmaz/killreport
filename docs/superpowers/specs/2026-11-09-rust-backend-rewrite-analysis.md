@@ -140,14 +140,38 @@ description farkı frontend build'ini kırar.
 
 ### Gerçekten kazandıranlar
 
-1. **Bellek ve süreç sayısı.** Sürekli çalışan 15 backend Node süreci (bkz.
-   §1, çalışma zamanı), her biri V8 taban maliyetiyle (boşta ~50–80 MB)
-   aynı anda ~0,75–1,2 GB RSS tutuyor; cron işleri çalıştıkları birkaç dakika
-   boyunca buna eklenir (tahmin; ölçülmedi). Rust worker'ları ~5–15 MB'dan
-   başlar. Bütün worker'lar **tek bir binary içinde tokio task'ları** olarak
+1. **Bellek ve süreç sayısı.** Bu madde ilk yazıldığında süreç başına boşta
+   ~50–80 MB tahmin ediyordu (toplam ~0,75–1,2 GB). Rust worker denemesinin
+   Linux ön karşılaştırması (2026-11-13, `2026-11-12-rust-worker-spike-design.md`,
+   _Ön karşılaştırma_) tek bir worker'ı ölçtü ve tahminin düşük olduğunu
+   gösterdi:
+
+   | Alliance worker'ı (RSS)                | Boşta  | Koşu sırasında en yüksek |
+   | -------------------------------------- | ------ | ------------------------ |
+   | Node, worker süreci                    | 142 MB | 235 MB                   |
+   | Node, `yarn` + `tsx` dahil süreç grubu | 415 MB | 508 MB (4 süreç)         |
+   | Rust                                   | 16 MB  | 19 MB                    |
+
+   Bu rakamlar 15 sürekli backend sürecine (bkz. §1, çalışma zamanı)
+   **çarpılarak** yaklaşık şunu verir; bu bir tahmindir, ölçüm değildir:
+   yalnızca worker süreçleri boşta ~2,1 GB, `yarn`/`tsx` yükü de canlıda
+   aynıysa ~6 GB; Rust karşılığı ~0,25 GB. Tahminin iki zayıf yanı var: her
+   worker'ın ayak izi içe aktardığı servislere göre değişir (alliance worker'ı
+   örneğin kullanmadığı API havuzunu ve Redis'i de yüklüyor, bkz. §5.A), ve
+   canlıda PM2'nin başlattığı süreç sayısı 3 ya da 4 olabilir. Gerçek toplam
+   aşama 2'de `pm2 ls` ile okunur. Cron işleri çalıştıkları birkaç dakika
+   boyunca buna eklenir.
+
+   Kazancın büyük bir kısmı Rust'a geçmeden de alınabilir: `yarn`/`tsx`
+   yükü (worker başına ~270 MB) A yolunun ilk kalemiyle gider. Rust'ın
+   kendine özgü kazancı, geriye kalan worker sürecinin kendisi: 142–235 MB'a
+   karşı 16–19 MB.
+
+   Bütün worker'lar **tek bir binary içinde tokio task'ları** olarak
    da çalışabilir; ama bu, "her worker self-contained" kuralıyla ilişkisi
    §5.B'de karara bağlanması gereken bir tasarım tercihidir, bedava bir
    kazanç değil.
+
 2. **Tek `getStats()`, tek AIMD durumu.** Mevcut limiter zaten tek yerden
    kontrol ediliyor ve çok süreçli çalışmayı header'lar üzerinden doğru
    yönetiyor (spec §4.5). Tek binary'nin eklediği küçük: `ESI_MAX_RPS`
@@ -313,8 +337,8 @@ src/workers/....ts` çalıştırması: `yarn` süreçleri gider, `tsx` worker
   `typecheck` ikisi de `tsc --noEmit`, `start` de `tsx` ile), yani bu yeni bir
   derleme adımı demek. Ölçüm Linux'ta, tek worker
   üzerinde yapıldı; 14 sürekli worker için toplamı canlıda ölçülmeli.
-  Ölçülen değerler §3.1'deki tahminden (süreç başına boşta 50–80 MB) de
-  yüksek: worker süreci boşta 142 MB tuttu.
+  Worker sürecinin kendisi de §3.1'in ilk tahmininden (boşta 50–80 MB)
+  yüksek çıktı, boşta 142 MB; §3.1 ölçülen değerlerle güncellendi.
 - **Worker'ların kullanmadıkları servisleri yüklememesi.**
   `worker-info-alliances.ts`, `AllianceService`'i `@services/alliance`'tan
   alıyor; o dosya `alliance-stats.service`'i de dışa aktarıyor
