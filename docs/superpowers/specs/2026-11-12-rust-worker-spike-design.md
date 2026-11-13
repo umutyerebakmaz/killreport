@@ -385,12 +385,19 @@ ortamlarında karşılaştırılır.
 | --- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | Doğruluk            | Aşama 1: her koşu çiftinin iki CSV'si arasındaki fark. Aşama 2: ardışık gecelerin CSV'leri (bkz. _Aşama 2_, adım 5)                                                                                                                                                                                      | Sekiz kolonun tamamında fark yok; varsa her biri ESI'deki gerçek bir değişiklikle açıklanır. `date_founded` ve `creator_*`'da hiç fark yok. Satır sayısı aynı. |
 | 2   | Sözleşme            | Yerel ortamda: var olmayan bir ID (404 → ack), DB'yi kapatıp bir mesaj (5 denemede parking), throttle                                                                                                                                                                                                    | Her dal Node ile aynı sonucu verir; `killreport.parking`'teki mesaj aynı header'ları taşır.                                                                    |
-| 3   | Bellek              | Aşama 1: PowerShell'de `Get-Process -Id <pid>` ile `WorkingSet64` ve `PrivateMemorySize64`, 5 s'de bir; boşta ve koşu boyunca en yüksek değer. Node'da ölçülen süreç worker'ı çalıştıran `node.exe`'dir, `yarn` süreci iki tarafta da sayılmaz. Aşama 2: `ps -o rss`, 5 s'de bir, Node'da `node` süreci. | Rust'ın koşu boyunca en yüksek değeri, Node'unkinin eşik oranının altında. Eşik _Açık sorular_'da.                                                             |
+| 3   | Bellek              | Aşama 1: PowerShell'de `Get-Process -Id <pid>` ile `WorkingSet64` ve `PrivateMemorySize64`, 5 s'de bir; boşta ve koşu boyunca en yüksek değer. Node'da ölçülen süreç worker'ı çalıştıran `node.exe`'dir, `yarn` süreci iki tarafta da sayılmaz. Aşama 2: `ps -o rss`, 5 s'de bir, Node'da `node` süreci. | Rust'ın koşu boyunca en yüksek değeri, Node'unkinin **en fazla %25'i** (en az %75 tasarruf). Gerekçe tablonun altında.                                         |
 | 4   | ESI davranışı       | Koşu boyunca 420 sayısı, `X-ESI-Error-Limit-Remain` en düşük değeri, koşu süresi                                                                                                                                                                                                                         | 420 yok; error limit Node koşularından kötü değil; koşu süresi Node'unkinin ±%20'si içinde.                                                                    |
 | 5   | Geliştirme deneyimi | Gün gün harcanan saat (crate başına), Windows'ta cold ve incremental build süresi, `.sqlx/` yenileme sayısı                                                                                                                                                                                              | Karar verdiren değil, bilgi; ama analizdeki "3–6 ay" tahmini bu rakamla yeniden hesaplanır.                                                                    |
 
 Beş ölçüm her iki aşamada da alınır; ölçüm 2 (sözleşme) yalnızca aşama 1'de,
 yerel ortamda.
+
+**Bellek eşiği neden %25:** sürekli çalışan 14 worker'da süreç başına ~50–60
+MB tasarruf, 8 GB'lık droplet'te toplam ~0,7–0,8 GB eder; bu taşımaya değen
+bir kazanç. Bu oranı tutturamayan bir kazancın büyük kısmı Node worker'larını
+tek süreçte toplayarak (analiz dokümanı, yol A) çok daha ucuza alınabilir.
+Eşik, analiz dokümanı §6'nın istediği gibi ölçümden önce sabitlendi
+(2026-11-13); ölçüm görüldükten sonra değiştirilmez.
 
 **Aşama 1'in kararı:** 1 ve 2 geçmezse spike başarısızdır; Rust tarafındaki iş durur ya da
 neden geçmediği anlaşılana kadar başka worker'a geçilmez. 1 ve 2 geçerse karar
@@ -420,13 +427,3 @@ Beşinci günün sonunda üç koşu çifti tamamlanmamışsa bu da bir sonuçtur
 
 **Aşama 2:** droplet aktif olduktan sonra bir gün (Linux derlemesi, kopyalama,
 bağlantı kontrolü, taban ölçümü) ve üç gece.
-
-## Açık sorular
-
-- **Bellek eşiği:** öneri, Rust worker'ın koşu boyunca en yüksek belleği Node
-  worker'ınkinin **en fazla %25'i** (en az %75 tasarruf). Gerekçe: sürekli
-  çalışan 14 worker'da süreç başına ~50–60 MB, toplamda ~0,7–0,8 GB eder; bu
-  oranın altında kalan bir kazancın büyük kısmı Node worker'larını tek
-  süreçte toplayarak (analiz dokümanı, yol A) çok daha ucuza alınabilir.
-  Analiz dokümanı §6 eşiğin ölçümden önce yazılmasını istiyor; onaylanınca bu
-  madde _Ölçümler_ tablosuna taşınır.
