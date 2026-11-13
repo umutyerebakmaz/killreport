@@ -363,7 +363,13 @@ Kurallar:
    (`worker-alliances-rs`, aynı `cwd` — `/var/www/killreport/backend`, böylece
    aynı `.env` okunur —, `script` binary'nin yolu, `max_memory_restart:
 512M`, `autorestart: true`) başlatılır. İki worker aynı anda çalışmaz.
-   Kapanış için binary SIGTERM'i de dinler (PM2 onu gönderir).
+   Girdide ayrıca `interpreter: 'none'` (PM2 binary'yi Node ile çalıştırmaya
+   kalkmasın) ve `kill_timeout: 10000`. PM2 durdururken varsayılan olarak
+   **SIGINT** gönderir ve `kill_timeout` (varsayılan 1600 ms) dolunca SIGKILL
+   atar; elindeki en fazla 3 mesajı bitirmeye 1,6 s yetmeyebilir. SIGKILL'de
+   bile veri kaybı yok (ack'lenmemiş mesaj tekrar teslim edilir), ama temiz
+   kapanış ölçümlerin ve logların okunabilirliği için. Binary SIGINT'i
+   (`ctrl_c`) ve SIGTERM'i dinler.
 5. **Üç gece:** her koşudan sonra anlık görüntü tekrar alınır ve bir önceki
    gecenin CSV'siyle karşılaştırılır. Geceler arasında ESI'de gerçek
    değişiklikler olur, bu yüzden beklenti aşama 1'den gevşektir:
