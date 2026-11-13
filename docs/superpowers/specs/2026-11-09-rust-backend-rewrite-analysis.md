@@ -415,3 +415,21 @@ info-characters`) mi, worker başına binary mi? PM2 ile uyum için alt
 - "Self-contained worker" kuralı Rust için değişiyor mu (§5.B adım 3)?
 - Bağlantı limiti 25 mi, 22 mi? `cost-comparison.md` ile CLAUDE.md
   uzlaştırılmalı.
+- **Süreç yöneticisi: PM2 mi, systemd mi?** Rust'tan bağımsız bir karar ve
+  droplet yeniden kurulurken değerlendirilecek; çalışan bir sistemde sonradan
+  değiştirmekten o an çok daha ucuz. Rust worker'larının PM2'ye ihtiyacı yok,
+  systemd de Node süreçlerini çalıştırabildiği için seçim "hepsi PM2" ile
+  "hepsi systemd" arasında. Worker'ların systemd'de, API ve frontend'in
+  PM2'de olduğu bir ara dönem iki yönetici, iki log yeri ve iki zamanlama
+  mekanizması demek; geçilecekse API, frontend ve worker'lar birlikte geçer.
+  systemd'nin getirisi bellek değil (PM2 tek bir daemon, birkaç on MB):
+  `MemoryMax=` ile cgroup tabanlı sert bellek sınırı (PM2'nin
+  `max_memory_restart`'ı sonradan kontrol eder), kaçırılan çalıştırmayı
+  telafi eden timer'lar (`Persistent=true`; `cron_restart` bunu yapmaz),
+  journald ile log rotasyonu ve işletimde Node bağımlılığının kalkması.
+  Bedeli: 31 PM2 girdisinin unit'e, 16 `cron_restart` işinin timer'a
+  çevrilmesi, `backend/docs/ops/pm2.md` ve `crontab.md`'nin yeniden
+  yazılması, `pm2 ls` / `pm2 monit` yerine `systemctl` / `journalctl`. Rust
+  worker denemesinin aşama 2'si bilerek PM2'de kalır: ölçülen tek değişiklik
+  Node'dan Rust'a geçiş olsun ve geri dönüş tek komut kalsın
+  (`2026-11-12-rust-worker-spike-design.md`, _Aşama 2_).
