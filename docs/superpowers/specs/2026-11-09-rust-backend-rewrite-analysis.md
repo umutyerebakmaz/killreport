@@ -295,6 +295,37 @@ değiştirmez. Birkaç hafta
 iş, sıfır sözleşme riski. Dezavantaj: Node'un taban belleği kalır, Rust'ın
 tip güvenliği gelmez.
 
+Rust worker denemesinin Linux ön karşılaştırması (2026-11-13,
+`2026-11-12-rust-worker-spike-design.md`, _Ön karşılaştırma_) A yoluna iki
+kalem daha ekledi; ikisi de Rust kararından bağımsız ve küçük:
+
+- **Worker'ları `yarn` ve `tsx` üzerinden değil, doğrudan `node` ile
+  başlatmak.** `yarn workspace backend worker:info:alliances` ile başlayan
+  alliance worker'ı dört Node süreci olarak çalıştı: corepack'in `yarn`
+  kısayolu, `yarn`, `tsx` ve asıl worker. Süreç grubunun en yüksek RSS'i
+  ~508 MB, worker'ın kendisi ~235 MB; aradaki ~270 MB worker'ı başlatan
+  süreçlerin. Canlıda PM2 worker'ları `script: 'yarn'` ile başlatıyor
+  (`ecosystem.config.js`), orada süreç sayısı 3 ya da 4; aşama 2'de `pm2 ls`
+  ile doğrulanacak. İki seçenek var. Daha küçüğü PM2'nin `yarn` yerine `node --import tsx
+src/workers/....ts` çalıştırması: `yarn` süreçleri gider, `tsx` worker
+  sürecinin içinde yüklenir. Daha büyüğü derlenmiş JavaScript'i doğrudan
+  `node` ile çalıştırmak; ama backend bugün JavaScript üretmiyor (`build` ve
+  `typecheck` ikisi de `tsc --noEmit`, `start` de `tsx` ile), yani bu yeni bir
+  derleme adımı demek. Ölçüm Linux'ta, tek worker
+  üzerinde yapıldı; 14 sürekli worker için toplamı canlıda ölçülmeli.
+  Ölçülen değerler §3.1'deki tahminden (süreç başına boşta 50–80 MB) de
+  yüksek: worker süreci boşta 142 MB tuttu.
+- **Worker'ların kullanmadıkları servisleri yüklememesi.**
+  `worker-info-alliances.ts`, `AllianceService`'i `@services/alliance`'tan
+  alıyor; o dosya `alliance-stats.service`'i de dışa aktarıyor
+  (`services/alliance/index.ts`), o da API'nin `@services/prisma` havuzunu
+  (`max: 5, min: 1`) ve `@services/redis`'i yüklüyor. Sonuç: worker açılışta
+  API havuzunu kuruyor ve hiç kullanmadığı bir Redis bağlantısı açıyor (log:
+  "Redis cache connected"). API havuzunun bir PostgreSQL bağlantısını da açık
+  tutup tutmadığı doğrulanmadı; `pg.Pool` normalde ilk sorguda bağlanır. Çözüm
+  worker'ın `@services/alliance/alliance.service`'i doğrudan içe aktarması. Diğer worker'larda
+  aynı kalıbın olup olmadığına bakılmadı.
+
 ### B. Strangler: önce worker'lar, API sonra (önerilen)
 
 Worker'lar yeniden yazmanın **en yüksek kazanç / en düşük risk** kısmı:
