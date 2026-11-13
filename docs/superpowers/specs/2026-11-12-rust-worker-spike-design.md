@@ -132,6 +132,16 @@ mesajı tam bir kez settle eder:
 | Diğer, `x-death[0].count + 1 >= 5` (`MAX_ATTEMPTS`)         | `killreport.parking`'e aynı gövde ve aynı header'larla `persistent` publish, sonra `ack`.          |
 | Diğer                                                       | `nack(requeue: false)` → DLX → 30 s wait → retry → aynı kuyruk.                                    |
 
+**Node'dan bilinçli tek fark: bozuk mesaj gövdesi** (karar: 2026-11-13).
+Node'da `JSON.parse` `try` bloğunun dışında (`worker-info-alliances.ts:86-89`);
+bozuk bir gövde consume callback'ini patlatır, `handleWorkerError`'a hiç
+ulaşmaz ve mesaj ack'lenmeden kalır. Rust'ta parse hatası da ortak hata
+yolundan geçer: tablonun "Diğer" dalları, yani 4 tekrar ve 5.'de
+`killreport.parking`. Mesaj kaybolmaz, sonsuza da dönmez, parking'de
+incelenebilir. Bu fark karşılaştırma koşularını etkilemez: `queue-alliances`
+her zaman geçerli gövde üretir. Node tarafındaki aynı düzeltme bu spike'ın
+dışında, ayrı bir iş.
+
 `death_count`, `x-death` yoksa veya boşsa 0 döner (`worker-error.ts:37-42`).
 `isForbidden` portlanır ama yönlendirme yapmaz, Node'daki gibi.
 
