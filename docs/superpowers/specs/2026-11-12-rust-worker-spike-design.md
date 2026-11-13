@@ -397,13 +397,13 @@ ortamlarında karşılaştırılır.
 
 ## Ölçümler ve karar
 
-| #   | Ölçüm               | Nasıl alınır                                                                                                                                                                                                                                                                                             | Geçme koşulu                                                                                                                                                   |
-| --- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Doğruluk            | Aşama 1: her koşu çiftinin iki CSV'si arasındaki fark. Aşama 2: ardışık gecelerin CSV'leri (bkz. _Aşama 2_, adım 5)                                                                                                                                                                                      | Sekiz kolonun tamamında fark yok; varsa her biri ESI'deki gerçek bir değişiklikle açıklanır. `date_founded` ve `creator_*`'da hiç fark yok. Satır sayısı aynı. |
-| 2   | Sözleşme            | Yerel ortamda: var olmayan bir ID (404 → ack), DB'yi kapatıp bir mesaj (5 denemede parking), throttle                                                                                                                                                                                                    | Her dal Node ile aynı sonucu verir; `killreport.parking`'teki mesaj aynı header'ları taşır.                                                                    |
-| 3   | Bellek              | Aşama 1: PowerShell'de `Get-Process -Id <pid>` ile `WorkingSet64` ve `PrivateMemorySize64`, 5 s'de bir; boşta ve koşu boyunca en yüksek değer. Node'da ölçülen süreç worker'ı çalıştıran `node.exe`'dir, `yarn` süreci iki tarafta da sayılmaz. Aşama 2: `ps -o rss`, 5 s'de bir, Node'da `node` süreci. | Rust'ın koşu boyunca en yüksek değeri, Node'unkinin **en fazla %25'i** (en az %75 tasarruf). Gerekçe tablonun altında.                                         |
-| 4   | ESI davranışı       | Koşu boyunca 420 sayısı, `X-ESI-Error-Limit-Remain` en düşük değeri, koşu süresi                                                                                                                                                                                                                         | 420 yok; error limit Node koşularından kötü değil; koşu süresi Node'unkinin ±%20'si içinde.                                                                    |
-| 5   | Geliştirme deneyimi | Gün gün harcanan saat (crate başına), Windows'ta cold ve incremental build süresi, `.sqlx/` yenileme sayısı                                                                                                                                                                                              | Karar verdiren değil, bilgi; ama analizdeki "3–6 ay" tahmini bu rakamla yeniden hesaplanır.                                                                    |
+| #   | Ölçüm               | Nasıl alınır                                                                                                                                                                                                                                                                                             | Geçme koşulu                                                                                                                                                                                                                                                                                        |
+| --- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Doğruluk            | Aşama 1: her koşu çiftinin iki CSV'si arasındaki fark. Aşama 2: ardışık gecelerin CSV'leri (bkz. _Aşama 2_, adım 5)                                                                                                                                                                                      | Sekiz kolonun tamamında fark yok; varsa her biri ESI'deki gerçek bir değişiklikle açıklanır. `date_founded` ve `creator_*`'da hiç fark yok. Satır sayısı aynı.                                                                                                                                      |
+| 2   | Sözleşme            | Yerel ortamda: var olmayan bir ID (404 → ack), DB'yi kapatıp bir mesaj (5 denemede parking), throttle                                                                                                                                                                                                    | Her dal Node ile aynı sonucu verir; `killreport.parking`'teki mesaj aynı header'ları taşır.                                                                                                                                                                                                         |
+| 3   | Bellek              | Aşama 1: PowerShell'de `Get-Process -Id <pid>` ile `WorkingSet64` ve `PrivateMemorySize64`, 5 s'de bir; boşta ve koşu boyunca en yüksek değer. Node'da ölçülen süreç worker'ı çalıştıran `node.exe`'dir, `yarn` süreci iki tarafta da sayılmaz. Aşama 2: `ps -o rss`, 5 s'de bir, Node'da `node` süreci. | Rust'ın koşu boyunca en yüksek değeri, Node'unkinin **en fazla %25'i** (en az %75 tasarruf). Gerekçe tablonun altında.                                                                                                                                                                              |
+| 4   | ESI davranışı       | Koşu boyunca 420 sayısı, `X-ESI-Error-Limit-Remain` en düşük değeri, koşu süresi                                                                                                                                                                                                                         | 420 yok; error limit Node koşularından kötü değil; koşu süresi Node'unkinin en fazla %20 üstünde. Daha kısa bir süre tek başına sorun değildir, ama o koşuda throttle (`EsiThrottled`, 420, gruplu veya header'sız 429) görülmemiş olmalı. Ölçüt 2026-11-13'te düzeltildi, bkz. _Ön karşılaştırma_. |
+| 5   | Geliştirme deneyimi | Gün gün harcanan saat (crate başına), Windows'ta cold ve incremental build süresi, `.sqlx/` yenileme sayısı                                                                                                                                                                                              | Karar verdiren değil, bilgi; ama analizdeki "3–6 ay" tahmini bu rakamla yeniden hesaplanır.                                                                                                                                                                                                         |
 
 Beş ölçüm her iki aşamada da alınır; ölçüm 2 (sözleşme) yalnızca aşama 1'de,
 yerel ortamda.
@@ -426,6 +426,61 @@ süreçte toplamak) öne alınır.
 dokümanındaki yol B'nin bir sonraki adımına geçilir. Bir gece bile 1 geçmezse
 geri dönülür (adım 6) ve neden geçmediği anlaşılana kadar aşama 2 tekrar
 denenmez.
+
+## Ön karşılaştırma (Linux container, 2026-11-13)
+
+Aşama 1'in yerine geçmez; Windows ölçümü ve üç koşu çifti yine yapılır. Amaç,
+Windows koşularından önce bir doğruluk farkı olup olmadığını görmekti.
+
+**Ortam:** geliştirme oturumunun Linux container'ı; Docker'da PostgreSQL 18.7
+(bütün migration'lar boş bir veritabanına uygulanmış), RabbitMQ 4
+(`killreport-dlx` policy'si uygulanmış) ve Redis 7. ESI gerçek. Node worker'ı
+`yarn workspace backend worker:info:alliances` ile, Rust worker'ı release
+binary'si olarak çalıştı. Tek bir koşu çifti, sıra Node→Rust; yük her seferinde
+`yarn workspace backend queue:alliances`. Node koşusu tabloyu ilk kez doldurdu
+(3639 insert), Rust koşusu aynı satırları güncelledi.
+
+| Ölçüm                                             | Node            | Rust           |
+| ------------------------------------------------- | --------------- | -------------- |
+| İşlenen / hata                                    | 3642 / 0        | 3642 / 0       |
+| Süre (ilk kuyruklama → özet, 5 s sessizlik hariç) | 515 s           | 190 s          |
+| Bellek, worker süreci: boşta / en yüksek (RSS)    | 142 / 235 MB    | 16 / 19 MB     |
+| Bellek, süreç grubu: en yüksek (RSS)              | 508 MB, 4 süreç | 19 MB, 1 süreç |
+| Throttle, 420, retry, parking                     | yok             | yok            |
+
+**Sonuç:**
+
+- **1 (doğruluk) geçti.** Koşulardan sonra alınan iki `alliances` CSV'si
+  (3642 satır, sekiz kolon) birebir aynı.
+- **3 (bellek) geçti.** Rust'ın en yüksek değeri Node worker sürecinin
+  yaklaşık %8'i; eşik %25.
+- **4 (ESI davranışı) düzeltilmiş ölçütle geçti.** Rust saniyede yaklaşık 19
+  istek attı, `ESI_MAX_RPS` 50'nin çok altında; hiçbir koşuda throttle yok.
+  Ölçütün ilk hali (±%20) Rust'ı **hızlı** olduğu için düşürüyordu; amacı
+  Rust'ın ESI'yi zorlamasını yakalamaktı, hızlı olmasını değil. Bu yüzden
+  ölçüt yukarıda "en fazla %20 daha yavaş, daha hızlıysa throttle yok" olarak
+  düzeltildi.
+
+**Bu çiftten çıkarılamayanlar:**
+
+- **Hız farkının sebebi.** Üç karışan etken var: Node mesaj başına iki sorgu
+  atıyor (`findUnique` + `upsert`), Rust bir; Rust ikinci sıradaydı ve ESI'nin
+  kendi önbelleğinden yararlanmış olabilir; Node insert, Rust update yaptı.
+  Sırası değişen Windows koşuları bunları ayırır.
+- **Windows rakamları.** Bellek ölçümü bu Linux makinesinin; kararın dayandığı
+  rakamlar aşama 1'in Windows koşularından gelir.
+
+**Yan bulgu: `yarn` ve `tsx`'in maliyeti.** Node worker'ı `yarn` üzerinden
+çalışınca dört Node süreci olarak çalışıyor: corepack'in `yarn` kısayolu,
+`yarn`, `tsx` ve asıl worker; toplam en yüksek yaklaşık 500 MB. Bunun 270
+MB'ı worker'ın kendisi değil, onu başlatan süreçler. Canlıda PM2 de worker'ları
+`script: 'yarn'` ile başlatıyor; orada süreç sayısı 3 ya da 4 olabilir, aşama
+2'de `pm2 ls` ile görülür. Bu yük Rust'a geçmeden, Node worker'larını derlenmiş
+JavaScript olarak doğrudan `node` ile başlatarak azaltılabilir; analiz
+dokümanındaki A yoluna eklenecek bir kalem.
+
+Ham veriler (log'lar, bellek örnekleri, CSV'ler) oturumun geçici dizinindeydi
+ve repoya alınmadı.
 
 ## Zaman kutusu
 
