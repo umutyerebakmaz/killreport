@@ -10,11 +10,21 @@ tahmin: Rust worker'ın belleği, geliştirme hızı, derleme döngüsünün Win
 nasıl hissettirdiği, mevcut kuyruk ve hata sözleşmesine ne kadar zahmetle
 uyulduğu. Bu iş, o soruları tek bir gerçek worker ile **ölçerek** cevaplar.
 
-Kapsam bilerek dar: bir haftalık bir zaman kutusu, tek bir worker ve aynı
-makinede, aynı iş yükünde Node ile Rust'ın sırayla çalıştırıldığı yerel
-karşılaştırma koşuları. Droplet şu an aktif değil; bütün iş yerelde (Windows)
-yapılır. Sonunda bir "devam / dur" kararı ve bu kararı taşıyan ölçümler olur.
-Sonuç "dur" olsa bile kaybedilen tek şey bu hafta; Node worker'ına dokunulmaz.
+Kapsam bilerek dar: tek bir worker, iki aşama.
+
+1. **Aşama 1 — yerel.** Bir haftalık zaman kutusu. Worker yazılır ve aynı
+   makinede, aynı iş yükünde Node ile Rust sırayla çalıştırılarak
+   karşılaştırılır. Droplet şu an aktif değil; bu aşamanın tamamı yerelde
+   (Windows) yapılır.
+2. **Aşama 2 — production.** Droplet tekrar aktif olduğunda ve aşama 1
+   geçtiyse: Rust worker'ı production'da üç gece boyunca Node worker'ının
+   yerine çalışır. Yerel koşuların gösteremediği şeyleri (gerçek sunucuda
+   bellek, managed PostgreSQL'e TLS bağlantısı, PM2 altında davranış, günlük
+   gerçek yük) burada görürüz.
+
+Her aşamanın sonunda bir "devam / dur" kararı ve bu kararı taşıyan ölçümler
+olur. Sonuç "dur" olsa bile Node worker'ına dokunulmaz; geri dönüş her
+aşamada tek adımdır.
 
 ## Hedefler
 
@@ -22,9 +32,11 @@ Sonuç "dur" olsa bile kaybedilen tek şey bu hafta; Node worker'ına dokunulmaz
   `worker-info-alliances.ts` ile **davranışça aynı** bir Rust worker.
 - Sonraki worker'ların da kullanacağı üç paylaşılan crate: `esi` (client +
   limiter portu), `mq` (bağlantı, kuyruk tanımı, ortak hata yolu), `db` (havuz).
-- Yerelde en az **üç koşu çifti**: aynı `yarn queue:alliances` yükünü bir kez
-  Node, bir kez Rust worker'ının tüketmesi (bkz. _Yerel karşılaştırma
-  koşusu_).
+- Aşama 1: yerelde en az **üç koşu çifti**: aynı `yarn queue:alliances`
+  yükünü bir kez Node, bir kez Rust worker'ının tüketmesi (bkz. _Aşama 1_).
+- Aşama 2: production'da en az **üç gecelik** `queue-alliances` koşusunda
+  (her gün 22:00, `ecosystem.config.js:292`) Node worker'ının yerine
+  çalışma (bkz. _Aşama 2_).
 - Aşağıda _Ölçümler_ bölümündeki beş ölçümün kayda geçmesi ve bir karar.
 
 ## Hedef dışı
@@ -35,10 +47,8 @@ Sonuç "dur" olsa bile kaybedilen tek şey bu hafta; Node worker'ına dokunulmaz
   çok worker. Bkz. _Tasarım kararları_, madde 1.
 - Mesaj formatında, kuyruk adında veya Prisma şemasında değişiklik.
 - Node worker kodunun silinmesi. Geri dönüş yolu olarak yerinde kalır.
-- Production'a alma: droplet, PM2 girdisi, Linux binary'si. Droplet tekrar
-  aktif olduğunda ve spike "devam" kararı aldığında ayrı bir iş olarak ele
-  alınır. Bu spike yalnızca o işi engelleyecek bir şey yapmamayı garanti
-  eder (bkz. _Derleme_).
+- Deploy otomasyonu (CI'dan binary artifact'ı, otomatik dağıtım). Aşama 2'de
+  binary yerelde derlenip elle kopyalanır.
 
 ## Neden `worker-info-alliances`
 
@@ -273,19 +283,25 @@ vakaları için job'a bir Postgres servisi). Node job'larına dokunulmaz.
 
 ## Derleme
 
-Her şey yerelde, Windows'ta derlenir ve çalıştırılır: `cargo build` /
-`cargo test`, karşılaştırma koşuları için `cargo build --release`. Linux
-binary'si bu spike'ta üretilmez.
+Her iki aşamada da derleme **yerelde** yapılır; droplet'e Rust araç zinciri
+kurulmaz.
 
-İleride production'a almayı zorlaştırmamak için tek bir kısıt şimdiden
+- **Aşama 1:** Windows'ta `cargo build` / `cargo test`, karşılaştırma
+  koşuları için `cargo build --release`. Bu derleme bir Windows `.exe`'si
+  üretir; yalnızca yerelde çalışır.
+- **Aşama 2:** yine yerelde, Linux hedefi için: `x86_64-unknown-linux-musl`.
+  musl hedefi tek parça, statik bir binary üretir; droplet'teki glibc
+  sürümüne bağımlılık olmaz. Windows'tan iki yolu var: WSL2 içinde
+  `cargo build --release --target x86_64-unknown-linux-musl`, ya da Windows'ta
+  `cargo zigbuild` ile aynısı. WSL2 kuruluysa o daha az sürprizli.
+
+İkinci derlemeyi mümkün kılmak için aşama 1'den itibaren tek bir kısıt
 uygulanır: **OpenSSL'e bağımlılık yok.** Bütün bağımlılıklar TLS için `rustls`
 kullanır: `reqwest` (`rustls-tls`), `sqlx` (`runtime-tokio-rustls`), `lapin`
 (TLS gerekirse rustls özelliğiyle). Bu, Windows'ta OpenSSL kurma derdini de
-ortadan kaldırır, ve droplet döndüğünde tek parça statik bir Linux binary'si
-(`x86_64-unknown-linux-musl`, WSL2 içinde veya `cargo zigbuild` ile) üretmeyi
-mümkün kılar.
+ortadan kaldırır.
 
-## Yerel karşılaştırma koşusu
+## Aşama 1: yerel karşılaştırma koşusu
 
 Gereken yerel servisler: PostgreSQL ve RabbitMQ (`DATABASE_URL` ve
 `RABBITMQ_URL` yerel servisleri gösterir). Bu worker Redis kullanmaz. ESI
@@ -329,27 +345,68 @@ Kurallar:
 - Yerel `alliances` tablosu boşsa veya eskiyse, ilk koşu yalnızca tabloyu
   doldurmak içindir ve ölçüme katılmaz.
 
+## Aşama 2: production
+
+Ön koşul: droplet aktif ve aşama 1'in kararı "devam".
+
+1. **Binary:** Linux binary'si yerelde derlenir (bkz. _Derleme_) ve `scp` ile
+   droplet'te sabit bir yola kopyalanır (ör.
+   `/var/www/killreport/backend-rs/bin/worker-info-alliances`).
+2. **Bağlantı kontrolü:** managed PostgreSQL TLS istediği için production
+   `DATABASE_URL`'ine (`sslmode` dahil) sqlx'in bağlanabildiği, ilk geceden
+   önce binary'yi bir kez elle başlatıp kuyruk boşken bağlantı loglarına
+   bakarak doğrulanır.
+3. **Taban:** Node worker çalışırken bir gece koşusunun belleği (`ps -o rss`,
+   5 s'de bir) kaydedilir ve koşudan sonra `alliances` tablosunun anlık
+   görüntüsü aşama 1'deki aynı `\copy` sorgusuyla bir CSV'ye alınır.
+4. **Geçiş:** 22:00'den önce `pm2 stop worker-alliances`; yeni bir PM2 girdisi
+   (`worker-alliances-rs`, aynı `cwd` — `/var/www/killreport/backend`, böylece
+   aynı `.env` okunur —, `script` binary'nin yolu, `max_memory_restart:
+512M`, `autorestart: true`) başlatılır. İki worker aynı anda çalışmaz.
+   Kapanış için binary SIGTERM'i de dinler (PM2 onu gönderir).
+5. **Üç gece:** her koşudan sonra anlık görüntü tekrar alınır ve bir önceki
+   gecenin CSV'siyle karşılaştırılır. Geceler arasında ESI'de gerçek
+   değişiklikler olur, bu yüzden beklenti aşama 1'den gevşektir:
+   `date_founded` ve `creator_*`'da sıfır fark, `name`, `ticker`,
+   `executor_corporation_id`, `faction_id`'deki her fark ESI'deki gerçek bir
+   değişiklikle açıklanır, satır sayısı düşmez.
+6. **Geri dönüş:** `pm2 stop worker-alliances-rs && pm2 start
+worker-alliances`. Mesaj formatı ve kuyruk aynı olduğu için kuyrukta
+   bekleyen işler Node worker'ına olduğu gibi geçer.
+
+musl'ün varsayılan bellek ayırıcısı glibc'ninkinden farklıdır; aşama 2'nin
+bellek rakamı bu binary'nin rakamıdır ve öyle kaydedilir. Aşama 1'in Windows
+rakamıyla doğrudan karşılaştırılmaz; her aşamada Node ile Rust kendi
+ortamlarında karşılaştırılır.
+
 ## Ölçümler ve karar
 
-| #   | Ölçüm               | Nasıl alınır                                                                                                                                                                                                                           | Geçme koşulu                                                                                                                                                   |
-| --- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Doğruluk            | Her koşu çiftinin iki CSV'si arasındaki fark                                                                                                                                                                                           | Sekiz kolonun tamamında fark yok; varsa her biri ESI'deki gerçek bir değişiklikle açıklanır. `date_founded` ve `creator_*`'da hiç fark yok. Satır sayısı aynı. |
-| 2   | Sözleşme            | Yerel ortamda: var olmayan bir ID (404 → ack), DB'yi kapatıp bir mesaj (5 denemede parking), throttle                                                                                                                                  | Her dal Node ile aynı sonucu verir; `killreport.parking`'teki mesaj aynı header'ları taşır.                                                                    |
-| 3   | Bellek              | PowerShell'de `Get-Process -Id <pid>` ile `WorkingSet64` ve `PrivateMemorySize64`, 5 s'de bir; boşta ve koşu boyunca en yüksek değer. Node'da ölçülen süreç worker'ı çalıştıran `node.exe`'dir, `yarn` süreci iki tarafta da sayılmaz. | Rust'ın koşu boyunca en yüksek değeri, Node'unkinin eşik oranının altında. Eşik _Açık sorular_'da.                                                             |
-| 4   | ESI davranışı       | Koşu boyunca 420 sayısı, `X-ESI-Error-Limit-Remain` en düşük değeri, koşu süresi                                                                                                                                                       | 420 yok; error limit Node koşularından kötü değil; koşu süresi Node'unkinin ±%20'si içinde.                                                                    |
-| 5   | Geliştirme deneyimi | Gün gün harcanan saat (crate başına), Windows'ta cold ve incremental build süresi, `.sqlx/` yenileme sayısı                                                                                                                            | Karar verdiren değil, bilgi; ama analizdeki "3–6 ay" tahmini bu rakamla yeniden hesaplanır.                                                                    |
+| #   | Ölçüm               | Nasıl alınır                                                                                                                                                                                                                                                                                             | Geçme koşulu                                                                                                                                                   |
+| --- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Doğruluk            | Aşama 1: her koşu çiftinin iki CSV'si arasındaki fark. Aşama 2: ardışık gecelerin CSV'leri (bkz. _Aşama 2_, adım 5)                                                                                                                                                                                      | Sekiz kolonun tamamında fark yok; varsa her biri ESI'deki gerçek bir değişiklikle açıklanır. `date_founded` ve `creator_*`'da hiç fark yok. Satır sayısı aynı. |
+| 2   | Sözleşme            | Yerel ortamda: var olmayan bir ID (404 → ack), DB'yi kapatıp bir mesaj (5 denemede parking), throttle                                                                                                                                                                                                    | Her dal Node ile aynı sonucu verir; `killreport.parking`'teki mesaj aynı header'ları taşır.                                                                    |
+| 3   | Bellek              | Aşama 1: PowerShell'de `Get-Process -Id <pid>` ile `WorkingSet64` ve `PrivateMemorySize64`, 5 s'de bir; boşta ve koşu boyunca en yüksek değer. Node'da ölçülen süreç worker'ı çalıştıran `node.exe`'dir, `yarn` süreci iki tarafta da sayılmaz. Aşama 2: `ps -o rss`, 5 s'de bir, Node'da `node` süreci. | Rust'ın koşu boyunca en yüksek değeri, Node'unkinin eşik oranının altında. Eşik _Açık sorular_'da.                                                             |
+| 4   | ESI davranışı       | Koşu boyunca 420 sayısı, `X-ESI-Error-Limit-Remain` en düşük değeri, koşu süresi                                                                                                                                                                                                                         | 420 yok; error limit Node koşularından kötü değil; koşu süresi Node'unkinin ±%20'si içinde.                                                                    |
+| 5   | Geliştirme deneyimi | Gün gün harcanan saat (crate başına), Windows'ta cold ve incremental build süresi, `.sqlx/` yenileme sayısı                                                                                                                                                                                              | Karar verdiren değil, bilgi; ama analizdeki "3–6 ay" tahmini bu rakamla yeniden hesaplanır.                                                                    |
 
-**Karar:** 1 ve 2 geçmezse spike başarısızdır; Rust tarafındaki iş durur ya da
+Beş ölçüm her iki aşamada da alınır; ölçüm 2 (sözleşme) yalnızca aşama 1'de,
+yerel ortamda.
+
+**Aşama 1'in kararı:** 1 ve 2 geçmezse spike başarısızdır; Rust tarafındaki iş durur ya da
 neden geçmediği anlaşılana kadar başka worker'a geçilmez. 1 ve 2 geçerse karar
 3 ve 5'e bakar: bellek kazancı eşiği aşıyor ve ölçülen geliştirme hızıyla
-yeniden hesaplanan toplam süre kabul edilebiliyorsa, analiz dokümanındaki yol
-B'nin bir sonraki adımına geçilir. Değilse durulur; bu spike'ın çıktısı (crate'ler
+yeniden hesaplanan toplam süre kabul edilebiliyorsa aşama 2'ye geçilir. Değilse durulur; bu spike'ın çıktısı (crate'ler
 ve rakamlar) analiz dokümanına eklenir ve Node'daki A yolu (worker'ları tek
 süreçte toplamak) öne alınır.
 
+**Aşama 2'nin kararı:** üç gecenin hepsinde 1, 3 ve 4 geçerse analiz
+dokümanındaki yol B'nin bir sonraki adımına geçilir. Bir gece bile 1 geçmezse
+geri dönülür (adım 6) ve neden geçmediği anlaşılana kadar aşama 2 tekrar
+denenmez.
+
 ## Zaman kutusu
 
-Beş iş günü, kabaca:
+**Aşama 1:** beş iş günü, kabaca:
 
 | Gün | İş                                                                    |
 | --- | --------------------------------------------------------------------- |
@@ -360,6 +417,9 @@ Beş iş günü, kabaca:
 
 Beşinci günün sonunda üç koşu çifti tamamlanmamışsa bu da bir sonuçtur ve
 ölçüm 5'e (geliştirme deneyimi) olduğu gibi yazılır; süre uzatılmaz.
+
+**Aşama 2:** droplet aktif olduktan sonra bir gün (Linux derlemesi, kopyalama,
+bağlantı kontrolü, taban ölçümü) ve üç gece.
 
 ## Açık sorular
 
