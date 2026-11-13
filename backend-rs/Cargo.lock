@@ -1365,8 +1365,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "esi",
+ "futures-util",
  "lapin",
  "regex",
+ "thiserror",
  "tokio",
  "tracing",
 ]
