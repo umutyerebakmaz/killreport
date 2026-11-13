@@ -275,7 +275,7 @@ Result<bool /* inserted */, sqlx::Error>`.
 
 - [ ] **Adım 1:** `ci.yml`'e `backend-rs` job'u: `ubuntu-latest`, `timeout-minutes: 20`, `services.postgres` (kullanıcı ve veritabanı workflow düzeyindeki `DATABASE_URL` ile aynı: `ci` / `ci` / `killreport`), adımlar `actions/checkout@v4`, `Swatinem/rust-cache`, `working-directory: backend-rs` altında `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`, env `SQLX_OFFLINE: "true"`. Toolchain `rust-toolchain.toml`'dan gelir. `#[ignore]`'lu testler CI'da çalışmaz (RabbitMQ ve yerel veriye bağlılar). Diğer job'lara dokunma. `npx prettier --check .github/workflows/ci.yml`.
 - [ ] **Adım 2:** Sözleşme kontrolleri yerelde, önce Node sonra Rust ile, sonuçlar yan yana not edilir:
-  - **404:** kuyruğa elle `{"entityId":1,"queuedAt":"…","source":"manual"}` (RabbitMQ yönetim arayüzü, _Publish message_). Beklenen: uyarı + `ack`, kuyruk boş, parking boş.
+  - **404:** kuyruğa elle `{"entityId":99999999,"queuedAt":"…","source":"manual"}` (RabbitMQ yönetim arayüzü, _Publish message_). Beklenen: uyarı + `ack`, kuyruk boş, parking boş. `entityId: 1` **kullanma**: ESI geçersiz aralıktaki bir ID'ye 404 değil 422 döner (2026-11-13'te görüldü) ve mesaj 404 dalına değil retry dalına gider. Bu Node'da da aynıdır.
   - **Retry ve parking:** worker çalışırken yerel PostgreSQL'i durdur, bir alliance ID'si yayınla. Beklenen: 4 deneme (her biri arasında ~30 s, `killreport.wait` üzerinden), 5.'de `killreport.parking`'e düşer; parking'deki mesajın `x-death` header'ı var. PostgreSQL'i tekrar başlat.
   - **Throttle:** gerçek bir 420 üretmek ESI'yi zorlamak demek; bu dal birim testleriyle (Görev 5 ve 6) kapsanır, burada denenmez.
 - [ ] **Adım 3:** Commit: `ci: run fmt, clippy and tests for backend-rs`.
