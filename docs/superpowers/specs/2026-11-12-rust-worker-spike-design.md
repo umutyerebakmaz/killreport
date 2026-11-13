@@ -10,10 +10,11 @@ tahmin: Rust worker'ın belleği, geliştirme hızı, derleme döngüsünün Win
 nasıl hissettirdiği, mevcut kuyruk ve hata sözleşmesine ne kadar zahmetle
 uyulduğu. Bu iş, o soruları tek bir gerçek worker ile **ölçerek** cevaplar.
 
-Kapsam bilerek dar: bir haftalık bir zaman kutusu, tek bir worker, production'da
-Node versiyonunun yerine birkaç gece çalıştırma. Sonunda bir "devam / dur"
-kararı ve bu kararı taşıyan ölçümler olur. Sonuç "dur" olsa bile kaybedilen tek
-şey bu hafta; Node worker'ı silinmez, geri dönüş tek bir PM2 değişikliği.
+Kapsam bilerek dar: bir haftalık bir zaman kutusu, tek bir worker ve aynı
+makinede, aynı iş yükünde Node ile Rust'ın sırayla çalıştırıldığı yerel
+karşılaştırma koşuları. Droplet şu an aktif değil; bütün iş yerelde (Windows)
+yapılır. Sonunda bir "devam / dur" kararı ve bu kararı taşıyan ölçümler olur.
+Sonuç "dur" olsa bile kaybedilen tek şey bu hafta; Node worker'ına dokunulmaz.
 
 ## Hedefler
 
@@ -21,8 +22,9 @@ kararı ve bu kararı taşıyan ölçümler olur. Sonuç "dur" olsa bile kaybedi
   `worker-info-alliances.ts` ile **davranışça aynı** bir Rust worker.
 - Sonraki worker'ların da kullanacağı üç paylaşılan crate: `esi` (client +
   limiter portu), `mq` (bağlantı, kuyruk tanımı, ortak hata yolu), `db` (havuz).
-- Production'da en az **üç gecelik** `queue-alliances` koşusunda (her gün
-  22:00, `ecosystem.config.js:292`) Node worker'ının yerine çalışma.
+- Yerelde en az **üç koşu çifti**: aynı `yarn queue:alliances` yükünü bir kez
+  Node, bir kez Rust worker'ının tüketmesi (bkz. _Yerel karşılaştırma
+  koşusu_).
 - Aşağıda _Ölçümler_ bölümündeki beş ölçümün kayda geçmesi ve bir karar.
 
 ## Hedef dışı
@@ -33,24 +35,28 @@ kararı ve bu kararı taşıyan ölçümler olur. Sonuç "dur" olsa bile kaybedi
   çok worker. Bkz. _Tasarım kararları_, madde 1.
 - Mesaj formatında, kuyruk adında veya Prisma şemasında değişiklik.
 - Node worker kodunun silinmesi. Geri dönüş yolu olarak yerinde kalır.
-- Deploy otomasyonu. Spike'ta binary elle derlenip PM2'ye verilir.
+- Production'a alma: droplet, PM2 girdisi, Linux binary'si. Droplet tekrar
+  aktif olduğunda ve spike "devam" kararı aldığında ayrı bir iş olarak ele
+  alınır. Bu spike yalnızca o işi engelleyecek bir şey yapmamayı garanti
+  eder (bkz. _Derleme_).
 
 ## Neden `worker-info-alliances`
 
-| Ölçüt                 | Durum                                                                                                |
-| --------------------- | ---------------------------------------------------------------------------------------------------- |
-| Gerçek trafik         | Var: `queue-alliances` her gece 22:00'de bütün alliance ID'lerini kuyruğa koyar (root scan).         |
-| Sürekli çalışan süreç | Evet, PM2'de `worker-alliances` (`autorestart: true`, `ecosystem.config.js:67-82`). RSS ölçülebilir. |
-| Yazdığı yer           | Tek tablo: `alliances`. Tek bir `upsert`.                                                            |
-| Kimlik doğrulama      | Yok. Public `/alliances/{id}` uç noktası; refresh token yarışı (`user-credentials.ts:66-69`) yok.    |
-| Yan etki              | Yok. Pub/sub, Discord, başka kuyruğa yayın yok.                                                      |
-| Hata yolu             | Ortak `handleWorkerError`'ın bütün dalları (throttle, 404, retry, parking) bu worker'da da geçerli.  |
-| İdempotent mi         | Evet. Aynı ID'yi iki kez işlemek aynı satırı üretir.                                                 |
-| Kod boyutu (Node)     | 202 satır.                                                                                           |
+| Ölçüt                 | Durum                                                                                                                                  |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Tekrarlanabilir yük   | `yarn queue:alliances` ESI'deki bütün alliance ID'lerini filtresiz kuyruğa koyar (root scan); her koşu aynı tam yük.                   |
+| Sürekli çalışan süreç | Production'da PM2'de sürekli çalışıyor (`autorestart: true`, `ecosystem.config.js:67-82`); bellek ölçümü gerçek kullanımı temsil eder. |
+| Yazdığı yer           | Tek tablo: `alliances`. Tek bir `upsert`.                                                                                              |
+| Kimlik doğrulama      | Yok. Public `/alliances/{id}` uç noktası; refresh token yarışı (`user-credentials.ts:66-69`) yok.                                      |
+| Yan etki              | Yok. Pub/sub, Discord, başka kuyruğa yayın yok.                                                                                        |
+| Hata yolu             | Ortak `handleWorkerError`'ın bütün dalları (throttle, 404, retry, parking) bu worker'da da geçerli.                                    |
+| İdempotent mi         | Evet. Aynı ID'yi iki kez işlemek aynı satırı üretir.                                                                                   |
+| Kod boyutu (Node)     | 202 satır.                                                                                                                             |
 
-`worker-info-types` de aday olabilirdi, ama static veri olduğu için düzenli
-trafiği yok (`scan:entities` elle çalıştırılınca dolar); ölçüm için her gece
-kendiliğinden gelen yük daha değerli.
+`worker-info-types` de aday olabilirdi, ama yükü `scan:entities`'in o an
+veritabanında eksik bulduğu ID'lere bağlı (enrichment); ilk koşudan sonra
+eksik kalmayacağı için ikinci koşunun yükü birinciyle aynı olmaz. Root scan
+her seferinde aynı yükü verir, karşılaştırma için bu şart.
 
 ## Dizin yapısı
 
@@ -149,7 +155,9 @@ hataları status'u doğrudan taşır. Fallback yine de portlanır, çünkü
   aynı guard bir test olarak `backend-rs/` altında yazılır:
   `esi.evetech.net` yalnızca `crates/esi/src/client.rs`'te geçebilir.
 
-Node ve Rust limiter'ları aynı droplet'te yan yana çalışır. Bu güvenli, çünkü
+Node ve Rust limiter'ları aynı makinede yan yana çalışabilir (karşılaştırma
+koşularında aynı anda çalışmazlar, ama API sunucusu veya başka bir worker
+açıksa onlarla birlikte çalışırlar). Bu güvenli, çünkü
 iki limiter da kararını ESI'nin IP geneli bucket ve error-limit header'larından
 alır (rate limiter spec §4.5); birbirlerinin harcamasını her yanıtta görürler.
 
@@ -209,12 +217,17 @@ döngünün ne kadar sürtünme yarattığı ölçümlerden biri.
 ### Yapılandırma ve süreç
 
 - Ortam değişkenleri: `DATABASE_URL`, `RABBITMQ_URL`, `ESI_MAX_RPS`
-  (opsiyonel). PM2 girdisinin `cwd`'si zaten `/var/www/killreport/backend`;
-  binary `dotenvy` ile aynı `backend/.env`'i okur. Yeni bir secret dosyası
-  yok, `.env`'e satır eklenmez.
-- Log: `tracing` ile stdout/stderr; PM2 aynı `out_file` / `error_file`'a
-  yazar, `time: true` zaman damgasını ekler.
-- Kapanış: SIGINT/SIGTERM'de yeni mesaj almayı bırakır, elindeki en fazla 3
+  (opsiyonel). Binary çalışma dizinindeki `.env`'i `dotenvy` ile okur ve
+  `backend/` dizininden çalıştırılır; böylece Node worker'ıyla aynı
+  `backend/.env`'i kullanır. Yeni bir secret dosyası yok, `.env`'e satır
+  eklenmez.
+- Çalıştırma: `backend/package.json`'a tek satırlık bir script,
+  `"worker:info:alliances:rs": "cargo run --release --manifest-path
+../backend-rs/Cargo.toml -p worker-info-alliances"`. Node karşılığı
+  `yarn worker:info:alliances` ile yan yana durur.
+- Log: `tracing` ile terminale (stdout/stderr), Node worker'ı gibi.
+- Kapanış: Ctrl+C'de (`tokio::signal::ctrl_c`; Windows'ta SIGTERM yok, Linux'ta
+  ileride SIGTERM de dinlenir) yeni mesaj almayı bırakır, elindeki en fazla 3
   mesajı bitirir, bağlantıları kapatır. Bitirilemeyen mesaj ack'lenmemiş
   kalır ve broker onu tekrar teslim eder; veri kaybı yok.
 - Yeniden bağlanma: kanal veya bağlantı düşerse 5 s bekleyip yeniden bağlanır
@@ -232,9 +245,9 @@ döngünün ne kadar sürtünme yarattığı ölçümlerden biri.
    havuz. Bu, Node'daki `@services/esi-client` + `./worker-error` ayrımının
    birebir karşılığı.
 2. **Worker başına bir binary.** Tek binary + alt komut sorusu analiz
-   dokümanında açık. Spike'ta tek worker olduğu için soru doğmuyor; PM2'nin
-   süreç başına `max_memory_restart` ve `cron_restart` modeline de birebir
-   uyuyor.
+   dokümanında açık. Spike'ta tek worker olduğu için soru doğmuyor; ileride
+   production'a alındığında PM2'nin süreç başına `max_memory_restart` ve
+   `cron_restart` modeline de birebir uyar.
 3. **Limiter tam portlanır, sadeleştirilmez.** Spike için basit bir sabit
    hızlı limiter daha hızlı olurdu, ama hem CLAUDE.md'nin "kendi rate
    limit'ini yazma" kuralını çiğner hem de ölçümü anlamsız kılar: sonraki
@@ -260,58 +273,71 @@ vakaları için job'a bir Postgres servisi). Node job'larına dokunulmaz.
 
 ## Derleme
 
-Her şey yerelde derlenir ve test edilir; droplet'e Rust araç zinciri
-kurulmaz, CI'dan artifact alınmaz.
+Her şey yerelde, Windows'ta derlenir ve çalıştırılır: `cargo build` /
+`cargo test`, karşılaştırma koşuları için `cargo build --release`. Linux
+binary'si bu spike'ta üretilmez.
 
-- **Geliştirme ve test:** Windows'ta yerel `cargo build` / `cargo test`.
-  `sqlx::test` vakaları ve sözleşme testleri yerel Postgres ve RabbitMQ'ya
-  karşı koşar. Bu derleme bir Windows `.exe`'si üretir ve droplet'te
-  çalışmaz; yalnızca geliştirme içindir.
-- **Production binary'si:** yine yerelde, Linux hedefi için derlenir:
-  `x86_64-unknown-linux-musl`. musl hedefi tek parça, statik bir binary
-  üretir; droplet'teki glibc sürümüne bağımlılık olmaz. Windows'tan bu hedefe
-  iki yol var: WSL2 içinde `cargo build --release --target
-x86_64-unknown-linux-musl`, ya da Windows'ta `cargo zigbuild` ile aynısı.
-  WSL2 kuruluysa o daha az sürprizli.
-- **Statik derlemenin şartı: OpenSSL yok.** Bütün bağımlılıklar TLS için
-  `rustls` kullanır: `reqwest` (`rustls-tls`), `sqlx`
-  (`runtime-tokio-rustls`), `lapin` (TLS gerekiyorsa rustls özelliğiyle).
-  Managed PostgreSQL TLS istediği için production `DATABASE_URL`'inin
-  (`sslmode` dahil) sqlx ile bağlandığı, deploy'dan önce yerelde bir kez o
-  URL'ye karşı doğrulanır.
-- **Dağıtım:** binary `scp` ile droplet'te sabit bir yola kopyalanır (ör.
-  `/var/www/killreport/backend-rs/bin/worker-info-alliances`) ve PM2 o yolu
-  çalıştırır.
-- **Ölçüme etkisi:** musl'ün varsayılan bellek ayırıcısı glibc'ninkinden
-  farklıdır; RSS rakamı (ölçüm 3) bu binary'nin rakamıdır ve öyle kaydedilir.
+İleride production'a almayı zorlaştırmamak için tek bir kısıt şimdiden
+uygulanır: **OpenSSL'e bağımlılık yok.** Bütün bağımlılıklar TLS için `rustls`
+kullanır: `reqwest` (`rustls-tls`), `sqlx` (`runtime-tokio-rustls`), `lapin`
+(TLS gerekirse rustls özelliğiyle). Bu, Windows'ta OpenSSL kurma derdini de
+ortadan kaldırır, ve droplet döndüğünde tek parça statik bir Linux binary'si
+(`x86_64-unknown-linux-musl`, WSL2 içinde veya `cargo zigbuild` ile) üretmeyi
+mümkün kılar.
 
-## Production'a alma ve geri dönüş
+## Yerel karşılaştırma koşusu
 
-1. Linux binary'si yerelde derlenip droplet'e kopyalanır (bkz. _Derleme_).
-2. Geçiş öncesi taban: Node worker çalışırken bir gece koşusunun RSS'i ve
-   `alliances` tablosunun anlık görüntüsü alınır (kolonlar: `id`, `name`,
-   `ticker`, `date_founded`, `creator_corporation_id`, `creator_id`,
-   `executor_corporation_id`, `faction_id`) ve satır sayısı kaydedilir.
-3. 22:00'den önce `pm2 stop worker-alliances`; yeni bir PM2 girdisi
-   (`worker-alliances-rs`, aynı `cwd`, `script` binary'nin yolu,
-   `max_memory_restart: 512M`, `autorestart: true`) başlatılır. İki worker
-   aynı anda **çalışmaz**: güvenli olurdu (rakip tüketiciler, idempotent
-   upsert), ama ölçümleri karıştırır.
-4. Her koşudan sonra anlık görüntü tekrar alınır ve bir öncekiyle
-   karşılaştırılır.
-5. Geri dönüş: `pm2 stop worker-alliances-rs && pm2 start worker-alliances`.
-   Mesaj formatı ve kuyruk aynı olduğu için kuyrukta bekleyen işler Node
-   worker'ına olduğu gibi geçer.
+Gereken yerel servisler: PostgreSQL ve RabbitMQ (`DATABASE_URL` ve
+`RABBITMQ_URL` yerel servisleri gösterir). Bu worker Redis kullanmaz. ESI
+gerçek; istekler ev bağlantısının IP'sinden gider.
+
+Bir **koşu** şudur:
+
+1. Kuyruk boş, iki worker da kapalı.
+2. `yarn queue:alliances` ile bütün alliance ID'leri kuyruğa konur.
+3. Worker'lardan biri başlatılır (`yarn worker:info:alliances` veya
+   `yarn worker:info:alliances:rs`). Çalıştığı sürece bellek 5 saniyede bir
+   örneklenir (bkz. ölçüm 3). "Kuyruk bitti" özet satırı görününce koşu
+   biter; özet satırındaki sayılar ve toplam süre not edilir, worker
+   kapatılır.
+4. `alliances` tablosunun anlık görüntüsü bir CSV dosyasına alınır:
+
+   ```sql
+   \copy (SELECT id, name, ticker, date_founded, creator_corporation_id,
+          creator_id, executor_corporation_id, faction_id
+          FROM alliances ORDER BY id)
+     TO 'alliances-<worker>-<n>.csv' WITH CSV HEADER
+   ```
+
+   Dosyalar reponun dışında bir ölçüm klasöründe tutulur; veritabanına yeni
+   tablo açılmaz.
+
+Bir **koşu çifti**, aynı yükün art arda bir Node, bir Rust koşusudur. İki
+koşu arasında yalnızca dakikalar geçtiği için ESI'deki gerçek değişiklik
+neredeyse sıfırdır; bu yüzden iki CSV'nin sekiz kolonun **tamamında** aynı
+olması beklenir (`git diff --no-index` ile karşılaştırılır). Bir fark ya
+Rust'taki bir hatadır ya da o ID'nin ESI'de o dakikalarda gerçekten değiştiği
+bir durumdur; ikincisi, o ID ESI'den tekrar çekilerek doğrulanır.
+
+Kurallar:
+
+- İki worker **asla aynı anda** çalışmaz. Güvenli olurdu (rakip tüketiciler,
+  idempotent upsert), ama ölçümleri karıştırır.
+- Üç koşu çifti yapılır ve sıra değiştirilir (Node→Rust, Rust→Node,
+  Node→Rust), sıradan doğan bir etki (ör. ilk koşunun ısınma maliyeti) iki
+  tarafa eşit dağılsın.
+- Yerel `alliances` tablosu boşsa veya eskiyse, ilk koşu yalnızca tabloyu
+  doldurmak içindir ve ölçüme katılmaz.
 
 ## Ölçümler ve karar
 
-| #   | Ölçüm               | Nasıl alınır                                                                                                | Geçme koşulu                                                                                                                                                       |
-| --- | ------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Doğruluk            | Gece koşusu sonrası anlık görüntü farkı                                                                     | Değişmeyen kolonlarda (`date_founded`, `creator_*`) **sıfır** fark. Değişen kolonlardaki her fark ESI'deki gerçek bir değişiklikle açıklanır. Satır sayısı düşmez. |
-| 2   | Sözleşme            | Yerel ortamda: var olmayan bir ID (404 → ack), DB'yi kapatıp bir mesaj (5 denemede parking), throttle       | Her dal Node ile aynı sonucu verir; `killreport.parking`'teki mesaj aynı header'ları taşır.                                                                        |
-| 3   | Bellek              | `ps -o rss` boşta ve koşu sırasında, Node ve Rust                                                           | Karşılaştırma kaydedilir. Eşik _Açık sorular_'da.                                                                                                                  |
-| 4   | ESI davranışı       | Koşu boyunca 420 sayısı, `X-ESI-Error-Limit-Remain` en düşük değeri, koşu süresi                            | 420 yok; error limit Node'lu gecelerden kötü değil; koşu süresi Node'unkinin ±%20'si içinde.                                                                       |
-| 5   | Geliştirme deneyimi | Gün gün harcanan saat (crate başına), Windows'ta cold ve incremental build süresi, `.sqlx/` yenileme sayısı | Karar verdiren değil, bilgi; ama analizdeki "3–6 ay" tahmini bu rakamla yeniden hesaplanır.                                                                        |
+| #   | Ölçüm               | Nasıl alınır                                                                                                                                                                                                                           | Geçme koşulu                                                                                                                                                   |
+| --- | ------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Doğruluk            | Her koşu çiftinin iki CSV'si arasındaki fark                                                                                                                                                                                           | Sekiz kolonun tamamında fark yok; varsa her biri ESI'deki gerçek bir değişiklikle açıklanır. `date_founded` ve `creator_*`'da hiç fark yok. Satır sayısı aynı. |
+| 2   | Sözleşme            | Yerel ortamda: var olmayan bir ID (404 → ack), DB'yi kapatıp bir mesaj (5 denemede parking), throttle                                                                                                                                  | Her dal Node ile aynı sonucu verir; `killreport.parking`'teki mesaj aynı header'ları taşır.                                                                    |
+| 3   | Bellek              | PowerShell'de `Get-Process -Id <pid>` ile `WorkingSet64` ve `PrivateMemorySize64`, 5 s'de bir; boşta ve koşu boyunca en yüksek değer. Node'da ölçülen süreç worker'ı çalıştıran `node.exe`'dir, `yarn` süreci iki tarafta da sayılmaz. | Rust'ın koşu boyunca en yüksek değeri, Node'unkinin eşik oranının altında. Eşik _Açık sorular_'da.                                                             |
+| 4   | ESI davranışı       | Koşu boyunca 420 sayısı, `X-ESI-Error-Limit-Remain` en düşük değeri, koşu süresi                                                                                                                                                       | 420 yok; error limit Node koşularından kötü değil; koşu süresi Node'unkinin ±%20'si içinde.                                                                    |
+| 5   | Geliştirme deneyimi | Gün gün harcanan saat (crate başına), Windows'ta cold ve incremental build süresi, `.sqlx/` yenileme sayısı                                                                                                                            | Karar verdiren değil, bilgi; ama analizdeki "3–6 ay" tahmini bu rakamla yeniden hesaplanır.                                                                    |
 
 **Karar:** 1 ve 2 geçmezse spike başarısızdır; Rust tarafındaki iş durur ya da
 neden geçmediği anlaşılana kadar başka worker'a geçilmez. 1 ve 2 geçerse karar
@@ -325,22 +351,22 @@ süreçte toplamak) öne alınır.
 
 Beş iş günü, kabaca:
 
-| Gün | İş                                                                         |
-| --- | -------------------------------------------------------------------------- |
-| 1   | Workspace, `db`, `mq` iskeleti; yerel RabbitMQ ve Postgres'e bağlanma      |
-| 2–3 | `esi` crate: client + limiter portu + 43 test                              |
-| 4   | Worker binary'si, hata yolu, upsert, testler, CI job'u                     |
-| 5   | Linux binary'si (musl), droplet'e kopyalama, taban ölçümü, ilk gece koşusu |
+| Gün | İş                                                                    |
+| --- | --------------------------------------------------------------------- |
+| 1   | Workspace, `db`, `mq` iskeleti; yerel RabbitMQ ve Postgres'e bağlanma |
+| 2–3 | `esi` crate: client + limiter portu + 43 test                         |
+| 4   | Worker binary'si, hata yolu, upsert, testler, CI job'u                |
+| 5   | Yerel karşılaştırma koşuları ve ölçümler                              |
 
-Ölçüm üç gece sürer. Beşinci günün sonunda worker production'a girmemişse bu
-da bir sonuçtur ve ölçüm 5'e (geliştirme deneyimi) olduğu gibi yazılır; süre
-uzatılmaz.
+Beşinci günün sonunda üç koşu çifti tamamlanmamışsa bu da bir sonuçtur ve
+ölçüm 5'e (geliştirme deneyimi) olduğu gibi yazılır; süre uzatılmaz.
 
 ## Açık sorular
 
-- **Bellek eşiği:** Rust worker'ın RSS'i Node worker'ınkinin en fazla yüzde
-  kaçı olursa ölçüm 3 "geçti" sayılır? Analiz dokümanı §6 eşiğin ölçümden
-  önce yazılmasını istiyor.
-- **Tablo anlık görüntüsü nerede tutulur:** droplet'te bir `psql \copy` CSV'si
-  yeterli mi, yoksa ayrı bir tabloya mı alınmalı? Ayrı tablo Prisma şemasında
-  olmayan altıncı bir tablo demek; CSV önerilir.
+- **Bellek eşiği:** öneri, Rust worker'ın koşu boyunca en yüksek belleği Node
+  worker'ınkinin **en fazla %25'i** (en az %75 tasarruf). Gerekçe: sürekli
+  çalışan 14 worker'da süreç başına ~50–60 MB, toplamda ~0,7–0,8 GB eder; bu
+  oranın altında kalan bir kazancın büyük kısmı Node worker'larını tek
+  süreçte toplayarak (analiz dokümanı, yol A) çok daha ucuza alınabilir.
+  Analiz dokümanı §6 eşiğin ölçümden önce yazılmasını istiyor; onaylanınca bu
+  madde _Ölçümler_ tablosuna taşınır.
