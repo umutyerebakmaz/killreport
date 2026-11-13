@@ -19,3 +19,9 @@ sqlx.workspace = true
 tokio.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
+
+[dev-dependencies]
+# `#[sqlx::test]` needs the feature even with `migrations = false`; it
+# creates the throwaway databases, it runs no migration.
+sqlx = { workspace = true, features = ["migrate"] }
+tokio = { workspace = true, features = ["test-util"] }
