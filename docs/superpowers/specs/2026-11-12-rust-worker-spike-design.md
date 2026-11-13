@@ -479,8 +479,8 @@ MB'ı worker'ın kendisi değil, onu başlatan süreçler. Canlıda PM2 de worke
 JavaScript olarak doğrudan `node` ile başlatarak azaltılabilir; analiz
 dokümanındaki A yoluna eklenecek bir kalem.
 
-Ham veriler (log'lar, bellek örnekleri, CSV'ler) oturumun geçici dizinindeydi
-ve repoya alınmadı.
+Ham veriler: [`../results/2026-11-13-rust-worker-spike-precomparison/`](../results/2026-11-13-rust-worker-spike-precomparison/)
+(ölçüm script'i, bellek örnekleri, iki CSV'nin özetleri ve log özetleri).
 
 ## Zaman kutusu
 
