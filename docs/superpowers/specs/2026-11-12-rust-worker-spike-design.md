@@ -415,6 +415,16 @@ tek süreçte toplayarak (analiz dokümanı, yol A) çok daha ucuza alınabilir.
 Eşik, analiz dokümanı §6'nın istediği gibi ölçümden önce sabitlendi
 (2026-11-13); ölçüm görüldükten sonra değiştirilmez.
 
+_Not (2026-11-13, ön karşılaştırmadan sonra):_ yukarıdaki gerekçe, analiz
+dokümanı §3.1'in ilk tahminine (Node süreci boşta 50–80 MB) dayanıyordu. Ön
+karşılaştırma alliance worker sürecini boşta 142 MB, en yüksekte 235 MB
+ölçtü; Rust 16 ve 19 MB. Yani süreç başına tasarruf gerekçede varsayılandan
+büyük ve %25 eşiği gerekçenin öngördüğünden daha kolay geçiliyor (ölçülen oran
+~%8). Eşik bu yüzden değiştirilmedi: yukarıdaki kural gereği ölçüm
+görüldükten sonra değişmez, ve gerekçenin asıl karşılaştırması (Rust'ın
+kazancı, Node'da A yoluyla alınabilecek kazançtan büyük mü) hâlâ geçerli.
+Güncel rakamlar analiz dokümanı §3.1'de.
+
 **Aşama 1'in kararı:** 1 ve 2 geçmezse spike başarısızdır; Rust tarafındaki iş durur ya da
 neden geçmediği anlaşılana kadar başka worker'a geçilmez. 1 ve 2 geçerse karar
 3 ve 5'e bakar: bellek kazancı eşiği aşıyor ve ölçülen geliştirme hızıyla
