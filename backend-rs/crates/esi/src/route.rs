@@ -10,10 +10,6 @@ use regex::Regex;
 // only ASCII ones.
 static HASH: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[0-9a-f]{40}$").unwrap());
 static ID: LazyLock<Regex> = LazyLock::new(|| Regex::new("^[0-9]+$").unwrap());
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "read by the limiter, plan task 4")
-)]
 static LIMIT: LazyLock<Regex> =
     LazyLock::new(|| Regex::new("^([0-9]+)/([0-9]+)([smhd])$").unwrap());
 
@@ -41,10 +37,6 @@ pub fn route_template(path: &str) -> String {
 /// Zero and negative values come back as they are: ignoring them is the
 /// brake's decision (`rate-limiter.ts:394`), not the parser's. That is also why
 /// this returns `f64` and not `Duration`, which cannot hold a negative.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "read by the limiter, plan task 4")
-)]
 pub(crate) fn seconds(value: Option<&str>) -> Option<f64> {
     let trimmed = value?.trim();
     if trimmed.is_empty() {
@@ -56,10 +48,6 @@ pub(crate) fn seconds(value: Option<&str>) -> Option<f64> {
 
 /// `X-Ratelimit-Limit`, e.g. `150/15m` → `(150, 15 min)`; `None` unless both
 /// numbers are positive.
-#[cfg_attr(
-    not(test),
-    expect(dead_code, reason = "read by the limiter, plan task 4")
-)]
 pub(crate) fn parse_limit(value: Option<&str>) -> Option<(u32, Duration)> {
     let caps = LIMIT.captures(value?.trim())?;
     let limit: u32 = caps[1].parse().ok()?;
