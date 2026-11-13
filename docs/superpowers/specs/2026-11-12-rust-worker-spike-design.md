@@ -258,10 +258,36 @@ CI'a ayrı bir `backend-rs` job'u eklenir: `cargo fmt --check`,
 `cargo clippy -- -D warnings`, `cargo test` (`SQLX_OFFLINE=true`; `sqlx::test`
 vakaları için job'a bir Postgres servisi). Node job'larına dokunulmaz.
 
+## Derleme
+
+Her şey yerelde derlenir ve test edilir; droplet'e Rust araç zinciri
+kurulmaz, CI'dan artifact alınmaz.
+
+- **Geliştirme ve test:** Windows'ta yerel `cargo build` / `cargo test`.
+  `sqlx::test` vakaları ve sözleşme testleri yerel Postgres ve RabbitMQ'ya
+  karşı koşar. Bu derleme bir Windows `.exe`'si üretir ve droplet'te
+  çalışmaz; yalnızca geliştirme içindir.
+- **Production binary'si:** yine yerelde, Linux hedefi için derlenir:
+  `x86_64-unknown-linux-musl`. musl hedefi tek parça, statik bir binary
+  üretir; droplet'teki glibc sürümüne bağımlılık olmaz. Windows'tan bu hedefe
+  iki yol var: WSL2 içinde `cargo build --release --target
+x86_64-unknown-linux-musl`, ya da Windows'ta `cargo zigbuild` ile aynısı.
+  WSL2 kuruluysa o daha az sürprizli.
+- **Statik derlemenin şartı: OpenSSL yok.** Bütün bağımlılıklar TLS için
+  `rustls` kullanır: `reqwest` (`rustls-tls`), `sqlx`
+  (`runtime-tokio-rustls`), `lapin` (TLS gerekiyorsa rustls özelliğiyle).
+  Managed PostgreSQL TLS istediği için production `DATABASE_URL`'inin
+  (`sslmode` dahil) sqlx ile bağlandığı, deploy'dan önce yerelde bir kez o
+  URL'ye karşı doğrulanır.
+- **Dağıtım:** binary `scp` ile droplet'te sabit bir yola kopyalanır (ör.
+  `/var/www/killreport/backend-rs/bin/worker-info-alliances`) ve PM2 o yolu
+  çalıştırır.
+- **Ölçüme etkisi:** musl'ün varsayılan bellek ayırıcısı glibc'ninkinden
+  farklıdır; RSS rakamı (ölçüm 3) bu binary'nin rakamıdır ve öyle kaydedilir.
+
 ## Production'a alma ve geri dönüş
 
-1. Binary droplet'te `cargo build --release` ile derlenir (bkz. _Açık
-   sorular_).
+1. Linux binary'si yerelde derlenip droplet'e kopyalanır (bkz. _Derleme_).
 2. Geçiş öncesi taban: Node worker çalışırken bir gece koşusunun RSS'i ve
    `alliances` tablosunun anlık görüntüsü alınır (kolonlar: `id`, `name`,
    `ticker`, `date_founded`, `creator_corporation_id`, `creator_id`,
@@ -299,12 +325,12 @@ süreçte toplamak) öne alınır.
 
 Beş iş günü, kabaca:
 
-| Gün | İş                                                                    |
-| --- | --------------------------------------------------------------------- |
-| 1   | Workspace, `db`, `mq` iskeleti; yerel RabbitMQ ve Postgres'e bağlanma |
-| 2–3 | `esi` crate: client + limiter portu + 43 test                         |
-| 4   | Worker binary'si, hata yolu, upsert, testler, CI job'u                |
-| 5   | Droplet'te derleme, taban ölçümü, ilk gece koşusu                     |
+| Gün | İş                                                                         |
+| --- | -------------------------------------------------------------------------- |
+| 1   | Workspace, `db`, `mq` iskeleti; yerel RabbitMQ ve Postgres'e bağlanma      |
+| 2–3 | `esi` crate: client + limiter portu + 43 test                              |
+| 4   | Worker binary'si, hata yolu, upsert, testler, CI job'u                     |
+| 5   | Linux binary'si (musl), droplet'e kopyalama, taban ölçümü, ilk gece koşusu |
 
 Ölçüm üç gece sürer. Beşinci günün sonunda worker production'a girmemişse bu
 da bir sonuçtur ve ölçüm 5'e (geliştirme deneyimi) olduğu gibi yazılır; süre
@@ -312,10 +338,6 @@ uzatılmaz.
 
 ## Açık sorular
 
-- **Derleme yeri:** droplet'te `cargo build --release` (rustup kurulumu
-  gerekir; 4 vCPU / 8 GB'ta derleme sırasında diğer süreçlerle bellek
-  paylaşılır) mı, CI'da Linux binary'si üretip artifact olarak mı?
-  Spike için droplet'te derlemek daha az iş; CI artifact'ı kalıcı çözüm.
 - **Bellek eşiği:** Rust worker'ın RSS'i Node worker'ınkinin en fazla yüzde
   kaçı olursa ölçüm 3 "geçti" sayılır? Analiz dokümanı §6 eşiğin ölçümden
   önce yazılmasını istiyor.
