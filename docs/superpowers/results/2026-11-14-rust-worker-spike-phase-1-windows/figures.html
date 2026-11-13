@@ -1,0 +1,514 @@
+<!doctype html>
+<!--
+  Figures for the phase 1 Windows runs of the Rust worker spike.
+  Open with ?fig=ws | private | tree | peak to render one figure; the PNGs in
+  figures/ were captured from this file with headless Chrome at 1000px width:
+    chrome --headless=new --hide-scrollbars --virtual-time-budget=4000 \
+      --window-size=1000,600 --screenshot=figures/memory-working-set.png \
+      "file:///<absolute path>/figures.html?fig=ws"
+  Heights: ws 600, private 585, tree 600, peak 470.
+  The data below is the mem-*.csv files of this folder, converted to MB.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Rust worker spike figures</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --fg: #111418;
+        --fg-2: #4a5160;
+        --fg-3: #6b7280;
+        --rule: #e3e6ec;
+        --grid: #eceef2;
+        --node: #2a78d6;
+        --rust: #eb6834;
+        --font: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+        --mono: 'IBM Plex Mono', Consolas, ui-monospace, monospace;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: var(--font);
+      }
+      .fig {
+        width: 1000px;
+        padding: 28px 32px 22px;
+        display: grid;
+        gap: 10px;
+      }
+      h1 {
+        font-size: 21px;
+        font-weight: 600;
+        margin: 0;
+      }
+      .sub {
+        font-size: 14px;
+        color: var(--fg-2);
+        margin: 0;
+      }
+      .legend {
+        display: flex;
+        gap: 20px;
+        font-size: 13px;
+        color: var(--fg-2);
+        margin-top: 4px;
+      }
+      .sw {
+        display: inline-block;
+        width: 11px;
+        height: 11px;
+        border-radius: 2px;
+        margin-right: 6px;
+        vertical-align: -1px;
+      }
+      .sw.node {
+        background: var(--node);
+      }
+      .sw.rust {
+        background: var(--rust);
+      }
+      svg {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .axis text,
+      .lbl {
+        fill: var(--fg-3);
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .val {
+        fill: var(--fg);
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .end {
+        font-family: var(--font);
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .gridline {
+        stroke: var(--grid);
+      }
+      .baseline {
+        stroke: #c9ced8;
+      }
+      .marker {
+        stroke: var(--fg-3);
+        stroke-dasharray: 3 3;
+      }
+      .note {
+        font-size: 13px;
+        color: var(--fg-2);
+        margin: 0;
+      }
+      .src {
+        font-size: 11.5px;
+        color: var(--fg-3);
+        font-family: var(--mono);
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="fig" id="fig"></div>
+    <script>
+      const DATA = {
+        'node-1': [
+          [0, 128.9, 159.5, 354],
+          [5, 128.9, 159.5, 354],
+          [10, 104.2, 102.9, 272.1],
+          [15, 104.2, 102.9, 272.1],
+          [20, 155.8, 175.6, 323.1],
+          [25, 163.9, 185.7, 331.2],
+          [30, 179.7, 204.4, 346.8],
+          [36, 179, 205.1, 346.3],
+          [41, 180.3, 238.7, 347.4],
+          [46, 204.5, 239.3, 371.7],
+          [51, 201.6, 234.9, 368.7],
+          [56, 201.5, 235.7, 368.6],
+          [61, 203.3, 238.2, 370.4],
+          [66, 200.7, 234.9, 367.9],
+          [71, 202.4, 297.9, 369.5],
+          [76, 212.5, 302, 379.6],
+          [81, 217.7, 298, 384.8],
+          [86, 218.8, 301.7, 385.9],
+          [91, 221.8, 304.9, 388.9],
+          [96, 219.9, 302.6, 387],
+          [101, 218.1, 298.3, 385.2],
+          [106, 220.3, 305.3, 387.4],
+          [111, 222, 305.7, 389.1],
+          [116, 220, 300.6, 387.1],
+          [122, 222.8, 305.7, 389.9],
+          [127, 222.8, 305.7, 389.9],
+          [132, 222.8, 305.7, 389.9],
+        ],
+        'rs-1': [
+          [0, 25.8, 12.8, 39.1],
+          [5, 25.8, 12.8, 39.1],
+          [10, 25.8, 12.8, 39.1],
+          [15, 25.8, 12.8, 39.1],
+          [20, 26.3, 13, 39.6],
+          [25, 26.3, 13, 39.6],
+          [30, 26.3, 12.9, 39.5],
+          [35, 26.3, 12.9, 39.6],
+          [40, 26.3, 12.9, 39.6],
+          [45, 26.3, 12.9, 39.6],
+          [50, 26.3, 12.9, 39.6],
+          [56, 26.3, 12.9, 39.6],
+          [61, 26.3, 12.9, 39.6],
+          [66, 26.3, 12.9, 39.6],
+          [71, 26.3, 12.9, 39.6],
+          [76, 26.3, 12.9, 39.6],
+          [81, 26.4, 12.9, 39.7],
+          [86, 26.4, 12.9, 39.7],
+          [91, 26.4, 12.9, 39.7],
+          [96, 26.4, 12.9, 39.7],
+          [101, 26.4, 12.9, 39.7],
+          [106, 26.4, 12.9, 39.7],
+          [111, 26.4, 12.9, 39.7],
+          [116, 26.4, 12.9, 39.7],
+          [121, 26.4, 12.9, 39.7],
+          [126, 26.4, 12.9, 39.7],
+          [131, 26.4, 12.9, 39.7],
+          [136, 26.4, 12.8, 39.7],
+        ],
+        'rs-2': [
+          [0, 18.4, 12.6, 31.8],
+          [5, 18.4, 12.6, 31.8],
+          [10, 18.5, 12.6, 31.8],
+          [15, 18.5, 12.6, 31.8],
+          [20, 21.6, 12.8, 34.9],
+          [25, 21.6, 12.8, 34.9],
+          [30, 21.6, 12.8, 34.9],
+          [35, 21.6, 12.8, 34.9],
+          [40, 21.6, 12.8, 34.9],
+          [45, 21.6, 12.8, 34.9],
+          [51, 21.6, 12.8, 34.9],
+          [56, 21.6, 12.8, 34.9],
+          [61, 21.6, 12.8, 34.9],
+          [66, 21.6, 12.8, 34.9],
+          [71, 21.6, 12.8, 34.9],
+          [76, 21.6, 12.8, 34.9],
+          [81, 21.7, 12.9, 35],
+          [86, 21.7, 12.9, 35],
+          [91, 21.7, 12.9, 35],
+          [96, 21.7, 12.9, 35],
+          [101, 21.7, 12.9, 35],
+          [106, 21.7, 12.9, 35],
+          [111, 21.7, 12.9, 35],
+          [116, 21.7, 12.9, 35],
+          [121, 21.7, 12.9, 35],
+          [126, 21.7, 12.9, 35],
+          [131, 21.7, 12.9, 35],
+          [136, 21.7, 12.9, 35],
+        ],
+        'node-2': [
+          [0, 128.7, 159.4, 351],
+          [5, 128.7, 159.4, 351],
+          [10, 103.9, 102.5, 272],
+          [15, 103.9, 102.5, 272],
+          [20, 155.6, 175.7, 322.4],
+          [25, 164, 184.9, 330.8],
+          [30, 179.3, 204.2, 345.9],
+          [35, 180.5, 204.9, 347.2],
+          [41, 179.9, 236.5, 346.5],
+          [46, 204.9, 236.9, 371.6],
+          [51, 207.3, 242.6, 373.9],
+          [56, 201.2, 233.7, 367.8],
+          [61, 201.4, 233.8, 368],
+          [66, 205.3, 237.3, 371.9],
+          [71, 211, 309.6, 377.6],
+          [76, 234.8, 306.4, 401.4],
+          [81, 260.4, 310.6, 427],
+          [86, 262.7, 319.8, 429.3],
+          [91, 260.2, 308.6, 426.8],
+          [96, 261.9, 311.3, 428.5],
+          [101, 261.2, 312.7, 427.8],
+          [106, 261.5, 314.5, 428.1],
+          [111, 260.3, 309, 427],
+          [117, 261.4, 313.4, 428],
+          [122, 263, 314.2, 429.6],
+          [127, 261.6, 313.1, 428.1],
+          [132, 261.6, 313.1, 428.1],
+          [137, 261.5, 313.1, 428.1],
+        ],
+        'node-3': [
+          [0, 128.9, 159.2, 353.3],
+          [5, 128.9, 159.2, 353.3],
+          [10, 104.8, 103.3, 271.6],
+          [15, 104.8, 103.3, 271.6],
+          [20, 156.3, 175.4, 322],
+          [25, 164.1, 185.6, 329.8],
+          [30, 178.9, 203.8, 344.4],
+          [36, 181.6, 207.2, 347.1],
+          [41, 180.5, 238.2, 346],
+          [46, 205.8, 238.7, 372.5],
+          [51, 206.6, 239.8, 372.1],
+          [56, 202.5, 235.5, 368.2],
+          [61, 202.2, 235.7, 367.7],
+          [66, 203.6, 240, 369.1],
+          [71, 206, 303.7, 371.5],
+          [76, 228.6, 309.5, 394.4],
+          [81, 233.1, 303.1, 398.6],
+          [86, 234.6, 307.4, 400.1],
+          [91, 233.8, 302, 399.3],
+          [96, 237, 306.2, 402.5],
+          [101, 238.3, 306.8, 403.8],
+          [107, 233.5, 303.7, 399],
+          [112, 235.4, 306.7, 399],
+          [117, 235.9, 306.4, 401.4],
+          [122, 233.8, 298.4, 399.3],
+          [127, 234.5, 303.7, 400],
+          [132, 234.5, 304, 400],
+        ],
+        'rs-3': [
+          [0, 18.4, 12.7, 31.8],
+          [5, 18.4, 12.7, 31.8],
+          [10, 18.4, 12.7, 31.8],
+          [15, 18.4, 12.7, 31.8],
+          [20, 21.5, 12.8, 34.8],
+          [25, 21.6, 12.8, 34.9],
+          [30, 21.6, 12.9, 34.9],
+          [35, 21.6, 12.8, 34.9],
+          [40, 21.6, 12.8, 34.9],
+          [45, 21.6, 12.8, 34.9],
+          [51, 21.6, 12.8, 34.9],
+          [56, 21.6, 12.8, 34.9],
+          [61, 21.6, 12.8, 34.9],
+          [66, 21.6, 12.8, 34.9],
+          [71, 21.6, 12.8, 34.9],
+          [76, 21.6, 12.8, 34.9],
+          [81, 21.7, 13, 35],
+          [86, 21.7, 13, 35],
+          [91, 21.7, 13, 35],
+          [96, 21.7, 13, 35],
+          [101, 21.7, 13, 35],
+          [106, 21.7, 13, 35],
+          [111, 21.7, 13, 35],
+          [116, 21.7, 13, 35],
+          [121, 21.7, 13, 35],
+          [126, 21.7, 13, 35],
+          [131, 21.7, 13, 35],
+          [136, 21.7, 12.9, 35],
+        ],
+      };
+      const ORDER = ['node-1', 'rs-1', 'rs-2', 'node-2', 'node-3', 'rs-3'];
+      const SRC =
+        'Windows 10, 2026-11-13 · three alternating Node/Rust run pairs, 3644 alliances per run · sampled every 5 s with Get-Process';
+      const FIGS = {
+        ws: {
+          m: 1,
+          title: 'Worker memory (working set) during a run',
+          sub: 'Physical RAM held by the worker process itself: the node.exe running the worker, or worker-info-alliances.exe.',
+          note: "Node starts at 129 MB idle, climbs to 220–263 MB while working and does not come back down. Rust goes from 18 to 22 MB and stays flat. The dip at 10 s is Node's garbage collector.",
+        },
+        private: {
+          m: 2,
+          title: 'Worker memory (private bytes) during a run',
+          sub: 'Memory the worker process has committed for itself alone, not shared with other processes.',
+          note: 'Node passes 300 MB; Rust stays at 13 MB from start to finish.',
+        },
+        tree: {
+          m: 3,
+          title: 'Memory of the whole process tree during a run',
+          sub: 'Working set summed over every process that starting the worker creates.',
+          note: 'Node runs as five processes (conhost, cmd, yarn, tsx and the worker); yarn and tsx add about 165 MB on top of the worker. Rust runs as two (conhost and the executable).',
+        },
+        peak: {
+          title: 'Peak worker memory in each run',
+          sub: 'Highest working set of the worker process, in the order the runs were made: pair 1 Node→Rust, pair 2 Rust→Node, pair 3 Node→Rust.',
+          note: "Average peak: Node 241 MB, Rust 23 MB, about 10%. The spike's threshold is 25%. Both workers took 110–116 s per run.",
+        },
+      };
+      const NS = 'http://www.w3.org/2000/svg';
+      const el = (t, a, p) => {
+        const e = document.createElementNS(NS, t);
+        for (const k in a) e.setAttribute(k, a[k]);
+        if (p) p.appendChild(e);
+        return e;
+      };
+      const kind = (r) => (r.startsWith('node') ? 'node' : 'rs');
+      const col = (r) => (kind(r) === 'node' ? 'var(--node)' : 'var(--rust)');
+      const name = (r) =>
+        (kind(r) === 'node' ? 'Node ' : 'Rust ') + r.split('-')[1];
+      const peak = (r, m) => Math.max(...DATA[r].map((p) => p[m]));
+      const fmt = (v) => v.toFixed(1);
+
+      const key = new URLSearchParams(location.search).get('fig') || 'ws';
+      const F = FIGS[key];
+      const root = document.getElementById('fig');
+      root.innerHTML =
+        `<h1>${F.title}</h1><p class="sub">${F.sub}</p>` +
+        `<div class="legend"><span><span class="sw node"></span>Node worker (TypeScript, tsx)</span><span><span class="sw rust"></span>Rust worker (release build)</span></div>`;
+
+      if (key === 'peak') {
+        const rowH = 30,
+          gap = 9,
+          L = 64,
+          R = 76,
+          W = 936,
+          T = 6,
+          H = T + ORDER.length * (rowH + gap) + 24,
+          xmax = 300;
+        const x = (v) => L + (v / xmax) * (W - L - R);
+        const svg = el('svg', { viewBox: `0 0 ${W} ${H}` }, root);
+        for (let v = 0; v <= xmax; v += 50) {
+          el(
+            'line',
+            {
+              class: v ? 'gridline' : 'baseline',
+              x1: x(v),
+              x2: x(v),
+              y1: T,
+              y2: H - 24,
+            },
+            svg,
+          );
+          el(
+            'text',
+            { class: 'lbl', x: x(v), y: H - 6, 'text-anchor': 'middle' },
+            svg,
+          ).textContent = v + ' MB';
+        }
+        ORDER.forEach((r, i) => {
+          const y = T + i * (rowH + gap),
+            v = peak(r, 1),
+            w = x(v) - L;
+          el(
+            'text',
+            {
+              class: 'lbl',
+              x: L - 10,
+              y: y + rowH / 2 + 4,
+              'text-anchor': 'end',
+            },
+            svg,
+          ).textContent = name(r);
+          el(
+            'path',
+            {
+              d: `M${L} ${y} h${w - 4} a4 4 0 0 1 4 4 v${rowH - 8} a4 4 0 0 1 -4 4 h${-(w - 4)} z`,
+              fill: col(r),
+            },
+            svg,
+          );
+          el(
+            'text',
+            { class: 'val', x: x(v) + 8, y: y + rowH / 2 + 4 },
+            svg,
+          ).textContent = fmt(v) + ' MB';
+        });
+      } else {
+        const m = F.m,
+          W = 936,
+          H = 372,
+          L = 50,
+          R = 52,
+          T = 28,
+          B = 34;
+        const top = Math.max(...ORDER.map((r) => peak(r, m)));
+        const ymax = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500].find(
+          (s) => s >= top * 1.05,
+        );
+        const step = ymax <= 350 ? 50 : 100;
+        const x = (t) => L + (t / 140) * (W - L - R),
+          y = (v) => T + (1 - v / ymax) * (H - T - B);
+        const svg = el('svg', { viewBox: `0 0 ${W} ${H}` }, root);
+        for (let v = 0; v <= ymax; v += step) {
+          el(
+            'line',
+            {
+              class: v ? 'gridline' : 'baseline',
+              x1: L,
+              x2: W - R,
+              y1: y(v),
+              y2: y(v),
+            },
+            svg,
+          );
+          el(
+            'text',
+            { class: 'lbl', x: L - 8, y: y(v) + 4, 'text-anchor': 'end' },
+            svg,
+          ).textContent = v;
+        }
+        el(
+          'text',
+          { class: 'lbl', x: L - 8, y: T - 14, 'text-anchor': 'end' },
+          svg,
+        ).textContent = 'MB';
+        for (let t = 0; t <= 140; t += 20)
+          el(
+            'text',
+            { class: 'lbl', x: x(t), y: H - 12, 'text-anchor': 'middle' },
+            svg,
+          ).textContent = t + ' s';
+        el(
+          'line',
+          { class: 'marker', x1: x(16), x2: x(16), y1: T, y2: H - B },
+          svg,
+        );
+        el('text', { class: 'lbl', x: x(16) + 6, y: T + 12 }, svg).textContent =
+          'queue filled';
+        el('text', { class: 'lbl', x: x(1), y: T + 12 }, svg).textContent =
+          'idle';
+        for (const r of ORDER) {
+          const d = DATA[r]
+            .map(
+              (p, i) =>
+                (i ? 'L' : 'M') + x(p[0]).toFixed(1) + ' ' + y(p[m]).toFixed(1),
+            )
+            .join(' ');
+          el(
+            'path',
+            {
+              d,
+              fill: 'none',
+              stroke: col(r),
+              'stroke-width': 2,
+              'stroke-linejoin': 'round',
+              'stroke-linecap': 'round',
+            },
+            svg,
+          );
+        }
+        const endN = Math.max(
+          ...ORDER.filter((r) => kind(r) === 'node').map(
+            (r) => DATA[r].at(-1)[m],
+          ),
+        );
+        const endR = Math.max(
+          ...ORDER.filter((r) => kind(r) === 'rs').map(
+            (r) => DATA[r].at(-1)[m],
+          ),
+        );
+        el(
+          'text',
+          { class: 'end', x: W - R + 6, y: y(endN) + 4, fill: 'var(--fg-2)' },
+          svg,
+        ).textContent = 'Node';
+        el(
+          'text',
+          { class: 'end', x: W - R + 6, y: y(endR) + 4, fill: 'var(--fg-2)' },
+          svg,
+        ).textContent = 'Rust';
+      }
+      root.insertAdjacentHTML(
+        'beforeend',
+        `<p class="note">${F.note}</p><p class="src">${SRC}</p>`,
+      );
+    </script>
+  </body>
+</html>
