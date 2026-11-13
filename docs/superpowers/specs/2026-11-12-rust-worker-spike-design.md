@@ -524,6 +524,14 @@ ve onu başlatan `cmd.exe`'nin altındaki bütün süreçler.
 Süreç ağacında iki tarafta da bir `conhost.exe` var; Node tarafında ayrıca
 `yarn`, `cmd.exe` ve `tsx`.
 
+![Worker belleği (Working Set), altı koşu](../results/2026-11-14-rust-worker-spike-phase-1-windows/figures/memory-working-set.png)
+
+![Her koşuda worker belleğinin en yüksek değeri](../results/2026-11-14-rust-worker-spike-phase-1-windows/figures/peak-per-run.png)
+
+Private Bytes ve süreç ağacının toplamı için grafikler:
+[`memory-private-bytes.png`](../results/2026-11-14-rust-worker-spike-phase-1-windows/figures/memory-private-bytes.png),
+[`memory-process-tree.png`](../results/2026-11-14-rust-worker-spike-phase-1-windows/figures/memory-process-tree.png).
+
 **Ölçümlere göre:**
 
 - **1 (doğruluk) geçti.** Altı koşunun ve ısınma koşusunun CSV'leri (4197
