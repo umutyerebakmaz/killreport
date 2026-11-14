@@ -110,7 +110,7 @@ yoktu (alanlar yeni). `lastGrantAt` yokken acquire'daki "boşluk" kuralı
 tetiklenmedi, hız eski formülle (`loweredAt`'tan beri geçen süre) hesaplandı ve
 50'ye döndü: Rust tek başına ~51 req/s ile başladı, ilk 429 "rate 37 req/s"
 (= 50'nin dörtte üçü) olarak geldi. İlk token'dan sonra alanlar yazıldı
-(`lastGrantAt` 20:35:41Z), yani bu yalnızca alanların ilk kez eksik olduğu
+(`lastGrantAt` yazıldı; kesin zaman damgası kayıtlı bir günlükte yok), yani bu yalnızca alanların ilk kez eksik olduğu
 geçişte olur; sonraki boşluklar öğrenilen hızı korumalı. Bu çalıştırma o yolu
 doğrulamadı (birim senaryosu doğruluyor, canlı gözlem yok).
 
@@ -139,8 +139,10 @@ ve 23:36:57 (üçlü zincirin 2. ve 3. halkası, her biri önceki frenin bitimin
 ~0,5 sn sonra) ile 23:39:59 (23:39:44 frenin bitiminden sonra). Yani **çift 429
 bitmedi**: 2026-11-14'te de 6 fren ve 3 çift vardı.
 
-**Yorum.** Kova patlaması düzeltildi (kapasite 6; fren boyunca `tokens` ~5-6'da
-kaldı, Redis örneklerinde görülüyor), ama fren bitiminden hemen sonra gelen 429
+**Yorum.** Kova kapasitesi 6 oldu (Redis örnekleri yalnızca bunu gösteriyor: fren boyunca
+`tokens` ~5-6'da kaldı; fren sırasında token harcanmadığı için bu, eski
+kapasitede de aynı görünürdü). Fren sonrası patlamanın olmadığını yalnızca
+"bulk does not burst when a brake ends" senaryosu kanıtlıyor. Ama fren bitiminden hemen sonra gelen 429
 ortadan kalkmadı. Bu, çift 429'un asıl nedeninin kova patlaması olmadığını
 düşündürür: ESI'nin derin limit penceresi 15 sn'lik frenden sonra da dolu ve
 fren sonrası ilk (tek tek bile olsa) istekler yine 429 alıyor. Bu bir

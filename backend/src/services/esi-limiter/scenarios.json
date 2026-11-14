@@ -102,7 +102,7 @@
       ]
     },
     {
-      "name": "a header-less 429 lowers the shared rate once, and it climbs after the brake",
+      "name": "a header-less 429 lowers the shared rate once; it climbs after the brake only because no acquire wrote lastGrantAt",
       "maxRps": 50,
       "steps": [
         {
@@ -1049,6 +1049,71 @@
             "reason": "rate",
             "waitMs": 100,
             "detail": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "an earned climb is kept across an idle gap",
+      "maxRps": 50,
+      "steps": [
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000000000,
+          "template": "/characters/{id}/corporationhistory/",
+          "status": 429,
+          "expect": {
+            "brake": {
+              "ms": 15000,
+              "status": 429,
+              "kind": "deep-limit"
+            },
+            "rate": 37
+          }
+        },
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000015000,
+          "repeat": 12,
+          "everyMs": 1000,
+          "priority": "bulk",
+          "template": "/characters/{id}/corporationhistory/",
+          "expect": {
+            "grantedCount": 12
+          }
+        },
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000026000,
+          "template": "/characters/{id}/corporationhistory/",
+          "status": 200,
+          "expect": {
+            "brake": null,
+            "rate": 38
+          }
+        },
+        {
+          "client": "b",
+          "op": "acquire",
+          "now": 1700000626000,
+          "priority": "bulk",
+          "template": "/characters/{id}/corporationhistory/",
+          "expect": {
+            "granted": true
+          }
+        },
+        {
+          "client": "b",
+          "op": "observe",
+          "now": 1700000626000,
+          "template": "/characters/{id}/corporationhistory/",
+          "status": 200,
+          "expect": {
+            "brake": null,
+            "rate": 38
           }
         }
       ]

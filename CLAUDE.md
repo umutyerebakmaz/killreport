@@ -524,8 +524,8 @@ brakes for `Retry-After` (15 s when it is missing, as it always has been so far)
 and the shared dispatch rate drops by a quarter (floor 1 req/s, at most once per
 10 s), then climbs +1 req/s per 10 s, counted only while requests are being granted:
 a gap of 10 s or more without a grant freezes the rate earned so far, so a
-learnt rate survives an idle period. The shared bucket holds `FLOOR + 1`
-tokens, so bulk work does not burst when a brake ends. Brakes are capped at
+learnt rate survives an idle period. The shared bucket holds 6 tokens
+(the 5-token live reserve plus one), so bulk work does not burst when a brake ends. Brakes are capped at
 15 minutes. The source of truth is the Lua scripts in
 `backend/src/services/esi-limiter/` (`lib.lua`, `acquire.lua`, `observe.lua`);
 `backend/src/services/rate-limiter.ts` and
