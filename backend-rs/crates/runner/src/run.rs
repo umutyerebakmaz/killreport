@@ -1,7 +1,6 @@
 //! The connection life of an info worker: setup, the reconnect loop, one
-//! connection's consume, the drained-queue summary and the shutdown. Moved
-//! out of the alliance `main.rs` unchanged; the worker-specific parts are
-//! the [`Worker`] constants.
+//! connection's consume, the drained-queue summary and the shutdown.
+//! The worker-specific parts are the [`Worker`] constants.
 
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -18,11 +17,10 @@ use esi::{EsiClient, RateLimiter};
 use mq::{connect, declare_worker_queue, LapinDelivery};
 
 use crate::shutdown::shutdown_signal;
+use crate::totals::QUIET;
 use crate::{process_one, Totals, Worker};
 
 const RECONNECT_DELAY: Duration = Duration::from_secs(5);
-/// How often the drained-queue check runs.
-const QUIET: Duration = Duration::from_secs(5);
 
 /// What `run` hands the worker's constructor: its own pool and ESI client.
 pub struct Resources {
@@ -156,7 +154,7 @@ async fn run_connection<W: Worker>(
 }
 
 /// Every 5 s, once 5 s have passed since the last message and at least one
-/// was processed, print the summary (`worker-info-alliances.ts:48-58`).
+/// was processed, print the summary.
 async fn report_when_drained(totals: Arc<Totals>) {
     let mut tick = tokio::time::interval(QUIET);
     tick.tick().await;

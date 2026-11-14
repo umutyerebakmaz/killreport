@@ -1,5 +1,5 @@
-//! One delivery, from parse to settle: `worker-info-alliances.ts` message
-//! handler, with the entity-specific part behind [`Worker::handle`].
+//! One delivery, from parse to settle, with the entity-specific part behind
+//! [`Worker::handle`].
 
 use mq::{handle_worker_error, Settle, WorkerLog};
 use tracing::{error, info, warn};
@@ -7,7 +7,6 @@ use tracing::{error, info, warn};
 use crate::{success_line, EntityQueueMessage, Totals, Worker};
 
 /// The failure path's log, with which entity it was
-/// (`worker-info-alliances.ts:146-149`).
 struct ContextLog(String);
 
 impl WorkerLog for ContextLog {

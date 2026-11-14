@@ -1,4 +1,4 @@
-//! Counters for one connection, reset on reconnect as in the Node workers.
+//! Counters for one connection, reset on reconnect.
 
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
@@ -7,7 +7,7 @@ use std::time::Duration;
 use tokio::time::Instant;
 
 /// Quiet time after which the queue counts as drained.
-const QUIET: Duration = Duration::from_secs(5);
+pub(crate) const QUIET: Duration = Duration::from_secs(5);
 
 pub struct Totals {
     processed: AtomicU64,
@@ -64,7 +64,7 @@ impl Totals {
     }
 
     /// Once 5 s have passed since the last message and at least one was
-    /// processed, the summary is due (`worker-info-alliances.ts:48-58`).
+    /// processed, the summary is due.
     pub(crate) fn summary_due(&self) -> bool {
         let quiet = self.last_message.lock().unwrap().elapsed() > QUIET;
         quiet && self.processed() > 0
