@@ -10,6 +10,7 @@ use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use lapin::options::{BasicAckOptions, BasicGetOptions, QueueDeleteOptions};
+use lapin::types::FieldTable;
 use lapin::Channel;
 use mq::{connect, declare_worker_queue, publish_entities};
 
@@ -31,8 +32,16 @@ async fn delete(channel: &Channel, queue: &str) {
         .await;
 }
 
-/// Everything in the queue, acked, as `(body, delivery mode, priority)`.
-async fn drain(channel: &Channel, queue: &str) -> Vec<(serde_json::Value, Option<u8>, Option<u8>)> {
+/// Everything in the queue, acked, as `(body, delivery mode, priority, headers)`.
+async fn drain(
+    channel: &Channel,
+    queue: &str,
+) -> Vec<(
+    serde_json::Value,
+    Option<u8>,
+    Option<u8>,
+    Option<FieldTable>,
+)> {
     let mut out = Vec::new();
     while let Some(message) = channel
         .basic_get(queue, BasicGetOptions::default())
@@ -44,6 +53,7 @@ async fn drain(channel: &Channel, queue: &str) -> Vec<(serde_json::Value, Option
             serde_json::from_slice(&delivery.data).unwrap(),
             *delivery.properties.delivery_mode(),
             *delivery.properties.priority(),
+            delivery.properties.headers().clone(),
         ));
         delivery
             .acker
@@ -69,13 +79,15 @@ async fn publishes_every_id_persistently() {
     let messages = drain(&channel, &queue).await;
     let ids: Vec<i64> = messages
         .iter()
-        .map(|(body, _, _)| body["entityId"].as_i64().unwrap())
+        .map(|(body, _, _, _)| body["entityId"].as_i64().unwrap())
         .collect();
     assert_eq!(ids, [1, 2, 3]);
-    for (body, mode, priority) in &messages {
+    for (body, mode, priority, headers) in &messages {
         assert_eq!(body["source"], "queue-test");
         assert_eq!(*mode, Some(2));
         assert_eq!(*priority, None);
+        // amqplib always sends a headers table, empty when none are given.
+        assert_eq!(*headers, Some(FieldTable::default()));
     }
 
     delete(&channel, &queue).await;

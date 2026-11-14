@@ -5,6 +5,7 @@
 use anyhow::bail;
 use lapin::options::{BasicPublishOptions, ConfirmSelectOptions};
 use lapin::publisher_confirm::Confirmation;
+use lapin::types::FieldTable;
 use lapin::{BasicProperties, Channel};
 
 use crate::EntityMessage;
@@ -35,14 +36,17 @@ pub async fn publish_entities(
     for (index, batch) in ids.chunks(BATCH_SIZE).enumerate() {
         for &id in batch {
             // The default exchange with the queue's name as the routing key;
-            // delivery mode 2 is `persistent: true`. No priority, as in Node.
+            // delivery mode 2 is `persistent: true`. No priority, and an empty
+            // headers table, which amqplib sends when none are given.
             let confirm = channel
                 .basic_publish(
                     "",
                     queue,
                     BasicPublishOptions::default(),
                     &EntityMessage::new(id, source).to_body(),
-                    BasicProperties::default().with_delivery_mode(2),
+                    BasicProperties::default()
+                        .with_delivery_mode(2)
+                        .with_headers(FieldTable::default()),
                 )
                 .await?;
             pending.push((id, confirm));
