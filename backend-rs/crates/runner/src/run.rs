@@ -28,10 +28,10 @@ pub struct Resources {
     pub esi: EsiClient,
 }
 
-/// Run one info worker until a shutdown signal: load `.env`, set up logging,
-/// build the resources, then connect, consume and reconnect.
-pub async fn run<W: Worker>(build: impl FnOnce(Resources) -> W) -> anyhow::Result<()> {
-    // The .env in the working directory: backend/.env when run as intended.
+/// Load `.env` and set up logging, the way every worker and queue publisher
+/// starts. The `.env` is the one in the working directory: `backend/.env`
+/// when run from `backend/` as the `package.json` scripts do.
+pub fn init() {
     let _ = dotenvy::dotenv();
     tracing_subscriber::fmt()
         .with_target(false)
@@ -40,6 +40,12 @@ pub async fn run<W: Worker>(build: impl FnOnce(Resources) -> W) -> anyhow::Resul
                 .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
         )
         .init();
+}
+
+/// Run one info worker until a shutdown signal: load `.env`, set up logging,
+/// build the resources, then connect, consume and reconnect.
+pub async fn run<W: Worker>(build: impl FnOnce(Resources) -> W) -> anyhow::Result<()> {
+    init();
 
     let database_url = std::env::var("DATABASE_URL").context("DATABASE_URL is not set")?;
     let rabbitmq_url = std::env::var("RABBITMQ_URL").context("RABBITMQ_URL is not set")?;
