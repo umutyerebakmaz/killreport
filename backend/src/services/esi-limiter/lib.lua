@@ -8,7 +8,9 @@
 -- Everything here is a top-level local, so it is in scope for the script
 -- appended after it.
 --
--- The rules mirror backend/src/services/rate-limiter.ts.
+-- The rules mirror backend/src/services/rate-limiter.ts, except for two that
+-- exist only here: the shared bucket holds floor + 1 tokens (no burst), and
+-- the rate climbs only while tokens are being granted (acquire.lua).
 
 local RATE_CLIMB_INTERVAL_MS = 10000
 local LOW_TOKEN_SHARE = 0.2
@@ -35,11 +37,13 @@ local function nowMs(arg)
   return tonumber(arg)
 end
 
--- The adapted dispatch rate: +1 req/s per full 10 s since requests resumed,
--- so the time spent braked never counts towards the climb.
-local function currentRate(maxRps, rateBase, loweredAt, pausedUntil, now)
-  local climbFrom = math.max(loweredAt, pausedUntil)
-  local climbed = math.max(0, math.floor((now - climbFrom) / RATE_CLIMB_INTERVAL_MS))
+-- The adapted dispatch rate: +1 req/s per full 10 s since the last decrease,
+-- the end of the last brake or the end of the last idle gap (climbFrom, set
+-- by acquire.lua), whichever is latest. Neither braked nor idle time counts
+-- towards the climb.
+local function currentRate(maxRps, rateBase, loweredAt, pausedUntil, climbFrom, now)
+  local from = math.max(loweredAt, pausedUntil, climbFrom)
+  local climbed = math.max(0, math.floor((now - from) / RATE_CLIMB_INTERVAL_MS))
   return math.min(maxRps, rateBase + climbed)
 end
 

@@ -7,7 +7,7 @@
     "observe arguments: template, bucketKey (default ''), status, and the optional numbers group, limit, windowMs, remaining, errorRemain, errorResetMs, retryAfterMs; an absent field is 'no value'.",
     "expect is a partial match: only the fields listed are compared, exactly. A null value means the field must be absent (brake / groupPause).",
     "acquire result fields: granted, waitMs, reason, detail. observe result fields: brake { ms, status, kind }, groupPause { key, ms }, rate.",
-    "With repeat n the acquire runs n times and expect is { grantedCount }."
+    "With repeat n the acquire runs n times and expect is { grantedCount }. With everyMs the i-th run (from 0) is at now + i * everyMs; without it every run is at now."
   ],
   "scenarios": [
     {
@@ -22,7 +22,11 @@
           "status": 420,
           "errorResetMs": 30000,
           "expect": {
-            "brake": { "ms": 30000, "status": 420, "kind": "error-limit" },
+            "brake": {
+              "ms": 30000,
+              "status": 420,
+              "kind": "error-limit"
+            },
             "groupPause": null
           }
         },
@@ -45,7 +49,11 @@
           "now": 1700000000000,
           "priority": "live",
           "template": "/alliances/{id}/",
-          "expect": { "granted": false, "reason": "brake", "waitMs": 30000 }
+          "expect": {
+            "granted": false,
+            "reason": "brake",
+            "waitMs": 30000
+          }
         }
       ]
     },
@@ -61,7 +69,11 @@
           "status": 420,
           "errorResetMs": 30000,
           "expect": {
-            "brake": { "ms": 30000, "status": 420, "kind": "error-limit" }
+            "brake": {
+              "ms": 30000,
+              "status": 420,
+              "kind": "error-limit"
+            }
           }
         },
         {
@@ -83,12 +95,14 @@
           "now": 1700000030000,
           "priority": "bulk",
           "template": "/alliances/{id}/",
-          "expect": { "granted": true }
+          "expect": {
+            "granted": true
+          }
         }
       ]
     },
     {
-      "name": "a header-less 429 lowers the shared rate once, and it climbs after the brake",
+      "name": "a header-less 429 lowers the shared rate once; it climbs after the brake only because no acquire wrote lastGrantAt",
       "maxRps": 50,
       "steps": [
         {
@@ -98,7 +112,11 @@
           "template": "/characters/{id}/corporationhistory/",
           "status": 429,
           "expect": {
-            "brake": { "ms": 15000, "status": 429, "kind": "deep-limit" },
+            "brake": {
+              "ms": 15000,
+              "status": 429,
+              "kind": "deep-limit"
+            },
             "rate": 37
           }
         },
@@ -109,7 +127,11 @@
           "template": "/characters/{id}/corporationhistory/",
           "status": 429,
           "expect": {
-            "brake": { "ms": 15000, "status": 429, "kind": "deep-limit" },
+            "brake": {
+              "ms": 15000,
+              "status": 429,
+              "kind": "deep-limit"
+            },
             "rate": 37
           }
         },
@@ -119,7 +141,10 @@
           "now": 1700000029999,
           "template": "/characters/{id}/corporationhistory/",
           "status": 200,
-          "expect": { "brake": null, "rate": 37 }
+          "expect": {
+            "brake": null,
+            "rate": 37
+          }
         },
         {
           "client": "a",
@@ -127,7 +152,10 @@
           "now": 1700000030000,
           "template": "/characters/{id}/corporationhistory/",
           "status": 200,
-          "expect": { "brake": null, "rate": 38 }
+          "expect": {
+            "brake": null,
+            "rate": 38
+          }
         }
       ]
     },
@@ -143,7 +171,10 @@
           "status": 200,
           "errorRemain": 20,
           "errorResetMs": 5000,
-          "expect": { "brake": null, "rate": 50 }
+          "expect": {
+            "brake": null,
+            "rate": 50
+          }
         },
         {
           "client": "b",
@@ -151,7 +182,9 @@
           "now": 1700000000000,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "granted": true }
+          "expect": {
+            "granted": true
+          }
         },
         {
           "client": "a",
@@ -162,7 +195,11 @@
           "errorRemain": 19,
           "errorResetMs": 5000,
           "expect": {
-            "brake": { "ms": 5000, "status": 420, "kind": "error-limit" },
+            "brake": {
+              "ms": 5000,
+              "status": 420,
+              "kind": "error-limit"
+            },
             "rate": 50
           }
         },
@@ -195,7 +232,10 @@
           "retryAfterMs": 20000,
           "expect": {
             "brake": null,
-            "groupPause": { "key": "killmail:", "ms": 20000 },
+            "groupPause": {
+              "key": "killmail:",
+              "ms": 20000
+            },
             "rate": 50
           }
         },
@@ -218,7 +258,9 @@
           "now": 1700000000000,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "granted": true }
+          "expect": {
+            "granted": true
+          }
         },
         {
           "client": "c",
@@ -226,22 +268,25 @@
           "now": 1700000020000,
           "priority": "bulk",
           "template": "/killmails/{id}/{hash}/",
-          "expect": { "granted": true }
+          "expect": {
+            "granted": true
+          }
         }
       ]
     },
     {
-      "name": "bulk stops at the floor, live drains the bucket, a second refills it",
+      "name": "bulk takes one token above the floor, live drains the bucket, a second refills it",
       "maxRps": 10,
       "steps": [
         {
           "client": "a",
           "op": "acquire",
           "now": 1700000000000,
-          "repeat": 5,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 5 }
+          "expect": {
+            "granted": true
+          }
         },
         {
           "client": "a",
@@ -263,7 +308,9 @@
           "repeat": 5,
           "priority": "live",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 5 }
+          "expect": {
+            "grantedCount": 5
+          }
         },
         {
           "client": "b",
@@ -284,7 +331,11 @@
           "now": 1700000000000,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "granted": false, "reason": "rate", "waitMs": 600 }
+          "expect": {
+            "granted": false,
+            "reason": "rate",
+            "waitMs": 600
+          }
         },
         {
           "client": "a",
@@ -293,7 +344,9 @@
           "repeat": 10,
           "priority": "live",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 10 }
+          "expect": {
+            "grantedCount": 6
+          }
         }
       ]
     },
@@ -308,7 +361,9 @@
           "repeat": 2,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 2 }
+          "expect": {
+            "grantedCount": 1
+          }
         },
         {
           "client": "b",
@@ -317,7 +372,9 @@
           "repeat": 2,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 2 }
+          "expect": {
+            "grantedCount": 0
+          }
         },
         {
           "client": "a",
@@ -326,7 +383,9 @@
           "repeat": 2,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 1 }
+          "expect": {
+            "grantedCount": 0
+          }
         },
         {
           "client": "b",
@@ -335,7 +394,9 @@
           "repeat": 2,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 0 }
+          "expect": {
+            "grantedCount": 0
+          }
         },
         {
           "client": "a",
@@ -344,7 +405,9 @@
           "repeat": 2,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 0 }
+          "expect": {
+            "grantedCount": 0
+          }
         },
         {
           "client": "b",
@@ -353,7 +416,9 @@
           "repeat": 2,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 0 }
+          "expect": {
+            "grantedCount": 0
+          }
         },
         {
           "client": "a",
@@ -362,7 +427,9 @@
           "repeat": 2,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 0 }
+          "expect": {
+            "grantedCount": 0
+          }
         },
         {
           "client": "b",
@@ -371,7 +438,9 @@
           "repeat": 2,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 0 }
+          "expect": {
+            "grantedCount": 0
+          }
         },
         {
           "client": "a",
@@ -380,7 +449,9 @@
           "repeat": 2,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 0 }
+          "expect": {
+            "grantedCount": 0
+          }
         },
         {
           "client": "b",
@@ -389,7 +460,9 @@
           "repeat": 2,
           "priority": "bulk",
           "template": "/universe/types/{id}/",
-          "expect": { "grantedCount": 0 }
+          "expect": {
+            "grantedCount": 0
+          }
         }
       ]
     },
@@ -407,7 +480,11 @@
           "limit": 150,
           "windowMs": 900000,
           "remaining": 10,
-          "expect": { "brake": null, "groupPause": null, "rate": 50 }
+          "expect": {
+            "brake": null,
+            "groupPause": null,
+            "rate": 50
+          }
         },
         {
           "client": "b",
@@ -415,7 +492,9 @@
           "now": 1700000000000,
           "priority": "bulk",
           "template": "/killmails/{id}/{hash}/",
-          "expect": { "granted": true }
+          "expect": {
+            "granted": true
+          }
         },
         {
           "client": "b",
@@ -436,7 +515,9 @@
           "now": 1700000012000,
           "priority": "bulk",
           "template": "/killmails/{id}/{hash}/",
-          "expect": { "granted": true }
+          "expect": {
+            "granted": true
+          }
         }
       ]
     },
@@ -454,7 +535,10 @@
           "limit": 150,
           "windowMs": 900000,
           "remaining": 1,
-          "expect": { "brake": null, "groupPause": null }
+          "expect": {
+            "brake": null,
+            "groupPause": null
+          }
         },
         {
           "client": "b",
@@ -483,7 +567,11 @@
           "status": 429,
           "retryAfterMs": 3600000,
           "expect": {
-            "brake": { "ms": 900000, "status": 429, "kind": "deep-limit" }
+            "brake": {
+              "ms": 900000,
+              "status": 429,
+              "kind": "deep-limit"
+            }
           }
         },
         {
@@ -497,6 +585,535 @@
             "reason": "brake",
             "waitMs": 900000,
             "detail": "429:deep-limit"
+          }
+        }
+      ]
+    },
+    {
+      "name": "bulk does not burst when a brake ends",
+      "maxRps": 50,
+      "steps": [
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000000000,
+          "template": "/universe/types/{id}/",
+          "status": 420,
+          "errorResetMs": 30000,
+          "expect": {
+            "brake": {
+              "ms": 30000,
+              "status": 420,
+              "kind": "error-limit"
+            }
+          }
+        },
+        {
+          "client": "b",
+          "op": "acquire",
+          "now": 1700000030000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "granted": true
+          }
+        },
+        {
+          "client": "c",
+          "op": "acquire",
+          "now": 1700000030000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "granted": false,
+            "reason": "rate",
+            "waitMs": 20,
+            "detail": ""
+          }
+        },
+        {
+          "client": "c",
+          "op": "acquire",
+          "now": 1700000030000,
+          "repeat": 6,
+          "priority": "live",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "grantedCount": 5
+          }
+        }
+      ]
+    },
+    {
+      "name": "the rate does not climb across an idle gap",
+      "maxRps": 50,
+      "steps": [
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000000000,
+          "template": "/characters/{id}/corporationhistory/",
+          "status": 429,
+          "expect": {
+            "brake": {
+              "ms": 15000,
+              "status": 429,
+              "kind": "deep-limit"
+            },
+            "rate": 37
+          }
+        },
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000015000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "granted": true
+          }
+        },
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000015000,
+          "template": "/universe/types/{id}/",
+          "status": 200,
+          "expect": {
+            "rate": 37
+          }
+        },
+        {
+          "client": "b",
+          "op": "acquire",
+          "now": 1700000615000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "granted": true
+          }
+        },
+        {
+          "client": "b",
+          "op": "observe",
+          "now": 1700000615000,
+          "template": "/universe/types/{id}/",
+          "status": 200,
+          "expect": {
+            "rate": 37
+          }
+        }
+      ]
+    },
+    {
+      "name": "the rate climbs once per 10 s while bulk traffic continues",
+      "maxRps": 50,
+      "steps": [
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000000000,
+          "template": "/characters/{id}/corporationhistory/",
+          "status": 429,
+          "expect": {
+            "brake": {
+              "ms": 15000,
+              "status": 429,
+              "kind": "deep-limit"
+            },
+            "rate": 37
+          }
+        },
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000015000,
+          "repeat": 11,
+          "everyMs": 1000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "grantedCount": 11
+          }
+        },
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000025000,
+          "template": "/universe/types/{id}/",
+          "status": 200,
+          "expect": {
+            "rate": 38
+          }
+        },
+        {
+          "client": "b",
+          "op": "acquire",
+          "now": 1700000026000,
+          "repeat": 10,
+          "everyMs": 1000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "grantedCount": 10
+          }
+        },
+        {
+          "client": "b",
+          "op": "observe",
+          "now": 1700000035000,
+          "template": "/universe/types/{id}/",
+          "status": 200,
+          "expect": {
+            "rate": 39
+          }
+        }
+      ]
+    },
+    {
+      "name": "a rate lowered during traffic is kept after the brake",
+      "maxRps": 50,
+      "steps": [
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000000000,
+          "repeat": 5,
+          "everyMs": 1000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "grantedCount": 5
+          }
+        },
+        {
+          "client": "b",
+          "op": "observe",
+          "now": 1700000005000,
+          "template": "/characters/{id}/corporationhistory/",
+          "status": 429,
+          "expect": {
+            "brake": {
+              "ms": 15000,
+              "status": 429,
+              "kind": "deep-limit"
+            },
+            "rate": 37
+          }
+        },
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000020000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "granted": true
+          }
+        },
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000020000,
+          "template": "/universe/types/{id}/",
+          "status": 200,
+          "expect": {
+            "rate": 37
+          }
+        },
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000021000,
+          "repeat": 10,
+          "everyMs": 1000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "grantedCount": 10
+          }
+        },
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000030000,
+          "template": "/universe/types/{id}/",
+          "status": 200,
+          "expect": {
+            "rate": 38
+          }
+        }
+      ]
+    },
+    {
+      "name": "the rate climbs once per 10 s while live traffic continues",
+      "maxRps": 50,
+      "steps": [
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000000000,
+          "template": "/characters/{id}/corporationhistory/",
+          "status": 429,
+          "expect": {
+            "brake": {
+              "ms": 15000,
+              "status": 429,
+              "kind": "deep-limit"
+            },
+            "rate": 37
+          }
+        },
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000015000,
+          "repeat": 11,
+          "everyMs": 1000,
+          "priority": "live",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "grantedCount": 11
+          }
+        },
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000025000,
+          "template": "/universe/types/{id}/",
+          "status": 200,
+          "expect": {
+            "rate": 38
+          }
+        },
+        {
+          "client": "b",
+          "op": "acquire",
+          "now": 1700000026000,
+          "repeat": 10,
+          "everyMs": 1000,
+          "priority": "live",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "grantedCount": 10
+          }
+        },
+        {
+          "client": "b",
+          "op": "observe",
+          "now": 1700000035000,
+          "template": "/universe/types/{id}/",
+          "status": 200,
+          "expect": {
+            "rate": 39
+          }
+        }
+      ]
+    },
+    {
+      "name": "the first acquire on an empty prefix is granted at maxRps",
+      "maxRps": 50,
+      "steps": [
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000000000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "granted": true
+          }
+        },
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000000000,
+          "template": "/universe/types/{id}/",
+          "status": 200,
+          "expect": {
+            "brake": null,
+            "groupPause": null,
+            "rate": 50
+          }
+        }
+      ]
+    },
+    {
+      "name": "two clients after an idle gap see the same kept rate",
+      "maxRps": 50,
+      "steps": [
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000000000,
+          "template": "/characters/{id}/corporationhistory/",
+          "status": 429,
+          "expect": {
+            "brake": {
+              "ms": 15000,
+              "status": 429,
+              "kind": "deep-limit"
+            },
+            "rate": 37
+          }
+        },
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000015000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "granted": true
+          }
+        },
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000075000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "granted": true
+          }
+        },
+        {
+          "client": "b",
+          "op": "acquire",
+          "now": 1700000075000,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "granted": false,
+            "reason": "rate",
+            "waitMs": 28,
+            "detail": ""
+          }
+        },
+        {
+          "client": "b",
+          "op": "acquire",
+          "now": 1700000075000,
+          "priority": "live",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "granted": true
+          }
+        },
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000075000,
+          "template": "/universe/types/{id}/",
+          "status": 200,
+          "expect": {
+            "rate": 37
+          }
+        },
+        {
+          "client": "b",
+          "op": "observe",
+          "now": 1700000075000,
+          "template": "/universe/types/{id}/",
+          "status": 200,
+          "expect": {
+            "rate": 37
+          }
+        }
+      ]
+    },
+    {
+      "name": "bulk paced at the refill rate gets every token",
+      "maxRps": 10,
+      "steps": [
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000000000,
+          "repeat": 10,
+          "everyMs": 100,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "grantedCount": 10
+          }
+        },
+        {
+          "client": "b",
+          "op": "acquire",
+          "now": 1700000000900,
+          "priority": "bulk",
+          "template": "/universe/types/{id}/",
+          "expect": {
+            "granted": false,
+            "reason": "rate",
+            "waitMs": 100,
+            "detail": ""
+          }
+        }
+      ]
+    },
+    {
+      "name": "an earned climb is kept across an idle gap",
+      "maxRps": 50,
+      "steps": [
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000000000,
+          "template": "/characters/{id}/corporationhistory/",
+          "status": 429,
+          "expect": {
+            "brake": {
+              "ms": 15000,
+              "status": 429,
+              "kind": "deep-limit"
+            },
+            "rate": 37
+          }
+        },
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000015000,
+          "repeat": 12,
+          "everyMs": 1000,
+          "priority": "bulk",
+          "template": "/characters/{id}/corporationhistory/",
+          "expect": {
+            "grantedCount": 12
+          }
+        },
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000026000,
+          "template": "/characters/{id}/corporationhistory/",
+          "status": 200,
+          "expect": {
+            "brake": null,
+            "rate": 38
+          }
+        },
+        {
+          "client": "b",
+          "op": "acquire",
+          "now": 1700000626000,
+          "priority": "bulk",
+          "template": "/characters/{id}/corporationhistory/",
+          "expect": {
+            "granted": true
+          }
+        },
+        {
+          "client": "b",
+          "op": "observe",
+          "now": 1700000626000,
+          "template": "/characters/{id}/corporationhistory/",
+          "status": 200,
+          "expect": {
+            "brake": null,
+            "rate": 38
           }
         }
       ]

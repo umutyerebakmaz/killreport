@@ -43,11 +43,13 @@ local maxRps = tonumber(ARGV[12])
 local now = nowMs(ARGV[13])
 
 local globalKey = prefix .. 'global'
-local g = redis.call('HMGET', globalKey, 'pausedUntil', 'rateBase', 'loweredAt')
+local g = redis.call('HMGET', globalKey, 'pausedUntil', 'rateBase', 'loweredAt',
+  'climbFrom')
 local state = {
   pausedUntil = num(g[1], 0),
   rateBase = num(g[2], maxRps),
   loweredAt = num(g[3], NEVER),
+  climbFrom = num(g[4], NEVER),
 }
 local pauseChanged, rateChanged = false, false
 
@@ -55,7 +57,8 @@ local brakeMs, brakeStatus, brakeKind = 0, 0, ''
 local groupKey, groupPauseMs = '', 0
 
 local function rateNow()
-  return currentRate(maxRps, state.rateBase, state.loweredAt, state.pausedUntil, now)
+  return currentRate(maxRps, state.rateBase, state.loweredAt, state.pausedUntil,
+    state.climbFrom, now)
 end
 
 local function result()

@@ -2,6 +2,8 @@
 
 **Tarih:** 2026-11-14
 **Durum:** onaylandı ve uygulandı (2026-11-14)
+**Not (2026-11-15):** kova kapasitesi ve hız tırmanması sonradan değişti, bkz.
+[2026-11-15-esi-limiter-smoothing-design.md](2026-11-15-esi-limiter-smoothing-design.md).
 **Değiştirdiği karar:** `2026-10-28-esi-rate-limiter-design.md` §3 "Process'ler
 arasında ortak state (Redis)" hedef olmayanı ve §4.5 "Birden çok process".
 
@@ -176,8 +178,8 @@ Kural: ortak kova sürekli `currentRate` hızında dolar.
 `FLOOR = 5` (benim kararım). Toplu işler tabanın üstündeki her token'ı
 alır, yani toplam hızdan canlı trafiğin kullandığı kadar eksiğini alırlar.
 Kalıcı olarak boş duran pay yok, yalnızca 5 token'lık tampon. Kova kapasitesi
-`max(FLOOR + 1, currentRate)`: bir saniyelik patlamaya izin verir (benim
-kararım).
+`FLOOR + 1` (2026-11-15'ten beri; başta `max(FLOOR + 1, currentRate)` idi ve
+fren sonrası patlama yapıyordu).
 
 **Sınıf kimin?** Bugün `setEsiMaxWait(10_000)` çağıran iki süreç tam olarak
 canlı olanlar: `server.ts:308` (kullanıcı istekleri) ve
@@ -244,8 +246,8 @@ gider, gruplu bekleyen bugünkü `parked` mantığıyla diğer route'ları tıka
 - Süreç "yerel mod"a geçer, bunu bir kez `warn` olarak loglar, 10 sn'de bir
   Redis'i yeniden dener. Bağlantı dönünce bir kez loglar ve ortak moda döner.
 - Redis yavaş ama 200 ms içinde cevap veriyorsa süreç yerel moda geçmez; her süreç
-  aynı anda tek bir store çağrısı gönderir (çağrı başına 150 ms ile yaklaşık
-  6 req/s).
+  aynı anda tek bir store çağrısı gönderir (yalnızca `acquire` için; çağrı
+  başına 150 ms ile yaklaşık 6-7 izin/sn).
 - Yerel modda tavan bugünkü gibi süreç başına `ESI_MAX_RPS`.
 - Yerel limiter kodu silinmez; bugünkü `RateLimiter` sınıfı ve Rust
   `limiter.rs` dönüş yolu olarak kalır.
@@ -327,7 +329,7 @@ dizisi. Aynı anda bir kullanıcı ya da redisq isteğinin beklemeden geçtiği.
 - `ESI_MAX_RPS` varsayılanı toplam tavan olarak 50 kalır (§2).
 - Header'sız 429'daki hız düşüşü route başına değil, bütün route'lara (§4.2).
 - Rust `REDIS_URL`'i `backend/.env`'den okur, varsayılanı Node'unkiyle aynı (§4.7).
-- `FLOOR = 5`, kova kapasitesi `max(FLOOR + 1, currentRate)`.
+- `FLOOR = 5`, kova kapasitesi `FLOOR + 1` (2026-11-15).
 - Sınıf süreç başına, `setEsiMaxWait` çağıran iki yer `live`.
 - Zaman Redis'in `TIME`'ından.
 - Redis zaman aşımı 200 ms, yerel moddan çıkış denemesi 10 sn'de bir.

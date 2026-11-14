@@ -1,7 +1,8 @@
 -- Shared ESI limiter: ask for one dispatch slot.
 --
 -- Runs with lib.lua prepended (see the loading rule there); str, num, nowMs,
--- currentRate, readBucket, respace and NEVER come from it. The rules mirror
+-- currentRate, readBucket, respace, NEVER and RATE_CLIMB_INTERVAL_MS come
+-- from it. The rules mirror
 -- backend/src/services/rate-limiter.ts.
 --
 -- ARGV: [1] key prefix, [2] priority ('live' | 'bulk'), [3] route template,
@@ -22,10 +23,22 @@ local now = nowMs(ARGV[7])
 
 local globalKey = prefix .. 'global'
 local g = redis.call('HMGET', globalKey, 'tokens', 'refilledAt',
-  'pausedUntil', 'pauseStatus', 'pauseKind', 'rateBase', 'loweredAt')
+  'pausedUntil', 'pauseStatus', 'pauseKind', 'rateBase', 'loweredAt',
+  'lastGrantAt', 'climbFrom')
 local pausedUntil = num(g[3], 0)
 local rateBase = num(g[6], maxRps)
 local loweredAt = num(g[7], NEVER)
+local lastGrantAt = num(g[8], nil)
+local climbFrom = num(g[9], NEVER)
+
+-- 0. The rate climbs only under traffic. When no token has been granted for
+-- a full climb interval (idle, or braked), keep the rate earned up to the
+-- last grant and start counting the climb again from now.
+if lastGrantAt and now - lastGrantAt >= RATE_CLIMB_INTERVAL_MS then
+  rateBase = currentRate(maxRps, rateBase, loweredAt, pausedUntil, climbFrom, lastGrantAt)
+  climbFrom = now
+  redis.call('HSET', globalKey, 'rateBase', str(rateBase), 'climbFrom', str(climbFrom))
+end
 
 -- 1. The process-wide brake.
 if pausedUntil > now then
@@ -49,9 +62,11 @@ if group then
   end
 end
 
--- 3. Refill the shared bucket at the adapted rate.
-local rate = currentRate(maxRps, rateBase, loweredAt, pausedUntil, now)
-local capacity = math.max(floorTokens + 1, rate)
+-- 3. Refill the shared bucket at the adapted rate. It holds floor + 1 tokens
+-- and no more, so after a brake or an idle gap bulk finds one token, then
+-- waits for the refill: no burst.
+local rate = currentRate(maxRps, rateBase, loweredAt, pausedUntil, climbFrom, now)
+local capacity = floorTokens + 1
 local tokens = num(g[1], capacity)
 local refilledAt = num(g[2], 0)
 local elapsed = math.max(0, now - refilledAt)
@@ -68,7 +83,8 @@ end
 
 -- 5. Take the token; a grouped route marks its bucket as just sent.
 tokens = tokens - 1
-redis.call('HSET', globalKey, 'tokens', str(tokens), 'refilledAt', str(refilledAt))
+redis.call('HSET', globalKey, 'tokens', str(tokens), 'refilledAt', str(refilledAt),
+  'lastGrantAt', str(now))
 
 if bucket then
   bucket.sentAt = now
