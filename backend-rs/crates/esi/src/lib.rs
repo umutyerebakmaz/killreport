@@ -4,6 +4,7 @@
 mod client;
 mod limiter;
 mod route;
+pub mod shared;
 mod throttled;
 
 pub use client::{EsiClient, EsiError};

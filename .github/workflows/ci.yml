@@ -126,7 +126,19 @@ jobs:
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
+      # The shared ESI limiter's Rust store is tested against a real Redis;
+      # those tests skip themselves when REDIS_URL is unset.
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     env:
+      REDIS_URL: redis://localhost:6379
       # Compile the checked queries from backend-rs/.sqlx instead of asking
       # the database, so a stale cache fails the build instead of passing.
       SQLX_OFFLINE: 'true'
