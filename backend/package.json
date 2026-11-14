@@ -32,6 +32,7 @@
     "render:solar-system-maps": "tsx src/scripts/render-solar-system-maps.ts",
     "render:maps": "yarn render:region-maps && yarn render:constellation-maps && yarn render:solar-system-maps",
     "queue:alliances": "tsx src/queues/queue-alliances.ts",
+    "queue:alliances:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p queue-alliances",
     "queue:alliance-corporations": "tsx src/queues/queue-alliance-corporations.ts",
     "queue:alliance-corp-characters": "tsx src/queues/queue-alliance-corporation-characters.ts",
     "queue:categories": "tsx src/queues/queue-categories.ts",
