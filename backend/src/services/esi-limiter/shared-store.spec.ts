@@ -16,6 +16,7 @@ interface Step {
   op: 'acquire' | 'observe';
   now: number;
   repeat?: number;
+  everyMs?: number;
   priority?: EsiPriority;
   template: string;
   bucketKey?: string;
@@ -128,7 +129,7 @@ describe.skipIf(!REDIS_URL)('SharedLimiterStore against Redis', () => {
                 priority,
                 step.template,
                 bucketKey,
-                step.now,
+                step.now + i * (step.everyMs ?? 0),
               );
               if (result.granted) grantedCount++;
             }

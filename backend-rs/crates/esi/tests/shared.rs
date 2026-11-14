@@ -86,10 +86,12 @@ async fn run_step(store: &SharedStore, step: &Value, ctx: &str) {
                 _ => Priority::Live,
             };
             if let Some(repeat) = step["repeat"].as_u64() {
+                let every_ms = step["everyMs"].as_f64().unwrap_or(0.0);
                 let mut granted = 0;
-                for _ in 0..repeat {
+                for i in 0..repeat {
+                    let at = now.map(|t| t + i as f64 * every_ms);
                     let out = store
-                        .acquire(priority, template, bucket_key, now)
+                        .acquire(priority, template, bucket_key, at)
                         .await
                         .unwrap();
                     if out == AcquireOutcome::Granted {
