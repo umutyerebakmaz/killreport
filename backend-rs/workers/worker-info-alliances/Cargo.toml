@@ -7,20 +7,14 @@ publish.workspace = true
 [dependencies]
 anyhow.workspace = true
 chrono.workspace = true
-db.workspace = true
-dotenvy.workspace = true
 esi.workspace = true
-futures-util.workspace = true
-lapin.workspace = true
-mq.workspace = true
+runner.workspace = true
 serde.workspace = true
-serde_json.workspace = true
 sqlx.workspace = true
 tokio.workspace = true
-tracing.workspace = true
-tracing-subscriber.workspace = true
 
 [dev-dependencies]
+serde_json.workspace = true
 # `#[sqlx::test]` needs the feature even with `migrations = false`; it
 # creates the throwaway databases, it runs no migration.
 sqlx = { workspace = true, features = ["migrate"] }

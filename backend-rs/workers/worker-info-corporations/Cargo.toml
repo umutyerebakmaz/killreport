@@ -1,0 +1,21 @@
+[package]
+name = "worker-info-corporations"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+chrono.workspace = true
+esi.workspace = true
+runner.workspace = true
+serde.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+# `#[sqlx::test]` needs the feature even with `migrations = false`; it
+# creates the throwaway databases, it runs no migration.
+sqlx = { workspace = true, features = ["migrate"] }
+tokio = { workspace = true, features = ["test-util"] }
