@@ -8,17 +8,12 @@ publish.workspace = true
 anyhow.workspace = true
 chrono.workspace = true
 db.workspace = true
-dotenvy.workspace = true
 esi.workspace = true
-futures-util.workspace = true
-lapin.workspace = true
-mq.workspace = true
+runner.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sqlx.workspace = true
 tokio.workspace = true
-tracing.workspace = true
-tracing-subscriber.workspace = true
 
 [dev-dependencies]
 # `#[sqlx::test]` needs the feature even with `migrations = false`; it

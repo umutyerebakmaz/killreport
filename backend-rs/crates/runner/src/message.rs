@@ -2,10 +2,11 @@
 
 use serde::Deserialize;
 
-/// `{ "entityId": 99000001, "queuedAt": "...", "source": "queue-alliances" }`
-/// (`queue-alliances.ts:32-34`). Only `entityId` is read; the other fields
-/// are ignored rather than refused, so a publisher that adds one does not
-/// break this worker.
+/// `{ "entityId": 99000001, "queuedAt": "...", "source": "queue-alliances" }`,
+/// as any info-queue publisher sends it (`queue-alliances.ts:32-34`,
+/// `queue-character-corporations.ts`). Only `entityId` is read; the other
+/// fields are ignored rather than refused, so a publisher that adds one does
+/// not break a worker.
 #[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct EntityQueueMessage {
     #[serde(rename = "entityId")]

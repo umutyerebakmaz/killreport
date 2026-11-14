@@ -6,12 +6,18 @@ publish.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+db.workspace = true
+dotenvy.workspace = true
+esi.workspace = true
+futures-util.workspace = true
+lapin.workspace = true
 mq.workspace = true
 serde.workspace = true
 serde_json.workspace = true
+sqlx.workspace = true
 tokio.workspace = true
 tracing.workspace = true
+tracing-subscriber.workspace = true
 
 [dev-dependencies]
-lapin.workspace = true
 tokio = { workspace = true, features = ["test-util"] }

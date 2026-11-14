@@ -8,10 +8,13 @@ use std::future::Future;
 
 mod message;
 mod process;
+mod run;
+mod shutdown;
 mod totals;
 
 pub use message::EntityQueueMessage;
 pub use process::process_one;
+pub use run::{run, Resources};
 pub use totals::Totals;
 
 /// What one successful `handle` reports back.

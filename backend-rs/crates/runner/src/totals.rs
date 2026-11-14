@@ -65,8 +65,6 @@ impl Totals {
 
     /// Once 5 s have passed since the last message and at least one was
     /// processed, the summary is due (`worker-info-alliances.ts:48-58`).
-    // Read by the connection loop that Task 2 moves in; unused until then.
-    #[allow(dead_code)]
     pub(crate) fn summary_due(&self) -> bool {
         let quiet = self.last_message.lock().unwrap().elapsed() > QUIET;
         quiet && self.processed() > 0

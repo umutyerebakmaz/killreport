@@ -1878,12 +1878,18 @@ name = "runner"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "db",
+ "dotenvy",
+ "esi",
+ "futures-util",
  "lapin",
  "mq",
  "serde",
  "serde_json",
+ "sqlx",
  "tokio",
  "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -3099,17 +3105,12 @@ dependencies = [
  "anyhow",
  "chrono",
  "db",
- "dotenvy",
  "esi",
- "futures-util",
- "lapin",
- "mq",
+ "runner",
  "serde",
  "serde_json",
  "sqlx",
  "tokio",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
