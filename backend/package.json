@@ -46,6 +46,7 @@
     "queue:user-killmails": "tsx src/queues/queue-user-esi-killmails.ts",
     "queue:corporation-killmails": "tsx src/queues/queue-corporation-esi-killmails.ts",
     "queue:corporations": "tsx src/queues/queue-corporations.ts",
+    "queue:corporations:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p queue-corporations",
     "queue:item-groups": "tsx src/queues/queue-item-groups.ts",
     "queue:missing-groups": "tsx src/queues/queue-missing-groups.ts",
     "queue:prices": "tsx src/queues/queue-prices.ts",
