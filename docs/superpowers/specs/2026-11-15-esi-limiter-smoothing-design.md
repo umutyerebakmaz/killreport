@@ -116,17 +116,20 @@ doğrulamadı (birim senaryosu doğruluyor, canlı gözlem yok).
 
 **Hız (başarılı mesaj / sn).**
 
-| Pencere (yerel saat) | Node | Rust | Toplam | Not                                 |
-| -------------------- | ---- | ---- | ------ | ----------------------------------- |
-| 23:35:16-23:35:38    | -    | 50,9 | 50,9   | Rust tek başına, hız 50, 429 yok    |
-| 23:35:40-23:36:25    | 16,2 | 20,0 | 36,3   | iki süreç, ilk fren öncesi          |
-| 23:36:26-23:37:00    | 0,3  | 1,9  | 2,1    | üç ardışık 15 sn'lik fren           |
-| 23:37:00-23:37:58    | 7,1  | 7,1  | 14,1   | hız 20 -> 18                        |
-| 23:38:48-23:40:00    | 7,7  | 7,6  | 15,4   | oturmuş kısım (72 sn), hız 18 -> 19 |
-| 23:35:40-23:40:00    | 7,7  | 8,6  | 16,3   | iki süreç birlikte, bütün pencere   |
+| Pencere (yerel saat) | Node | Rust | Toplam | Not                               |
+| -------------------- | ---- | ---- | ------ | --------------------------------- |
+| 23:35:16-23:35:38    | -    | 50,9 | 50,9   | Rust tek başına, hız 50, 429 yok  |
+| 23:35:40-23:36:25    | 16,2 | 20,0 | 36,3   | iki süreç, ilk fren öncesi        |
+| 23:36:26-23:37:00    | 0,3  | 1,9  | 2,1    | üç ardışık 15 sn'lik fren         |
+| 23:37:00-23:37:58    | 7,1  | 7,1  | 14,1   | hız 20 -> 18                      |
+| 23:38:48-23:39:43    | 9,8  | 9,5  | 19,3   | oturmuş, frensiz kısım (55 sn)    |
+| 23:38:48-23:40:00    | 7,7  | 7,6  | 15,4   | 15 sn'lik fren (23:39:44) dahil   |
+| 23:35:40-23:40:00    | 7,7  | 8,6  | 16,3   | iki süreç birlikte, bütün pencere |
 
-Toplam her pencerede iki sürecin toplamı olarak tek bir değere oturdu
-(2026-11-14'te 19,1; şimdi 15,4). Oturmuş hız `37 -> 27 -> 20 -> 18 -> 19 -> 14`
+Toplam her pencerede iki sürecin toplamı olarak tek bir değere oturdu.
+Frensiz oturmuş pencerede 19,3 req/s, 2026-11-14'ün frensiz 19,1'iyle aynı;
+15,4 yalnızca 23:39:44'teki freni içerdiği için düşük, karşılaştırılamaz.
+**Verim, 429 sayısı ve çift 429 sayısı 2026-11-14'e göre değişmedi.** Hız `37 -> 27 -> 20 -> 18 -> 19 -> 14`
 yolundan geçti.
 
 **429.** Altı derin limit (`deep-limit`) freni, hepsini Node süreci kurdu
