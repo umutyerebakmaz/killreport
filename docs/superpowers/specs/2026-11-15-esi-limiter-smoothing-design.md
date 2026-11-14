@@ -101,7 +101,7 @@ tüketici (`worker-info-corporations`, release exe) 23:35:15'te, Node tüketici
 23:40:06'ya kadar (~4 dk 50 sn) birlikte çalıştı, sonra PID ile durduruldu.
 ESI'ye yalnızca bu iki worker üzerinden gidildi; kuyruklar boşaltılmadı, hiçbir
 şey silinmedi. İstek hızı = log'daki başarılı mesaj satırlarının saniye başına
-sayısı. Redis'teki `esi-limiter:global` 20 sn'de bir salt okunur `HGETALL` ile
+sayısı (pencere [başlangıç, bitiş) alınır: son saniye sayılmaz). Redis'teki `esi-limiter:global` 20 sn'de bir salt okunur `HGETALL` ile
 örneklendi. Hiçbir süreç "Redis unreachable" basmadı.
 
 **Başlangıç hızı: beklenti tutmadı.** Yerel Redis'te önceki çalıştırmadan
@@ -127,7 +127,7 @@ doğrulamadı (birim senaryosu doğruluyor, canlı gözlem yok).
 | 23:35:40-23:40:00    | 7,7  | 8,6  | 16,3   | iki süreç birlikte, bütün pencere |
 
 Toplam her pencerede iki sürecin toplamı olarak tek bir değere oturdu.
-Frensiz oturmuş pencerede 19,3 req/s, 2026-11-14'ün frensiz 19,1'iyle aynı;
+Frensiz oturmuş pencerede 19,3 req/s, 2026-11-14'ün frensiz 19,1'ine yakın (+1%);
 15,4 yalnızca 23:39:44'teki freni içerdiği için düşük, karşılaştırılamaz.
 **Verim, 429 sayısı ve çift 429 sayısı 2026-11-14'e göre değişmedi.** Hız `37 -> 27 -> 20 -> 18 -> 19 -> 14`
 yolundan geçti.
