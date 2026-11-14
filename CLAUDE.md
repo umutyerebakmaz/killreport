@@ -534,8 +534,18 @@ if any other file names `esi.evetech.net`. Do not write a rate limit, an
 error-limit check or a retry sleep of your own. zKillboard needs 10 seconds
 between calls to the same endpoint.
 
-`ESI_MAX_RPS` (default 50) is only the upper bound of the adaptive rate, and it
-is per **process** — the budget is shared by however many workers run at once.
+The budget is shared, not per process. The brake, the adaptive rate and the
+group buckets live in Redis (`backend/src/services/esi-limiter/`, Lua scripts
+shared with the Rust workers), so every Node and Rust process on this machine
+spends one common budget. `ESI_MAX_RPS` (default 50) is the upper bound of that
+**application-wide** rate. If Redis cannot be reached, each process drops to its
+own local limiter (`rate-limiter.ts`, logged as `Redis unreachable`) and the
+ceiling is per process again until Redis returns. Requests carry a class: the
+API server and `worker-redisq-stream` call `setEsiPriority('live')` and keep a
+reserve of the budget; every other process is `bulk`. Two checkouts share a
+budget only if they share a `REDIS_URL` database; different logical databases
+mean separate budgets.
+
 `ESI_PREFETCH` is the matching knob for how many messages a worker holds
 unacked. The API server and `worker-redisq-stream` call `setEsiMaxWait(10_000)`,
 so a brake longer than 10 s fails the request with `EsiThrottledError` instead

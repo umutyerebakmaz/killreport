@@ -38,7 +38,7 @@ async function snapshotSystemActivity() {
 
   try {
     // Both requests together: one row carries both halves, so there is nothing
-    // to gain by serialising them. `esiRateLimiter` governs the dispatch.
+    // to gain by serialising them. `esiLimiter` (the shared limiter) governs the dispatch.
     logger.info('📡 fetching system kills and jumps from ESI...');
     const [killData, jumpData]: [EsiSystemKills[], EsiSystemJumps[]] =
       await Promise.all([

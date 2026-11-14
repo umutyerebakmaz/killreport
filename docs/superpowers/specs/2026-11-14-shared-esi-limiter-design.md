@@ -338,3 +338,50 @@ dizisi. Aynı anda bir kullanıcı ya da redisq isteğinin beklemeden geçtiği.
 - Bekleme döngüsünün uyku üst sınırı ve jitter'ı.
 - Sınıf ayarının adı ve şekli.
 - Redis bağlantısının kurulumu (ayrı bağlantı önerisiyle).
+
+---
+
+## 9. Sonuçlar (2026-11-14)
+
+Gerçek iki süreçli çalıştırma, yerel RabbitMQ / PostgreSQL / Redis ile.
+
+**Yöntem.** `yarn queue:character-corporation-history` (125.649 mesaj) ve
+`yarn queue:corporations` (56.653 mesaj) ile iki kuyruk dolduruldu. Rust
+tüketici (`worker-info-corporations`, release exe) 21:21:59'da, Node tüketici
+(`worker-character-corporation-history`, prefetch 25) 21:22:23'te başlatıldı;
+ikisi de ~4 dk 20 sn birlikte çalıştı, sonra PID ile durduruldu. ESI'ye yalnızca
+bu iki worker üzerinden gidildi. Kuyruklarda mesaj artığı bırakıldı, hiçbir şey
+silinmedi. İstek hızı = log'daki başarılı mesaj satırlarının saniye başına
+sayısı. Redis'te `esi-limiter:global` anahtarı istekler akmaya başlayınca
+göründü: iki süreç de ortak yoldaydı. Hiçbir süreç "Redis unreachable" satırı
+basmadı, yerel moda düşülmedi.
+
+**Hız (başarılı mesaj / sn).**
+
+| Pencere (Node saati) | Node | Rust | Toplam | Not                           |
+| -------------------- | ---- | ---- | ------ | ----------------------------- |
+| Rust tek başına      | -    | ~50  | ~50    | `ESI_MAX_RPS` tavanı          |
+| 21:22:25-21:22:42    | 25,2 | 25,0 | 50,2   | iki süreç, ilk fren öncesi    |
+| 21:23:13-21:23:40    | 14,3 | 14,0 | 28,3   | AIMD düşüyor (27 req/s)       |
+| 21:24:12-21:25:42    | 8,5  | 10,6 | 19,1   | oturmuş kısım (90 sn)         |
+| 21:26:00-21:26:30    | 3,0  | 4,4  | 7,5    | 15 sn'lik fren dahil (hız 13) |
+
+**Sonuç.** İki süreç ayrı tavanlar yerine tek bütçeyi böldü: birleşik hız
+~50 req/s'de (iki katı olan ~100 değil) başladı ve 429'larla birlikte
+`37 -> 27 -> 21 -> 15 -> 18 -> 13 req/s` olarak indi. Oturmuş 90 sn'lik
+pencerede toplam 19,1 req/s, yani beklenen ~17-20 aralığında. Toplam her
+pencerede iki sürecin toplamı olarak tek bir değere oturdu; süreçlerden biri
+ötekinden bağımsız hızlanmadı.
+
+**429.** Altı derin limit (`deep-limit`) freni, hepsini Node süreci kurdu ve
+logladı (21:22:42, :57; 21:23:40, :56; 21:25:42, :58). 22 mesaj throttle ile
+kuyruğa geri döndü, hiçbiri kaybolmadı ya da hata olarak sayılmadı. Rust
+tarafı hiç 429 görmedi, 0 hata; yine de Node'un kurduğu freni bekledi (Rust
+hız satırları fren aralıklarında durdu). Ardışık 429: üç çift, her çiftte
+15 sn'lik fren bittikten sonraki ilk istek yine 429 aldı (en uzun dizi 2,
+üçlü yok). Hız her çiftte bir kez daha düştü.
+
+**Dikkat.** Derin limit ~50 req/s'de hemen aştı; AIMD ~13-18 req/s'ye inmeden
+önce altı 429 yedi. Bunun nedeni başlangıç hızının `ESI_MAX_RPS` olması, yani
+yeni bir davranış değil (2026-10-28 §7 ile aynı). Beklentiyle çelişen bir
+bulgu yok.

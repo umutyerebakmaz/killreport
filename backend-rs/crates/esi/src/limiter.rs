@@ -24,7 +24,11 @@
 //! Retry-After. A request waiting on its bucket leaves the queue and re-enters
 //! on its own timer, so it never holds up other routes.
 //!
-//! The base ceiling is per PROCESS and comes from ESI_MAX_RPS (default 50).
+//! The base ceiling comes from ESI_MAX_RPS (default 50). This limiter is per
+//! PROCESS: it is the one a process falls back to while Redis is unreachable.
+//! Normally the shared limiter (`shared_limiter.rs`) holds the application-wide
+//! budget in Redis; see
+//! docs/superpowers/specs/2026-11-14-shared-esi-limiter-design.md.
 //!
 //! # How the port maps the JavaScript
 //!
