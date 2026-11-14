@@ -308,6 +308,10 @@ da toplam hızı düşürür, ki istenen budur.
 Bu bir çıkarım, doküman açıkça yazmıyor. §7'deki gerçek çalıştırmada iki
 worker aynı anda çalıştırılarak kontrol edilir.
 
+> **Not (2026-11-14):** Bu bölümün "Redis'te ortak state'e gerek yok" sonucu
+> geçersiz kaldı; fren, hız ve bucket'lar artık Redis'te ortak. Bkz.
+> [2026-11-14-shared-esi-limiter-design.md](2026-11-14-shared-esi-limiter-design.md).
+
 ---
 
 ## 5. Taşıma

@@ -17,7 +17,7 @@ import { handleWorkerError } from './worker-error';
 
 export const QUEUE_NAME = 'esi_character_corporation_history_queue';
 const CORPORATION_QUEUE_NAME = 'esi_corporation_info_queue';
-// Concurrency, not a rate limit - esiRateLimiter owns the dispatch ceiling.
+// Concurrency, not a rate limit - the shared limiter (esiLimiter) owns the dispatch ceiling.
 // Its job is to keep that ceiling fed, so it has to be at least a fraction of
 // the target rate. Override per run with ESI_PREFETCH.
 const PREFETCH_COUNT = Math.max(

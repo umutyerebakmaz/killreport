@@ -30,7 +30,7 @@ import { characterTitleFields } from '@helpers/character-achievement';
 import { AllianceService } from '@services/alliance/alliance.service';
 import { CharacterService } from '@services/character/character.service';
 import { CorporationService } from '@services/corporation/corporation.service';
-import { setEsiMaxWait } from '@services/esi-client';
+import { setEsiMaxWait, setEsiPriority } from '@services/esi-client';
 import { KillmailDetail, KillmailService } from '@services/killmail';
 import { saveKillmail } from '@services/killmail-writer';
 import logger from '@services/logger';
@@ -111,8 +111,10 @@ let stats = {
  * Main worker loop
  */
 export async function redisQStreamWorker() {
-  // Live stream: a killmail must not stall behind a long ESI brake (10 s cap).
+  // Live stream: a killmail must not stall behind a long ESI brake (10 s cap),
+  // and draws the shared ESI budget ahead of bulk work.
   setEsiMaxWait(10_000);
+  setEsiPriority('live');
 
   while (!isShuttingDown) {
     logger.info('🌊 R2Z2 stream worker started');

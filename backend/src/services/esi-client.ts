@@ -1,13 +1,15 @@
 /**
  * The single HTTP client for ESI. Every caller goes through `esiClient.get`,
- * which asks `esiRateLimiter` for a slot first, reports the response back to it
+ * which asks `esiLimiter` for a slot first, reports the response back to it
  * and always gives the slot up again. See
- * docs/superpowers/specs/2026-10-28-esi-rate-limiter-design.md.
+ * docs/superpowers/specs/2026-10-28-esi-rate-limiter-design.md and
+ * docs/superpowers/specs/2026-11-14-shared-esi-limiter-design.md.
  */
 
+import { esiLimiter } from '@services/esi-limiter/shared-rate-limiter';
+import type { EsiPriority } from '@services/esi-limiter/shared-store';
 import {
   EsiThrottledError,
-  esiRateLimiter,
   type EsiThrottleKind,
 } from '@services/rate-limiter';
 import axios, {
@@ -31,6 +33,14 @@ let maxWaitMs: number | undefined;
 /** Process-wide; called once at startup by the API server and the live stream. */
 export function setEsiMaxWait(ms: number | undefined): void {
   maxWaitMs = ms;
+}
+
+/**
+ * Process-wide; the API server and the live stream set 'live', which may draw
+ * the shared budget down past the floor bulk work leaves. The default is 'bulk'.
+ */
+export function setEsiPriority(priority: EsiPriority): void {
+  esiLimiter.setPriority(priority);
 }
 
 /** AxiosHeaders is a class instance; the limiter wants plain lower-case keys. */
@@ -82,7 +92,7 @@ export function createEsiClient(adapter?: AxiosAdapter) {
       opts: EsiRequestOptions = {},
     ): Promise<AxiosResponse<T>> {
       const route = { path, bucketKey: opts.bucketKey };
-      await esiRateLimiter.acquire(
+      await esiLimiter.acquire(
         route,
         maxWaitMs === undefined ? {} : { maxWaitMs },
       );
@@ -91,7 +101,7 @@ export function createEsiClient(adapter?: AxiosAdapter) {
           params: opts.params,
           headers: opts.headers,
         });
-        esiRateLimiter.observe(route, res.status, plainHeaders(res.headers));
+        await esiLimiter.observe(route, res.status, plainHeaders(res.headers));
         return res;
       } catch (error) {
         if (!(error instanceof AxiosError)) throw error;
@@ -99,7 +109,7 @@ export function createEsiClient(adapter?: AxiosAdapter) {
         if (!error.response) throw error;
         const { status } = error.response;
         const headers = plainHeaders(error.response.headers);
-        esiRateLimiter.observe(route, status, headers);
+        await esiLimiter.observe(route, status, headers);
         if (status === 420 || status === 429) {
           const thrown = new EsiThrottledError(
             status,
@@ -111,7 +121,7 @@ export function createEsiClient(adapter?: AxiosAdapter) {
         }
         throw error;
       } finally {
-        esiRateLimiter.release();
+        esiLimiter.release();
       }
     },
   };

@@ -3,7 +3,8 @@ import { inspect } from 'node:util';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import pkg from '../../package.json';
 import { createEsiClient, setEsiMaxWait } from './esi-client';
-import { EsiThrottledError, esiRateLimiter } from './rate-limiter';
+import { esiLimiter } from './esi-limiter/shared-rate-limiter';
+import { EsiThrottledError } from './rate-limiter';
 
 // rate-limiter builds its singleton from config at import time, and the real
 // config exits the process when EVE_CLIENT_ID is unset, as it is in CI.
@@ -54,13 +55,13 @@ describe('esiClient', () => {
 
   beforeEach(() => {
     calls = [];
-    vi.spyOn(esiRateLimiter, 'acquire').mockImplementation(async () => {
+    vi.spyOn(esiLimiter, 'acquire').mockImplementation(async () => {
       calls.push('acquire');
     });
-    vi.spyOn(esiRateLimiter, 'observe').mockImplementation(() => {
+    vi.spyOn(esiLimiter, 'observe').mockImplementation(async () => {
       calls.push('observe');
     });
-    vi.spyOn(esiRateLimiter, 'release').mockImplementation(() => {
+    vi.spyOn(esiLimiter, 'release').mockImplementation(() => {
       calls.push('release');
     });
     setEsiMaxWait(undefined);
@@ -161,7 +162,7 @@ describe('esiClient', () => {
   });
 
   it('does not release when acquire itself rejects', async () => {
-    vi.spyOn(esiRateLimiter, 'acquire').mockRejectedValue(new Error('maxWait'));
+    vi.spyOn(esiLimiter, 'acquire').mockRejectedValue(new Error('maxWait'));
     const { adapter, requests } = makeAdapter({ status: 200 });
     await expect(
       createEsiClient(adapter).get('/universe/types/34/'),
@@ -179,7 +180,7 @@ describe('esiClient', () => {
       },
     });
     await createEsiClient(ok.adapter).get('/killmails/1/abc/');
-    expect(esiRateLimiter.observe).toHaveBeenLastCalledWith(
+    expect(esiLimiter.observe).toHaveBeenLastCalledWith(
       { path: '/killmails/1/abc/', bucketKey: undefined },
       200,
       expect.objectContaining({
@@ -192,12 +193,12 @@ describe('esiClient', () => {
     await expect(
       createEsiClient(bad.adapter).get('/killmails/1/abc/'),
     ).rejects.toBeTruthy();
-    expect(esiRateLimiter.observe).toHaveBeenLastCalledWith(
+    expect(esiLimiter.observe).toHaveBeenLastCalledWith(
       expect.objectContaining({ path: '/killmails/1/abc/' }),
       500,
       expect.objectContaining({ 'retry-after': '7' }),
     );
-    expect(esiRateLimiter.observe).toHaveBeenCalledTimes(2);
+    expect(esiLimiter.observe).toHaveBeenCalledTimes(2);
   });
 
   it('turns a 429 with a group header into a rate-limit EsiThrottledError', async () => {
@@ -251,14 +252,14 @@ describe('esiClient', () => {
 
     setEsiMaxWait(10_000);
     await client.get('/characters/9/', { bucketKey: '9' });
-    expect(esiRateLimiter.acquire).toHaveBeenLastCalledWith(
+    expect(esiLimiter.acquire).toHaveBeenLastCalledWith(
       { path: '/characters/9/', bucketKey: '9' },
       { maxWaitMs: 10_000 },
     );
 
     setEsiMaxWait(undefined);
     await client.get('/characters/9/');
-    expect(esiRateLimiter.acquire).toHaveBeenLastCalledWith(
+    expect(esiLimiter.acquire).toHaveBeenLastCalledWith(
       { path: '/characters/9/', bucketKey: undefined },
       {},
     );

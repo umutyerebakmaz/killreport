@@ -25,9 +25,11 @@
  * A request waiting on its bucket leaves the queue and re-enters on its own
  * timer, so it never holds up other routes.
  *
- * The base ceiling is per PROCESS and comes from ESI_MAX_RPS (default 50).
- * Every worker runs in its own process with its own instance, so the budget is
- * shared by however many are running at once.
+ * The base ceiling comes from ESI_MAX_RPS (default 50). This instance is per
+ * PROCESS: it is the limiter a process falls back to while Redis is
+ * unreachable. Normally the shared limiter (esi-limiter/shared-rate-limiter.ts,
+ * esiLimiter) holds the application-wide budget in Redis; see
+ * docs/superpowers/specs/2026-11-14-shared-esi-limiter-design.md.
  */
 
 import { config } from '@config/config';
@@ -78,14 +80,14 @@ const WINDOW_UNIT_MS: Record<string, number> = {
 };
 
 /** Header value in seconds → ms, or null when absent or not a number. */
-function seconds(value: string | undefined): number | null {
+export function seconds(value: string | undefined): number | null {
   if (value === undefined || value.trim() === '') return null;
   const n = Number(value);
   return Number.isFinite(n) ? n * 1000 : null;
 }
 
 /** X-Ratelimit-Limit, e.g. '150/15m' → { limit: 150, windowMs: 900_000 }. */
-function parseLimit(
+export function parseLimit(
   value: string | undefined,
 ): { limit: number; windowMs: number } | null {
   const match = value?.trim().match(/^(\d+)\/(\d+)([smhd])$/);
@@ -139,7 +141,7 @@ interface Waiter {
   route?: EsiRoute;
 }
 
-class RateLimiter {
+export class RateLimiter {
   private queue: Waiter[] = [];
   private processing = false;
   private requestCount = 0;

@@ -17,6 +17,7 @@ chrono = { version = "0.4", default-features = false, features = ["clock", "serd
 dotenvy = "0.15"
 futures-util = "0.3"
 lapin = { version = "2", default-features = false }
+redis = { version = "1.8.1", default-features = false, features = ["connection-manager", "script", "tokio-comp"] }
 regex = "1"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 serde = { version = "1", features = ["derive"] }
