@@ -42,6 +42,7 @@
 
 use std::collections::{HashMap, VecDeque};
 use std::future::Future;
+use std::pin::Pin;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Duration;
@@ -51,6 +52,8 @@ use tokio::task::AbortHandle;
 use tokio::time::Instant;
 
 use crate::route::{parse_limit, route_template, seconds};
+use crate::shared::SharedStore;
+use crate::shared_limiter::{LimiterStore, SharedLimiter};
 use crate::throttled::{EsiThrottled, ThrottleKind};
 
 const ERROR_LIMIT_FLOOR: f64 = 20.0;
@@ -104,16 +107,34 @@ pub struct LimiterStats {
 
 /// A dispatch slot. It counts as in flight until it is dropped, which is what
 /// `release()` did in JavaScript; a slot cannot be leaked by forgetting it.
+///
+/// It holds the counter of the limiter that granted it, local or shared, so
+/// a slot always goes back where it came from, across a switch between the
+/// two as well.
 #[derive(Debug)]
 pub struct Permit {
-    inner: Arc<Inner>,
+    in_flight: Arc<AtomicUsize>,
+}
+
+impl Permit {
+    /// Count one more slot in flight on `in_flight`, until the permit drops.
+    pub(crate) fn take(in_flight: &Arc<AtomicUsize>) -> Self {
+        in_flight.fetch_add(1, Ordering::SeqCst);
+        Self {
+            in_flight: Arc::clone(in_flight),
+        }
+    }
 }
 
 impl Drop for Permit {
     fn drop(&mut self) {
-        self.inner.in_flight.fetch_sub(1, Ordering::SeqCst);
+        self.in_flight.fetch_sub(1, Ordering::SeqCst);
     }
 }
+
+/// The Redis the shared limiter uses when `REDIS_URL` is unset: the same
+/// default as `backend/src/config/config.ts`.
+pub const DEFAULT_REDIS_URL: &str = "redis://localhost:6379";
 
 /// The last known state of one route group's token bucket.
 #[derive(Debug, Clone)]
@@ -170,7 +191,7 @@ struct Inner {
     // In-flight cap has to scale with the rate, or it becomes the real ceiling.
     max_concurrent: usize,
     // Outside the lock so a `Permit` can be dropped while the lock is held.
-    in_flight: AtomicUsize,
+    in_flight: Arc<AtomicUsize>,
     state: Mutex<State>,
 }
 
@@ -189,12 +210,18 @@ enum Next {
 }
 
 /// The ESI rate limiter. Cheap to clone; clones share one limiter.
+///
+/// Local only from `new`; with `with_shared` (and from `from_env`) the shared
+/// Redis budget decides and this process's own limiter is the fallback for
+/// when Redis does not answer (`shared_limiter.rs`).
 #[derive(Clone, Debug)]
 pub struct RateLimiter {
     inner: Arc<Inner>,
+    shared: Option<Arc<SharedLimiter>>,
 }
 
 impl RateLimiter {
+    /// A per-process limiter, with no shared store.
     pub fn new(max_requests_per_second: u32) -> Self {
         assert!(max_requests_per_second > 0, "ESI_MAX_RPS must be positive");
         let max = f64::from(max_requests_per_second);
@@ -203,7 +230,7 @@ impl RateLimiter {
                 epoch: Instant::now(),
                 max_requests_per_second: max,
                 max_concurrent: 50.max(max_requests_per_second as usize),
-                in_flight: AtomicUsize::new(0),
+                in_flight: Arc::new(AtomicUsize::new(0)),
                 state: Mutex::new(State {
                     queue: VecDeque::new(),
                     processing: false,
@@ -220,22 +247,73 @@ impl RateLimiter {
                     next_parked_id: 0,
                 }),
             }),
+            shared: None,
         }
     }
 
-    /// `ESI_MAX_RPS`, default 50. Unlike the Node config, which turns a bad
-    /// value into NaN without a word, a value that is not a positive integer
-    /// is an error at startup.
+    /// `ESI_MAX_RPS`, default 50, and the shared store on `REDIS_URL`, default
+    /// `DEFAULT_REDIS_URL`. Unlike the Node config, which turns a bad
+    /// `ESI_MAX_RPS` into NaN without a word, a value that is not a positive
+    /// integer is an error at startup. Nothing connects here: the store
+    /// connects on first use.
     pub fn from_env() -> Result<Self, String> {
-        match std::env::var("ESI_MAX_RPS") {
-            Err(_) => Ok(Self::new(50)),
+        let max_rps = match std::env::var("ESI_MAX_RPS") {
+            Err(_) => 50,
             Ok(raw) => match raw.trim().parse::<u32>() {
-                Ok(n) if n > 0 => Ok(Self::new(n)),
-                _ => Err(format!(
-                    "ESI_MAX_RPS must be a positive integer, got {raw:?}"
-                )),
+                Ok(n) if n > 0 => n,
+                _ => {
+                    return Err(format!(
+                        "ESI_MAX_RPS must be a positive integer, got {raw:?}"
+                    ))
+                }
             },
+        };
+        let redis_url = std::env::var("REDIS_URL")
+            .ok()
+            .filter(|url| !url.is_empty())
+            .unwrap_or_else(|| DEFAULT_REDIS_URL.to_owned());
+        let store = SharedStore::new(&redis_url, max_rps)
+            .map_err(|e| format!("REDIS_URL is not a valid Redis URL: {e}"))?;
+        Ok(Self::new(max_rps).with_shared(store))
+    }
+
+    /// Put the shared Redis budget in front of this limiter, which becomes the
+    /// fallback. Every acquire asks as `Priority::Bulk`.
+    pub fn with_shared(self, store: SharedStore) -> Self {
+        let url = store.redis_url().to_owned();
+        self.with_store_at(Arc::new(store), Some(url))
+    }
+
+    /// `with_shared` with any store: for tests, which use a fake one.
+    pub fn with_store(self, store: Arc<dyn LimiterStore>) -> Self {
+        self.with_store_at(store, None)
+    }
+
+    fn with_store_at(self, store: Arc<dyn LimiterStore>, redis_url: Option<String>) -> Self {
+        let local = Self {
+            inner: Arc::clone(&self.inner),
+            shared: None,
+        };
+        let max_rps = self.inner.max_requests_per_second;
+        Self {
+            inner: self.inner,
+            shared: Some(Arc::new(SharedLimiter::new(
+                store, local, max_rps, redis_url,
+            ))),
         }
+    }
+
+    /// Whether acquires currently go through the shared store: false for a
+    /// local-only limiter, and while Redis is unreachable.
+    pub fn is_shared(&self) -> bool {
+        self.shared
+            .as_ref()
+            .is_some_and(|shared| shared.is_shared())
+    }
+
+    /// The Redis URL of the shared store, when it was built from one.
+    pub fn redis_url(&self) -> Option<&str> {
+        self.shared.as_ref()?.redis_url()
     }
 
     /// Wait for a dispatch slot; the slot counts as in flight until the
@@ -247,6 +325,20 @@ impl RateLimiter {
     /// with `EsiThrottled` instead of waiting: at once if it is already known,
     /// or when it is discovered if the acquire is still waiting.
     pub fn acquire(
+        &self,
+        route: &EsiRoute,
+        max_wait: Option<Duration>,
+    ) -> impl Future<Output = Result<Permit, EsiThrottled>> + Send + 'static {
+        let acquire: Pin<Box<dyn Future<Output = Result<Permit, EsiThrottled>> + Send>> =
+            match &self.shared {
+                Some(shared) => shared.acquire(route, max_wait),
+                None => Box::pin(self.acquire_local(route, max_wait)),
+            };
+        acquire
+    }
+
+    /// `acquire` on this process's own limiter.
+    pub(crate) fn acquire_local(
         &self,
         route: &EsiRoute,
         max_wait: Option<Duration>,
@@ -297,7 +389,42 @@ impl RateLimiter {
     }
 
     /// Read a response's throttling headers. Keys must be lowercase.
+    ///
+    /// On a shared limiter the store is told on a task of its own, so this
+    /// needs a tokio runtime then; `observe_async` is the same call awaited,
+    /// and the one `EsiClient` uses.
     pub fn observe(&self, route: &EsiRoute, status: u16, headers: &HashMap<String, String>) {
+        match &self.shared {
+            Some(shared) if shared.is_shared() => {
+                let shared = Arc::clone(shared);
+                let (route, headers) = (route.clone(), headers.clone());
+                tokio::spawn(async move { shared.observe(&route, status, &headers).await });
+            }
+            _ => self.observe_local(route, status, headers),
+        }
+    }
+
+    /// `observe`, waiting until the shared store has the response (at most
+    /// the store's 200 ms timeout). Keys must be lowercase.
+    pub async fn observe_async(
+        &self,
+        route: &EsiRoute,
+        status: u16,
+        headers: &HashMap<String, String>,
+    ) {
+        match &self.shared {
+            Some(shared) => shared.observe(route, status, headers).await,
+            None => self.observe_local(route, status, headers),
+        }
+    }
+
+    /// `observe` on this process's own limiter.
+    pub(crate) fn observe_local(
+        &self,
+        route: &EsiRoute,
+        status: u16,
+        headers: &HashMap<String, String>,
+    ) {
         let inner = &self.inner;
         let mut state = inner.lock();
         let header = |name: &str| headers.get(name).map(String::as_str);
@@ -344,12 +471,14 @@ impl RateLimiter {
         }
     }
 
-    /// Current limiter stats (`getStats`).
+    /// Current limiter stats (`getStats`): the local limiter's, with the
+    /// shared side's waiters counted in `queue_length`.
     pub fn stats(&self) -> LimiterStats {
+        let shared_waiting = self.shared.as_ref().map_or(0, |shared| shared.waiting());
         let state = self.inner.lock();
         let now = self.inner.now();
         LimiterStats {
-            queue_length: state.queue.len() + state.parked.len(),
+            queue_length: state.queue.len() + state.parked.len() + shared_waiting,
             current_rate: self.inner.current_rate(&state, now) as u32,
             paused_until: (state.paused_until > 0.0)
                 .then(|| self.inner.epoch + Duration::from_millis(state.paused_until as u64)),
@@ -677,7 +806,7 @@ impl Inner {
                 break;
             };
             state.request_count += 1;
-            self.in_flight.fetch_add(1, Ordering::SeqCst);
+            let permit = Permit::take(&self.in_flight);
             if let Some(key) = state.bucket_key_of(&waiter.route) {
                 if let Some(bucket) = state.buckets.get_mut(&key) {
                     bucket.sent_at = now;
@@ -686,9 +815,7 @@ impl Inner {
             }
             // If the caller has gone, the permit comes back and is dropped
             // here, which gives the slot back.
-            let _ = waiter.tx.send(Ok(Permit {
-                inner: Arc::clone(self),
-            }));
+            let _ = waiter.tx.send(Ok(permit));
 
             // Space out dispatches at the current rate.
             return Next::SleepMs(spacing);

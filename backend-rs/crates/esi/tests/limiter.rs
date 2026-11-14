@@ -864,3 +864,40 @@ fn regex_match(pattern: &str, text: &str) -> bool {
     }
     true
 }
+
+mod shared_wiring {
+    use esi::{RateLimiter, DEFAULT_REDIS_URL};
+
+    #[test]
+    fn the_default_redis_url_is_the_one_the_node_config_uses() {
+        let config = std::fs::read_to_string(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../../backend/src/config/config.ts"
+        ))
+        .unwrap();
+        let marker = "REDIS_URL: z.string().default('";
+        let line = config
+            .lines()
+            .find(|line| line.contains(marker))
+            .expect("config.ts declares REDIS_URL with a default");
+        let rest = &line[line.find(marker).unwrap() + marker.len()..];
+        let node_default = &rest[..rest.find('\'').unwrap()];
+        assert_eq!(DEFAULT_REDIS_URL, node_default);
+    }
+
+    #[test]
+    fn from_env_uses_the_default_redis_url_when_redis_url_is_unset() {
+        // No other test in this binary reads REDIS_URL.
+        std::env::remove_var("REDIS_URL");
+        let limiter = RateLimiter::from_env().unwrap();
+        assert!(limiter.is_shared());
+        assert_eq!(limiter.redis_url(), Some(DEFAULT_REDIS_URL));
+    }
+
+    #[test]
+    fn new_stays_local_only() {
+        let limiter = RateLimiter::new(50);
+        assert!(!limiter.is_shared());
+        assert_eq!(limiter.redis_url(), None);
+    }
+}

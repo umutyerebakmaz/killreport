@@ -129,7 +129,7 @@ impl EsiClient {
 
         let status = response.status().as_u16();
         let headers = lowercase_headers(response.headers());
-        self.limiter.observe(&route, status, &headers);
+        self.limiter.observe_async(&route, status, &headers).await;
 
         if status == 420 || status == 429 {
             let kind = throttle_kind(status, &headers);

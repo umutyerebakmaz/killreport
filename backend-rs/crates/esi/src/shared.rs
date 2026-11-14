@@ -7,9 +7,9 @@
 //! marshals arguments and results. An absent number travels as `''`, which the
 //! scripts read as "no value".
 
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 
-use redis::aio::ConnectionManager;
+use redis::aio::{ConnectionManager, ConnectionManagerConfig};
 use redis::{Client, ErrorKind, RedisError, Script, Value};
 use tokio::sync::OnceCell;
 
@@ -78,7 +78,7 @@ pub enum AcquireOutcome {
     },
 }
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct ObserveInput {
     pub template: String,
     pub bucket_key: String,
@@ -143,7 +143,9 @@ fn parse_kind(kind: &str) -> Result<ThrottleKind, RedisError> {
 /// unreachable Redis and never blocks.
 pub struct SharedStore {
     client: Client,
-    connection: OnceCell<ConnectionManager>,
+    url: String,
+    // Behind an Arc so the connect can run on its own task (see `connection`).
+    connection: Arc<OnceCell<ConnectionManager>>,
     max_rps: u32,
     prefix: String,
 }
@@ -153,7 +155,8 @@ impl SharedStore {
         let client = Client::open(redis_url).map_err(|e| e.to_string())?;
         Ok(Self {
             client,
-            connection: OnceCell::new(),
+            url: redis_url.to_owned(),
+            connection: Arc::new(OnceCell::new()),
             max_rps,
             prefix: KEY_PREFIX.to_string(),
         })
@@ -165,11 +168,43 @@ impl SharedStore {
         self
     }
 
+    /// The URL this store was built with.
+    pub fn redis_url(&self) -> &str {
+        &self.url
+    }
+
+    /// The connect runs on its own task, as ioredis's `connect()` does in the
+    /// Node store: a caller that stops waiting (the limiter's 200 ms timeout)
+    /// does not cancel it, so a Redis slower than that to connect still ends
+    /// up connected and a later call finds the connection ready.
+    ///
+    /// One attempt per connect, not the default six with backoff: against a
+    /// dead Redis an attempt then ends within the 1 s connection timeout, well
+    /// inside the limiter's 10 s retry interval, so connect tasks never pile up.
     async fn connection(&self) -> Result<ConnectionManager, RedisError> {
-        self.connection
-            .get_or_try_init(|| ConnectionManager::new(self.client.clone()))
+        if let Some(connection) = self.connection.get() {
+            return Ok(connection.clone());
+        }
+        let cell = Arc::clone(&self.connection);
+        let client = self.client.clone();
+        tokio::spawn(async move {
+            cell.get_or_try_init(|| {
+                ConnectionManager::new_with_config(
+                    client,
+                    ConnectionManagerConfig::new().set_number_of_retries(0),
+                )
+            })
             .await
             .cloned()
+        })
+        .await
+        .map_err(|e| {
+            RedisError::from((
+                ErrorKind::Client,
+                "limiter connect task failed",
+                e.to_string(),
+            ))
+        })?
     }
 
     /// `now` is for tests; without it the script uses Redis TIME.
