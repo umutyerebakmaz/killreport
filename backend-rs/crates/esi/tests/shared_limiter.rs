@@ -218,32 +218,63 @@ fn headers(pairs: &[(&str, &str)]) -> HashMap<String, String> {
 
 const TEN_S: Option<Duration> = Some(Duration::from_secs(10));
 
-/// Collects every INFO and WARN line, for as long as the guard lives.
-fn capture_logs() -> (tracing::subscriber::DefaultGuard, Arc<Mutex<Vec<String>>>) {
-    #[derive(Clone)]
-    struct Sink(Arc<Mutex<Vec<String>>>);
-    impl std::io::Write for Sink {
-        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-            let line = String::from_utf8_lossy(buf).trim().to_owned();
-            if !line.is_empty() {
-                self.0.lock().unwrap().push(line);
-            }
-            Ok(buf.len())
+thread_local! {
+    /// The lines of the `capture_logs` call active on this thread, if any.
+    static CAPTURED: std::cell::RefCell<Option<Arc<Mutex<Vec<String>>>>> =
+        const { std::cell::RefCell::new(None) };
+}
+
+/// Writes each formatted line to this thread's capture; drops it when none.
+struct ThreadSink;
+impl std::io::Write for ThreadSink {
+    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+        let line = String::from_utf8_lossy(buf).trim().to_owned();
+        if !line.is_empty() {
+            CAPTURED.with(|captured| {
+                if let Some(lines) = captured.borrow().as_ref() {
+                    lines.lock().unwrap().push(line);
+                }
+            });
         }
-        fn flush(&mut self) -> std::io::Result<()> {
-            Ok(())
-        }
+        Ok(buf.len())
     }
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
+    }
+}
+
+/// Stops this thread's capture when dropped.
+struct CaptureGuard;
+impl Drop for CaptureGuard {
+    fn drop(&mut self) {
+        CAPTURED.with(|captured| *captured.borrow_mut() = None);
+    }
+}
+
+/// Collects every INFO and WARN line emitted on this thread, for as long as
+/// the guard lives.
+///
+/// One global subscriber, installed once, routes lines to the capturing
+/// thread. A per-test `set_default` subscriber raced tracing's process-wide
+/// callsite interest cache when tests ran on parallel threads, and a test
+/// could lose the very line it counted (CI on main, 2026-11-14). The tests
+/// run on a current-thread runtime, so their events arrive on this thread.
+fn capture_logs() -> (CaptureGuard, Arc<Mutex<Vec<String>>>) {
+    static INSTALL: std::sync::Once = std::sync::Once::new();
+    INSTALL.call_once(|| {
+        let subscriber = tracing_subscriber::fmt()
+            .with_max_level(tracing::Level::INFO)
+            .with_ansi(false)
+            .without_time()
+            .with_target(false)
+            .with_writer(|| ThreadSink)
+            .finish();
+        tracing::subscriber::set_global_default(subscriber)
+            .expect("no other global subscriber in this test binary");
+    });
     let lines = Arc::new(Mutex::new(Vec::new()));
-    let sink = Sink(Arc::clone(&lines));
-    let subscriber = tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .with_ansi(false)
-        .without_time()
-        .with_target(false)
-        .with_writer(move || sink.clone())
-        .finish();
-    (tracing::subscriber::set_default(subscriber), lines)
+    CAPTURED.with(|captured| *captured.borrow_mut() = Some(Arc::clone(&lines)));
+    (CaptureGuard, lines)
 }
 
 fn logged(lines: &Arc<Mutex<Vec<String>>>, level: &str, text: &str) -> usize {
