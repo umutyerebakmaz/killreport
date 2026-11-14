@@ -3117,7 +3117,10 @@ dependencies = [
 name = "worker-info-corporations"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "chrono",
+ "esi",
+ "runner",
  "serde",
  "serde_json",
  "sqlx",

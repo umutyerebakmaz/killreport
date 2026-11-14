@@ -5,9 +5,13 @@ edition.workspace = true
 publish.workspace = true
 
 [dependencies]
+anyhow.workspace = true
 chrono.workspace = true
+esi.workspace = true
+runner.workspace = true
 serde.workspace = true
 sqlx.workspace = true
+tokio.workspace = true
 
 [dev-dependencies]
 serde_json.workspace = true

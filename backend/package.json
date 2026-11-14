@@ -77,6 +77,7 @@
     "worker:info:characters": "tsx src/workers/worker-info-characters.ts",
     "worker:character-corporation-history": "tsx src/workers/worker-character-corporation-history.ts",
     "worker:info:corporations": "tsx src/workers/worker-info-corporations.ts",
+    "worker:info:corporations:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-info-corporations",
     "worker:info:dogma-attributes": "tsx src/workers/worker-info-dogma-attributes.ts",
     "worker:info:dogma-effects": "tsx src/workers/worker-info-dogma-effects.ts",
     "worker:info:item-groups": "tsx src/workers/worker-info-item-groups.ts",
