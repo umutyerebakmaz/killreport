@@ -522,7 +522,10 @@ speak through response headers:
 A 429 with no group header is the deeper server limiter: every ESI caller
 brakes for `Retry-After` (15 s when it is missing, as it always has been so far)
 and the shared dispatch rate drops by a quarter (floor 1 req/s, at most once per
-10 s), then climbs +1 req/s per 10 s once requests resume. Brakes are capped at
+10 s), then climbs +1 req/s per 10 s, counted only while requests are being granted:
+a gap of 10 s or more without a grant freezes the rate earned so far, so a
+learnt rate survives an idle period. The shared bucket holds `FLOOR + 1`
+tokens, so bulk work does not burst when a brake ends. Brakes are capped at
 15 minutes. The source of truth is the Lua scripts in
 `backend/src/services/esi-limiter/` (`lib.lua`, `acquire.lua`, `observe.lua`);
 `backend/src/services/rate-limiter.ts` and
@@ -689,7 +692,7 @@ truth. Required: `EVE_CLIENT_ID`, `EVE_CLIENT_SECRET`, `DATABASE_URL`,
 | Prisma client (API)      | `backend/src/services/prisma.ts`                               |
 | Prisma client (workers)  | `backend/src/services/prisma-worker.ts`                        |
 | DataLoaders              | `backend/src/services/dataloaders.ts`                          |
-| ESI rate limiter         | `backend/src/services/rate-limiter.ts`                         |
+| ESI rate limiter         | `backend/src/services/esi-limiter/`                            |
 | Live leaderboard updates | `backend/src/services/kill-stats-realtime.ts`                  |
 | Workers                  | `backend/src/workers/`                                         |
 | Queue publishers         | `backend/src/queues/`                                          |
