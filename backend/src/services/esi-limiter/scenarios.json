@@ -394,6 +394,84 @@
       ]
     },
     {
+      "name": "below 20% remaining a group is spaced at its refill pace",
+      "maxRps": 50,
+      "steps": [
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000000000,
+          "template": "/killmails/{id}/{hash}/",
+          "status": 200,
+          "group": "killmail",
+          "limit": 150,
+          "windowMs": 900000,
+          "remaining": 10,
+          "expect": { "brake": null, "groupPause": null, "rate": 50 }
+        },
+        {
+          "client": "b",
+          "op": "acquire",
+          "now": 1700000000000,
+          "priority": "bulk",
+          "template": "/killmails/{id}/{hash}/",
+          "expect": { "granted": true }
+        },
+        {
+          "client": "b",
+          "op": "acquire",
+          "now": 1700000000000,
+          "priority": "bulk",
+          "template": "/killmails/{id}/{hash}/",
+          "expect": {
+            "granted": false,
+            "reason": "group",
+            "waitMs": 12000,
+            "detail": "killmail:"
+          }
+        },
+        {
+          "client": "a",
+          "op": "acquire",
+          "now": 1700000012000,
+          "priority": "bulk",
+          "template": "/killmails/{id}/{hash}/",
+          "expect": { "granted": true }
+        }
+      ]
+    },
+    {
+      "name": "below one 2xx's worth the pace counts from the last response",
+      "maxRps": 50,
+      "steps": [
+        {
+          "client": "a",
+          "op": "observe",
+          "now": 1700000000000,
+          "template": "/killmails/{id}/{hash}/",
+          "status": 200,
+          "group": "killmail",
+          "limit": 150,
+          "windowMs": 900000,
+          "remaining": 1,
+          "expect": { "brake": null, "groupPause": null }
+        },
+        {
+          "client": "b",
+          "op": "acquire",
+          "now": 1700000005000,
+          "priority": "bulk",
+          "template": "/killmails/{id}/{hash}/",
+          "expect": {
+            "granted": false,
+            "reason": "group",
+            "waitMs": 7000,
+            "detail": "killmail:"
+          }
+        }
+      ]
+    },
+    {
       "name": "a brake is capped at 15 minutes",
       "maxRps": 50,
       "steps": [

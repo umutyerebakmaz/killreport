@@ -1,8 +1,8 @@
 -- Shared ESI limiter: read one response's throttling signals.
 --
--- Loaded as-is by the Node store (shared-store.ts) and by the Rust store
--- (include_str!), so this file is the single copy of the logic. It mirrors
--- observe, observeGroup, pause, lowerRate, respace and currentRate in
+-- Runs with lib.lua prepended (see the loading rule there); str, num, nowMs,
+-- currentRate, readBucket, respace, NEVER and RATE_CLIMB_INTERVAL_MS come
+-- from it. It mirrors observe, observeGroup, pause and lowerRate in
 -- backend/src/services/rate-limiter.ts, with the same constants. Header
 -- parsing stays with the caller; this script only sees numbers.
 --
@@ -21,23 +21,10 @@ local DEFAULT_PAUSE_MS = 60000
 local DEEP_LIMIT_PAUSE_MS = 15000
 local RATE_DECREASE = 0.75
 local MAX_PAUSE_MS = 15 * 60000
-local RATE_CLIMB_INTERVAL_MS = 10000
-local LOW_TOKEN_SHARE = 0.2
-local SUCCESS_TOKEN_COST = 2
 local BUCKET_TTL_EXTRA_MS = 60000
-local NEVER = -1e15
 
 local function opt(value)
   if value == nil or value == '' then return nil end
-  return tonumber(value)
-end
-
-local function str(n)
-  return string.format('%.17g', n)
-end
-
-local function num(value, default)
-  if value == false or value == nil then return default end
   return tonumber(value)
 end
 
@@ -53,32 +40,22 @@ local errorRemain = opt(ARGV[9])
 local errorResetMs = opt(ARGV[10])
 local retryAfterMs = opt(ARGV[11])
 local maxRps = tonumber(ARGV[12])
-
-local now
-if ARGV[13] == nil or ARGV[13] == '' then
-  local t = redis.call('TIME')
-  now = tonumber(t[1]) * 1000 + math.floor(tonumber(t[2]) / 1000)
-else
-  now = tonumber(ARGV[13])
-end
+local now = nowMs(ARGV[13])
 
 local globalKey = prefix .. 'global'
-local g = redis.call('HMGET', globalKey, 'pausedUntil', 'pauseStatus',
-  'pauseKind', 'rateBase', 'loweredAt')
+local g = redis.call('HMGET', globalKey, 'pausedUntil', 'rateBase', 'loweredAt')
 local state = {
   pausedUntil = num(g[1], 0),
-  rateBase = num(g[4], maxRps),
-  loweredAt = num(g[5], NEVER),
+  rateBase = num(g[2], maxRps),
+  loweredAt = num(g[3], NEVER),
 }
 local pauseChanged, rateChanged = false, false
 
 local brakeMs, brakeStatus, brakeKind = 0, 0, ''
 local groupKey, groupPauseMs = '', 0
 
-local function currentRate()
-  local climbFrom = math.max(state.loweredAt, state.pausedUntil)
-  local climbed = math.max(0, math.floor((now - climbFrom) / RATE_CLIMB_INTERVAL_MS))
-  return math.min(maxRps, state.rateBase + climbed)
+local function rateNow()
+  return currentRate(maxRps, state.rateBase, state.loweredAt, state.pausedUntil, now)
 end
 
 local function result()
@@ -91,7 +68,7 @@ local function result()
       'loweredAt', str(state.loweredAt))
   end
   return {math.ceil(brakeMs), brakeStatus, brakeKind, groupKey,
-    math.ceil(groupPauseMs), currentRate()}
+    math.ceil(groupPauseMs), rateNow()}
 end
 
 local function pause(ms, pauseStatus, kind)
@@ -111,7 +88,7 @@ local function pause(ms, pauseStatus, kind)
 end
 
 local function lowerRate()
-  state.rateBase = math.max(1, math.floor(currentRate() * RATE_DECREASE))
+  state.rateBase = math.max(1, math.floor(rateNow() * RATE_DECREASE))
   state.loweredAt = now
   rateChanged = true
 end
@@ -121,27 +98,12 @@ if group ~= '' then
   redis.call('HSET', prefix .. 'groups', template, group)
   local key = group .. ':' .. bucketKey
   local bucketRedisKey = prefix .. 'bucket:' .. key
-  local b = redis.call('HMGET', bucketRedisKey, 'limit', 'windowMs',
-    'remaining', 'updatedAt', 'sentAt', 'nextAllowedAt', 'pausedUntil')
-  local bucket
-  if b[4] then
-    bucket = {
-      limit = num(b[1], nil),
-      windowMs = num(b[2], nil),
-      remaining = num(b[3], nil),
-      updatedAt = num(b[4], now),
-      sentAt = num(b[5], NEVER),
-      nextAllowedAt = num(b[6], 0),
-      pausedUntil = num(b[7], 0),
-    }
-  else
-    bucket = {
-      updatedAt = now,
-      sentAt = NEVER,
-      nextAllowedAt = 0,
-      pausedUntil = 0,
-    }
-  end
+  local bucket = readBucket(bucketRedisKey) or {
+    updatedAt = now,
+    sentAt = NEVER,
+    nextAllowedAt = 0,
+    pausedUntil = 0,
+  }
 
   if limitArg and windowArg and limitArg > 0 and windowArg > 0 then
     bucket.limit = limitArg
@@ -151,18 +113,7 @@ if group ~= '' then
     bucket.remaining = remainingArg
     bucket.updatedAt = now
   end
-
-  -- respace
-  bucket.nextAllowedAt = 0
-  local limit, remaining = bucket.limit, bucket.remaining
-  if limit and limit > 0 and remaining and remaining < limit * LOW_TOKEN_SHARE then
-    local pace = (bucket.windowMs / limit) * SUCCESS_TOKEN_COST
-    local from = bucket.sentAt
-    if remaining < SUCCESS_TOKEN_COST then
-      from = math.max(bucket.sentAt, bucket.updatedAt)
-    end
-    bucket.nextAllowedAt = from + pace
-  end
+  respace(bucket)
 
   if status == 429 then
     local retryAfter = retryAfterMs or DEFAULT_PAUSE_MS

@@ -1,8 +1,8 @@
 -- Shared ESI limiter: ask for one dispatch slot.
 --
--- Loaded as-is by the Node store (shared-store.ts) and by the Rust store
--- (include_str!), so this file is the single copy of the logic. The rules
--- mirror backend/src/services/rate-limiter.ts.
+-- Runs with lib.lua prepended (see the loading rule there); str, num, nowMs,
+-- currentRate, readBucket, respace and NEVER come from it. The rules mirror
+-- backend/src/services/rate-limiter.ts.
 --
 -- ARGV: [1] key prefix, [2] priority ('live' | 'bulk'), [3] route template,
 --       [4] bucketKey ('' for none), [5] maxRps, [6] floor,
@@ -12,35 +12,13 @@
 --   reason 'group' -> detail '<group>:<bucketKey>'
 --   reason 'rate'  -> detail ''
 
-local RATE_CLIMB_INTERVAL_MS = 10000
-local LOW_TOKEN_SHARE = 0.2
-local SUCCESS_TOKEN_COST = 2
-local NEVER = -1e15
-
 local prefix = ARGV[1]
 local priority = ARGV[2]
 local template = ARGV[3]
 local bucketKey = ARGV[4]
 local maxRps = tonumber(ARGV[5])
 local floorTokens = tonumber(ARGV[6])
-
-local now
-if ARGV[7] == '' then
-  local t = redis.call('TIME')
-  now = tonumber(t[1]) * 1000 + math.floor(tonumber(t[2]) / 1000)
-else
-  now = tonumber(ARGV[7])
-end
-
--- Exact round trip for numbers stored in a hash.
-local function str(n)
-  return string.format('%.17g', n)
-end
-
-local function num(value, default)
-  if value == false or value == nil then return default end
-  return tonumber(value)
-end
+local now = nowMs(ARGV[7])
 
 local globalKey = prefix .. 'global'
 local g = redis.call('HMGET', globalKey, 'tokens', 'refilledAt',
@@ -55,25 +33,15 @@ if pausedUntil > now then
     (g[4] or '0') .. ':' .. (g[5] or '')}
 end
 
--- 2. The route's group bucket, once its group has been learnt.
+-- 2. The route's group bucket, once its group has been learnt. An expired
+-- bucket is no bucket, as an unknown one is in rate-limiter.ts.
 local bucket = nil
 local bucketRedisKey = nil
 local group = redis.call('HGET', prefix .. 'groups', template)
 if group then
   bucketRedisKey = prefix .. 'bucket:' .. group .. ':' .. bucketKey
-  local b = redis.call('HMGET', bucketRedisKey, 'limit', 'windowMs',
-    'remaining', 'updatedAt', 'sentAt', 'nextAllowedAt', 'pausedUntil')
-  -- An expired bucket is no bucket, as an unknown one is in rate-limiter.ts.
-  if b[4] then
-    bucket = {
-      limit = num(b[1], nil),
-      windowMs = num(b[2], nil),
-      remaining = num(b[3], nil),
-      updatedAt = num(b[4], 0),
-      sentAt = num(b[5], NEVER),
-      nextAllowedAt = num(b[6], 0),
-      pausedUntil = num(b[7], 0),
-    }
+  bucket = readBucket(bucketRedisKey)
+  if bucket then
     local readyAt = math.max(bucket.pausedUntil, bucket.nextAllowedAt)
     if readyAt > now then
       return {0, math.ceil(readyAt - now), 'group', group .. ':' .. bucketKey}
@@ -82,9 +50,7 @@ if group then
 end
 
 -- 3. Refill the shared bucket at the adapted rate.
-local climbFrom = math.max(loweredAt, pausedUntil)
-local climbed = math.max(0, math.floor((now - climbFrom) / RATE_CLIMB_INTERVAL_MS))
-local rate = math.min(maxRps, rateBase + climbed)
+local rate = currentRate(maxRps, rateBase, loweredAt, pausedUntil, now)
 local capacity = math.max(floorTokens + 1, rate)
 local tokens = num(g[1], capacity)
 local refilledAt = num(g[2], 0)
@@ -106,20 +72,9 @@ redis.call('HSET', globalKey, 'tokens', str(tokens), 'refilledAt', str(refilledA
 
 if bucket then
   bucket.sentAt = now
-  -- respace, as in rate-limiter.ts
-  local nextAllowedAt = 0
-  local limit = bucket.limit
-  local remaining = bucket.remaining
-  if limit and limit > 0 and remaining and remaining < limit * LOW_TOKEN_SHARE then
-    local pace = (bucket.windowMs / limit) * SUCCESS_TOKEN_COST
-    local from = bucket.sentAt
-    if remaining < SUCCESS_TOKEN_COST then
-      from = math.max(bucket.sentAt, bucket.updatedAt)
-    end
-    nextAllowedAt = from + pace
-  end
+  respace(bucket)
   redis.call('HSET', bucketRedisKey, 'sentAt', str(bucket.sentAt),
-    'nextAllowedAt', str(nextAllowedAt))
+    'nextAllowedAt', str(bucket.nextAllowedAt))
 end
 
 return {1}

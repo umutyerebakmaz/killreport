@@ -2,7 +2,8 @@
  * The Redis side of the shared ESI limiter: one budget, one brake and one set
  * of group buckets for every process that talks to ESI from this machine.
  *
- * The logic lives in acquire.lua and observe.lua, the single copy that the
+ * The logic lives in acquire.lua and observe.lua, with the helpers both share
+ * in lib.lua (prepended to each, see loadScript), the single copy that the
  * Rust store loads too (include_str!), and runs atomically inside Redis on
  * Redis's own clock. This class only marshals arguments and results; header
  * parsing, waiting and logging belong to the caller.
@@ -57,8 +58,15 @@ interface Script {
   sha: string;
 }
 
+const read = (name: string) => readFileSync(join(__dirname, name), 'utf8');
+
+/**
+ * A script runs as ONE body: lib.lua, a newline, then the script, and the
+ * EVALSHA SHA is of that combined body. The Rust store builds the same body
+ * with concat!(include_str!("lib.lua"), "\n", include_str!("<script>.lua")).
+ */
 function loadScript(name: string): Script {
-  const source = readFileSync(join(__dirname, name), 'utf8');
+  const source = `${read('lib.lua')}\n${read(name)}`;
   return { source, sha: createHash('sha1').update(source).digest('hex') };
 }
 
