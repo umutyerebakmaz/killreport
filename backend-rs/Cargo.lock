@@ -1403,10 +1403,13 @@ name = "mq"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "esi",
  "futures-util",
  "lapin",
  "regex",
+ "serde",
+ "serde_json",
  "thiserror",
  "tokio",
  "tracing",
