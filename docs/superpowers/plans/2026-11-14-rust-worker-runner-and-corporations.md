@@ -33,15 +33,15 @@ Testler: `#[tokio::test(start_paused = true)]`, `sqlx::test`.
 
 ## İnceleme odağı
 
-1. **Parse edilemeyen mesaj.** Gövde JSON değilse ya da `entityId` yoksa `handle` çağrılmaz, hata sayacı artar ve mesaj ortak hata yoluna gider (ilk denemede `nack(false)`); worker çökmez. Test: Görev 1.
-2. **Kapanışta eldeki mesajlar.** Ctrl+C / SIGTERM sonrası yeni mesaj alınmaz, işlenmekte olanlar ack'lenir, `worker stopped` basılır, havuz kapanır. Test: Görev 2, Adım 5 (elle).
-3. **`shares` 2³¹'den büyük.** Gerçek corporation'larda `shares` milyarları aşar; `i32` ile parse hata verir ve her mesaj parking'e düşer. Test: Görev 3.
-4. **`date_founded` yok.** NPC corporation'larında ESI `date_founded` göndermeyebilir; `NULL` yazılmalı, parse hatası olmamalı. Test: Görev 3.
-5. **Update'te korunan kolonlar.** `date_founded`, `creator_id`, `home_station_id`, `shares` update'te eski değerini korur (Node eşitliği). Yanlışlıkla `SET`'e eklenirse CSV karşılaştırması bunu yakalamaz (ilk koşunun değeri zaten aynı). Test: Görev 3.
+1. **Parse edilemeyen mesaj.** Gövde JSON değilse ya da `entityId` yoksa `handle` çağrılmaz, hata sayacı artar ve mesaj ortak hata yoluna gider (ilk denemede `nack(false)`); worker çökmez. Test: Task 1.
+2. **Kapanışta eldeki mesajlar.** Ctrl+C / SIGTERM sonrası yeni mesaj alınmaz, işlenmekte olanlar ack'lenir, `worker stopped` basılır, havuz kapanır. Test: Task 2, Adım 5 (elle).
+3. **`shares` 2³¹'den büyük.** Gerçek corporation'larda `shares` milyarları aşar; `i32` ile parse hata verir ve her mesaj parking'e düşer. Test: Task 3.
+4. **`date_founded` yok.** NPC corporation'larında ESI `date_founded` göndermeyebilir; `NULL` yazılmalı, parse hatası olmamalı. Test: Task 3.
+5. **Update'te korunan kolonlar.** `date_founded`, `creator_id`, `home_station_id`, `shares` update'te eski değerini korur (Node eşitliği). Yanlışlıkla `SET`'e eklenirse CSV karşılaştırması bunu yakalamaz (ilk koşunun değeri zaten aynı). Test: Task 3.
 
 ---
 
-### Görev 0: Ön koşullar
+### Task 0: Ön koşullar
 
 **Dosyalar:** yok.
 
@@ -49,7 +49,7 @@ Testler: `#[tokio::test(start_paused = true)]`, `sqlx::test`.
 - [ ] **Adım 2:** Yerel PostgreSQL ve RabbitMQ açık, `backend/.env`'deki `DATABASE_URL` / `RABBITMQ_URL` onları gösteriyor. Göstermiyorsa dur ve kullanıcıya söyle; `.env` düzenlenmez.
 - [ ] **Adım 3:** `cd backend-rs && cargo test` temiz geçiyor: başlangıç noktası yeşil.
 
-### Görev 1: `runner` crate'i, mesaj başına işleme
+### Task 1: `runner` crate'i, mesaj başına işleme
 
 **Dosyalar:**
 
@@ -94,28 +94,28 @@ fn success_line_keeps_each_workers_own_shape() {
 - [ ] **Adım 7: `cargo test -p runner` geçer;** fmt ve clippy temiz.
 - [ ] **Adım 8: Commit.** `feat(backend-rs): add the runner crate with per-message processing`
 
-### Görev 2: `run()` ve alliance worker'ının taşınması
+### Task 2: `run()` ve alliance worker'ının taşınması
 
 **Dosyalar:**
 
 - Oluştur: `backend-rs/crates/runner/src/run.rs`, `backend-rs/crates/runner/src/shutdown.rs`
 - Değiştir: `backend-rs/workers/worker-info-alliances/src/main.rs` (baştan yazılır), `src/lib.rs` (`pub mod message;` çıkar), `Cargo.toml`
-- Sil: `backend-rs/workers/worker-info-alliances/src/message.rs` (Görev 1'de taşındı)
+- Sil: `backend-rs/workers/worker-info-alliances/src/message.rs` (Task 1'de taşındı)
 
 **Arayüzler:**
 
 - Üretir: `pub struct Resources { pub pool: sqlx::PgPool, pub esi: esi::EsiClient }`, `pub async fn run<W: Worker>(build: impl FnOnce(Resources) -> W) -> anyhow::Result<()>`.
-- Tüketir: Görev 1'in `Worker`, `Totals`, `process_one`, `success_line`'ı.
+- Tüketir: Task 1'in `Worker`, `Totals`, `process_one`, `success_line`'ı.
 
 - [ ] **Adım 1: `shutdown.rs`.** `main.rs:269-289`'daki `shutdown_signal()` aynen (`pub(crate) async fn shutdown_signal()`).
 - [ ] **Adım 2: `run.rs`.** `main.rs:76-187`'in ve `report_when_drained`'in (`main.rs:244-267`) taşınmış hali; sabitler `W::QUEUE_NAME`, `W::PREFETCH_COUNT`, `W::CONSUMER_TAG`'den. Log metinleri: ilk satır `W::STARTED`, `"📦 queue: {}"`, `"⚡ prefetch: {} concurrent\n"`, bağlantıda `"⏳ waiting for {}...\n"` (`W::WAITING_FOR`); geri kalan her satır karakteri karakterine bugünkü gibi. `RECONNECT_DELAY` ve `QUIET` 5 s, `run.rs`'te sabit.
 - [ ] **Adım 3: Alliance `main.rs`.** `struct AllianceWorker { pool: PgPool, esi: EsiClient }`, `impl runner::Worker`: `QUEUE_NAME = "esi_alliance_info_queue"`, `PREFETCH_COUNT = 3`, `CONSUMER_TAG = "worker-info-alliances-rs"`, `STARTED = "🤝 alliance info worker started"`, `WAITING_FOR = "alliances"`, `ENTITY = "alliance"`. `handle`: `self.esi.get::<AllianceInfo>(&format!("/alliances/{id}"))` → `upsert_alliance` → `Processed { inserted, detail: format!(" {} [{}] ID:{id}", info.name, info.ticker) }`. `main`: `runner::run(|r| AllianceWorker { pool: r.pool, esi: r.esi }).await`. Dosyanın başındaki doc yorumu korunur. `Cargo.toml`'dan artık kullanılmayan bağımlılıklar (`dotenvy`, `futures-util`, `lapin`, `tracing-subscriber`, `mq`) çıkar; `runner` eklenir.
 - [ ] **Adım 4: `cargo test` (bütün workspace) geçer.** Alliance'ın `tests/upsert.rs` ve kalan `tests/parse.rs` vakaları değişmeden geçer.
-- [ ] **Adım 5: Yerel koşu, elle.** `backend/` içinden `yarn queue:alliances`, sonra `yarn worker:info:alliances:rs`. Beklenen: başlangıç satırları, `  ✅ [n] <name> [<ticker>] ID:<id> (updated|created)` satırları, 5 s sessizlikten sonra `✅ queue completed!` + `📊 final: ... 0 errors`. İşlerken Ctrl+C: `⚠️  shutting down...`, `worker stopped`, süreç çıkar. Çıktının ilk ~20 satırını ve özet satırını not et; Görev 5'te sonuçlara girer.
+- [ ] **Adım 5: Yerel koşu, elle.** `backend/` içinden `yarn queue:alliances`, sonra `yarn worker:info:alliances:rs`. Beklenen: başlangıç satırları, `  ✅ [n] <name> [<ticker>] ID:<id> (updated|created)` satırları, 5 s sessizlikten sonra `✅ queue completed!` + `📊 final: ... 0 errors`. İşlerken Ctrl+C: `⚠️  shutting down...`, `worker stopped`, süreç çıkar. Çıktının ilk ~20 satırını ve özet satırını not et; Task 5'te sonuçlara girer.
 - [ ] **Adım 6: Satır sayısı.** `wc -l workers/worker-info-alliances/src/*.rs crates/runner/src/*.rs`; `main.rs` ~20 satır civarında olmalı. Not et.
 - [ ] **Adım 7: Commit.** `refactor(backend-rs): run the alliance info worker on the shared runner`
 
-### Görev 3: `worker-info-corporations`, saf parçalar ve upsert
+### Task 3: `worker-info-corporations`, saf parçalar ve upsert
 
 **Dosyalar:**
 
@@ -127,7 +127,7 @@ fn success_line_keeps_each_workers_own_shape() {
 
 - Üretir: `pub struct CorporationInfo` (alanlar ve tipler spec'te, _`worker-info-corporations`_; `#[derive(Debug, Clone, Deserialize, PartialEq)]`, `tax_rate: f64` yüzünden `Eq` yok), `pub async fn upsert_corporation(pool: &PgPool, id: i32, info: &CorporationInfo) -> Result<bool, sqlx::Error>` (`true` = yeni satır).
 
-- [ ] **Adım 1: Fixture.** `tests/fixtures/corporations.sql`, alliance fixture'ının başlığındaki komutla (`--table=corporations`) üretilir, başlık yorumu aynı biçimde. Görev 0'daki yerel veritabanı bütün migration'ları uygulamış olmalı.
+- [ ] **Adım 1: Fixture.** `tests/fixtures/corporations.sql`, alliance fixture'ının başlığındaki komutla (`--table=corporations`) üretilir, başlık yorumu aynı biçimde. Task 0'daki yerel veritabanı bütün migration'ları uygulamış olmalı.
 - [ ] **Adım 2: Parse testleri** (`tests/parse.rs`), alliance'taki `esi(extra)` yardımcısı biçiminde, zorunlu alanlar `name, ticker, member_count, ceo_id, creator_id, tax_rate`:
   - `only_the_required_fields_parse_with_every_optional_as_none`: yedi isteğe bağlı alanın hepsi `None`.
   - `every_optional_field_is_read`: hepsi verilmiş, değerleri eşit.
@@ -146,7 +146,7 @@ fn success_line_keeps_each_workers_own_shape() {
 - [ ] **Adım 7: `cargo test` geçer;** fmt, clippy temiz.
 - [ ] **Adım 8: Commit.** `feat(backend-rs): add the corporation info parse and upsert`
 
-### Görev 4: `worker-info-corporations` binary'si
+### Task 4: `worker-info-corporations` binary'si
 
 **Dosyalar:**
 
@@ -155,7 +155,7 @@ fn success_line_keeps_each_workers_own_shape() {
 
 **Arayüzler:**
 
-- Tüketir: Görev 2'nin `runner::{run, Worker, Processed}`'ı, Görev 3'ün `CorporationInfo`, `upsert_corporation`'ı.
+- Tüketir: Task 2'nin `runner::{run, Worker, Processed}`'ı, Task 3'ün `CorporationInfo`, `upsert_corporation`'ı.
 
 - [ ] **Adım 1: `main.rs`.** Alliance'taki biçimde `CorporationWorker`: `QUEUE_NAME = "esi_corporation_info_queue"`, `PREFETCH_COUNT = 25`, `CONSUMER_TAG = "worker-info-corporations-rs"`, `STARTED = "🏢 corporation info worker started"`, `WAITING_FOR = "corporations"`, `ENTITY = "corporation"`. ESI yolu `format!("/corporations/{id}/")` (Node'daki gibi sonda `/`, `corporation.service.ts:20-22`). `detail = format!("[{id}] {} [{}]", info.name, info.ticker)`. Doc yorumu alliance `main.rs`'tekinin karşılığı, Node dosyasına işaret eder.
 - [ ] **Adım 2: Script.** `backend/package.json`'da `worker:info:corporations` satırının altına: `"worker:info:corporations:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-info-corporations"`. `npx prettier --check backend/package.json`.
@@ -163,7 +163,7 @@ fn success_line_keeps_each_workers_own_shape() {
 - [ ] **Adım 4: `cargo test`, fmt, clippy temiz.**
 - [ ] **Adım 5: Commit.** `feat(backend-rs): add the corporation info worker`
 
-### Görev 5: Node ile eşitlik koşusu, kural ve sonuçlar
+### Task 5: Node ile eşitlik koşusu, kural ve sonuçlar
 
 **Dosyalar:**
 
@@ -184,6 +184,6 @@ Aynı kümeyi hemen tekrar yayınla, `yarn worker:info:corporations:rs` ile işl
 - [ ] **Adım 3: Rust→Node çifti.** Aynısı ters sırayla: `corporations-rs-2.csv`, `corporations-node-2.csv`.
 - [ ] **Adım 4: Karşılaştır.** `git diff --no-index` her çiftte boş. Fark varsa: o ID'yi tekrar kuyruğa koyup Rust ile işlet; yeni değer ESI'deki gerçek bir değişiklikse not et, değilse dur ve hatayı ara (spec, _Doğrulama_ 3). İki worker da her koşuda `0 errors`.
 - [ ] **Adım 5: Kural.** `CLAUDE.md:439`'daki cümle spec'teki _Kural değişikliği_ metniyle değiştirilir. Spike spec'inde madde 1'in altına: `**Güncelleme (2026-11-14):** Paylaşılan çalıştırıcı artık bir kütüphane olarak var; süreç izolasyonu korunuyor. Bkz. 2026-11-14-rust-worker-runner-and-corporations-design.md.`
-- [ ] **Adım 6: Sonuçlar.** Tasarım dokümanının sonuna `## Sonuçlar (2026-11-..)`: satır sayıları (`crates/runner` kaynak/test, `worker-info-alliances` öncesi/sonrası, `worker-info-corporations` kaynak/test; Node karşılığı 216 satır), Görev 2 Adım 5'teki alliance koşusu, iki koşu çiftinin özet satırları ve diff sonucu, bulunan farklar.
+- [ ] **Adım 6: Sonuçlar.** Tasarım dokümanının sonuna `## Sonuçlar (2026-11-..)`: satır sayıları (`crates/runner` kaynak/test, `worker-info-alliances` öncesi/sonrası, `worker-info-corporations` kaynak/test; Node karşılığı 216 satır), Task 2 Adım 5'teki alliance koşusu, iki koşu çiftinin özet satırları ve diff sonucu, bulunan farklar.
 - [ ] **Adım 7: Format.** `npx prettier --check CLAUDE.md docs/superpowers/specs/2026-11-12-rust-worker-spike-design.md docs/superpowers/specs/2026-11-14-rust-worker-runner-and-corporations-design.md`; markdown linkleri `CLAUDE.md`'deki `grep` komutuyla kontrol.
 - [ ] **Adım 8: Commit.** `docs: record the shared runner rule and the corporation worker results`
