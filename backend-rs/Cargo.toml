@@ -31,3 +31,4 @@ wiremock = "0.6"
 db = { path = "crates/db" }
 esi = { path = "crates/esi" }
 mq = { path = "crates/mq" }
+runner = { path = "crates/runner" }
