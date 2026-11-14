@@ -372,3 +372,87 @@ eklenir.
   `rabbitmqadmin publish` ya da geçici bir komut). Kalıcı bir script
   eklenmez.
 - `.sqlx/`'in yenilenmesi için `sqlx-cli` kurulu değilse kurulumu.
+
+## Sonuçlar (2026-11-14)
+
+### Satır sayıları
+
+`wc -l`, kaynak ve test ayrı.
+
+| Parça                                    | Kaynak             | Test            |
+| ---------------------------------------- | ------------------ | --------------- |
+| `crates/runner`                          | 440 (6 dosya)      | 223 (2 dosya)   |
+| `worker-info-alliances` (sonra)          | 122 (`main.rs` 46) | 217 (değişmedi) |
+| `worker-info-corporations`               | 153 (`main.rs` 47) | 238             |
+| Node `worker-info-corporations.ts`       | 216                | -               |
+| `worker-info-alliances` `main.rs` (önce) | 286                | -               |
+
+`worker-info-alliances`'in `main.rs`'i 286 satırdan 46'ya indi; consume
+döngüsü, sayaçlar, yeniden bağlanma ve kapanış `crates/runner`'a taşındı.
+Yeni bir worker artık yaklaşık 150 satır kaynak (ESI parse + upsert + 47
+satırlık `main.rs`).
+
+### Alliance koşusu (Task 2, Adım 5)
+
+`yarn queue:alliances` ile 3640 alliance kuyruğa konup yeniden yazılan
+worker'a işletildi; özet satırı bugünkü biçimle aynı:
+
+```text
+📊 final: 3640 processed (1 created, 3639 updated, 0 errors)
+```
+
+### Corporation eşitlik koşusu
+
+500 ID (`SELECT id FROM corporations ORDER BY id LIMIT 500`, 1000001 -
+98002160), her koşuda aynı küme, `esi_corporation_info_queue`'ya
+`{"entityId": <id>, "source": "parity-check"}` gövdesiyle, `persistent`.
+Koşular worker başlangıcından özet satırına kadar (5 s sessizlik dahil):
+
+| Koşu    | Worker | Süre | Özet satırı                                        |
+| ------- | ------ | ---- | -------------------------------------------------- |
+| Çift 1a | Node   | 20 s | `500 processed (0 created, 500 updated, 0 errors)` |
+| Çift 1b | Rust   | 20 s | `500 processed (0 created, 500 updated, 0 errors)` |
+| Çift 2a | Rust   | 20 s | `500 processed (0 created, 500 updated, 0 errors)` |
+| Çift 2b | Node   | 21 s | `500 processed (0 created, 500 updated, 0 errors)` |
+
+CSV'ler her koşunun hemen ardından alındı (`created_at` / `updated_at`
+hariç, brief'teki 14 kolon). `git diff --no-index`:
+
+- **Rust→Node (`corporations-rs-2.csv` / `corporations-node-2.csv`): boş.**
+- **Node→Rust (`corporations-node-1.csv` / `corporations-rs-1.csv`): 1
+  satır, 1 kolon.** ID 1000172 (Pator Tech School), `member_count`: Node
+  927441, Rust 927595.
+
+Bulunan fark ve çözümü: 1000172, ID kümesinin Node ile Rust arasında kendi
+kendine değişen bir NPC corporation'ı. Kural gereği ID Rust worker'ıyla
+yeniden işletildi (`1 processed`, `0 errors`); DB'de 927595 kaldı ve ESI'nin
+o anki yanıtı da `member_count: 927595`. Yani fark Rust'ın bir
+davranışından değil, iki koşu arasında ESI'de gerçekten değişen değerden
+geliyor. Aynı kaymayı Node koşuları arasında da (`node-1` ile `node-2`)
+`1000009` (251099 → 251091), `1000172` ve `1000179` (27353 → 27365) üzerinde
+görüyoruz; hepsi yalnızca `member_count`.
+
+Hata satırı yok: dört koşunun hiçbirinde `0 errors` dışında bir hata çıktısı
+yok. Ölçüm dosyaları (CSV, loglar, yayın scripti) repo dışında, geçici ölçüm
+klasöründe; commit edilmedi.
+
+Bir not: ilk denemede `node-1` CSV'si alınamadı (yerel Windows `psql`'e
+`/c/...` biçiminde yol verilmişti), Rust koşusu CSV'den önce çalıştığı için
+çift bozuldu. Çift baştan, doğru sırayla tekrarlandı; yukarıdaki sonuçlar
+tekrar edilen koşulara ait.
+
+### Bu doğrulamanın sınırı
+
+Spec'te (_Doğrulama_ 3) belirtildiği gibi, ID'ler `corporations` tablosunda
+zaten var olduğu için dört koşu da yalnızca **update yolunu** karşılaştırdı
+(`0 created, 500 updated`). Insert yolu `sqlx::test` ve parse testleriyle
+sabit.
+
+### Kapanış (Ctrl+C / SIGTERM)
+
+_Doğrulama_ 4 ajan kabuğundan **çalıştırılamadı**: yerel Windows
+kabuğunda yerel `.exe`'ye `SIGINT` iletilemiyor, `taskkill` `/F` olmadan
+reddediyor (Task 2'de de aynı). Worker'lar yalnızca `/F` ile durduruldu. Bu
+kontrol kullanıcının elle yapacağı iş olarak **beklemede**: worker
+işlerken Ctrl+C → `⚠️  shutting down...`, eldekiler biter, `worker stopped`;
+ack'lenmemiş mesaj kuyruğa döner.

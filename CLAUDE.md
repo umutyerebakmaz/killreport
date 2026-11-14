@@ -436,7 +436,12 @@ a `QUEUE_NAME` constant. Queue names carry a source prefix — `esi_*` for EVE E
 1. `backend/src/queues/queue-<domain>.ts` collects IDs and pushes them onto a
    durable queue (`esi_<domain>_queue`).
 2. `backend/src/workers/worker-<domain>.ts` consumes it, calls ESI, upserts via
-   `prismaWorker`. Each worker is **self-contained** — no shared runner.
+   `prismaWorker`. Each worker is **self-contained at runtime**: its own
+   process, its own connection and pool, its own `QUEUE_NAME`, so one worker
+   crashing, stopping or restarting never affects another. Rust workers share
+   the consume loop as a library (`backend-rs/crates/runner`) compiled into
+   each binary; that is shared code, not a shared process. Never run several
+   workers inside one process.
 3. Both get a `package.json` script (`queue:<domain>`, `worker:<domain>`).
 
 Two kinds of queue script, and the "already in the database?" filter belongs to

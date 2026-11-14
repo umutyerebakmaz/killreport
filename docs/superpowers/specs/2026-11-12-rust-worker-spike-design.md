@@ -264,6 +264,11 @@ döngünün ne kadar sürtünme yarattığı ölçümlerden biri.
    Node'da da paylaşılan şeyler: ESI client, limiter, `handleWorkerError`,
    havuz. Bu, Node'daki `@services/esi-client` + `./worker-error` ayrımının
    birebir karşılığı.
+
+   **Güncelleme (2026-11-14):** Paylaşılan çalıştırıcı artık bir kütüphane
+   olarak var; süreç izolasyonu korunuyor. Bkz.
+   [2026-11-14-rust-worker-runner-and-corporations-design.md](2026-11-14-rust-worker-runner-and-corporations-design.md).
+
 2. **Worker başına bir binary.** Tek binary + alt komut sorusu analiz
    dokümanında açık. Spike'ta tek worker olduğu için soru doğmuyor; ileride
    production'a alındığında PM2'nin süreç başına `max_memory_restart` ve
