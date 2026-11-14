@@ -1,7 +1,7 @@
 # Merkezi ESI limiter — tasarım
 
 **Tarih:** 2026-11-14
-**Durum:** taslak, onay bekliyor
+**Durum:** onaylandı ve uygulandı (2026-11-14)
 **Değiştirdiği karar:** `2026-10-28-esi-rate-limiter-design.md` §3 "Process'ler
 arasında ortak state (Redis)" hedef olmayanı ve §4.5 "Birden çok process".
 
@@ -243,6 +243,9 @@ gider, gruplu bekleyen bugünkü `parked` mantığıyla diğer route'ları tıka
   Hata ya da zaman aşımı → o istek **bugünkü yerel limiter**'dan geçer.
 - Süreç "yerel mod"a geçer, bunu bir kez `warn` olarak loglar, 10 sn'de bir
   Redis'i yeniden dener. Bağlantı dönünce bir kez loglar ve ortak moda döner.
+- Redis yavaş ama 200 ms içinde cevap veriyorsa süreç yerel moda geçmez; her süreç
+  aynı anda tek bir store çağrısı gönderir (çağrı başına 150 ms ile yaklaşık
+  6 req/s).
 - Yerel modda tavan bugünkü gibi süreç başına `ESI_MAX_RPS`.
 - Yerel limiter kodu silinmez; bugünkü `RateLimiter` sınıfı ve Rust
   `limiter.rs` dönüş yolu olarak kalır.
@@ -351,7 +354,9 @@ tüketici (`worker-info-corporations`, release exe) 21:21:59'da, Node tüketici
 (`worker-character-corporation-history`, prefetch 25) 21:22:23'te başlatıldı;
 ikisi de ~4 dk 20 sn birlikte çalıştı, sonra PID ile durduruldu. ESI'ye yalnızca
 bu iki worker üzerinden gidildi. Kuyruklarda mesaj artığı bırakıldı, hiçbir şey
-silinmedi. İstek hızı = log'daki başarılı mesaj satırlarının saniye başına
+silinmedi. Rust worker'ı çalışma sırasında "final" özetini iki kez bastı (5 sn'lik
+sessizlik özeti fren sırasında tetikleniyor); hız pencereleri mesaj satırlarını
+saydığı için hızlar etkilenmedi. İstek hızı = log'daki başarılı mesaj satırlarının saniye başına
 sayısı. Redis'te `esi-limiter:global` anahtarı istekler akmaya başlayınca
 göründü: iki süreç de ortak yoldaydı. Hiçbir süreç "Redis unreachable" satırı
 basmadı, yerel moda düşülmedi.
@@ -376,8 +381,9 @@ pencerede iki sürecin toplamı olarak tek bir değere oturdu; süreçlerden bir
 **429.** Altı derin limit (`deep-limit`) freni, hepsini Node süreci kurdu ve
 logladı (21:22:42, :57; 21:23:40, :56; 21:25:42, :58). 22 mesaj throttle ile
 kuyruğa geri döndü, hiçbiri kaybolmadı ya da hata olarak sayılmadı. Rust
-tarafı hiç 429 görmedi, 0 hata; yine de Node'un kurduğu freni bekledi (Rust
-hız satırları fren aralıklarında durdu). Ardışık 429: üç çift, her çiftte
+tarafında log'da 429 ya da fren satırı yok, 0 hata; Rust kendi kurmadığı freni
+loglamadığı için bu bir çıkarım, doğrudan gözlem değil. Yine de Node'un kurduğu
+freni bekledi (Rust hız satırları fren aralıklarında durdu). Ardışık 429: üç çift, her çiftte
 15 sn'lik fren bittikten sonraki ilk istek yine 429 aldı (en uzun dizi 2,
 üçlü yok). Hız her çiftte bir kez daha düştü.
 
