@@ -3215,6 +3215,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "worker-info-characters"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "esi",
+ "runner",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "worker-info-corporations"
 version = "0.1.0"
 dependencies = [
