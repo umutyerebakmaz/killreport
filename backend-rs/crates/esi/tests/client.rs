@@ -1,7 +1,7 @@
 //! The client against a local mock server: what it sends, how each answer
 //! comes back and what it tells the limiter.
 
-use esi::{EsiClient, EsiError, RateLimiter, ThrottleKind};
+use esi::{CompatibilityDate, EsiClient, EsiError, RateLimiter, ThrottleKind};
 use serde::Deserialize;
 use wiremock::matchers::{header, header_regex, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -61,6 +61,48 @@ async fn sends_the_user_agent_and_the_compatibility_date() {
         .await;
 
     let _: serde_json::Value = client_for(&server).await.get("/status").await.unwrap();
+}
+
+#[tokio::test]
+async fn sends_the_requested_compatibility_date() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/characters/1/"))
+        .and(header("x-compatibility-date", "2026-06-09"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({})))
+        .expect(1)
+        .mount(&server)
+        .await;
+
+    let _: serde_json::Value = client_for(&server)
+        .await
+        .get_with_compatibility_date("/characters/1/", CompatibilityDate::new("2026-06-09"))
+        .await
+        .unwrap();
+}
+
+#[tokio::test]
+async fn sends_exactly_one_compatibility_date() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({})))
+        .mount(&server)
+        .await;
+
+    let _: serde_json::Value = client_for(&server)
+        .await
+        .get_with_compatibility_date("/characters/1/", CompatibilityDate::new("2026-06-09"))
+        .await
+        .unwrap();
+
+    let requests = server.received_requests().await.unwrap();
+    let dates: Vec<_> = requests[0]
+        .headers
+        .get_all("x-compatibility-date")
+        .iter()
+        .map(|v| v.to_str().unwrap().to_owned())
+        .collect();
+    assert_eq!(dates, ["2026-06-09"]);
 }
 
 #[tokio::test]

@@ -1673,6 +1673,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "queue-characters"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "mq",
+ "runner",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "queue-corporations"
 version = "0.1.0"
 dependencies = [
@@ -3212,6 +3225,21 @@ dependencies = [
  "serde_json",
  "sqlx",
  "tokio",
+]
+
+[[package]]
+name = "worker-info-characters"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "esi",
+ "runner",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
