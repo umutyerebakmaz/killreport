@@ -11,11 +11,11 @@ use std::time::Duration;
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT};
 use serde::de::DeserializeOwned;
 
+use crate::compatibility::CompatibilityDate;
 use crate::limiter::{EsiRoute, RateLimiter};
 use crate::throttled::{EsiThrottled, ThrottleKind};
 
 const ESI_BASE_URL: &str = "https://esi.evetech.net";
-const COMPATIBILITY_DATE: &str = "2020-01-01";
 /// A stalled socket must not hold a limiter slot forever (`esi-client.ts:74`).
 const TIMEOUT: Duration = Duration::from_secs(30);
 
@@ -84,14 +84,12 @@ impl EsiClient {
     /// The same client against another host: for tests, which run against a
     /// local mock server.
     pub fn with_base_url(limiter: RateLimiter, base_url: impl Into<String>) -> Self {
+        // The compatibility date is not a default header: each request sets
+        // its own, so exactly one is ever sent.
         let mut headers = HeaderMap::new();
         headers.insert(
             USER_AGENT,
             HeaderValue::from_str(&user_agent()).expect("the user agent is ASCII"),
-        );
-        headers.insert(
-            "x-compatibility-date",
-            HeaderValue::from_static(COMPATIBILITY_DATE),
         );
         let http = reqwest::Client::builder()
             .default_headers(headers)
@@ -110,8 +108,20 @@ impl EsiClient {
         &self.limiter
     }
 
-    /// GET `path` (e.g. `/alliances/99000001`) and decode the JSON body.
+    /// GET `path` (e.g. `/alliances/99000001`) at
+    /// [`CompatibilityDate::DEFAULT`] and decode the JSON body.
     pub async fn get<T: DeserializeOwned>(&self, path: &str) -> Result<T, EsiError> {
+        self.get_with_compatibility_date(path, CompatibilityDate::DEFAULT)
+            .await
+    }
+
+    /// GET `path` with `date` as its `X-Compatibility-Date`, for a route whose
+    /// fields only exist from that date on, and decode the JSON body.
+    pub async fn get_with_compatibility_date<T: DeserializeOwned>(
+        &self,
+        path: &str,
+        date: CompatibilityDate,
+    ) -> Result<T, EsiError> {
         let route = EsiRoute::new(path);
         // Held until the body has been read; dropping it gives the slot back
         // on every path out of this function.
@@ -120,6 +130,10 @@ impl EsiClient {
         let response = self
             .http
             .get(format!("{}{path}", self.base_url))
+            .header(
+                "x-compatibility-date",
+                HeaderValue::from_static(date.as_str()),
+            )
             .send()
             .await
             .map_err(|source| EsiError::Transport {
