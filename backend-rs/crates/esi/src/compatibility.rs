@@ -40,6 +40,7 @@ impl CompatibilityDate {
         Self(date)
     }
 
+    /// The date as the header carries it, `YYYY-MM-DD`.
     pub fn as_str(self) -> &'static str {
         self.0
     }

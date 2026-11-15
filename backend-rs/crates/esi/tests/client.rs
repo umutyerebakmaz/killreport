@@ -81,6 +81,10 @@ async fn sends_the_requested_compatibility_date() {
         .unwrap();
 }
 
+/// The requested date is sent alone, never next to another value. This does
+/// not guard against a default `x-compatibility-date` coming back in
+/// `with_base_url`: reqwest adds a default header only when the request has
+/// none of that name, so a request date would still win and this would pass.
 #[tokio::test]
 async fn sends_exactly_one_compatibility_date() {
     let server = MockServer::start().await;

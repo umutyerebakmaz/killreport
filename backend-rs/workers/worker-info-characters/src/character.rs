@@ -1,7 +1,7 @@
 //! What ESI says about a character, the title columns it feeds, and the one
 //! statement that stores it.
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, SubsecRound, Utc};
 use esi::CompatibilityDate;
 use serde::Deserialize;
 use serde_json::Value;
@@ -78,7 +78,10 @@ fn valid_score(value: &Value) -> Option<i32> {
         .and_then(|n| i32::try_from(n).ok())
         .filter(|n| *n >= 0);
     if score.is_none() {
-        warn!("Ignoring achievement_score {value}: not an int32 >= 0");
+        warn!(
+            "Ignoring achievement_score {}: not an int32 >= 0",
+            shown(value)
+        );
     }
     score
 }
@@ -88,9 +91,18 @@ fn valid_score(value: &Value) -> Option<i32> {
 fn valid_title_id(value: &Value) -> Option<String> {
     let id = value.as_str().filter(|s| is_uuid(s)).map(str::to_owned);
     if id.is_none() {
-        warn!("Ignoring character_title_id {value}: not a UUID");
+        warn!("Ignoring character_title_id {}: not a UUID", shown(value));
     }
     id
+}
+
+/// A value as Node's `String(value)` prints it in the same warning: a string
+/// bare, anything else as its JSON text.
+fn shown(value: &Value) -> String {
+    match value {
+        Value::String(s) => s.clone(),
+        other => other.to_string(),
+    }
 }
 
 /// Insert or update one character; `true` if it was new.
@@ -111,7 +123,9 @@ fn valid_title_id(value: &Value) -> Option<String> {
 ///   from [`title_fields`].
 ///
 /// `birthday` is `timestamp(3) without time zone` and Prisma stores UTC in
-/// it, so the UTC instant is bound as a naive timestamp.
+/// it, so the UTC instant is bound as a naive timestamp. It is cut to
+/// milliseconds first: JavaScript's `Date` drops the digits past them, while
+/// PostgreSQL would round, so `.789999` must arrive as `.789`, not `.790`.
 /// `character_title_id` is a `uuid` column; the validated string goes in
 /// through `::text::uuid`, so neither the query macro nor the binding needs
 /// sqlx's `uuid` feature.
@@ -149,7 +163,7 @@ pub async fn upsert_character(
         info.name,
         info.corporation_id,
         info.alliance_id,
-        info.birthday.naive_utc(),
+        info.birthday.trunc_subsecs(3).naive_utc(),
         info.bloodline_id,
         info.race_id,
         info.gender,
