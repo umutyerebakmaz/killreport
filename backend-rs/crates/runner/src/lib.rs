@@ -14,7 +14,7 @@ mod totals;
 
 pub use message::EntityQueueMessage;
 pub use process::process_one;
-pub use run::{run, Resources};
+pub use run::{init, run, Resources};
 pub use totals::Totals;
 
 /// What one successful `handle` reports back.

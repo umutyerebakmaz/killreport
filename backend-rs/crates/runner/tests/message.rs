@@ -20,3 +20,14 @@ fn a_body_without_a_numeric_entity_id_does_not_parse() {
     assert!(EntityQueueMessage::parse(b"99000001").is_err());
     assert!(EntityQueueMessage::parse(b"not json").is_err());
 }
+
+#[test]
+fn parses_what_mq_publishes() {
+    let body = mq::EntityMessage::new(98000001, "queue-corporations").to_body();
+    assert_eq!(
+        EntityQueueMessage::parse(&body).unwrap(),
+        EntityQueueMessage {
+            entity_id: 98000001
+        }
+    );
+}
