@@ -39,6 +39,7 @@
     "queue:character": "tsx src/queues/queue-character-killmails.ts",
     "queue:character:zkillboard": "tsx src/queues/queue-character-zkillboard.ts",
     "queue:characters": "tsx src/queues/queue-characters.ts",
+    "queue:characters:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p queue-characters",
     "queue:character-corporation-history": "tsx src/queues/queue-character-corporation-history.ts",
     "queue:constellations": "tsx src/queues/queue-constellations.ts",
     "queue:dogma-attributes": "tsx src/queues/queue-dogma-attributes.ts",
