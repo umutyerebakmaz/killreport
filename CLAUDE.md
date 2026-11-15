@@ -581,14 +581,16 @@ sleeps 60 s before the requeue. A 404 warns and skips.
 
 There are **two** scheduling mechanisms, and both are documented:
 
-1. **PM2 `cron_restart`** in `ecosystem.config.js` — alliances daily, characters
-   monthly, prices daily, sovereignty by the minute, system kills hourly.
-   Described in `backend/docs/ops/pm2.md`.
-2. **The operating system crontab** on the droplet — `queue:characters` and
-   `queue:character-corporations` weekly, plus log cleanup, a nightly database
-   backup and PM2 log rotation. Described in `backend/docs/ops/crontab.md`.
-   Checking `ecosystem.config.js` alone will not tell you whether something is
-   scheduled.
+1. **PM2 `cron_restart`** in `ecosystem.config.js` — alliances daily,
+   `queue:characters` and `queue:character-corporations` weekly (Monday 16:10
+   and 17:00 UTC), prices daily, sovereignty by the minute, system kills
+   hourly. Described in `backend/docs/ops/pm2.md`.
+2. **The operating system crontab** on the droplet — server maintenance only:
+   log cleanup, a nightly database backup and PM2 log rotation. Described in
+   `backend/docs/ops/crontab.md`.
+
+A job belongs to exactly one of the two. The character queues used to sit in
+both, PM2 monthly and the crontab weekly, so they ran twice (#316).
 
 Everything either one schedules is data that changes. Static universe and
 reference data appears in **neither**: `queue:regions`, `queue:constellations`,

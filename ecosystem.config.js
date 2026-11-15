@@ -240,7 +240,7 @@ module.exports = {
       time: true,
     },
 
-    // Queue Characters - Monthly (1st of every month at 00:00 UTC)
+    // Queue Characters - Weekly (Monday 16:10 UTC)
     {
       name: 'queue-characters',
       cwd: '/var/www/killreport/backend',
@@ -249,13 +249,33 @@ module.exports = {
       instances: 1,
       exec_mode: 'fork',
       autorestart: false,
-      cron_restart: '0 0 1 * *',
+      cron_restart: '10 16 * * 1',
       env: {
         NODE_ENV: 'production',
         LOG_LEVEL: 'info',
       },
       error_file: '/var/www/killreport/logs/queue-characters-error.log',
       out_file: '/var/www/killreport/logs/queue-characters-out.log',
+      time: true,
+    },
+
+    // Queue Character Corporations - Weekly (Monday 17:00 UTC, after queue-characters)
+    {
+      name: 'queue-character-corporations',
+      cwd: '/var/www/killreport/backend',
+      script: 'yarn',
+      args: 'queue:character-corporations',
+      instances: 1,
+      exec_mode: 'fork',
+      autorestart: false,
+      cron_restart: '0 17 * * 1',
+      env: {
+        NODE_ENV: 'production',
+        LOG_LEVEL: 'info',
+      },
+      error_file:
+        '/var/www/killreport/logs/queue-character-corporations-error.log',
+      out_file: '/var/www/killreport/logs/queue-character-corporations-out.log',
       time: true,
     },
 

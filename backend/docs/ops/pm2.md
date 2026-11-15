@@ -391,9 +391,9 @@ pm2 logs queue-characters
 | Property        | Value                                             |
 | --------------- | ------------------------------------------------- |
 | **Command**     | `yarn queue:characters`                           |
-| **Run Time**    | 1st of every month 00:00 UTC                      |
-| **Cron**        | `0 0 1 * *`                                       |
-| **Description** | Adds all characters to queue (monthly)            |
+| **Run Time**    | Every Monday 16:10 UTC                            |
+| **Cron**        | `10 16 * * 1`                                     |
+| **Description** | Adds all characters to queue (weekly)             |
 | **Autorestart** | ❌ No (one-time)                                  |
 | **Log**         | `/var/www/killreport/logs/queue-characters-*.log` |
 
@@ -406,8 +406,9 @@ pm2 logs queue-characters
 
 **How It Works:**
 
-- Runs on 1st of every month at 00:00 UTC
-- Updates all characters at beginning of month
+- Runs every Monday at 16:10 UTC
+- Updates all characters once a week, so a corporation or alliance change is
+  at most a week old
 - Adding 93k characters to queue is done in one go
 
 ---
@@ -487,8 +488,8 @@ pm2 logs queue-character-corporations
 | Property        | Value                                                         |
 | --------------- | ------------------------------------------------------------- |
 | **Command**     | `yarn queue:character-corporations`                           |
-| **Run Time**    | Every day 04:00 UTC                                           |
-| **Cron**        | `0 4 * * *`                                                   |
+| **Run Time**    | Every Monday 17:00 UTC, after `queue-characters`              |
+| **Cron**        | `0 17 * * 1`                                                  |
 | **Description** | Detects missing corporations and adds to queue                |
 | **Autorestart** | ❌ No                                                         |
 | **Log**         | `/var/www/killreport/logs/queue-character-corporations-*.log` |
@@ -739,16 +740,16 @@ pm2 plus
 
 ### Scheduled Tasks (8)
 
-| PM2 Name                              | Command                                    | Run Time               | Description                          |
-| ------------------------------------- | ------------------------------------------ | ---------------------- | ------------------------------------ |
-| `queue-characters`                    | `yarn queue:characters`                    | 1st of month 00:00 UTC | Add characters to queue (monthly)    |
-| `queue-alliances`                     | `yarn queue:alliances`                     | Sunday 00:00 UTC       | Add alliances to queue (weekly)      |
-| `queue-alliance-corporations`         | `yarn queue:alliance-corporations`         | Sunday 00:10 UTC       | Discover alliance corps (weekly)     |
-| `queue-character-corporations`        | `yarn queue:character-corporations`        | Daily 04:00 UTC        | Add missing corps to queue           |
-| `snapshot-alliances`                  | `yarn snapshot:alliances`                  | Daily 01:00 UTC        | Alliance snapshot                    |
-| `snapshot-corporations`               | `yarn snapshot:corporations`               | Daily 01:00 UTC        | Corporation snapshot                 |
-| `update-alliance-counts`              | `yarn update:alliance-counts`              | Daily 01:00 UTC        | Alliance statistics                  |
-| `queue-character-corporation-history` | `yarn queue:character-corporation-history` | Monday 03:00 UTC       | Stale corporation histories (weekly) |
+| PM2 Name                              | Command                                    | Run Time         | Description                          |
+| ------------------------------------- | ------------------------------------------ | ---------------- | ------------------------------------ |
+| `queue-characters`                    | `yarn queue:characters`                    | Monday 16:10 UTC | Add characters to queue (weekly)     |
+| `queue-alliances`                     | `yarn queue:alliances`                     | Sunday 00:00 UTC | Add alliances to queue (weekly)      |
+| `queue-alliance-corporations`         | `yarn queue:alliance-corporations`         | Sunday 00:10 UTC | Discover alliance corps (weekly)     |
+| `queue-character-corporations`        | `yarn queue:character-corporations`        | Monday 17:00 UTC | Add missing corps to queue (weekly)  |
+| `snapshot-alliances`                  | `yarn snapshot:alliances`                  | Daily 01:00 UTC  | Alliance snapshot                    |
+| `snapshot-corporations`               | `yarn snapshot:corporations`               | Daily 01:00 UTC  | Corporation snapshot                 |
+| `update-alliance-counts`              | `yarn update:alliance-counts`              | Daily 01:00 UTC  | Alliance statistics                  |
+| `queue-character-corporation-history` | `yarn queue:character-corporation-history` | Monday 03:00 UTC | Stale corporation histories (weekly) |
 
 ---
 
@@ -773,19 +774,21 @@ flowchart LR
     T --> S3["<code>update-alliance-counts</code><br/><i>alliance statistics updated</i>"]
 ```
 
-### Every Day (04:00 UTC)
+### Monday (Weekly)
 
 ```mermaid
 flowchart LR
-    T["<b>04:00 UTC</b><br/><code>queue-character-corporations</code>"] --> D["Missing corps detected<br/>from characters"] --> Q["<code>esi_corporation_info_queue</code>"] --> W["<code>worker-corporations</code>"]
+    T["<b>16:10 UTC</b><br/><code>queue-characters</code>"] --> S["~93k characters scanned<br/>from the database"] --> Q["<code>esi_character_info_queue</code>"] --> W["<code>worker-characters</code><br/><i>~31 minutes</i>"]
 ```
-
-### 1st of Month (Monthly)
 
 ```mermaid
 flowchart LR
-    T["<b>00:00 UTC — 1st of the month only</b><br/><code>queue-characters</code>"] --> S["~93k characters scanned<br/>from the database"] --> Q["<code>esi_character_info_queue</code>"] --> W["<code>worker-characters</code><br/><i>~31 minutes</i>"]
+    T["<b>17:00 UTC</b><br/><code>queue-character-corporations</code>"] --> D["Missing corps detected<br/>from characters"] --> Q["<code>esi_corporation_info_queue</code>"] --> W["<code>worker-corporations</code>"]
 ```
+
+`queue-character-corporations` runs after `queue-characters` has had time to
+refresh `corporation_id`, so the corporations characters moved into that week
+are found the same day.
 
 ### 7/24 Continuously Running Workers
 
@@ -812,8 +815,8 @@ These run continuously rather than on a schedule:
 | **Every day** | 01:00      | update-alliance-counts              | Updates alliance killmail counts (parallel)   |
 | **Every day** | 01:00      | snapshot-corporations               | Takes corporation snapshot (parallel)         |
 | **Monday**    | 03:00      | queue-character-corporation-history | Queues stale corporation histories            |
-| **Every day** | 04:00      | queue-character-corporations        | Detects missing corporations                  |
-| **Monthly**   | 00:00      | queue-characters (1st day)          | Adds all characters to queue                  |
+| **Monday**    | 16:10      | queue-characters                    | Adds all characters to queue                  |
+| **Monday**    | 17:00      | queue-character-corporations        | Detects missing corporations                  |
 
 ---
 
@@ -845,10 +848,10 @@ pm2 trigger queue-alliance-corporations  # 00:10 UTC
 pm2 trigger snapshot-alliances           # 01:00 UTC
 pm2 trigger update-alliance-counts       # 01:00 UTC
 pm2 trigger snapshot-corporations        # 01:00 UTC
-pm2 trigger queue-character-corporations # 04:00 UTC
 
-# Monthly workflow (1st of month - automatic)
-pm2 trigger queue-characters             # 00:00 UTC
+# Monday workflow (normally runs automatically)
+pm2 trigger queue-characters             # 16:10 UTC
+pm2 trigger queue-character-corporations # 17:00 UTC
 ```
 
 ### Initial Setup
