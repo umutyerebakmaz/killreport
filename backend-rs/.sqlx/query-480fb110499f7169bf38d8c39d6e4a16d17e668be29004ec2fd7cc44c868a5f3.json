@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO characters (\n          id, name, corporation_id, alliance_id, birthday, bloodline_id, race_id,\n          gender, security_status, description, title, character_title_id,\n          achievement_score, faction_id, updated_at\n        ) VALUES (\n          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::text::uuid, $13, $14, now()\n        )\n        ON CONFLICT (id) DO UPDATE SET\n          corporation_id     = EXCLUDED.corporation_id,\n          alliance_id        = EXCLUDED.alliance_id,\n          security_status    = EXCLUDED.security_status,\n          description        = EXCLUDED.description,\n          title              = EXCLUDED.title,\n          character_title_id = EXCLUDED.character_title_id,\n          achievement_score  = EXCLUDED.achievement_score,\n          faction_id         = EXCLUDED.faction_id,\n          updated_at         = now()\n        RETURNING (xmax = 0) AS \"inserted!\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "inserted!",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text",
+        "Int4",
+        "Int4",
+        "Timestamp",
+        "Int4",
+        "Int4",
+        "Text",
+        "Float8",
+        "Text",
+        "Text",
+        "Text",
+        "Int4",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "480fb110499f7169bf38d8c39d6e4a16d17e668be29004ec2fd7cc44c868a5f3"
+}
