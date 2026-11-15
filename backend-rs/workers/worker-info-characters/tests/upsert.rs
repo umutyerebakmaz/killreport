@@ -193,3 +193,18 @@ async fn an_uppercase_title_id_is_stored(pool: PgPool) {
 
     assert_eq!(row(&pool).await.character_title_id.as_deref(), Some(UUID));
 }
+
+#[sqlx::test(migrations = false, fixtures("characters"))]
+async fn a_birthday_past_milliseconds_is_truncated_not_rounded(pool: PgPool) {
+    // JavaScript's Date keeps milliseconds and drops the rest, so Node stores
+    // .789 for .789999; PostgreSQL's timestamp(3) would round it to .790.
+    let precise = CharacterInfo {
+        birthday: Utc.with_ymd_and_hms(2010, 1, 1, 12, 34, 56).unwrap()
+            + Duration::microseconds(789_999),
+        ..info()
+    };
+    upsert_character(&pool, ID, &precise).await.unwrap();
+
+    let want = Utc.with_ymd_and_hms(2010, 1, 1, 12, 34, 56).unwrap() + Duration::milliseconds(789);
+    assert_eq!(row(&pool).await.birthday, want.naive_utc());
+}

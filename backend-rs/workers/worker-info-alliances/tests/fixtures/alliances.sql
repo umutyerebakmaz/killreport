@@ -1,11 +1,13 @@
 -- The real shape of `alliances`, generated, not hand-written:
 --
 --   pg_dump --schema-only --table=alliances --no-owner --no-privileges "$DATABASE_URL" \
---     | grep -Ev '^(--|\\(un)?restrict|SET |SELECT pg_catalog\.set_config)' | grep -v '^$'
+--     | tr -d '\r' | grep -Ev '^(--|\\(un)?restrict|SET |SELECT pg_catalog\.set_config)' | grep -v '^$'
 --
 -- against a database with every migration in backend/prisma/migrations
--- applied. The filter drops comments, psql-only \restrict lines and session
--- settings: an empty search_path would outlive the fixture on its connection.
+-- applied. `tr` strips the CR a Windows pg_dump ends its lines with, which
+-- would keep the filter from matching. The filter drops comments,
+-- psql-only \restrict lines and session settings: an empty search_path
+-- would outlive the fixture on its connection.
 -- Regenerate it after a migration that touches this table.
 CREATE TABLE public.alliances (
     id integer NOT NULL,
