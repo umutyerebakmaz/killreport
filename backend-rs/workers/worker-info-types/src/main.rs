@@ -23,8 +23,9 @@ struct TypeWorker {
 
 impl Worker for TypeWorker {
     const QUEUE_NAME: &'static str = "esi_type_info_queue";
-    /// Process 10 types concurrently (`worker-info-types.ts`).
-    const PREFETCH_COUNT: u16 = 10;
+    /// Concurrency, not a rate: every request still waits for a slot from the
+    /// shared ESI limiter. 10 left the limiter idle (~12 types/s against 50).
+    const PREFETCH_COUNT: u16 = 25;
     const CONSUMER_TAG: &'static str = "worker-info-types-rs";
     const STARTED: &'static str = "📦 type info worker started";
     const WAITING_FOR: &'static str = "types";
