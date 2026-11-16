@@ -274,6 +274,13 @@ yarn worker:info:types
 
 **Rate Limit**: header-driven limiter via `esiClient`
 
+**Rust counterpart**: `yarn worker:info:types:rs` with `yarn queue:types:rs`
+(`backend-rs/workers/worker-info-types`, `backend-rs/queues/queue-types`).
+The Rust queue reads every page of `/universe/types/` and publishes only the
+types missing from the database, so the Rust worker does not skip: it upserts
+what it is given. The Node `queue:types` reads only the first page of
+`/universe/groups/` and so misses every group past it.
+
 ---
 
 ### `worker-zkillboard-sync.ts`

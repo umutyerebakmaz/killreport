@@ -28,18 +28,24 @@ kapatır:
 
 ## Hedefler
 
-- **`queue-types`**: root scan. `GET /universe/types/?page=N`, 1. sayfadan
-  `X-Pages` değerine kadar; dönen bütün ID'ler filtresiz kuyruğa gider
-  (CLAUDE.md, "Root scan"). Grup listesi ve gruplar tek tek çekilmez, bu da
-  yaklaşık 1.635 isteği yaklaşık 54 isteğe indirir.
-- **`worker-info-types`**: Node'la aynı davranış.
-  - Type tabloda varsa ESI'ye gidilmez; mesaj ack edilir ve "atlandı"
-    sayılır.
-  - Yoksa `GET /universe/types/{id}/` çekilir ve satır **yalnızca eklenir**.
-    Var olan satır hiçbir zaman güncellenmez (Node'daki `update: {}`).
+- **`queue-types`**: aday listesi ESI'den gelir, filtre veritabanından.
+  - `GET /universe/types/?page=N`, 1. sayfadan `X-Pages` değerine kadar.
+    Grup listesi ve gruplar tek tek çekilmez, bu da yaklaşık 1.635 isteği
+    yaklaşık 54 isteğe indirir.
+  - `SELECT id FROM types` ile var olan ID'ler okunur. Yalnızca ESI'de olup
+    tabloda olmayanlar kuyruğa gider. Bugün bu yaklaşık 20 bin, 53 bin değil.
+  - "Zaten veritabanında mı?" filtresi böylece CLAUDE.md'nin istediği gibi
+    kuyrukta durur, worker'da değil. Kuyruk yeniden çalıştırılabilir:
+    eksik kalmayınca hiçbir şey basmaz.
+- **`worker-info-types`**: öbür üç Rust worker'ının kalıbı.
+  - Her mesajda `GET /universe/types/{id}/` çekilir ve satır upsert edilir.
+    Sonuç `created` ya da `updated` olur.
+  - Güncelleme yolu yalnızca yarışta (aynı ID iki kaynaktan gelmişse) ya da
+    elle kuyruğa konan bir ID'de çalışır. Kuyruklar yalnızca eksik ID'leri
+    basar.
   - `PREFETCH_COUNT = 10`, kuyruk `esi_type_info_queue`.
 - **`esi`** crate'ine sayfalı listeler için `get_paged` eklenir.
-- **`runner`**'a üçüncü bir sonuç eklenir: "skipped".
+- **`runner`**'a dokunulmaz.
 - Mesaj biçimi Node ile birebir aynı: `source: "queue-types"`, biçim
   `mq::publish_entities`'in ürettiği biçim.
 - `backend/package.json`'a `queue:types:rs` ve `worker:info:types:rs`,
@@ -51,23 +57,24 @@ kapatır:
   `TypeService`'e dokunulmaz. Node kuyruğundaki sayfalama açığı Node'da
   düzeltilmez; Node sürümü emekliye ayrıldığında açık da kendiliğinden
   kapanır.
-- Var olan type'ları güncellemek (CCP'nin dengeleme değişiklikleri). Bu
-  bilinçli bir karar: type'lar statik veri sayılıyor.
-- `meta_group_id`. Bu sütunu `yarn sde:meta-groups` doldurur; worker ona
-  dokunmaz, yeni satırda NULL kalır.
+- Var olan bütün type'ları düzenli olarak tazelemek (CCP'nin dengeleme
+  değişiklikleri). Type'lar statik veri sayılıyor; kuyruk var olanları
+  basmaz.
+- `meta_group_id`. Bu sütunu `yarn sde:meta-groups` doldurur; worker ona ne
+  insert'te ne update'te dokunur.
 - Dogma özellikleri ve etkileri, `market_group_id`, `packaged_volume` ve ESI
   yanıtındaki öbür alanlar. Node bunları kaydetmiyor.
-- Zamanlama. `queue:types` statik veridir, elle çalıştırılır; PM2'ye ve
-  crontab'a eklenmez.
+- Zamanlama. `queue:types` statik veridir ve elle çalıştırılır; hiçbir
+  zamanlayıcıya eklenmez.
 - Bu kuyruğa basan öbür Node kodu (`scan:entities`) Node'da kalır. Mesaj
   biçiminin aynı olması bu yüzden şart.
 
 ## Anti-hedefler
 
-- Var olan bir type'ı ESI'ye yeniden sordurmak. Her kuyruk koşusu yaklaşık
-  53 bin istek olur.
+- Var olan type'ları kuyruğa basmak. Her kuyruk koşusu yaklaşık 53 bin
+  mesaj ve istek olur.
 - Sayfalardan biri alınamadığı halde kısmi bir listeyi kuyruğa basmak.
-- Öbür üç worker'ın log satırlarını değiştirmek.
+- `runner`'ı ve öbür üç worker'ı değiştirmek.
 - ESI'ye `esi::EsiClient` dışından gitmek.
 
 ## Yaklaşımlar (kuyruk)
@@ -79,8 +86,21 @@ kapatır:
 3. **`/universe/types/`, tüm sayfalarıyla (seçilen).** Aynı ID listesini
    yaklaşık 54 istekle verir ve `queue-alliances` gibi düz bir taramadır.
 
-Kullanıcı 3'ü seçti. Var olan type'lar için de Node gibi atlamayı seçti; öteki
-seçenek her koşuda bütün tabloyu ESI'den yeniden çekmekti.
+Kullanıcı 3'ü seçti.
+
+## Yaklaşımlar (var olan type'lar)
+
+1. **Worker atlar** (Node'un bugünkü davranışı). Kuyruk filtresiz 53 bin
+   mesaj basar, worker var olanları "var mı?" sorgusuyla geçer. `runner`'a
+   üçüncü bir sonuç ("skipped") gerekir. CLAUDE.md'nin "root scan'de worker
+   da atlamaz" kuralına aykırı; bir istisna notu ister.
+2. **Filtre kuyrukta (seçilen).** Kuyruk yalnızca eksik ID'leri basar, worker
+   düz upsert yapar. Kurala uyar, `runner` değişmez, kuyruğa yaklaşık 20 bin
+   mesaj girer. Bedeli: kuyruk script'i veritabanına bağlanır.
+3. **Her seferinde güncelle.** Filtre yok, worker her type'ı ESI'den tazeler.
+   Her koşu yaklaşık 53 bin istek; elendi.
+
+Kullanıcı önce 1'i seçti; CLAUDE.md kuralı ortaya çıkınca 2'ye geçti.
 
 ## Tasarım
 
@@ -106,29 +126,10 @@ pub async fn get_paged<T: DeserializeOwned>(&self, path: &str) -> Result<Vec<T>,
 - Herhangi bir sayfadaki hata bütün çağrıyı başarısız kılar; kısmi sonuç
   dönmez.
 
-### runner: "skipped" sonucu
-
-`Processed.inserted: bool` alanı bir enum'a çevrilir:
-
-```rust
-pub enum Outcome { Created, Updated, Skipped }
-pub struct Processed { pub outcome: Outcome, pub detail: String }
-```
-
-- `success_line`: `Created`/`Updated` için bugünkü satır değişmez
-  (`  ✅ [n]<detail> (created|updated)`). `Skipped` için Node'un satırı:
-  `  - [n]<detail> (exists)`; types worker'ında `detail` ` type {id}` olur,
-  yani `  - [12] type 587 (exists)`.
-- `Totals`'a `skipped` sayacı eklenir. Final satırı skipped sıfırken bugünkü
-  gibi kalır. Sıfırdan büyükse
-  `📊 final: N processed (X created, Y updated, S skipped, Z errors)`.
-- Var olan üç worker'ın `main.rs`'i yalnızca mekanik olarak güncellenir
-  (`inserted` yerine `Outcome`). Davranışları ve logları değişmez.
-
 ### worker-info-types
 
-Crate düzeni ötekilerle aynı: `src/type_info.rs` (ESI tipi, var-mı sorgusu,
-insert), `src/lib.rs`, `src/main.rs`, `tests/parse.rs`, `tests/insert.rs`,
+Crate düzeni ötekilerle aynı: `src/type_info.rs` (ESI tipi ve upsert),
+`src/lib.rs`, `src/main.rs`, `tests/parse.rs`, `tests/upsert.rs`,
 `tests/fixtures/types.sql`. Modülün adı `type` olamaz (anahtar kelime), bu
 yüzden `type_info`.
 
@@ -140,28 +141,34 @@ olabiliyor, eksik gelirse mesajın düşmesi gerekmez. `volume`, `capacity`,
 
 **`handle(id)`**:
 
-1. `SELECT EXISTS (SELECT 1 FROM types WHERE id = $1)`. Satır varsa
-   `Outcome::Skipped`, ESI isteği yok.
-2. Yoksa `GET /universe/types/{id}/`: sonda `/` var, Node'la aynı
+1. `GET /universe/types/{id}/`: sonda `/` var, Node'la aynı
    (`type.service.ts:57`). Varsayılan uyumluluk tarihi kullanılır.
-3. Insert:
+2. Upsert, öbür worker'lardaki `xmax = 0` kalıbıyla:
 
    ```sql
    INSERT INTO types (id, name, description, group_id, published,
                       volume, capacity, mass, icon_id, updated_at)
    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now())
-   ON CONFLICT (id) DO NOTHING
-   RETURNING id
+   ON CONFLICT (id) DO UPDATE SET
+     name = EXCLUDED.name, description = EXCLUDED.description,
+     group_id = EXCLUDED.group_id, published = EXCLUDED.published,
+     volume = EXCLUDED.volume, capacity = EXCLUDED.capacity,
+     mass = EXCLUDED.mass, icon_id = EXCLUDED.icon_id,
+     updated_at = now()
+   RETURNING (xmax = 0) AS "inserted!"
    ```
 
-   Satır dönerse `Outcome::Created` olur ve `detail` ` {name}` olur. Dönmezse,
-   yani 1. adımla insert arasında başka bir süreç aynı type'ı eklemişse,
-   `Outcome::Skipped` olur. Bu durumda yeni satır yazılmadığı için Node'un
-   `upsert`'üyle aynı sonuç çıkar.
+   `Processed { inserted, detail: " {name}" }`, yani
+   `  ✅ [12] Rifter (created)`.
 
    `updated_at`'in veritabanında varsayılanı yok (`@updatedAt` Prisma'nın),
    o yüzden açıkça yazılır. `created_at` veritabanı varsayılanıdır.
-   `meta_group_id` yazılmaz.
+   `meta_group_id` ne insert'te ne update'te yazılır.
+
+   **Node'dan fark:** Node var olan bir type'ı ESI'ye sormadan geçiyor; Rust
+   onu ESI'den tazeler. Her iki kuyruk da (`queue-types` ve
+   `scan:entities`) yalnızca eksik ID basar, bu yüzden fark yalnızca yarışta
+   ya da elle konan bir ID'de görünür.
 
 **Sabitler.** `QUEUE_NAME = "esi_type_info_queue"`, `PREFETCH_COUNT = 10`,
 `CONSUMER_TAG = "worker-info-types-rs"`,
@@ -170,19 +177,27 @@ olabiliyor, eksik gelirse mesajın düşmesi gerekmez. `volume`, `capacity`,
 
 ### queue-types
 
-`queue-alliances`'ın kalıbı. Argüman almaz.
+`queue-alliances`'ın ESI kalıbı ile `queue-characters`'ın veritabanı kalıbı
+bir arada. Argüman almaz.
 
-- `lib.rs`: `QUEUE_NAME`, `SOURCE = "queue-types"` ve
-  `fetch_type_ids(&EsiClient) -> Result<Vec<i32>, EsiError>`, yani
-  `esi.get_paged("/universe/types/")`.
+- `lib.rs`:
+  - `QUEUE_NAME`, `SOURCE = "queue-types"`.
+  - `fetch_type_ids(&EsiClient) -> Result<Vec<i32>, EsiError>`, yani
+    `esi.get_paged("/universe/types/")`.
+  - `existing_type_ids(&PgPool) -> Result<HashSet<i32>, sqlx::Error>`:
+    `SELECT id FROM types`.
+  - `missing(esi_ids, existing) -> Vec<i32>`: ESI sırasını koruyarak
+    tabloda olmayanlar, tekrarlar bir kez.
 - `main.rs`: `runner::init()`, ardından
-  - `fetching all type IDs from ESI...`
-  - `fetch_type_ids`
-  - `found N types`, `adding to queue: esi_type_info_queue`
-  - `connect` ve `declare_worker_queue`
+  - `fetching all type IDs from ESI...`, `fetch_type_ids`, `found N types`
+  - `db::worker_pool`, `existing_type_ids`, havuz kapatılır
+  - `N already in database, M to queue`
+  - M sıfırsa `nothing to queue` ve çıkış 0, RabbitMQ'ya bağlanılmaz
+  - `adding to queue: esi_type_info_queue`, `connect`,
+    `declare_worker_queue`
   - `publish_entities`, 100'lük batch'ler debug log'da (Node gibi:
     `queued batch i/total`)
-  - `all N types queued successfully!`,
+  - `all M types queued successfully!`,
     `run worker with: yarn worker:info:types:rs`
 - ID listesinin tamamı alınmadan hiçbir şey basılmaz. Hata olursa
   `failed to queue types: …` ve çıkış 1.
@@ -197,42 +212,46 @@ olabiliyor, eksik gelirse mesajın düşmesi gerekmez. `volume`, `capacity`,
        gösteren test.
   - Her sayfa için limiter'ın gözlem yaptığını gösteren test (mevcut
     testlerdeki kalıpla).
-- **runner**:
-  - `Skipped` için `success_line`.
-  - skipped sıfırken final satırının bugünküyle aynı, sıfırdan büyükken
-    skipped'li olduğunu gösteren test.
-  - `process_one`'ın `Skipped`'i ack edip sayması.
 - **worker-info-types**:
   - `parse.rs`: gerçek bir ESI yanıt örneğinin decode'u, opsiyonel alanlar
     eksikken decode.
-  - `insert.rs` (`#[sqlx::test(migrations = false, fixtures(...))]`):
-    - yeni type insert edilir ve `Created` döner;
-    - var olan type'ın satırı hiç değişmez (`updated_at` dahil) ve `Skipped`
-      döner;
-    - `meta_group_id` NULL kalır.
-- **queue-types**: `wiremock` ile `fetch_type_ids`'in sayfaları gezmesi.
-- **Yerelde bir kez:** worker'lar durdurulmuşken `yarn queue:types:rs`.
-  Kuyruktaki mesaj sayısı ESI'nin toplamına (yaklaşık 53 bin) eşit olmalı.
-  Ardından `yarn worker:info:types:rs` kuyruğu boşaltır:
-  - yaklaşık 33,6 bin satır skipped, yaklaşık 20 bin satır created çıkmalı;
-  - `errors` sıfır ya da yalnızca 404'ler olmalı;
-  - `types` satır sayısı yalnızca artmalı.
+  - `upsert.rs` (`#[sqlx::test(migrations = false, fixtures(...))]`):
+    - yeni type eklenir, `true` döner, iki zaman damgası dolu;
+    - var olan type güncellenir, `false` döner, `created_at` değişmez;
+    - `meta_group_id` dolu bir satır güncellenince değeri korunur, yeni
+      satırda NULL kalır.
+- **queue-types**:
+  - `wiremock` ile `fetch_type_ids`'in sayfaları gezmesi;
+  - `missing`: sıra korunur, var olanlar ve tekrarlar düşer;
+  - `existing_type_ids` fixture'lı veritabanına karşı.
+- **Yerelde bir kez:**
+  - Satır sayısı kaydedilir.
+  - Worker'lar durdurulmuşken `yarn queue:types:rs`. Kuyruğa basılan sayı
+    `ESI toplamı − tablodaki satır` ile tutarlı olmalı (yaklaşık 20 bin).
+  - `yarn worker:info:types:rs` kuyruğu boşaltır: neredeyse hepsi created,
+    `errors` sıfır ya da yalnızca 404'ler.
+  - `types` satır sayısı yalnızca artmış olmalı.
+  - `yarn queue:types:rs` ikinci kez çalıştırılınca `nothing to queue`
+    (ya da yalnızca 404 alan birkaç ID) demeli.
 - `cargo test`, `cargo clippy`, `cargo fmt --check`, `.sqlx` güncel olmalı;
   `npx prettier --check backend/package.json`.
 
 ## Kararlarım (kullanıcı onayı değil, düzeltilebilir)
 
-- **Atlama logu Node'un metniyle.** `  - [n] type {id} (exists)`. Eklenen
-  type'ın satırı ise runner'ın biçiminde: `  ✅ [n] {name} (created)`, Node'un
-  `  ✓ [n] {name}` satırı değil. Öbür Rust worker'larında da böyle.
-- **Final satırında "skipped" yalnızca sıfırdan büyükken.** Böylece öbür üç
-  worker'ın logu değişmez. Node'un her 100 mesajlık ara özeti yok; runner
-  ötekilerde de yazmıyor.
-- **Yarışta kalan insert `Skipped` sayılır**, hata sayılmaz.
+- **Worker log satırı runner'ın biçiminde:** `  ✅ [n] {name} (created)`,
+  Node'un `  ✓ [n] {name}` satırı değil. Öbür Rust worker'larında da böyle;
+  Node'un her 100 mesajlık ara özeti de yok.
 - **Sayfalar sırayla istenir, paralel değil.** 54 istek için paralellik
   kazandırmıyor; limiter zaten hızı belirliyor.
-- **ID listesinde tekilleştirme yok.** Sayfalar arasında kayma olursa aynı ID
-  iki kez gelebilir; worker ikincisini atlar.
+- **Tekrarlar kuyrukta tekilleştirilir.** Sayfalar arasında kayma olursa aynı
+  ID iki kez gelebilir; `missing` onu bir kez basar.
+- **Hiçbir eksik yoksa RabbitMQ'ya bağlanılmaz.** `nothing to queue`, çıkış 0.
+- **ESI'nin 404 verdiği bir ID** worker'da Node'daki gibi uyarıyla geçilir;
+  tabloya girmediği için sonraki kuyruk koşularında yeniden basılır. Bu
+  bugün de olan bir durum, ayrıca çözülmez.
+- **CLAUDE.md'ye bir satır:** "Root scan" / "Enrichment" ayrımına,
+  `queue-types`'ın ikisinin arası olduğu (aday ESI'den, filtre
+  veritabanından) not edilir.
 - **`description` opsiyonel okunur**, ESI onu zorunlu saysa da.
 - **Yayıncının son satırı Node'un metniyle** (`run worker with: …`), öbür
   Rust yayıncılarındaki `now run the worker: …` değil. Önceki spec'teki kural

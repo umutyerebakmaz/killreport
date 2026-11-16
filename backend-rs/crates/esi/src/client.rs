@@ -122,6 +122,36 @@ impl EsiClient {
         path: &str,
         date: CompatibilityDate,
     ) -> Result<T, EsiError> {
+        let (body, _headers) = self.fetch(path, date).await?;
+        Ok(body)
+    }
+
+    /// GET every page of a paged list route and concatenate them in page
+    /// order. `path` carries no query string (`/universe/types/`); the first
+    /// page is asked for as `?page=1` and its `X-Pages` says how many follow.
+    /// A missing or unreadable `X-Pages` means one page. Pages are fetched one
+    /// after another, each through the limiter like any other request, and
+    /// any failing page fails the whole call: a partial list never comes back.
+    pub async fn get_paged<T: DeserializeOwned>(&self, path: &str) -> Result<Vec<T>, EsiError> {
+        let date = CompatibilityDate::DEFAULT;
+        let (mut all, headers): (Vec<T>, _) = self.fetch(&format!("{path}?page=1"), date).await?;
+        let pages = headers
+            .get("x-pages")
+            .and_then(|value| value.trim().parse::<u32>().ok())
+            .unwrap_or(1);
+        for page in 2..=pages {
+            let (items, _): (Vec<T>, _) = self.fetch(&format!("{path}?page={page}"), date).await?;
+            all.extend(items);
+        }
+        Ok(all)
+    }
+
+    /// One GET: the decoded body and the response headers, lowercased.
+    async fn fetch<T: DeserializeOwned>(
+        &self,
+        path: &str,
+        date: CompatibilityDate,
+    ) -> Result<(T, HashMap<String, String>), EsiError> {
         let route = EsiRoute::new(path);
         // Held until the body has been read; dropping it gives the slot back
         // on every path out of this function.
@@ -163,10 +193,11 @@ impl EsiClient {
                 path: path.to_owned(),
                 source,
             })?;
-        serde_json::from_slice(&body).map_err(|source| EsiError::Decode {
+        let decoded = serde_json::from_slice(&body).map_err(|source| EsiError::Decode {
             path: path.to_owned(),
             source,
-        })
+        })?;
+        Ok((decoded, headers))
     }
 }
 

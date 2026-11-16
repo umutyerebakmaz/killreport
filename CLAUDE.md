@@ -453,6 +453,14 @@ the second:
   the database, drops the ones already resolved, queues only what is missing.
   Naturally idempotent and resumable.
 
+The Rust `queue-types` sits between the two. It reads its candidates from an
+ESI list endpoint (`/universe/types/`, every page), but applies the "already
+in the database?" filter like an enrichment queue, so the Rust
+`worker-info-types` never skips: it upserts what it is given (the Node worker
+still does). The Node `queue-types.ts` collects
+types group by group and reads only the first page of `/universe/groups/`, so
+it misses every group past it.
+
 RabbitMQ is a conveyor belt, not a store. The durable record of outstanding work
 is the database.
 
