@@ -2,8 +2,9 @@
 /**
  * Corporation Snapshot Worker
  *
- * This worker should run daily (via cron job) and records the current
- * member_count values for all corporations as snapshots.
+ * Runs daily and records each corporation's member_count for the current UTC
+ * day, one row per corporation per day.
+ * Mirrored by backend-rs/workers/worker-corporation-snapshots, same SQL.
  *
  * Usage:
  *   yarn snapshot:corporations
@@ -11,93 +12,43 @@
 
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
+import { utcDay } from '../utils/utc-day';
 
 async function takeCorporationSnapshots() {
   logger.info('📸 corporation snapshot worker started...');
 
   const startTime = new Date();
-  const today = new Date();
-  today.setHours(0, 0, 0, 0); // Start of day
+  // Passed as a 'YYYY-MM-DD' string and cast in SQL, so neither the machine's
+  // nor the database session's time zone can shift the day.
+  const date = utcDay(startTime).toISOString().split('T')[0];
 
   try {
-    // Get all corporations with member counts
-    const corporations = await prismaWorker.corporation.findMany({
-      select: { id: true, member_count: true },
-    });
+    // One statement, no interactive transaction (Prisma closes those after
+    // 5 s): the total and the insert see the same snapshot of the data. A
+    // corporation that already has a row for the day keeps it unchanged.
+    const [row] = await prismaWorker.$queryRaw<
+      { total: bigint; created: bigint }[]
+    >`
+      WITH inserted AS (
+        INSERT INTO corporation_snapshots (corporation_id, member_count, snapshot_date)
+        SELECT id, member_count, ${date}::date FROM corporations
+        ON CONFLICT (corporation_id, snapshot_date) DO NOTHING
+        RETURNING 1
+      )
+      SELECT (SELECT COUNT(*) FROM corporations) AS total,
+             (SELECT COUNT(*) FROM inserted) AS created
+    `;
+    const total = Number(row.total);
+    const created = Number(row.created);
 
-    logger.info(`✓ found ${corporations.length} corporations`);
-
-    // Check which corporations already have snapshots for today (single query)
-    const existingSnapshots = await prismaWorker.corporationSnapshot.findMany({
-      where: { snapshot_date: today },
-      select: { corporation_id: true },
-    });
-
-    const existingCorporationIds = new Set(
-      existingSnapshots.map((s) => s.corporation_id),
-    );
-    logger.info(
-      `✓ found ${existingCorporationIds.size} existing snapshots for today`,
-    );
-
-    // Filter corporations that need snapshots
-    const corporationsToSnapshot = corporations.filter(
-      (c) => !existingCorporationIds.has(c.id),
-    );
-
-    if (corporationsToSnapshot.length === 0) {
-      logger.info('✅ all corporations already have snapshots for today!');
-      const duration = (
-        (new Date().getTime() - startTime.getTime()) /
-        1000
-      ).toFixed(2);
-      logger.info(`   • duration: ${duration} seconds`);
-      logger.info(`   • date: ${today.toISOString().split('T')[0]}`);
-      return;
-    }
-
-    logger.info(
-      `📝 creating ${corporationsToSnapshot.length} new snapshots...`,
-    );
-
-    // Prepare snapshot data
-    const snapshotsData = corporationsToSnapshot.map((corp) => ({
-      corporation_id: corp.id,
-      member_count: corp.member_count,
-      snapshot_date: today,
-    }));
-
-    // Batch create snapshots in chunks of 1000
-    const BATCH_SIZE = 1000;
-    let created = 0;
-
-    for (let i = 0; i < snapshotsData.length; i += BATCH_SIZE) {
-      const batch = snapshotsData.slice(i, i + BATCH_SIZE);
-
-      await prismaWorker.corporationSnapshot.createMany({
-        data: batch,
-        skipDuplicates: true,
-      });
-
-      created += batch.length;
-
-      const progress = Math.round((created / snapshotsData.length) * 100);
-      logger.info(
-        `  ⏳ progress: ${created}/${snapshotsData.length} (${progress}%)`,
-      );
-    }
-
-    const endTime = new Date();
-    const duration = ((endTime.getTime() - startTime.getTime()) / 1000).toFixed(
-      2,
-    );
+    const duration = ((Date.now() - startTime.getTime()) / 1000).toFixed(2);
 
     logger.info(`✅ snapshot creation completed!`);
-    logger.info(`   • total corporations: ${corporations.length}`);
+    logger.info(`   • total corporations: ${total}`);
     logger.info(`   • new snapshots: ${created}`);
-    logger.info(`   • already existing: ${existingCorporationIds.size}`);
+    logger.info(`   • already existing: ${total - created}`);
     logger.info(`   • duration: ${duration} seconds`);
-    logger.info(`   • date: ${today.toISOString().split('T')[0]}`);
+    logger.info(`   • date: ${date}`);
   } catch (error) {
     logger.error('❌ snapshot creation error:', error);
     throw error;
