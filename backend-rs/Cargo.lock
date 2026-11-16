@@ -1659,6 +1659,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "queue-alliance-corporations"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "esi",
+ "mq",
+ "runner",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "wiremock",
+]
+
+[[package]]
 name = "queue-alliances"
 version = "0.1.0"
 dependencies = [
@@ -3227,6 +3241,22 @@ dependencies = [
  "serde_json",
  "tokio",
  "url",
+]
+
+[[package]]
+name = "worker-alliance-corporations"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "esi",
+ "futures-util",
+ "lapin",
+ "mq",
+ "runner",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "wiremock",
 ]
 
 [[package]]

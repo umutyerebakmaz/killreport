@@ -7,7 +7,7 @@
 //! `yarn worker:info:corporations:rs`.
 
 use esi::EsiClient;
-use runner::{Processed, Worker};
+use runner::{Context, Outcome, Processed, Worker};
 use sqlx::PgPool;
 use worker_info_corporations::corporation::{upsert_corporation, CorporationInfo};
 
@@ -23,13 +23,17 @@ impl Worker for CorporationWorker {
     const WAITING_FOR: &'static str = "corporations";
     const ENTITY: &'static str = "corporation";
 
-    async fn handle(&self, id: i32) -> anyhow::Result<Processed> {
+    async fn handle(&self, id: i32, _ctx: &Context<'_>) -> anyhow::Result<Processed> {
         // Always take the latest info from ESI. The trailing slash matches
         // the Node service (`corporation.service.ts:20-22`).
         let info: CorporationInfo = self.esi.get(&format!("/corporations/{id}/")).await?;
         let inserted = upsert_corporation(&self.pool, id, &info).await?;
         Ok(Processed {
-            inserted,
+            outcome: if inserted {
+                Outcome::Created
+            } else {
+                Outcome::Updated
+            },
             detail: format!("[{id}] {} [{}]", info.name, info.ticker),
         })
     }

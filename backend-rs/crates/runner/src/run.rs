@@ -1,4 +1,4 @@
-//! The connection life of an info worker: setup, the reconnect loop, one
+//! The connection life of a worker: setup, the reconnect loop, one
 //! connection's consume, the drained-queue summary and the shutdown.
 //! The worker-specific parts are the [`Worker`] constants.
 
@@ -6,9 +6,11 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
 
-use anyhow::Context as _;
+use anyhow::{bail, Context as _};
 use futures_util::StreamExt;
-use lapin::options::{BasicCancelOptions, BasicConsumeOptions, BasicQosOptions};
+use lapin::options::{
+    BasicCancelOptions, BasicConsumeOptions, BasicQosOptions, ConfirmSelectOptions,
+};
 use lapin::types::FieldTable;
 use sqlx::PgPool;
 use tracing::{error, info, warn};
@@ -17,9 +19,10 @@ use esi::{EsiClient, RateLimiter};
 use mq::{connect, declare_worker_queue, LapinDelivery};
 
 use crate::prefetch::prefetch_from_env;
+use crate::publisher::ChannelPublisher;
 use crate::shutdown::shutdown_signal;
 use crate::totals::QUIET;
-use crate::{process_one, Totals, Worker};
+use crate::{process_one, queues_to_declare, Context, Settled, Totals, Worker};
 
 const RECONNECT_DELAY: Duration = Duration::from_secs(5);
 
@@ -61,7 +64,13 @@ pub async fn run<W: Worker>(build: impl FnOnce(Resources) -> W) -> anyhow::Resul
     let shutting_down = Arc::new(AtomicBool::new(false));
 
     info!("{}", W::STARTED);
-    info!("📦 queue: {}", W::QUEUE_NAME);
+    match W::OUTPUT_QUEUE {
+        Some(output) => {
+            info!("📦 input queue: {}", W::QUEUE_NAME);
+            info!("📦 output queue: {output}");
+        }
+        None => info!("📦 queue: {}", W::QUEUE_NAME),
+    }
     info!("⚡ prefetch: {prefetch} concurrent\n");
 
     while !shutting_down.load(Ordering::SeqCst) {
@@ -100,10 +109,23 @@ async fn run_connection<W: Worker>(
     prefetch: u16,
 ) -> anyhow::Result<()> {
     let (connection, channel) = connect(url).await?;
-    declare_worker_queue(&channel, W::QUEUE_NAME).await?;
+    for queue in queues_to_declare::<W>() {
+        declare_worker_queue(&channel, queue).await?;
+    }
     channel
         .basic_qos(prefetch, BasicQosOptions::default())
         .await?;
+
+    // Publishing gets its own channel on the same connection, in confirm
+    // mode, so its confirms never mix with the consumer's deliveries.
+    let publisher_channel = connection.create_channel().await?;
+    publisher_channel
+        .confirm_select(ConfirmSelectOptions::default())
+        .await?;
+    let publisher = ChannelPublisher {
+        channel: publisher_channel.clone(),
+    };
+    let ctx = Context::new(&publisher);
 
     info!("✅ connected to RabbitMQ");
     info!("⏳ waiting for {}...\n", W::WAITING_FOR);
@@ -118,7 +140,7 @@ async fn run_connection<W: Worker>(
         .await?;
 
     let totals = Arc::new(Totals::new());
-    let summary = tokio::spawn(report_when_drained(Arc::clone(&totals)));
+    let summary = tokio::spawn(report_when_drained::<W>(Arc::clone(&totals)));
 
     // On Ctrl+C or SIGTERM, stop taking new messages; the stream then ends
     // once the broker confirms, and the ones in hand still finish.
@@ -135,6 +157,14 @@ async fn run_connection<W: Worker>(
         })
     };
 
+    // A lost publisher channel ends the connection the same way: the first
+    // delivery to hit it cancels the consumer, the in-flight ones finish,
+    // and the error below sends `run` round its reconnect loop. The message
+    // that hit it was never settled, so closing the channel hands it back to
+    // the broker.
+    let publisher_lost = AtomicBool::new(false);
+    let (ctx, publisher_lost_ref) = (&ctx, &publisher_lost);
+
     consumer
         .for_each_concurrent(usize::from(prefetch), |delivery| {
             let worker = Arc::clone(worker);
@@ -143,11 +173,24 @@ async fn run_connection<W: Worker>(
             async move {
                 match delivery {
                     Ok(delivery) => {
+                        // Already buffered when the publisher was lost: leave
+                        // it unsettled for the broker to redeliver; this saves
+                        // an ESI request and a DB read per buffered delivery.
+                        if publisher_lost_ref.load(Ordering::SeqCst) {
+                            return;
+                        }
                         let settle = LapinDelivery {
                             channel: &channel,
                             delivery: &delivery,
                         };
-                        process_one(&*worker, &settle, &totals).await;
+                        let settled = process_one(&*worker, &settle, &totals, ctx).await;
+                        if settled == Settled::PublisherLost
+                            && !publisher_lost_ref.swap(true, Ordering::SeqCst)
+                        {
+                            let _ = channel
+                                .basic_cancel(W::CONSUMER_TAG, BasicCancelOptions::default())
+                                .await;
+                        }
                     }
                     Err(e) => error!("❌ channel error: {e}"),
                 }
@@ -157,14 +200,18 @@ async fn run_connection<W: Worker>(
 
     summary.abort();
     cancel.abort();
+    let _ = publisher_channel.close(200, "worker stopping").await;
     let _ = channel.close(200, "worker stopping").await;
     let _ = connection.close(200, "worker stopping").await;
+    if publisher_lost.load(Ordering::SeqCst) {
+        bail!("publisher channel lost");
+    }
     Ok(())
 }
 
 /// Every 5 s, once 5 s have passed since the last message and at least one
 /// was processed, print the summary.
-async fn report_when_drained(totals: Arc<Totals>) {
+async fn report_when_drained<W: Worker>(totals: Arc<Totals>) {
     let mut tick = tokio::time::interval(QUIET);
     tick.tick().await;
     loop {
@@ -173,13 +220,7 @@ async fn report_when_drained(totals: Arc<Totals>) {
             let line = "━".repeat(60);
             info!("\n{line}");
             info!("✅ queue completed!");
-            info!(
-                "📊 final: {} processed ({} created, {} updated, {} errors)",
-                totals.processed(),
-                totals.created(),
-                totals.updated(),
-                totals.errors()
-            );
+            info!("{}", W::summary(&totals));
             info!("{line}\n");
             info!("⏳ waiting for new messages...\n");
         }

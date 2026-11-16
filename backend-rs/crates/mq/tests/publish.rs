@@ -12,7 +12,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use lapin::options::{BasicAckOptions, BasicGetOptions, QueueDeleteOptions};
 use lapin::types::FieldTable;
 use lapin::Channel;
-use mq::{connect, declare_worker_queue, publish_entities};
+use mq::{connect, declare_worker_queue, publish_entities, publish_messages, EntityMessage};
 
 fn url() -> String {
     std::env::var("RABBITMQ_URL").expect("RABBITMQ_URL is not set")
@@ -71,9 +71,16 @@ async fn publishes_every_id_persistently() {
     let queue = queue_name("every");
     declare_worker_queue(&channel, &queue).await.unwrap();
 
-    let confirmed = publish_entities(&channel, &queue, "queue-test", &[1, 2, 3], |_, _, _| {})
-        .await
-        .unwrap();
+    let confirmed = publish_entities(
+        &channel,
+        &queue,
+        "queue-test",
+        &[1, 2, 3],
+        None,
+        |_, _, _| {},
+    )
+    .await
+    .unwrap();
     assert_eq!(confirmed, 3);
 
     let messages = drain(&channel, &queue).await;
@@ -102,7 +109,7 @@ async fn publishes_nothing_for_no_ids() {
     declare_worker_queue(&channel, &queue).await.unwrap();
 
     let batches = Mutex::new(0);
-    let confirmed = publish_entities(&channel, &queue, "queue-test", &[], |_, _, _| {
+    let confirmed = publish_entities(&channel, &queue, "queue-test", &[], None, |_, _, _| {
         *batches.lock().unwrap() += 1;
     })
     .await
@@ -124,9 +131,16 @@ async fn reports_batches_of_100() {
 
     let ids: Vec<i32> = (1..=250).collect();
     let batches = Mutex::new(Vec::new());
-    let confirmed = publish_entities(&channel, &queue, "queue-test", &ids, |n, total, len| {
-        batches.lock().unwrap().push((n, total, len));
-    })
+    let confirmed = publish_entities(
+        &channel,
+        &queue,
+        "queue-test",
+        &ids,
+        None,
+        |n, total, len| {
+            batches.lock().unwrap().push((n, total, len));
+        },
+    )
     .await
     .unwrap();
     assert_eq!(confirmed, 250);
@@ -135,6 +149,78 @@ async fn reports_batches_of_100() {
         [(1, 3, 100), (2, 3, 100), (3, 3, 50)]
     );
     assert_eq!(drain(&channel, &queue).await.len(), 250);
+
+    delete(&channel, &queue).await;
+    let _ = connection.close(200, "test done").await;
+}
+
+#[tokio::test]
+#[ignore = "needs RabbitMQ in RABBITMQ_URL"]
+async fn publishes_with_the_given_priority() {
+    let (connection, channel) = connect(&url()).await.unwrap();
+    let queue = queue_name("priority");
+    declare_worker_queue(&channel, &queue).await.unwrap();
+
+    let confirmed = publish_entities(
+        &channel,
+        &queue,
+        "queue-test",
+        &[1, 2],
+        Some(5),
+        |_, _, _| {},
+    )
+    .await
+    .unwrap();
+    assert_eq!(confirmed, 2);
+    for (_, mode, priority, _) in drain(&channel, &queue).await {
+        assert_eq!(mode, Some(2));
+        assert_eq!(priority, Some(5));
+    }
+
+    delete(&channel, &queue).await;
+    let _ = connection.close(200, "test done").await;
+}
+
+#[tokio::test]
+#[ignore = "needs RabbitMQ in RABBITMQ_URL"]
+async fn publishes_messages_with_their_own_sources() {
+    let (connection, channel) = connect(&url()).await.unwrap();
+    let queue = queue_name("messages");
+    declare_worker_queue(&channel, &queue).await.unwrap();
+
+    channel
+        .confirm_select(lapin::options::ConfirmSelectOptions::default())
+        .await
+        .unwrap();
+    let messages = [
+        EntityMessage::new(1, format!("alliance_{}", 10)),
+        EntityMessage::new(2, format!("alliance_{}", 10)),
+    ];
+    let confirmed = publish_messages(&channel, &queue, &messages, Some(5))
+        .await
+        .unwrap();
+    assert_eq!(confirmed, 2);
+
+    let drained = drain(&channel, &queue).await;
+    let seen: Vec<(i64, String)> = drained
+        .iter()
+        .map(|(body, _, _, _)| {
+            (
+                body["entityId"].as_i64().unwrap(),
+                body["source"].as_str().unwrap().to_string(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        seen,
+        [
+            (1, "alliance_10".to_string()),
+            (2, "alliance_10".to_string())
+        ]
+    );
+    assert!(drained
+        .iter()
+        .all(|(_, m, p, _)| *m == Some(2) && *p == Some(5)));
 
     delete(&channel, &queue).await;
     let _ = connection.close(200, "test done").await;

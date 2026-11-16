@@ -14,6 +14,7 @@ pub struct Totals {
     created: AtomicU64,
     updated: AtomicU64,
     errors: AtomicU64,
+    queued: AtomicU64,
     last_message: Mutex<Instant>,
 }
 
@@ -30,6 +31,7 @@ impl Totals {
             created: AtomicU64::new(0),
             updated: AtomicU64::new(0),
             errors: AtomicU64::new(0),
+            queued: AtomicU64::new(0),
             last_message: Mutex::new(Instant::now()),
         }
     }
@@ -46,6 +48,10 @@ impl Totals {
     pub fn errors(&self) -> u64 {
         self.errors.load(Ordering::SeqCst)
     }
+    /// Messages a fan-out worker published.
+    pub fn queued(&self) -> u64 {
+        self.queued.load(Ordering::SeqCst)
+    }
 
     pub(crate) fn touch(&self) {
         *self.last_message.lock().unwrap() = Instant::now();
@@ -61,6 +67,9 @@ impl Totals {
     }
     pub(crate) fn count_error(&self) {
         self.errors.fetch_add(1, Ordering::SeqCst);
+    }
+    pub(crate) fn count_queued(&self, n: u64) {
+        self.queued.fetch_add(n, Ordering::SeqCst);
     }
 
     /// Once 5 s have passed since the last message and at least one was
@@ -86,6 +95,16 @@ mod tests {
         assert!(!totals.summary_due());
         tokio::time::advance(Duration::from_secs(2)).await;
         assert!(totals.summary_due());
+    }
+
+    #[test]
+    fn queued_messages_add_up() {
+        let totals = Totals::new();
+        assert_eq!(totals.queued(), 0);
+        totals.count_queued(12);
+        totals.count_queued(0);
+        totals.count_queued(3);
+        assert_eq!(totals.queued(), 15);
     }
 
     #[tokio::test(start_paused = true)]

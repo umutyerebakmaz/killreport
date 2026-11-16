@@ -12,7 +12,7 @@
 //! `yarn worker:info:types:rs`.
 
 use esi::EsiClient;
-use runner::{Processed, Worker};
+use runner::{Context, Outcome, Processed, Worker};
 use sqlx::PgPool;
 use worker_info_types::type_info::{upsert_type, TypeInfo};
 
@@ -28,12 +28,16 @@ impl Worker for TypeWorker {
     const WAITING_FOR: &'static str = "types";
     const ENTITY: &'static str = "type";
 
-    async fn handle(&self, id: i32) -> anyhow::Result<Processed> {
+    async fn handle(&self, id: i32, _ctx: &Context<'_>) -> anyhow::Result<Processed> {
         // The trailing slash matches the Node service (`type.service.ts:57`).
         let info: TypeInfo = self.esi.get(&format!("/universe/types/{id}/")).await?;
         let inserted = upsert_type(&self.pool, id, &info).await?;
         Ok(Processed {
-            inserted,
+            outcome: if inserted {
+                Outcome::Created
+            } else {
+                Outcome::Updated
+            },
             detail: format!(" {}", info.name),
         })
     }

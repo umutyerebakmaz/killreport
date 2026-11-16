@@ -1,6 +1,8 @@
 //! The message every info queue publisher sends: the publishing half of
 //! `runner::EntityQueueMessage`.
 
+use std::borrow::Cow;
+
 use chrono::{DateTime, SecondsFormat, Utc};
 use serde::Serialize;
 
@@ -13,22 +15,23 @@ pub struct EntityMessage {
     pub entity_id: i32,
     /// `Date.prototype.toISOString()`: milliseconds always, and `Z`.
     pub queued_at: String,
-    /// The publishing script's name.
-    pub source: &'static str,
+    /// The publishing script's name, or a name built at run time such as
+    /// `alliance_99000001`.
+    pub source: Cow<'static, str>,
 }
 
 impl EntityMessage {
     /// A message queued now.
-    pub fn new(entity_id: i32, source: &'static str) -> Self {
+    pub fn new(entity_id: i32, source: impl Into<Cow<'static, str>>) -> Self {
         Self::at(entity_id, source, Utc::now())
     }
 
     /// A message queued at `now`.
-    pub fn at(entity_id: i32, source: &'static str, now: DateTime<Utc>) -> Self {
+    pub fn at(entity_id: i32, source: impl Into<Cow<'static, str>>, now: DateTime<Utc>) -> Self {
         Self {
             entity_id,
             queued_at: now.to_rfc3339_opts(SecondsFormat::Millis, true),
-            source,
+            source: source.into(),
         }
     }
 

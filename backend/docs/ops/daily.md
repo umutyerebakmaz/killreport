@@ -1,107 +1,124 @@
 # Daily Workflows (Backend)
 
+Every step below has a Rust version (`:rs` suffix, built from `backend-rs/`)
+and a Node version (no suffix). Both read and write the same queues, so they
+can be mixed, but run only one consumer type per queue at a time when you want
+comparable numbers. The Rust versions are the default.
+
 ## 📋 Simple Daily Sequence
 
+Start the three workers first and leave them running:
+
 ```bash
-# 1. Update Alliance & Corporation Data
-yarn queue:alliances              # Queue all alliance IDs from ESI -
-yarn worker:info:alliances        # Fetch and UPDATE alliance details - 3547
+yarn worker:info:alliances:rs        # esi_alliance_info_queue → alliances table
+yarn worker:alliance-corporations:rs # esi_alliance_corporations_queue → esi_corporation_info_queue
+yarn worker:info:corporations:rs     # esi_corporation_info_queue → corporations table
+```
 
-yarn queue:alliance-corporations  # Queue alliances (for corporation discovery) - 3547
-yarn worker:alliance-corporations # Fetch corporation IDs from ESI for each alliance and queue them - 17,769
-yarn worker:info:corporations     # Fetch and UPDATE corporation details from ESI
+Then queue the whole chain with one command:
 
-# 2. Take Snapshots
+```bash
+yarn queue:alliance-chain:rs
+# = yarn queue:alliances:rs && yarn queue:alliance-corporations:rs
+```
+
+When `esi_corporation_info_queue` has drained, take the snapshots:
+
+```bash
 yarn snapshot:alliances
 yarn snapshot:corporations
 ```
 
+Reference numbers from the 2026-11-16 run: 3645 alliances processed,
+18,470 corporations queued, 0 errors.
+
+### Why the chain does not wait between steps
+
+Both Rust queue scripts read the alliance list from ESI (`GET /alliances`), so
+`queue:alliance-corporations:rs` does not depend on `worker:info:alliances`
+having finished. The Node `queue:alliance-corporations` reads alliance IDs from
+the **database** instead: run it only after `worker:info:alliances` has drained
+its queue, or it misses alliances created since the last run.
+
 ## 📖 What Each Command Does
 
-**`yarn queue:alliances`**
+**`yarn queue:alliances:rs`** (Node: `queue:alliances`)
 
 - Fetches ALL alliance IDs from ESI
 - Adds them to the `esi_alliance_info_queue`
 
-**`yarn worker:info:alliances`**
+**`yarn worker:info:alliances:rs`** (Node: `worker:info:alliances`)
 
 - Processes alliance IDs from the queue
 - Fetches details from ESI for each alliance
 - Performs **UPSERT** in database (updates existing, inserts new)
 - Updated fields: name, ticker, executor_corporation_id, faction_id
 
-**`yarn queue:alliance-corporations`**
+**`yarn queue:alliance-corporations:rs`** (Node: `queue:alliance-corporations`)
 
-- Fetches ALL alliances from database
+- Rust: fetches ALL alliance IDs from ESI; Node: reads them from the database
 - Queues each alliance ID to `esi_alliance_corporations_queue`
 
-**`yarn worker:alliance-corporations`**
+**`yarn worker:alliance-corporations:rs`** (Node: `worker:alliance-corporations`)
 
 - Processes alliance IDs from the queue
 - Fetches corporation IDs from ESI for each alliance (`GET /alliances/{id}/corporations/`)
 - Queues corporation IDs to `esi_corporation_info_queue`
+- Acks an alliance only after RabbitMQ has confirmed every corporation message
+- Prints `📊 final: N alliances processed, M corporations queued, E errors`
+  once the queue has been quiet for 5 s
 - **IMPORTANT:** Without this step, corporations cannot be discovered!
 
-**`yarn worker:info:corporations`**
+**`yarn worker:info:corporations:rs`** (Node: `worker:info:corporations`)
 
 - Processes corporation IDs from the queue
 - Fetches details from ESI for each corporation
 - Performs **UPSERT** in database (updates existing, inserts new)
 - Updated fields: name, ticker, member_count, ceo_id, alliance_id, tax_rate
 
-**`yarn snapshot:alliances`**
+**`yarn snapshot:alliances`** / **`yarn snapshot:corporations`** (Node only)
 
-- Takes a snapshot of all alliances
-
-**`yarn snapshot:corporations`**
-
-- Takes a snapshot of all corporations
+- Takes a snapshot of all alliances / corporations
 
 ---
 
-## 📅 Character & Corporation Management (January 5, 2026)
+## 📅 Character & Corporation Management
 
 ### Updating Character Information
 
 To update **all characters** in the database from ESI:
 
 ```bash
-# 1. Add all character IDs to queue
-yarn queue:characters
-
-# 2. Start worker (5 concurrent)
-yarn worker:info:characters
+yarn worker:info:characters:rs   # start the worker
+yarn queue:characters:rs         # add all character IDs to the queue
 ```
 
 **What it does:**
 
-- Scans ~93k character IDs in database
+- Scans every character ID in the database
 - Adds all to `esi_character_info_queue`
 - Worker fetches current info from ESI and updates database
 
 **When to use:**
 
 - For weekly/monthly character information updates
-- To ensure all characters are up to date
 - To catch alliance/corporation changes
 
 ---
 
 ### Detect and Update Missing Corporations
 
-Detects missing corporations from characters and fetches their info from ESI:
+Detects missing corporations from characters and fetches their info from ESI.
+The queue script has no Rust version yet:
 
 ```bash
-# 1. Scan characters and queue missing corporations
+yarn worker:info:corporations:rs
 yarn queue:character-corporations
-
-# 2. Start worker (5 concurrent)
-yarn worker:info:corporations
 ```
 
 **What it does:**
 
-- Collects all character `corporation_id`s from database (~24k unique)
+- Collects all character `corporation_id`s from database
 - Identifies those not in database
 - Adds missing corporations to `esi_corporation_info_queue`
 - Worker fetches corporation info from ESI and adds to database
@@ -110,35 +127,21 @@ yarn worker:info:corporations
 
 - After character sync to fill missing corporations
 - After new killmails to populate missing corporations
-- To maintain database consistency
 
 ---
 
 ### Update Specific Characters
 
-Update specific characters for logged-in users or special cases:
-
 ```bash
 # Single character
-yarn queue:characters 365974960
+yarn queue:characters:rs 365974960
 
 # Multiple characters
-yarn queue:characters 365974960 443630591 196379789
-
-# Start worker
-yarn worker:info:characters
+yarn queue:characters:rs 365974960 443630591 196379789
 ```
 
-**What it does:**
-
-- Adds specified character IDs directly to `esi_character_info_queue`
-- Worker fetches current info from ESI and updates database
-
-**When to use:**
-
-- To update logged-in user information
-- To manually update a specific character
-- For testing and debugging
+With `worker:info:characters:rs` running, the IDs go straight to
+`esi_character_info_queue` and are updated from ESI.
 
 ---
 
@@ -146,24 +149,19 @@ yarn worker:info:characters
 
 ### Scenario 1: Weekly Full Update
 
+With the four info workers and `worker:alliance-corporations:rs` running:
+
 ```bash
 # 1. Alliance & Corporation updates
-yarn queue:alliances
-yarn worker:info:alliances
-
-yarn queue:alliance-corporations
-yarn worker:alliance-corporations
-yarn worker:info:corporations
+yarn queue:alliance-chain:rs
 
 # 2. Character updates
-yarn queue:characters
-yarn worker:info:characters
+yarn queue:characters:rs
 
-# 3. Fill missing corporations
+# 3. Fill missing corporations (after step 2 has drained)
 yarn queue:character-corporations
-yarn worker:info:corporations
 
-# 4. Take snapshots
+# 4. Take snapshots (after esi_corporation_info_queue has drained)
 yarn snapshot:alliances
 yarn snapshot:corporations
 ```
@@ -176,22 +174,25 @@ yarn scan:entities
 
 # Specifically check character corporations
 yarn queue:character-corporations
-yarn worker:info:corporations
 ```
 
 ---
 
-## 📊 Worker Performance Table
+## 📊 Worker Table
 
-| Worker                         | Queue Name                        | Concurrency | Rate Limit | Usage                           |
-| ------------------------------ | --------------------------------- | ----------- | ---------- | ------------------------------- |
-| `worker:info:alliances`        | `esi_alliance_info_queue`         | 3           | up to 50/s | Updates alliance information    |
-| `worker:info:corporations`     | `esi_corporation_info_queue`      | 5           | up to 50/s | Updates corporation information |
-| `worker:info:characters`       | `esi_character_info_queue`        | 5           | up to 50/s | Updates character information   |
-| `worker:info:types`            | `esi_type_info_queue`             | 10          | up to 50/s | Updates ship/item information   |
-| `worker:alliance-corporations` | `esi_alliance_corporations_queue` | 5           | up to 50/s | Discovers alliance corporations |
+| Worker (Rust)                     | Queue Name                        | Output                       |
+| --------------------------------- | --------------------------------- | ---------------------------- |
+| `worker:info:alliances:rs`        | `esi_alliance_info_queue`         | `alliances` table            |
+| `worker:info:corporations:rs`     | `esi_corporation_info_queue`      | `corporations` table         |
+| `worker:info:characters:rs`       | `esi_character_info_queue`        | `characters` table           |
+| `worker:info:types:rs`            | `esi_type_info_queue`             | `types` table                |
+| `worker:alliance-corporations:rs` | `esi_alliance_corporations_queue` | `esi_corporation_info_queue` |
 
-**Important:** Each ESI worker process is limited by its own header-driven limiter (up to `ESI_MAX_RPS`, default 50). Be careful when running multiple workers.
+Prefetch for the info workers is `max(ESI_PREFETCH, ceil(ESI_MAX_RPS / 2))`,
+25 with the defaults. The request rate itself is set by the shared ESI limiter
+in Redis: every Node and Rust process spends one common budget of up to
+`ESI_MAX_RPS` (default 50) requests per second, so running more workers does
+not exceed it.
 
 ---
 
@@ -214,22 +215,16 @@ query {
 - URL: `http://localhost:15672`
 - User/Pass: Defined in `.env` file
 
-### Worker Logs
-
-- `info`: General progress
-- `debug`: Batch details
-- `error`: Errors
-
 ---
 
 ## ⚠️ Important Notes
 
-1. **Rate Limiting:** ESI limits are enforced by the limiter from response headers. Adjust worker concurrency accordingly.
-2. **Database Connections:** Workers use `prisma-worker.ts` (2 connection max).
-3. **Memory:** 93k character sync can use ~2GB RAM.
-4. **Duration:** 93k characters takes ~31 minutes (5 concurrent, at the default `ESI_MAX_RPS`).
-5. **Always run `scan:entities` after killmail sync**
-6. Keep workers running continuously in production with systemd (see [systemd](./systemd.md))
+1. **Rate Limiting:** ESI limits are enforced by the shared limiter from
+   response headers. Do not add sleeps or limits of your own.
+2. **Database Connections:** Workers use up to 10 connections per process
+   (`prisma-worker.ts`, mirrored by the Rust `db` crate), released when idle.
+3. **Always run `scan:entities` after killmail sync**
+4. Keep workers running continuously in production with systemd (see [systemd](./systemd.md))
 
 ---
 

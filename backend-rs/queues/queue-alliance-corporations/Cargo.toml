@@ -1,0 +1,17 @@
+[package]
+name = "queue-alliance-corporations"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+esi.workspace = true
+mq.workspace = true
+runner.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+wiremock.workspace = true

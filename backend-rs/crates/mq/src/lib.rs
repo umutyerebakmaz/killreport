@@ -15,5 +15,5 @@ pub use failure::{
     MAX_ATTEMPTS,
 };
 pub use message::EntityMessage;
-pub use publish::{publish_entities, BATCH_SIZE};
+pub use publish::{message_properties, publish_entities, publish_messages, BATCH_SIZE};
 pub use topology::{connect, declare_worker_queue, retry_topology};

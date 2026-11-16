@@ -4,7 +4,17 @@
 use mq::{handle_worker_error, Settle, WorkerLog};
 use tracing::{error, info, warn};
 
-use crate::{success_line, EntityQueueMessage, Totals, Worker};
+use crate::{success_line, Context, EntityQueueMessage, Outcome, PublisherLost, Totals, Worker};
+
+/// How [`process_one`] left the message.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Settled {
+    /// Exactly one settle call was made.
+    Settled,
+    /// The publisher's channel was lost: no settle call, no counter moved.
+    /// The connection has to go so that the broker redelivers the message.
+    PublisherLost,
+}
 
 /// The failure path's log, with which entity it was
 struct ContextLog(String);
@@ -19,8 +29,13 @@ impl WorkerLog for ContextLog {
 }
 
 /// Parse, handle, count, log and settle one message. Exactly one settle call
-/// happens on every path.
-pub async fn process_one<W: Worker>(worker: &W, settle: &impl Settle, totals: &Totals) {
+/// happens on every path but a lost publisher.
+pub async fn process_one<W: Worker>(
+    worker: &W,
+    settle: &impl Settle,
+    totals: &Totals,
+    ctx: &Context<'_>,
+) -> Settled {
     totals.touch();
 
     let parsed = EntityQueueMessage::parse(settle.body());
@@ -31,23 +46,27 @@ pub async fn process_one<W: Worker>(worker: &W, settle: &impl Settle, totals: &T
 
     let outcome = async {
         let id = parsed?.entity_id;
-        worker.handle(id).await
+        worker.handle(id, ctx).await
     }
     .await;
 
     match outcome {
         Ok(processed) => {
             let n = totals.processed() + 1;
-            if processed.inserted {
-                totals.count_created();
-            } else {
-                totals.count_updated();
+            match processed.outcome {
+                Outcome::Created => totals.count_created(),
+                Outcome::Updated => totals.count_updated(),
+                Outcome::Queued(queued) => totals.count_queued(queued),
             }
             info!("{}", success_line(n, &processed));
             if let Err(e) = settle.ack().await {
                 error!("❌ ack failed ({context}): {e}");
             }
             totals.count_processed();
+        }
+        Err(e) if e.downcast_ref::<PublisherLost>().is_some() => {
+            warn!("  ⚠️  publisher channel lost, leaving the message for redelivery ({context})");
+            return Settled::PublisherLost;
         }
         Err(e) => {
             totals.count_error();
@@ -61,4 +80,5 @@ pub async fn process_one<W: Worker>(worker: &W, settle: &impl Settle, totals: &T
             }
         }
     }
+    Settled::Settled
 }
