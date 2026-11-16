@@ -467,6 +467,8 @@ still does). The Node `queue-types.ts` collects
 types group by group and reads only the first page of `/universe/groups/`, so
 it misses every group past it.
 
+The Rust `queue-alliance-corporations` is a root scan that reads the alliance list from ESI (`/alliances`), while the Node `queue-alliance-corporations.ts` reads alliance IDs from the database.
+
 RabbitMQ is a conveyor belt, not a store. The durable record of outstanding work
 is the database.
 
