@@ -168,8 +168,9 @@ yarn snapshot:alliances      # Node, same SQL
    • date: 2026-11-16
 ```
 
-Both versions run one `INSERT ... SELECT ... ON CONFLICT DO NOTHING` inside a
-transaction. The counts come straight from `corporations`, grouped by
+Both versions run one statement: an `INSERT ... SELECT ... ON CONFLICT DO NOTHING`
+in a CTE that also reports the total, so the two numbers agree. The counts
+come straight from `corporations`, grouped by
 `alliance_id`; an alliance with no corporation is recorded with zeros.
 
 The snapshot date is the current **UTC** day. Before 2026-11-16 the Node

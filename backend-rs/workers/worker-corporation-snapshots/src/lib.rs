@@ -33,21 +33,26 @@ pub async fn take_corporation_snapshots(
     pool: &PgPool,
     day: NaiveDate,
 ) -> sqlx::Result<SnapshotTotals> {
-    let mut tx = pool.begin().await?;
-    let total = sqlx::query_scalar!(r#"SELECT COUNT(*) AS "count!" FROM corporations"#)
-        .fetch_one(&mut *tx)
-        .await?;
-    let created = sqlx::query!(
+    // One statement: the total and the insert see the same snapshot of the
+    // data, so `created` never exceeds `total`, and no transaction is held
+    // open between round trips.
+    let row = sqlx::query!(
         r#"
-        INSERT INTO corporation_snapshots (corporation_id, member_count, snapshot_date)
-        SELECT id, member_count, $1 FROM corporations
-        ON CONFLICT (corporation_id, snapshot_date) DO NOTHING
+        WITH inserted AS (
+          INSERT INTO corporation_snapshots (corporation_id, member_count, snapshot_date)
+          SELECT id, member_count, $1 FROM corporations
+          ON CONFLICT (corporation_id, snapshot_date) DO NOTHING
+          RETURNING 1
+        )
+        SELECT (SELECT COUNT(*) FROM corporations) AS "total!",
+               (SELECT COUNT(*) FROM inserted) AS "created!"
         "#,
         day
     )
-    .execute(&mut *tx)
-    .await?
-    .rows_affected();
-    tx.commit().await?;
-    Ok(SnapshotTotals { total, created })
+    .fetch_one(pool)
+    .await?;
+    Ok(SnapshotTotals {
+        total: row.total,
+        created: row.created as u64,
+    })
 }

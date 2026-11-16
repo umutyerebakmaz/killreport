@@ -105,8 +105,7 @@ Rust'ta `chrono::Utc::now().date_naive()`, TypeScript'te
 `new Date().toISOString().slice(0, 10)`'dan kurulan UTC gece yarısı.
 
 "New snapshots" etkilenen satır sayısıdır, "already existing" toplam eksi yeni.
-Toplam aynı işlemde `SELECT COUNT(*)` ile okunur; ikisi tek transaction'da
-çalışır ki sayılar tutarlı olsun.
+Toplam ve ekleme tek bir ifadede, bir CTE ile birlikte hesaplanır (`WITH inserted AS (INSERT ... RETURNING 1)`); ikisi aynı veri görüntüsünü gördüğü için sayılar tutarlıdır.
 
 ### Rust
 

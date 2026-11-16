@@ -37,29 +37,34 @@ pub async fn take_alliance_snapshots(
     pool: &PgPool,
     day: NaiveDate,
 ) -> sqlx::Result<SnapshotTotals> {
-    let mut tx = pool.begin().await?;
-    let total = sqlx::query_scalar!(r#"SELECT COUNT(*) AS "count!" FROM alliances"#)
-        .fetch_one(&mut *tx)
-        .await?;
-    let created = sqlx::query!(
+    // One statement: the total and the insert see the same snapshot of the
+    // data, so `created` never exceeds `total`, and no transaction is held
+    // open between round trips.
+    let row = sqlx::query!(
         r#"
-        INSERT INTO alliance_snapshots
-          (alliance_id, member_count, corporation_count, snapshot_date)
-        SELECT a.id, COALESCE(s.members, 0), COALESCE(s.corps, 0), $1
-        FROM alliances a
-        LEFT JOIN (
-          SELECT alliance_id, COUNT(*)::int AS corps, SUM(member_count)::int AS members
-          FROM corporations
-          WHERE alliance_id IS NOT NULL
-          GROUP BY alliance_id
-        ) s ON s.alliance_id = a.id
-        ON CONFLICT (alliance_id, snapshot_date) DO NOTHING
+        WITH inserted AS (
+          INSERT INTO alliance_snapshots
+            (alliance_id, member_count, corporation_count, snapshot_date)
+          SELECT a.id, COALESCE(s.members, 0), COALESCE(s.corps, 0), $1
+          FROM alliances a
+          LEFT JOIN (
+            SELECT alliance_id, COUNT(*)::int AS corps, SUM(member_count)::int AS members
+            FROM corporations
+            WHERE alliance_id IS NOT NULL
+            GROUP BY alliance_id
+          ) s ON s.alliance_id = a.id
+          ON CONFLICT (alliance_id, snapshot_date) DO NOTHING
+          RETURNING 1
+        )
+        SELECT (SELECT COUNT(*) FROM alliances) AS "total!",
+               (SELECT COUNT(*) FROM inserted) AS "created!"
         "#,
         day
     )
-    .execute(&mut *tx)
-    .await?
-    .rows_affected();
-    tx.commit().await?;
-    Ok(SnapshotTotals { total, created })
+    .fetch_one(pool)
+    .await?;
+    Ok(SnapshotTotals {
+        total: row.total,
+        created: row.created as u64,
+    })
 }

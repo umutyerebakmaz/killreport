@@ -25,13 +25,14 @@ async function takeAllianceSnapshots() {
   const date = utcDay(startTime).toISOString().split('T')[0];
 
   try {
-    const { total, created } = await prismaWorker.$transaction(async (tx) => {
-      const [{ count }] = await tx.$queryRaw<{ count: bigint }[]>`
-        SELECT COUNT(*) AS count FROM alliances
-      `;
-      // An alliance with no corporation is recorded with zeros; one that
-      // already has a row for the day keeps it unchanged.
-      const inserted = await tx.$executeRaw`
+    // One statement, no interactive transaction (Prisma closes those after
+    // 5 s): the total and the insert see the same snapshot of the data. An
+    // alliance with no corporation is recorded with zeros; one that already
+    // has a row for the day keeps it unchanged.
+    const [row] = await prismaWorker.$queryRaw<
+      { total: bigint; created: bigint }[]
+    >`
+      WITH inserted AS (
         INSERT INTO alliance_snapshots
           (alliance_id, member_count, corporation_count, snapshot_date)
         SELECT a.id, COALESCE(s.members, 0), COALESCE(s.corps, 0), ${date}::date
@@ -43,9 +44,13 @@ async function takeAllianceSnapshots() {
           GROUP BY alliance_id
         ) s ON s.alliance_id = a.id
         ON CONFLICT (alliance_id, snapshot_date) DO NOTHING
-      `;
-      return { total: Number(count), created: inserted };
-    });
+        RETURNING 1
+      )
+      SELECT (SELECT COUNT(*) FROM alliances) AS total,
+             (SELECT COUNT(*) FROM inserted) AS created
+    `;
+    const total = Number(row.total);
+    const created = Number(row.created);
 
     const duration = ((Date.now() - startTime.getTime()) / 1000).toFixed(2);
 

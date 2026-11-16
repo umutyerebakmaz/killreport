@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        WITH inserted AS (\n          INSERT INTO alliance_snapshots\n            (alliance_id, member_count, corporation_count, snapshot_date)\n          SELECT a.id, COALESCE(s.members, 0), COALESCE(s.corps, 0), $1\n          FROM alliances a\n          LEFT JOIN (\n            SELECT alliance_id, COUNT(*)::int AS corps, SUM(member_count)::int AS members\n            FROM corporations\n            WHERE alliance_id IS NOT NULL\n            GROUP BY alliance_id\n          ) s ON s.alliance_id = a.id\n          ON CONFLICT (alliance_id, snapshot_date) DO NOTHING\n          RETURNING 1\n        )\n        SELECT (SELECT COUNT(*) FROM alliances) AS \"total!\",\n               (SELECT COUNT(*) FROM inserted) AS \"created!\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "total!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "created!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Date"
+      ]
+    },
+    "nullable": [
+      null,
+      null
+    ]
+  },
+  "hash": "39681c39f033713d9bf7ed8f0510d281240e8b481d54f81e8c4112e755ce6a6a"
+}
