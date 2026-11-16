@@ -64,7 +64,7 @@ flowchart TB
 | `worker:redisq`         | RedisQ / R2Z2 stream             | **continuous**               | ingests killmails in real time (feeds correlate + war-kill stats)                                                     |
 
 Each `worker:sov:*` is a **one-shot process**: it runs once, does its job, exits. In production
-PM2's `cron_restart` re-launches it on schedule. `worker:redisq` runs continuously.
+a systemd timer re-launches it on schedule. `worker:redisq` runs continuously.
 
 **Ordering note:** `campaigns`/`map`/`structures` fill the base tables first; `correlate` needs
 both killmails (from `redisq`) and campaigns; `snapshot` aggregates what the others wrote.
@@ -118,15 +118,17 @@ yarn worker:redisq           # continuous; leave it running to ingest live kills
 
 ### 4d. Keep it fresh automatically (local scheduler)
 
-The workers don't self-schedule. To mimic production locally, either run them under PM2 with the
-repo's `ecosystem.config.js`, or add a plain crontab, e.g.:
+The workers don't self-schedule. To mimic production locally, run each one by hand when you want
+fresh data (the production schedules are the `OnCalendar=` values in
+[systemd.md](../ops/systemd.md)):
 
-```cron
-*/5  * * * *  cd /root/killreport/backend && yarn worker:sov:campaigns
-*/30 * * * *  cd /root/killreport/backend && yarn worker:sov:map
-15,45 * * * * cd /root/killreport/backend && yarn worker:sov:structures
-*/10 * * * *  cd /root/killreport/backend && yarn worker:sov:correlate
-0    1 * * *  cd /root/killreport/backend && yarn worker:sov:snapshot
+```bash
+cd backend
+yarn worker:sov:campaigns
+yarn worker:sov:map
+yarn worker:sov:structures
+yarn worker:sov:correlate
+yarn worker:sov:snapshot
 ```
 
 ---
@@ -134,18 +136,19 @@ repo's `ecosystem.config.js`, or add a plain crontab, e.g.:
 ## 5. Production
 
 ```bash
-pm2 start ecosystem.config.js      # runs API + workers on their cron schedules
-pm2 logs worker-sov-campaigns      # tail a worker
+sudo systemctl start killreport.target          # API + workers; the timers fire on their schedules
+journalctl -u killreport-worker-sov-campaigns -f # tail a worker
 ```
 
-The sov worker PM2 entries use `autorestart: false` + `cron_restart` (one-shot on schedule) and
-set `USE_REDIS_PUBSUB: 'true'` so their alert publishes reach the API-server subscribers.
+The sov workers are `Type=oneshot` services started by their `.timer` units (one-shot on schedule).
+`worker-sov-campaigns` and `worker-sov-map` set `USE_REDIS_PUBSUB=true` so their alert publishes
+reach the API-server subscribers. See [systemd.md](../ops/systemd.md).
 
 ---
 
 ## 6. Troubleshooting — "the data looks stale / nothing updates"
 
-- **Sov pages show old numbers** → the workers haven't run. Run §4b (or check PM2/cron).
+- **Sov pages show old numbers** → the workers haven't run. Run §4b (or check `systemctl list-timers 'killreport-*'`).
 - **Structure "Next 24h Timers" is empty** → `worker:sov:structures` hasn't run recently, so all
   vulnerability windows are in the past. Re-run it.
 - **War kills / ISK all zero** → run `worker:sov:redisq` (to have kills) then `worker:sov:correlate`.

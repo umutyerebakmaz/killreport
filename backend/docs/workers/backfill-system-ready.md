@@ -58,12 +58,7 @@ cd backend
 yarn worker:backfill
 ```
 
-PM2 setup:
-
-```bash
-pm2 start ecosystem.config.js --only worker-backfill
-pm2 logs worker-backfill
-```
+This worker has no systemd unit (see [systemd.md](../ops/systemd.md)); run it by hand with `yarn worker:backfill`.
 
 ---
 
@@ -201,7 +196,6 @@ Both can run simultaneously.
 | Error handling       | ✅     |
 | Logging              | ✅     |
 | GraphQL integration  | ✅     |
-| PM2 support          | ✅     |
 | Tested in production | ✅     |
 
 ---

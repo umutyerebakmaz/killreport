@@ -229,7 +229,7 @@ query {
 3. **Memory:** 93k character sync can use ~2GB RAM.
 4. **Duration:** 93k characters takes ~31 minutes (5 concurrent, at the default `ESI_MAX_RPS`).
 5. **Always run `scan:entities` after killmail sync**
-6. Keep workers running continuously in production with PM2
+6. Keep workers running continuously in production with systemd (see [systemd](./systemd.md))
 
 ---
 

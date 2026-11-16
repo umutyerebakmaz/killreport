@@ -80,7 +80,7 @@ PORT=4000
 
 ### 2. Required Workers
 
-Run these workers as background services (PM2, systemd, Docker, etc.):
+Run these workers as background services (systemd units; see [systemd.md](../ops/systemd.md)):
 
 #### A. User Killmail Worker (REQUIRED)
 
@@ -143,73 +143,12 @@ yarn worker:info:types  # 10 concurrent (ships, weapons, etc.)
 - Fetches all available killmails (not just new ones)
 - Good for catching any gaps
 
-### 4. PM2 Configuration (Example)
+### 4. systemd Configuration
 
-Create `ecosystem.config.js`:
-
-```javascript
-module.exports = {
-  apps: [
-    {
-      name: 'killreport-api',
-      script: 'src/server.ts',
-      interpreter: 'tsx',
-      cwd: './backend',
-      env: {
-        NODE_ENV: 'production',
-        PORT: 4000,
-      },
-      instances: 1,
-      exec_mode: 'fork',
-      autorestart: true,
-      watch: false,
-    },
-    {
-      name: 'worker-user-killmails',
-      script: 'src/workers/worker-esi-user-killmails.ts',
-      interpreter: 'tsx',
-      cwd: './backend',
-      instances: 1,
-      autorestart: true,
-      watch: false,
-    },
-    {
-      name: 'worker-corp-killmails',
-      script: 'src/workers/worker-esi-corporation-killmails.ts',
-      interpreter: 'tsx',
-      cwd: './backend',
-      instances: 1,
-      autorestart: true,
-      watch: false,
-    },
-    {
-      name: 'worker-characters',
-      script: 'src/workers/worker-info-characters.ts',
-      interpreter: 'tsx',
-      cwd: './backend',
-      instances: 1,
-      autorestart: true,
-      watch: false,
-    },
-    {
-      name: 'worker-corporations',
-      script: 'src/workers/worker-info-corporations.ts',
-      interpreter: 'tsx',
-      cwd: './backend',
-      instances: 1,
-      autorestart: true,
-      watch: false,
-    },
-  ],
-};
-```
-
-Start with:
+The unit files are in `deploy/systemd/`. Install, enable and start them as described in [systemd.md](../ops/systemd.md):
 
 ```bash
-pm2 start ecosystem.config.js
-pm2 save
-pm2 startup
+sudo systemctl start killreport.target
 ```
 
 ### 5. Initial User Onboarding Flow

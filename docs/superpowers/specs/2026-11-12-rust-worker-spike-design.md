@@ -371,28 +371,38 @@ Kurallar:
    `DATABASE_URL`'ine (`sslmode` dahil) sqlx'in bağlanabildiği, ilk geceden
    önce binary'yi bir kez elle başlatıp kuyruk boşken bağlantı loglarına
    bakarak doğrulanır.
+
+> **2026-11-16 güncellemesi:** PM2 kaldırıldı, süreçler systemd ile yönetiliyor
+> (`2026-11-16-systemd-process-management-design.md`). Aşağıdaki adım 4 ve 6
+> systemd karşılıklarıyla yazıldı. Taban da systemd altında alınır, yani
+> ölçülen tek değişken yine Node'dan Rust'a geçiştir.
+
 3. **Taban:** Node worker çalışırken bir gece koşusunun belleği (`ps -o rss`,
-   5 s'de bir) kaydedilir ve koşudan sonra `alliances` tablosunun anlık
+   5 s'de bir; PID `systemctl show -p MainPID --value killreport-worker-alliances`
+   ile bulunur) kaydedilir ve koşudan sonra `alliances` tablosunun anlık
    görüntüsü aşama 1'deki aynı `\copy` sorgusuyla bir CSV'ye alınır.
-4. **Geçiş:** 22:00'den önce `pm2 stop worker-alliances`; yeni bir PM2 girdisi
-   (`worker-alliances-rs`, aynı `cwd` — `/var/www/killreport/backend`, böylece
-   aynı `.env` okunur —, `script` binary'nin yolu, `max_memory_restart:
-512M`, `autorestart: true`) başlatılır. İki worker aynı anda çalışmaz.
-   Girdide ayrıca `interpreter: 'none'` (PM2 binary'yi Node ile çalıştırmaya
-   kalkmasın) ve `kill_timeout: 10000`. PM2 durdururken varsayılan olarak
-   **SIGINT** gönderir ve `kill_timeout` (varsayılan 1600 ms) dolunca SIGKILL
-   atar; elindeki en fazla 3 mesajı bitirmeye 1,6 s yetmeyebilir. SIGKILL'de
-   bile veri kaybı yok (ack'lenmemiş mesaj tekrar teslim edilir), ama temiz
-   kapanış ölçümlerin ve logların okunabilirliği için. Binary SIGINT'i
-   (`ctrl_c`) ve SIGTERM'i dinler.
+4. **Geçiş:** 22:00'den önce `killreport-worker-alliances.service`'te
+   `ExecStart=/usr/bin/yarn worker:info:alliances` satırı
+   `ExecStart=/var/www/killreport/backend-rs/bin/worker-info-alliances` olur
+   ve `KillSignal=SIGINT` ile `SuccessExitStatus=130` satırları silinir (systemd varsayılanı SIGTERM; binary
+   SIGINT'i (`ctrl_c`) ve SIGTERM'i dinler). Unit kopyalanır,
+   `sudo systemctl daemon-reload` ve
+   `sudo systemctl restart killreport-worker-alliances`. `WorkingDirectory`
+   aynı kalır (`/var/www/killreport/backend`), böylece aynı `.env` okunur;
+   `MemoryMax=512M` aynı kalır. Unit tek olduğu için iki worker aynı anda
+   çalışamaz. Durdururken systemd `TimeoutStopSec=30` bekler, sonra SIGKILL
+   atar; elindeki en fazla 3 mesajı bitirmeye bu yeter. SIGKILL'de bile veri
+   kaybı yok (ack'lenmemiş mesaj tekrar teslim edilir), ama temiz kapanış
+   ölçümlerin ve logların okunabilirliği için.
 5. **Üç gece:** her koşudan sonra anlık görüntü tekrar alınır ve bir önceki
    gecenin CSV'siyle karşılaştırılır. Geceler arasında ESI'de gerçek
    değişiklikler olur, bu yüzden beklenti aşama 1'den gevşektir:
    `date_founded` ve `creator_*`'da sıfır fark, `name`, `ticker`,
    `executor_corporation_id`, `faction_id`'deki her fark ESI'deki gerçek bir
    değişiklikle açıklanır, satır sayısı düşmez.
-6. **Geri dönüş:** `pm2 stop worker-alliances-rs && pm2 start
-worker-alliances`. Mesaj formatı ve kuyruk aynı olduğu için kuyrukta
+6. **Geri dönüş:** adım 4'teki iki satır eski hâline döner, unit kopyalanır,
+   `sudo systemctl daemon-reload` ve
+   `sudo systemctl restart killreport-worker-alliances`. Mesaj formatı ve kuyruk aynı olduğu için kuyrukta
    bekleyen işler Node worker'ına olduğu gibi geçer.
 
 musl'ün varsayılan bellek ayırıcısı glibc'ninkinden farklıdır; aşama 2'nin

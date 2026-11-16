@@ -1,0 +1,19 @@
+[Unit]
+Description=KillReport job: alliance member counts
+Wants=network-online.target rabbitmq-server.service redis-server.service
+After=network-online.target rabbitmq-server.service redis-server.service
+PartOf=killreport.target
+
+[Service]
+Type=oneshot
+User=killreport
+WorkingDirectory=/var/www/killreport/backend
+Environment=NODE_ENV=production
+Environment=LOG_LEVEL=info
+ExecStart=/usr/bin/yarn update:alliance-counts
+KillSignal=SIGINT
+SuccessExitStatus=130
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full

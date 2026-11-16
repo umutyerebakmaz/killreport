@@ -54,5 +54,5 @@ database id, and the Redis key carries a hash of the URL.
 
 ## Related
 
-- [PM2 reference](../ops/pm2.md)
+- [systemd reference](../ops/systemd.md)
 - [Worker documentation](worker-documentation.md)

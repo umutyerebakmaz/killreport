@@ -52,21 +52,22 @@ yarn worker:info:alliances
 yarn worker:info:types
 ```
 
-### Cron Jobs (Every 15 Minutes)
+### Scheduling
+
+The user and corporation killmail syncs need no timer and no scheduler of their
+own. The API server publishes both every 10 minutes from inside its own process
+(`KillmailSyncCron` in
+[`killmail-sync-cron.ts`](../../src/services/killmail-sync-cron.ts), started in
+`server.ts`), so they run whenever `killreport-backend` runs. The
+`yarn queue:user-killmails` and `yarn queue:corporation-killmails` scripts are
+for queueing by hand. See [systemd.md](../ops/systemd.md).
+
+### systemd Example
+
+The unit files are in `deploy/systemd/`. Install and enable them as described in [systemd.md](../ops/systemd.md), then:
 
 ```bash
-# Queue all users
-*/15 * * * * cd /path/to/backend && yarn queue:user-killmails
-*/15 * * * * cd /path/to/backend && yarn queue:corporation-killmails
-```
-
-### PM2 Example
-
-```bash
-# ecosystem.config.js file already exists in root
-pm2 start ecosystem.config.js
-pm2 save
-pm2 startup
+sudo systemctl start killreport.target
 ```
 
 ## 📊 Information to Show Users
@@ -129,9 +130,9 @@ Subsequent syncs only fetch NEW killmails.
 
 - [ ] Environment variables set (.env)
 - [ ] Database migrations run (prisma migrate deploy)
-- [ ] Workers running (PM2/Docker/systemd)
+- [ ] Workers running (systemd)
 - [ ] Cron jobs configured (15 minute sync)
-- [ ] Logs monitored (PM2 logs / CloudWatch)
+- [ ] Logs monitored (journald / CloudWatch)
 
 ### Frontend
 
@@ -208,7 +209,7 @@ Workers:  2-3 user killmail worker instances recommended
 
 ### Killmails Not Coming
 
-1. Is worker running? (`pm2 status`)
+1. Is worker running? (`systemctl list-units 'killreport-*'`)
 2. Are there messages in queue? (RabbitMQ UI)
 3. Is token expired? (check database)
 
@@ -238,7 +239,7 @@ Workers:  2-3 user killmail worker instances recommended
 
 ### Deployment
 
-1. Start workers (PM2)
+1. Start workers (`sudo systemctl start killreport.target`)
 2. Set up cron jobs (15 minutes)
 3. Deploy frontend
 4. Announce to users!

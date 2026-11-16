@@ -199,16 +199,15 @@ yarn worker:type-dogma
 
 ## 🔧 Production Deployment
 
-### Running with PM2
+### Running in production
+
+The dogma workers are static reference-data workers, so they have no systemd unit (see [systemd.md](../ops/systemd.md)). Run them by hand, once:
 
 ```bash
-# Start workers with PM2 in production
-pm2 start ecosystem.config.js --only worker-info-dogma-attributes
-pm2 start ecosystem.config.js --only worker-info-dogma-effects
-pm2 start ecosystem.config.js --only worker-type-dogma
-
-# Watch logs
-pm2 logs worker-type-dogma --lines 50
+cd backend
+yarn worker:info:dogma-attributes
+yarn worker:info:dogma-effects
+yarn worker:type-dogma
 ```
 
 ### Migration Deploy
@@ -228,8 +227,8 @@ yarn prisma generate
 # Migration deploy
 yarn prisma migrate deploy
 
-# PM2 restart
-pm2 restart all
+# Restart the long-running units
+sudo systemctl restart killreport.target
 ```
 
 ---
@@ -249,14 +248,8 @@ sudo rabbitmqctl list_queues | grep dogma
 ### Worker Status
 
 ```bash
-# PM2 status
-pm2 status | grep dogma
-
-# PM2 logs
-pm2 logs worker-type-dogma --lines 100
-
-# Error logs
-pm2 logs worker-type-dogma --err
+# The dogma workers run in the terminal that started them
+# and write to its output (no systemd unit).
 ```
 
 ### Database Verification
@@ -285,7 +278,7 @@ SELECT COUNT(*) FROM type_dogma_effects;
 
 ```bash
 yarn prisma generate
-pm2 restart worker-type-dogma
+# then start the worker again: yarn worker:type-dogma
 ```
 
 ---
@@ -420,8 +413,7 @@ yarn prisma migrate deploy
 yarn prisma generate
 
 # Production
-pm2 restart all
-pm2 logs worker-type-dogma
+sudo systemctl restart killreport.target
 sudo rabbitmqctl list_queues
 ```
 

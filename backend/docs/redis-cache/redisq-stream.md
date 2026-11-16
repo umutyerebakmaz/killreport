@@ -252,49 +252,14 @@ See [RedisQ Filter Rules](https://github.com/zKillboard/RedisQ#redisq-filter-rul
 
 ## Production Deployment
 
-### Using PM2
-
-```bash
-# Install PM2
-npm install -g pm2
-
-# Start worker
-cd backend
-pm2 start "yarn worker:redisq" --name "killreport-redisq"
-
-# Monitor
-pm2 logs killreport-redisq
-pm2 monit
-
-# Auto-restart on crash
-pm2 startup
-pm2 save
-```
-
 ### Using systemd
 
-```ini
-# /etc/systemd/system/killreport-redisq.service
-[Unit]
-Description=KillReport RedisQ Stream Worker
-After=network.target postgresql.service
-
-[Service]
-Type=simple
-User=killreport
-WorkingDirectory=/opt/killreport/backend
-ExecStart=/usr/bin/yarn worker:redisq
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-```
+The unit is [`killreport-worker-redisq.service`](../../../deploy/systemd/killreport-worker-redisq.service). Install and enable it as described in [systemd.md](../ops/systemd.md).
 
 ```bash
-sudo systemctl enable killreport-redisq
-sudo systemctl start killreport-redisq
-sudo journalctl -u killreport-redisq -f
+sudo systemctl start killreport-worker-redisq
+journalctl -u killreport-worker-redisq -f
+systemd-cgtop
 ```
 
 ### Docker

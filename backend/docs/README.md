@@ -71,8 +71,7 @@ the containing file, and run `yarn docs:check-links` from the repository root.
 
 ## Operations
 
-- [PM2](ops/pm2.md) — PM2 process management
-- [Crontab](ops/crontab.md) — crontab configuration
+- [systemd](ops/systemd.md) — process management and scheduling (services and timers)
 - [Daily Workflows](ops/daily.md) — daily backend workflows
 - [Performance Improvements](ops/performance-improvements.md) — killmail query performance
 - [SDE Schematic Map Import](ops/sde-map-2d.md) — the 2D layout `/map` opens on, and the caches to clear after it

@@ -12,7 +12,7 @@ One queue, one worker, one table. The worker is the sole writer of
 
 ```mermaid
 flowchart LR
-    Cron(["<img src='https://cdn.simpleicons.org/pm2/8a63d2' width='28' height='28'/><br/><b>PM2 cron</b><br/><i>Monday 03:00 UTC</i>"])
+    Cron(["<img src='https://cdn.simpleicons.org/linux/8a63d2' width='28' height='28'/><br/><b>systemd timer</b><br/><i>Monday 03:00 UTC</i>"])
     --> Producer["<b>Queue script</b><br/><i>stale characters</i>"]
     --> Queue["<img src='https://cdn.simpleicons.org/rabbitmq' width='28' height='28'/><br/><b>RabbitMQ</b><br/><i>corporation history queue</i>"]
     --> Worker["<b>Worker</b><br/><i>prefetch ESI_PREFETCH</i>"]
@@ -116,12 +116,12 @@ Queue depth through the API:
 
 ## Schedule
 
-In production PM2 runs both processes (`ecosystem.config.js`, described in
-[pm2.md](../ops/pm2.md)):
+In production systemd runs both processes (`deploy/systemd/`, described in
+[systemd.md](../ops/systemd.md)):
 
-- `queue-character-corporation-history` — `cron_restart: '0 3 * * 1'`, every
+- `killreport-queue-character-corporation-history.timer` — `Mon *-*-* 03:00:00 UTC`, every
   Monday 03:00 UTC.
-- `worker-character-corporation-history` — always on.
+- `killreport-worker-character-corporation-history.service` — always on.
 
 The threshold is 6 days rather than 7 on purpose. A character fetched a little
 after last Monday's run started is slightly under 7 days old at the next run;

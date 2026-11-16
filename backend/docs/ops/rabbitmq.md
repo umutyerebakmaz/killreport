@@ -10,7 +10,7 @@ application queues listed in
 Declaring the exchanges and the wait/parking queues does **not** wire a single
 application queue into them. That wiring is a RabbitMQ **policy**, applied
 once against the broker, and it is an operator action — nothing in the
-codebase does it for you. `backend/docs/ops/pm2.md` and `crontab.md` cover the
+codebase does it for you. [systemd.md](./systemd.md) covers the
 processes and the schedules; this covers the broker.
 
 ---
@@ -194,7 +194,7 @@ This assumes the release being deployed carries the shared failure path
 `ensureAllQueuesExist()` in
 [`../../src/services/rabbitmq.ts`](../../src/services/rabbitmq.ts), which
 runs when the **API server** starts — not by `set_policy`, and not by
-`pm2 restart all` on its own until that restart includes the API process.
+restarting the workers on its own until that restart includes the API process.
 Applying the policy before those exchanges exist leaves every matching queue
 with a `dead-letter-exchange` that names something the broker doesn't have
 yet, and RabbitMQ drops anything dead-lettered into a missing exchange with
@@ -217,7 +217,7 @@ is load-bearing regardless:
    already-open queues.
 3. Only then restart the workers:
    ```bash
-   pm2 restart all
+   sudo systemctl restart killreport.target
    ```
 
 Reversed — restarting workers before the policy exists — a worker that nacks
@@ -412,8 +412,7 @@ soon as whatever prompted the rollback is understood.
 
 ## 📚 Related Documentation
 
-- [PM2 Process Management](./pm2.md) — the workers this policy protects
-- [Crontab Configuration](./crontab.md) — the other scheduling mechanism
+- [systemd](./systemd.md) — the workers this policy protects, and their schedules
 - [Universe Topology Chain](../workers/universe-topology-chain.md) — the
   worker family the retry topology generalises from
 - [Worker Status Monitoring](../workers/worker-status-monitoring.md) — how
@@ -441,7 +440,7 @@ veritabanından okuyor.
 **Yayına alma sırası tek yönlü: önce worker'lar, sonra publisher'lar.** Yeni
 worker eski mesajı da işleyebilir — `userId` eski mesajda da var, fazla alanları
 görmezden gelir. Tersi doğru değil: eski worker yeni mesajda `accessToken`
-bulamaz ve kullanıcıyı ack'leyip atar. `pm2 reload all` sıralama üzerinde
+bulamaz ve kullanıcıyı ack'leyip atar. `systemctl restart killreport.target` sıralama üzerinde
 kontrol vermez, yani bu geçiş anı gerçekten yaşanabilir. Character tarafında
 bunun bedeli yok: atlanan senkronizasyon `services/user-killmail-cron.ts`'in on
 dakikalık tick'iyle kendini onarıyor. Corporation kuyruğunun eşdeğer bir

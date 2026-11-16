@@ -1,0 +1,26 @@
+[Unit]
+Description=KillReport worker: character corporation history (esi_character_corporation_history_queue)
+Wants=network-online.target rabbitmq-server.service redis-server.service
+After=network-online.target rabbitmq-server.service redis-server.service
+PartOf=killreport.target
+StartLimitIntervalSec=0
+
+[Service]
+User=killreport
+WorkingDirectory=/var/www/killreport/backend
+Environment=NODE_ENV=production
+Environment=LOG_LEVEL=debug
+ExecStart=/usr/bin/yarn worker:character-corporation-history
+KillSignal=SIGINT
+SuccessExitStatus=130
+TimeoutStopSec=30
+Restart=always
+RestartSec=5
+MemoryHigh=460M
+MemoryMax=512M
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=killreport.target

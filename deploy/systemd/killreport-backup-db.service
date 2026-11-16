@@ -1,0 +1,16 @@
+# Not PartOf=killreport.target: stopping the application must not stop the backup.
+# Backups land in $HOME/backups/killreport_db_backups (see backend/scripts/backup-db.sh).
+[Unit]
+Description=KillReport database backup
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=killreport
+WorkingDirectory=/var/www/killreport/backend
+ExecStart=/bin/bash scripts/backup-db.sh
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full

@@ -1,0 +1,9 @@
+# Every KillReport service and timer is PartOf= and WantedBy= this target:
+#   systemctl stop killreport.target    stops them all, timers included
+#   systemctl start killreport.target   starts them again
+# See backend/docs/ops/systemd.md.
+[Unit]
+Description=KillReport (all services and timers)
+
+[Install]
+WantedBy=multi-user.target

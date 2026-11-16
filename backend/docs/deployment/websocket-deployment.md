@@ -58,12 +58,12 @@ frontend with the new code.
 
 ## 3. Backend
 
-No PM2 change. The WS server runs on the same process/port (4000) as the HTTP
+No process-manager change. The WS server runs on the same process/port (4000) as the HTTP
 server (`WebSocketServer({ server, path: '/graphql' })`). Just restart the
 backend with the new build:
 
 ```bash
-pm2 restart killreport-backend
+sudo systemctl restart killreport-backend
 ```
 
 ## 4. Verify

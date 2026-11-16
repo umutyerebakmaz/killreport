@@ -173,7 +173,7 @@ yarn worker:asteroid-belts
 yarn worker:stargates
 ```
 
-Static universe data is scheduled by neither PM2 nor the crontab. It is run by
+Static universe data is scheduled by no systemd timer. It is run by
 hand, once, and left alone. The full operational procedure - including how to
 reset, how far you can parallelise, measured timings and what to do when it goes
 wrong - is in [`../ops/universe-topology-run.md`](../ops/universe-topology-run.md).

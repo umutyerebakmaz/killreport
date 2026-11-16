@@ -1,0 +1,11 @@
+[Unit]
+Description=KillReport timer: queue-characters, Mondays 16:10 UTC
+PartOf=killreport.target
+
+[Timer]
+OnCalendar=Mon *-*-* 16:10:00 UTC
+Persistent=true
+AccuracySec=1s
+
+[Install]
+WantedBy=killreport.target

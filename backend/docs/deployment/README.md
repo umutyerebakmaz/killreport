@@ -28,26 +28,30 @@ Committed here and copied to `/etc/nginx/sites-available/` during deployment:
 ### Deploy
 
 ```bash
+# Run everything that writes to the checkout as the service user (see ../ops/systemd.md)
 cd /var/www/killreport
-git pull origin main
-yarn install
-cd backend && yarn build
-cd ../frontend && yarn build
-pm2 restart all
+sudo -u killreport git pull origin main
+sudo -u killreport yarn install
+cd backend && sudo -u killreport yarn build
+cd ../frontend && sudo -u killreport yarn build
+cd ..
+# Only if the pull changed deploy/systemd/:
+sudo cp deploy/systemd/* /etc/systemd/system/ && sudo systemctl daemon-reload
+sudo systemctl restart killreport.target
 ```
 
 ### Monitor
 
 ```bash
-pm2 monit           # Real-time monitoring
-pm2 logs backend    # View logs
-df -h               # Disk usage
+systemd-cgtop                       # Per-unit CPU and memory
+journalctl -u killreport-backend -f # View logs
+df -h                               # Disk usage
 ```
 
 ### Emergency
 
 ```bash
-pm2 restart all     # Restart all services
-pm2 logs --err      # Check errors
-pm2 flush           # Clear logs
+sudo systemctl restart killreport.target       # Restart all services
+journalctl -u 'killreport-*' -p err -n 100     # Check errors
+systemctl --failed                             # Units that exited non-zero
 ```

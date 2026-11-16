@@ -196,15 +196,15 @@ ENABLE_USER_KILLMAIL_WORKER=true
 2. Enable real-time subscription support
 3. Auto-refresh expired tokens
 
-### Production PM2
+### Production (systemd)
 
 ```bash
 # Option 1: Run as separate worker
-pm2 start ecosystem.config.js --only worker-user-killmails
+sudo systemctl start killreport-worker-user-killmails
 
 # Option 2: Run embedded in server
 # Set ENABLE_USER_KILLMAIL_WORKER=true in .env
-pm2 restart backend
+sudo systemctl restart killreport-backend
 ```
 
 ## 📝 API Flow

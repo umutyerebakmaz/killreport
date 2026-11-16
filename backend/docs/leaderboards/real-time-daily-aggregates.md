@@ -46,7 +46,7 @@ through it.
 #### Layer 2: Periodic Refresh (FALLBACK) — not implemented
 
 > **Status**: designed, not built. There is no periodic-refresh service or worker
-> in `backend/src` and no PM2 process for it in `ecosystem.config.js`. Layer 1 is
+> in `backend/src` and no systemd unit for it in `deploy/systemd/`. Layer 1 is
 > currently the only writer to the `*_kill_stats` tables, so a failed transaction
 > or a worker restart mid-batch can leave a day's counts short until the row is
 > rebuilt by hand.
