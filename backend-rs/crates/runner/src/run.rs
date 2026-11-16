@@ -173,6 +173,12 @@ async fn run_connection<W: Worker>(
             async move {
                 match delivery {
                     Ok(delivery) => {
+                        // Already buffered when the publisher was lost: leave
+                        // it unsettled for the broker to redeliver; this saves
+                        // an ESI request and a DB read per buffered delivery.
+                        if publisher_lost_ref.load(Ordering::SeqCst) {
+                            return;
+                        }
                         let settle = LapinDelivery {
                             channel: &channel,
                             delivery: &delivery,

@@ -3250,6 +3250,7 @@ dependencies = [
  "anyhow",
  "esi",
  "futures-util",
+ "lapin",
  "mq",
  "runner",
  "serde_json",

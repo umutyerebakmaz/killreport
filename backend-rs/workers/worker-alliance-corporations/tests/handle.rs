@@ -6,7 +6,7 @@ use anyhow::anyhow;
 use esi::{EsiClient, RateLimiter};
 use futures_util::future::BoxFuture;
 use mq::EntityMessage;
-use runner::{Context, Outcome, Publisher, Worker};
+use runner::{Context, Outcome, Publisher, PublisherLost, Worker};
 use serde_json::json;
 use sqlx::PgPool;
 use wiremock::matchers::{method, path};
@@ -138,7 +138,9 @@ async fn a_failed_publish_is_an_error(pool: PgPool) {
         .handle(99000001, &Context::new(&recorder))
         .await;
 
-    assert!(result.is_err());
+    let err = result.unwrap_err();
+    assert!(err.downcast_ref::<PublisherLost>().is_none());
+    assert!(err.to_string().contains("nack"), "{err:#}");
 }
 
 #[sqlx::test(migrations = false, fixtures("alliances"))]

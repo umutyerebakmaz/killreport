@@ -11,6 +11,9 @@ use sqlx::PgPool;
 /// Lower than direct enrichment requests.
 pub const OUTPUT_PRIORITY: u8 = 3;
 
+/// The queue the corporation IDs are published to.
+pub const OUTPUT_QUEUE_NAME: &str = "esi_corporation_info_queue";
+
 pub struct AllianceCorporationWorker {
     pub pool: PgPool,
     pub esi: EsiClient,
@@ -18,7 +21,7 @@ pub struct AllianceCorporationWorker {
 
 impl Worker for AllianceCorporationWorker {
     const QUEUE_NAME: &'static str = "esi_alliance_corporations_queue";
-    const OUTPUT_QUEUE: Option<&'static str> = Some("esi_corporation_info_queue");
+    const OUTPUT_QUEUE: Option<&'static str> = Some(OUTPUT_QUEUE_NAME);
     const CONSUMER_TAG: &'static str = "worker-alliance-corporations-rs";
     const STARTED: &'static str = "🤝 alliance corporation worker started";
     const WAITING_FOR: &'static str = "alliances";
@@ -43,10 +46,9 @@ impl Worker for AllianceCorporationWorker {
             .iter()
             .map(|&corp_id| EntityMessage::new(corp_id, source.clone()))
             .collect();
-        let queued = messages.len() as u64;
-        let output_queue = Self::OUTPUT_QUEUE.expect("OUTPUT_QUEUE is set above");
-        ctx.publisher()
-            .publish(output_queue, &messages, Some(OUTPUT_PRIORITY))
+        let queued = ctx
+            .publisher()
+            .publish(OUTPUT_QUEUE_NAME, &messages, Some(OUTPUT_PRIORITY))
             .await?;
 
         Ok(Processed {

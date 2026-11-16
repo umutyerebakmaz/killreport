@@ -39,6 +39,10 @@ impl<'a> Context<'a> {
 
 /// The publisher's channel is gone. The message being handled is left
 /// unsettled for the broker to redeliver, and the runner reconnects.
+///
+/// Trade-off: a publish-side failure that repeats on every reconnect (say the
+/// broker refusing publishes to the output queue) loops every 5 s and never
+/// burns an attempt. It is loud in the log by design.
 #[derive(Debug)]
 pub struct PublisherLost;
 
