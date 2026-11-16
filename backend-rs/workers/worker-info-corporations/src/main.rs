@@ -18,8 +18,6 @@ struct CorporationWorker {
 
 impl Worker for CorporationWorker {
     const QUEUE_NAME: &'static str = "esi_corporation_info_queue";
-    /// Process 25 corporations concurrently (`worker-info-corporations.ts`).
-    const PREFETCH_COUNT: u16 = 25;
     const CONSUMER_TAG: &'static str = "worker-info-corporations-rs";
     const STARTED: &'static str = "🏢 corporation info worker started";
     const WAITING_FOR: &'static str = "corporations";

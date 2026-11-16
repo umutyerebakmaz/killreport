@@ -566,10 +566,16 @@ unacked. The API server and `worker-redisq-stream` call `setEsiMaxWait(10_000)`,
 so a brake longer than 10 s fails the request with `EsiThrottledError` instead
 of hanging; workers wait the brake out.
 
-Concurrency is `channel.prefetch(N)`. Two families of worker exist today:
+Concurrency is `channel.prefetch(N)`. Three families of worker exist today:
 
-- Most workers set a `PREFETCH_COUNT` constant (3–50) and rely on
-  the limiter for the real rate.
+- The info workers (`worker-info-*`, Node and Rust alike) and the universe
+  workers compute it as `max(ESI_PREFETCH, ceil(ESI_MAX_RPS / 2))`, which is 25
+  with the defaults. The Rust runner computes it in
+  `backend-rs/crates/runner/src/prefetch.rs`. Each message is one ESI call and
+  one short upsert, so the 2-connection worker pool can keep up at that depth.
+- The rest set a fixed `PREFETCH_COUNT` constant (1–10) and rely on the
+  limiter for the real rate. `worker-killmail-detail` is fixed on purpose: its
+  writes are heavy, and at 100 they hit the pool's 10 s connection timeout.
 - `worker-regions` and `worker-constellations` use `prefetch(1)` with a manual
   100 ms sleep, which is 10 req/sec serial. Slower, but simple and safe for
   workers whose write path is a large transaction. They no longer read the

@@ -16,6 +16,7 @@ use tracing::{error, info, warn};
 use esi::{EsiClient, RateLimiter};
 use mq::{connect, declare_worker_queue, LapinDelivery};
 
+use crate::prefetch::prefetch_from_env;
 use crate::shutdown::shutdown_signal;
 use crate::totals::QUIET;
 use crate::{process_one, Totals, Worker};
@@ -50,6 +51,7 @@ pub async fn run<W: Worker>(build: impl FnOnce(Resources) -> W) -> anyhow::Resul
     let database_url = std::env::var("DATABASE_URL").context("DATABASE_URL is not set")?;
     let rabbitmq_url = std::env::var("RABBITMQ_URL").context("RABBITMQ_URL is not set")?;
     let limiter = RateLimiter::from_env().map_err(anyhow::Error::msg)?;
+    let prefetch = prefetch_from_env().map_err(anyhow::Error::msg)?;
 
     let pool = db::worker_pool(&database_url)?;
     let worker = Arc::new(build(Resources {
@@ -60,10 +62,10 @@ pub async fn run<W: Worker>(build: impl FnOnce(Resources) -> W) -> anyhow::Resul
 
     info!("{}", W::STARTED);
     info!("📦 queue: {}", W::QUEUE_NAME);
-    info!("⚡ prefetch: {} concurrent\n", W::PREFETCH_COUNT);
+    info!("⚡ prefetch: {prefetch} concurrent\n");
 
     while !shutting_down.load(Ordering::SeqCst) {
-        match run_connection(&worker, &shutting_down, &rabbitmq_url).await {
+        match run_connection(&worker, &shutting_down, &rabbitmq_url, prefetch).await {
             Ok(()) if shutting_down.load(Ordering::SeqCst) => break,
             Ok(()) => error!("💥 worker error: the consumer stopped"),
             Err(e) => {
@@ -95,11 +97,12 @@ async fn run_connection<W: Worker>(
     worker: &Arc<W>,
     shutting_down: &Arc<AtomicBool>,
     url: &str,
+    prefetch: u16,
 ) -> anyhow::Result<()> {
     let (connection, channel) = connect(url).await?;
     declare_worker_queue(&channel, W::QUEUE_NAME).await?;
     channel
-        .basic_qos(W::PREFETCH_COUNT, BasicQosOptions::default())
+        .basic_qos(prefetch, BasicQosOptions::default())
         .await?;
 
     info!("✅ connected to RabbitMQ");
@@ -133,7 +136,7 @@ async fn run_connection<W: Worker>(
     };
 
     consumer
-        .for_each_concurrent(usize::from(W::PREFETCH_COUNT), |delivery| {
+        .for_each_concurrent(usize::from(prefetch), |delivery| {
             let worker = Arc::clone(worker);
             let totals = Arc::clone(&totals);
             let channel = channel.clone();

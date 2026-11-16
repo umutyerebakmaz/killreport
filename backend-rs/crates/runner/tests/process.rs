@@ -98,7 +98,6 @@ impl FakeWorker {
 
 impl Worker for FakeWorker {
     const QUEUE_NAME: &'static str = "esi_fake_queue";
-    const PREFETCH_COUNT: u16 = 1;
     const CONSUMER_TAG: &'static str = "fake";
     const STARTED: &'static str = "fake worker started";
     const WAITING_FOR: &'static str = "fakes";

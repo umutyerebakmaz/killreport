@@ -23,8 +23,6 @@ struct TypeWorker {
 
 impl Worker for TypeWorker {
     const QUEUE_NAME: &'static str = "esi_type_info_queue";
-    /// Process 10 types concurrently (`worker-info-types.ts`).
-    const PREFETCH_COUNT: u16 = 10;
     const CONSUMER_TAG: &'static str = "worker-info-types-rs";
     const STARTED: &'static str = "📦 type info worker started";
     const WAITING_FOR: &'static str = "types";
