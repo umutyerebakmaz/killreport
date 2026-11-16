@@ -10,7 +10,7 @@ application queues listed in
 Declaring the exchanges and the wait/parking queues does **not** wire a single
 application queue into them. That wiring is a RabbitMQ **policy**, applied
 once against the broker, and it is an operator action — nothing in the
-codebase does it for you. `backend/docs/ops/pm2.md` and `crontab.md` cover the
+codebase does it for you. [systemd.md](./systemd.md) covers the
 processes and the schedules; this covers the broker.
 
 ---
@@ -412,8 +412,7 @@ soon as whatever prompted the rollback is understood.
 
 ## 📚 Related Documentation
 
-- [PM2 Process Management](./pm2.md) — the workers this policy protects
-- [Crontab Configuration](./crontab.md) — the other scheduling mechanism
+- [systemd](./systemd.md) — the workers this policy protects, and their schedules
 - [Universe Topology Chain](../workers/universe-topology-chain.md) — the
   worker family the retry topology generalises from
 - [Worker Status Monitoring](../workers/worker-status-monitoring.md) — how

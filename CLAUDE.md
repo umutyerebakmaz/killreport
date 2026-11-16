@@ -579,21 +579,22 @@ sleeps 60 s before the requeue. A 404 warns and skips.
 
 ### Scheduling is only for mutable data
 
-There are **two** scheduling mechanisms, and both are documented:
+There is **one** scheduling mechanism: **systemd timers** in `deploy/systemd/`,
+one `.timer` beside each job's `Type=oneshot` service. Alliances run daily,
+`queue:characters` and `queue:character-corporations` weekly (Monday 16:10
+and 17:00 UTC), prices daily, sovereignty every few minutes, system kills
+hourly, and the database backup nightly. systemd is also the only process
+manager: PM2 and `ecosystem.config.js` were removed on 2026-11-16, and the OS
+crontab stays empty. Described in `backend/docs/ops/systemd.md`;
+`backend/src/ops/systemd-units.guard.spec.ts` pins every unit to that
+inventory.
 
-1. **PM2 `cron_restart`** in `ecosystem.config.js` — alliances daily,
-   `queue:characters` and `queue:character-corporations` weekly (Monday 16:10
-   and 17:00 UTC), prices daily, sovereignty by the minute, system kills
-   hourly. Described in `backend/docs/ops/pm2.md`.
-2. **The operating system crontab** on the droplet — server maintenance only:
-   log cleanup, a nightly database backup and PM2 log rotation. Described in
-   `backend/docs/ops/crontab.md`.
+A job is scheduled by exactly one timer. The character queues once sat in
+both PM2 and the crontab and ran twice (#316); a second mechanism is how that
+comes back.
 
-A job belongs to exactly one of the two. The character queues used to sit in
-both, PM2 monthly and the crontab weekly, so they ran twice (#316).
-
-Everything either one schedules is data that changes. Static universe and
-reference data appears in **neither**: `queue:regions`, `queue:constellations`,
+Everything a timer schedules is data that changes. Static universe and
+reference data has **no** timer: `queue:regions`, `queue:constellations`,
 `queue:solar-systems`, `queue:types`, `queue:categories`, `queue:dogma-*` and
 their workers are run by hand, once, and left alone.
 
@@ -704,7 +705,7 @@ truth. Required: `EVE_CLIENT_ID`, `EVE_CLIENT_SECRET`, `DATABASE_URL`,
 | Apollo Client            | `frontend/src/lib/apolloClient.ts`                             |
 | Components               | `frontend/src/components/`                                     |
 | Routes                   | `frontend/src/app/`                                            |
-| PM2 process definitions  | `ecosystem.config.js`                                          |
+| systemd units and timers | `deploy/systemd/`                                              |
 
 **Correction:** the old guide also listed `yarn test:enrichment` and
 `test-killmails.sh` under debugging. Neither exists.
@@ -732,7 +733,7 @@ themselves are alive:
 | `backend/docs/CAPSULE_VALUE_CALCULATION.MD`  | `backend/docs/workers/capsule-value-calculation.md`                                                                          |
 | `backend/POOL_CONNECTION_FIX.md`             | no longer its own file; the connection-limit reasoning is in `backend/docs/deployment/cost-comparison.md` and repeated above |
 
-Directories worth knowing: `backend/docs/ops/` (PM2, crontab, daily operations,
+Directories worth knowing: `backend/docs/ops/` (systemd, daily operations,
 performance), `workers/`, `leaderboards/`, `redis-cache/`, `esi/`,
 `authentication/`, `deployment/`, `api/`.
 

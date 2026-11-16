@@ -116,12 +116,12 @@ Queue depth through the API:
 
 ## Schedule
 
-In production PM2 runs both processes (`ecosystem.config.js`, described in
-[pm2.md](../ops/pm2.md)):
+In production systemd runs both processes (`deploy/systemd/`, described in
+[systemd.md](../ops/systemd.md)):
 
-- `queue-character-corporation-history` — `cron_restart: '0 3 * * 1'`, every
+- `killreport-queue-character-corporation-history.timer` — `Mon *-*-* 03:00:00 UTC`, every
   Monday 03:00 UTC.
-- `worker-character-corporation-history` — always on.
+- `killreport-worker-character-corporation-history.service` — always on.
 
 The threshold is 6 days rather than 7 on purpose. A character fetched a little
 after last Monday's run started is slightly under 7 days old at the next run;

@@ -420,6 +420,22 @@ describe('systemd units', () => {
     expect(installedUnits()).toEqual(expected);
   });
 
+  it('PM2 is gone', () =>
+    expect(fs.existsSync(path.join(REPO, 'ecosystem.config.js'))).toBe(false));
+
+  it('systemd.md enables exactly the units that have an [Install] section', () => {
+    const doc = fs.readFileSync(
+      path.join(REPO, 'backend/docs/ops/systemd.md'),
+      'utf8',
+    );
+    const lines = doc.split('\n').filter((l) => l.includes('systemctl enable'));
+    expect(lines).toHaveLength(1);
+    const listed = lines[0]
+      .split(/\s+/)
+      .filter((t) => /\.(service|timer|target)$/.test(t));
+    expect(listed.sort()).toEqual(installedUnits());
+  });
+
   it.skipIf(!hasSystemdAnalyze)(
     'every OnCalendar parses with systemd-analyze',
     () => {
