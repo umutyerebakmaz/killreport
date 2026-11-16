@@ -2,6 +2,7 @@
  * Category Info Worker
  * Fetches category information from ESI and saves to database
  */
+import { config } from '@config/config';
 import { CategoryService } from '@services/category';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
@@ -9,7 +10,13 @@ import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_category_info_queue';
-const PREFETCH_COUNT = 10; // Process 10 categories concurrently
+// Concurrency, not a rate limit - the shared limiter (esiLimiter) owns the dispatch ceiling.
+// Its job is to keep that ceiling fed, so it has to be at least a fraction of
+// the target rate. Override per run with ESI_PREFETCH.
+const PREFETCH_COUNT = Math.max(
+  config.esi.prefetch,
+  Math.ceil(config.esi.maxRequestsPerSecond / 2),
+);
 
 interface EntityQueueMessage {
   entityId: number;

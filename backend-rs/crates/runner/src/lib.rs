@@ -7,6 +7,7 @@
 use std::future::Future;
 
 mod message;
+mod prefetch;
 mod process;
 mod run;
 mod shutdown;
@@ -29,7 +30,6 @@ pub struct Processed {
 /// One info worker: a queue, and what to do with one entity ID from it.
 pub trait Worker: Send + Sync + 'static {
     const QUEUE_NAME: &'static str;
-    const PREFETCH_COUNT: u16;
     const CONSUMER_TAG: &'static str;
     /// Logged once at startup.
     const STARTED: &'static str;

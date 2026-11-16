@@ -140,6 +140,25 @@ impl Drop for Permit {
 /// default as `backend/src/config/config.ts`.
 pub const DEFAULT_REDIS_URL: &str = "redis://localhost:6379";
 
+/// `ESI_MAX_RPS` from the environment: see [`parse_max_rps`].
+pub fn max_rps_from_env() -> Result<u32, String> {
+    parse_max_rps(std::env::var("ESI_MAX_RPS").ok().as_deref())
+}
+
+/// The application-wide request ceiling: 50 when unset, otherwise a positive
+/// integer or an error at startup.
+pub fn parse_max_rps(raw: Option<&str>) -> Result<u32, String> {
+    match raw {
+        None => Ok(50),
+        Some(raw) => match raw.trim().parse::<u32>() {
+            Ok(n) if n > 0 => Ok(n),
+            _ => Err(format!(
+                "ESI_MAX_RPS must be a positive integer, got {raw:?}"
+            )),
+        },
+    }
+}
+
 /// The last known state of one route group's token bucket.
 #[derive(Debug, Clone)]
 struct Bucket {
@@ -261,17 +280,7 @@ impl RateLimiter {
     /// integer is an error at startup. Nothing connects here: the store
     /// connects on first use.
     pub fn from_env() -> Result<Self, String> {
-        let max_rps = match std::env::var("ESI_MAX_RPS") {
-            Err(_) => 50,
-            Ok(raw) => match raw.trim().parse::<u32>() {
-                Ok(n) if n > 0 => n,
-                _ => {
-                    return Err(format!(
-                        "ESI_MAX_RPS must be a positive integer, got {raw:?}"
-                    ))
-                }
-            },
-        };
+        let max_rps = max_rps_from_env()?;
         let redis_url = std::env::var("REDIS_URL")
             .ok()
             .filter(|url| !url.is_empty())

@@ -332,8 +332,11 @@ yarn worker:info:characters &
 yarn worker:info:characters &
 ```
 
-Per-instance concurrency is the `PREFETCH_COUNT` constant at the top of each worker
-file; raise it before adding instances, and keep the total within ESI's rate limit.
+Per-instance concurrency is the `PREFETCH_COUNT` at the top of each worker file.
+The info and universe workers compute it from `ESI_PREFETCH` (see `CLAUDE.md`,
+_Rate limiting_), so set that variable for a single run before adding instances.
+The other workers use a fixed constant. The request rate is set by the shared ESI
+limiter either way.
 
 > **Do not scale `worker:redisq` this way.** It is not a queue consumer — it walks
 > zKillboard's killmail stream sequentially using a cursor, so a second instance

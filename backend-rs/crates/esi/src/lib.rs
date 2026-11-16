@@ -12,6 +12,8 @@ mod throttled;
 
 pub use client::{EsiClient, EsiError};
 pub use compatibility::CompatibilityDate;
-pub use limiter::{EsiRoute, LimiterStats, Permit, RateLimiter, DEFAULT_REDIS_URL};
+pub use limiter::{
+    max_rps_from_env, parse_max_rps, EsiRoute, LimiterStats, Permit, RateLimiter, DEFAULT_REDIS_URL,
+};
 pub use route::route_template;
 pub use throttled::{EsiThrottled, ThrottleKind};

@@ -18,8 +18,6 @@ struct AllianceWorker {
 
 impl Worker for AllianceWorker {
     const QUEUE_NAME: &'static str = "esi_alliance_info_queue";
-    /// Process 3 alliances concurrently (`worker-info-alliances.ts:12`).
-    const PREFETCH_COUNT: u16 = 3;
     const CONSUMER_TAG: &'static str = "worker-info-alliances-rs";
     const STARTED: &'static str = "🤝 alliance info worker started";
     const WAITING_FOR: &'static str = "alliances";

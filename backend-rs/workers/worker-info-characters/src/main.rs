@@ -23,8 +23,6 @@ struct CharacterWorker {
 
 impl Worker for CharacterWorker {
     const QUEUE_NAME: &'static str = "esi_character_info_queue";
-    /// Process 5 characters concurrently (`worker-info-characters.ts`).
-    const PREFETCH_COUNT: u16 = 5;
     const CONSUMER_TAG: &'static str = "worker-info-characters-rs";
     const STARTED: &'static str = "👤 character info worker started";
     const WAITING_FOR: &'static str = "characters";
