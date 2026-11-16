@@ -22,9 +22,11 @@ yarn queue:alliance-chain:rs
 # = yarn queue:alliances:rs && yarn queue:alliance-corporations:rs
 ```
 
-When `esi_corporation_info_queue` has drained, take the snapshots:
+When `esi_corporation_info_queue` has drained, recount the alliances and take
+the snapshots:
 
 ```bash
+yarn update:alliance-counts
 yarn snapshot:alliances
 yarn snapshot:corporations
 ```
@@ -75,6 +77,12 @@ its queue, or it misses alliances created since the last run.
 - Fetches details from ESI for each corporation
 - Performs **UPSERT** in database (updates existing, inserts new)
 - Updated fields: name, ticker, member_count, ceo_id, alliance_id, tax_rate
+
+**`yarn update:alliance-counts`** (Node only)
+
+- Recomputes `member_count` and `corporation_count` on every alliance from the
+  `corporations` table
+- Without it the alliance counts stay stale even after the corporations update
 
 **`yarn snapshot:alliances`** / **`yarn snapshot:corporations`** (Node only)
 
@@ -149,22 +157,32 @@ With `worker:info:characters:rs` running, the IDs go straight to
 
 ### Scenario 1: Weekly Full Update
 
-With the four info workers and `worker:alliance-corporations:rs` running:
+With `worker:info:alliances:rs`, `worker:info:corporations:rs`,
+`worker:info:characters:rs` and `worker:alliance-corporations:rs` running:
 
 ```bash
 # 1. Alliance & Corporation updates
 yarn queue:alliance-chain:rs
 
-# 2. Character updates
+# 2. Refresh every corporation already in the database
+yarn queue:corporations:rs
+
+# 3. Character updates
 yarn queue:characters:rs
 
-# 3. Fill missing corporations (after step 2 has drained)
+# 4. Fill missing corporations (after step 3 has drained)
 yarn queue:character-corporations
 
-# 4. Take snapshots (after esi_corporation_info_queue has drained)
+# 5. Recount and take snapshots (after esi_corporation_info_queue has drained)
+yarn update:alliance-counts
 yarn snapshot:alliances
 yarn snapshot:corporations
 ```
+
+Step 2 is what catches a corporation that left its alliance without joining
+another one. The alliance chain finds corporations only through alliance
+membership lists, so such a corporation is never queued by step 1 and keeps
+its old `alliance_id`, which inflates that alliance's counts and snapshots.
 
 ### Scenario 2: Fill Missing Entities Only
 
