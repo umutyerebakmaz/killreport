@@ -38,12 +38,12 @@ yarn install  # If there are new dependencies
 yarn build
 ```
 
-### 5. Restart Frontend with PM2
+### 5. Restart Frontend
 
 ```bash
-pm2 restart frontend
+sudo systemctl restart killreport-frontend
 # or restart all services
-pm2 restart all
+sudo systemctl restart killreport.target
 ```
 
 ### 6. Check Environment Variables
@@ -103,18 +103,18 @@ https://killreport.com/auth/callback
 
 ```bash
 # Frontend logs
-pm2 logs frontend --lines 50
+journalctl -u killreport-frontend -n 50
 
 # Backend logs
-pm2 logs backend --lines 50
+journalctl -u killreport-backend -n 50
 
 # Nginx logs
 sudo tail -f /var/log/nginx/error.log
 ```
 
-## Alternative: Deploy Using PM2 Ecosystem
+## Alternative: Deploy the Whole Stack
 
-If you're using PM2 ecosystem file:
+To restart every process under systemd (see [systemd.md](../ops/systemd.md)):
 
 ```bash
 cd /var/www/killreport
@@ -122,7 +122,7 @@ git pull origin main
 cd frontend
 yarn build
 cd ..
-pm2 restart ecosystem.config.js --env production
+sudo systemctl restart killreport.target
 ```
 
 ## Troubleshooting
@@ -135,18 +135,18 @@ pm2 restart ecosystem.config.js --env production
 ls -la /var/www/killreport/frontend/.next
 ```
 
-2. **Is frontend running in PM2:**
+2. **Is frontend running under systemd:**
 
 ```bash
-pm2 list
-pm2 info frontend
+systemctl list-units 'killreport-*'
+systemctl status killreport-frontend
 ```
 
 3. **Is frontend port correct:**
 
 ```bash
-# Frontend port should be 3000 in ecosystem.config.js
-cat ecosystem.config.js | grep -A 10 frontend
+# Frontend port should be 3000 (PORT in the unit file)
+systemctl cat killreport-frontend | grep PORT
 ```
 
 4. **Is Nginx proxying to frontend:**
@@ -169,12 +169,11 @@ cors: {
 
 ### Environment Variables Not Loaded
 
-If env vars not loaded after PM2 restart:
+If env vars not loaded after a restart:
 
 ```bash
-pm2 delete all
-pm2 start ecosystem.config.js --env production
-pm2 save
+sudo systemctl daemon-reload
+sudo systemctl restart killreport.target
 ```
 
 ## Summary Commands (Quick Deploy)
@@ -184,8 +183,8 @@ pm2 save
 cd /var/www/killreport
 git pull origin main
 cd frontend && yarn build && cd ..
-pm2 restart frontend
-pm2 logs frontend --lines 20
+sudo systemctl restart killreport-frontend
+journalctl -u killreport-frontend -n 20
 ```
 
 ## Conclusion

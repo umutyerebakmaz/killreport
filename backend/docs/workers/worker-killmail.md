@@ -151,12 +151,13 @@ yarn worker:zkillboard &
 ### Production Mode
 
 ```bash
-# Using PM2 (recommended)
-pm2 start dist/queue-zkillboard-sync.js --name "zkill-queue" --cron "*/5 * * * *"
-pm2 start dist/worker-zkillboard-sync.js --name "zkill-worker" -i 3
+# Using systemd (see ../ops/systemd.md)
+sudo systemctl start killreport-worker-zkillboard
 
-# Or with Node.js + cron
-# Add to crontab: */5 * * * * cd /app && yarn queue:zkillboard
+# Queue the work by hand (no timer exists for it)
+cd backend && yarn queue:zkillboard
+
+# Or with plain Node.js
 node dist/killmail-worker.js
 ```
 
@@ -306,19 +307,16 @@ type WorkerStatus {
 
 For production deployment, consider:
 
-1. **Process Manager**: Use PM2 or similar to keep workers running
+1. **Process Manager**: Use systemd to keep workers running; see [systemd.md](../ops/systemd.md)
 
    ```bash
-   npm install -g pm2
-   pm2 start dist/killmail-worker.js --name killmail-worker
-   pm2 startup
-   pm2 save
+   sudo systemctl enable --now killreport-worker-killmail-detail.service
    ```
 
-2. **Multiple Workers**: Run multiple worker instances for better throughput
+2. **Multiple Workers**: Run multiple worker instances for better throughput. systemd does this with a template unit, as in `killreport-worker-backfill-values@{1,2,3}`
 
    ```bash
-   pm2 start dist/killmail-worker.js -i 3 --name killmail-worker
+   sudo systemctl start killreport-worker-backfill-values@1 killreport-worker-backfill-values@2 killreport-worker-backfill-values@3
    ```
 
 3. **Monitoring**: Set up logging and monitoring for worker health

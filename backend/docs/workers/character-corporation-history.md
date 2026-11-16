@@ -12,7 +12,7 @@ One queue, one worker, one table. The worker is the sole writer of
 
 ```mermaid
 flowchart LR
-    Cron(["<img src='https://cdn.simpleicons.org/pm2/8a63d2' width='28' height='28'/><br/><b>PM2 cron</b><br/><i>Monday 03:00 UTC</i>"])
+    Cron(["<img src='https://cdn.simpleicons.org/linux/8a63d2' width='28' height='28'/><br/><b>systemd timer</b><br/><i>Monday 03:00 UTC</i>"])
     --> Producer["<b>Queue script</b><br/><i>stale characters</i>"]
     --> Queue["<img src='https://cdn.simpleicons.org/rabbitmq' width='28' height='28'/><br/><b>RabbitMQ</b><br/><i>corporation history queue</i>"]
     --> Worker["<b>Worker</b><br/><i>prefetch ESI_PREFETCH</i>"]

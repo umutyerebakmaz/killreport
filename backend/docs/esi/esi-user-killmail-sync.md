@@ -115,44 +115,27 @@ Worker does the following:
 ✅ Completed: General XAN
 ```
 
-### Production Environment (PM2)
+### Production Environment (systemd)
 
 #### Start Worker
 
 ```bash
 # Start only the user-killmails worker
-pm2 start ecosystem.config.js --only worker-user-killmails
+sudo systemctl start killreport-worker-user-killmails
 
 # Watch logs
-pm2 logs worker-user-killmails
+journalctl -u killreport-worker-user-killmails -f
 
 # Check status
-pm2 status
+systemctl list-units 'killreport-*'
 ```
 
-#### Automatic Queue (Cron Job)
+#### Queueing Users
 
-To automatically add users to queue every 5 minutes:
-
-```bash
-# Edit crontab
-crontab -e
-
-# Add this line (runs every 5 minutes)
-*/5 * * * * cd /path/to/killreport/backend && yarn queue:user-killmails >> /var/log/queue-user-killmails.log 2>&1
-```
-
-**Alternative: Less frequent updates**
+systemd has no timer for `queue:user-killmails` (see [systemd.md](../ops/systemd.md)). Run it by hand when you want to queue users:
 
 ```bash
-# Every 15 minutes
-*/15 * * * * cd /path/to/killreport/backend && yarn queue:user-killmails
-
-# Every hour
-0 * * * * cd /path/to/killreport/backend && yarn queue:user-killmails
-
-# Daily at 9 AM
-0 9 * * * cd /path/to/killreport/backend && yarn queue:user-killmails
+cd backend && yarn queue:user-killmails
 ```
 
 ## Technical Details
@@ -270,20 +253,20 @@ query {
 }
 ```
 
-### PM2 Monitoring
+### systemd Monitoring
 
 ```bash
 # General status
-pm2 status
+systemctl list-units 'killreport-*'
 
 # Memory usage
-pm2 monit
+systemd-cgtop
 
 # Logs
-pm2 logs worker-user-killmails --lines 100
+journalctl -u killreport-worker-user-killmails -n 100
 
 # Restart
-pm2 restart worker-user-killmails
+sudo systemctl restart killreport-worker-user-killmails
 ```
 
 ### Database Queries
@@ -321,7 +304,7 @@ ORDER BY killmail_count DESC;
 - Worker: [`backend/src/workers/worker-esi-user-killmails.ts`](../../src/workers/worker-esi-user-killmails.ts)
 - Character Service: [`backend/src/services/character/character.service.ts`](../../src/services/character/character.service.ts)
 - Killmail Service: [`backend/src/services/killmail/killmail.service.ts`](../../src/services/killmail/killmail.service.ts)
-- PM2 Config: [`ecosystem.config.js`](../../../ecosystem.config.js)
+- systemd units: [`deploy/systemd/`](../../../deploy/systemd/), see [systemd.md](../ops/systemd.md)
 
 ## License
 

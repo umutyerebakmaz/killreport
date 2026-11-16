@@ -108,8 +108,8 @@ apt update && apt upgrade -y
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt install -y nodejs
 
-# Install PM2 globally
-npm install -g pm2 yarn
+# Enable Yarn
+sudo corepack enable
 
 # Install Nginx
 apt install -y nginx certbot python3-certbot-nginx
@@ -195,11 +195,10 @@ cd ../frontend
 yarn install
 yarn build
 
-# Start with PM2 (from root)
+# Install, enable and start the systemd units (from root).
+# See "Install and update", "Enable" and "Server setup" in ../ops/systemd.md
 cd ..
-pm2 start ecosystem.config.js --env production
-pm2 save
-pm2 startup
+sudo systemctl start killreport.target
 ```
 
 ---
@@ -281,20 +280,16 @@ certbot --nginx -d yourdomain.com -d www.yourdomain.com -d api.yourdomain.com
 ## Step 6: Monitoring Setup
 
 ```bash
-# Install monitoring tools
-pm2 install pm2-logrotate
-
-# Configure log rotation (keep 7 days)
-pm2 set pm2-logrotate:retain 7
-pm2 set pm2-logrotate:max_size 100M
+# Log retention: set SystemMaxUse= in /etc/systemd/journald.conf
+# (see ../ops/systemd.md, "Daily commands")
 
 # View logs
-pm2 logs              # All processes
-pm2 logs backend      # Backend only
-pm2 logs worker-characters  # Specific worker
+journalctl -u 'killreport-*' --since today   # All processes
+journalctl -u killreport-backend -f          # Backend only
+journalctl -u killreport-worker-characters -f  # Specific worker
 
 # Monitor resources
-pm2 monit
+systemd-cgtop
 ```
 
 ---
@@ -305,7 +300,7 @@ pm2 monit
 
 ```bash
 # Application health
-pm2 status
+systemctl list-units 'killreport-*'
 
 # Database connection check
 psql "$DATABASE_URL" -c "SELECT version();"
@@ -338,10 +333,10 @@ du -sh /var/www/killreport
 
 ```bash
 # Backend errors
-pm2 logs backend --lines 100 --err
+journalctl -u killreport-backend -n 100 -p err
 
 # Worker queue processing
-pm2 logs worker-characters --lines 50
+journalctl -u killreport-worker-characters -n 50
 
 # Nginx access logs
 tail -f /var/log/nginx/access.log
@@ -371,9 +366,9 @@ yarn build
 cd ../backend
 yarn prisma:migrate:deploy
 
-# Restart services (zero-downtime with cluster mode)
+# Restart services
 cd ..
-pm2 reload all
+sudo systemctl restart killreport.target
 ```
 
 ---
@@ -402,7 +397,7 @@ pm2 reload all
 1. **Monitor database usage** - Basic plan is sufficient for most startups
 2. **Enable droplet backups** (+$9.60/month) for full system snapshots
 3. **Monitor database size** - Upgrade PostgreSQL plan only when needed
-4. **Use PM2 clustering** for Node.js instead of more droplets
+4. **Tune per-unit `MemoryMax`** (see [systemd.md](../ops/systemd.md)) instead of adding droplets
 5. **Implement efficient queries** before scaling infrastructure
 
 ---

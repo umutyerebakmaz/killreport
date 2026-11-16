@@ -8,7 +8,7 @@ The backend uses an **independent process architecture** for maximum flexibility
 flowchart TB
     Client["Frontend<br/><i>Next.js</i>"]
 
-    subgraph procs["Node processes — supervised by PM2"]
+    subgraph procs["Node processes — supervised by systemd"]
         direction LR
         Server["<b>Server process</b><br/>GraphQL API · Auth<br/>Subscriptions · :4000"]
         Workers["<b>Worker processes</b><br/>RedisQ stream · User killmails<br/>Enrichment · Snapshots"]

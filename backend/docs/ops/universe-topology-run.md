@@ -3,7 +3,7 @@
 Step-by-step runbook for filling `stars`, `planets`, `moons`, `asteroid_belts`,
 `stargates` and `stations` from ESI.
 
-Static universe data is scheduled by neither PM2 nor the crontab. It is run by
+Static universe data is scheduled by no systemd timer. It is run by
 hand, once, and left alone — so this is the procedure. For how the chain works
 and why, see [`../workers/universe-topology-chain.md`](../workers/universe-topology-chain.md).
 

@@ -170,26 +170,13 @@ yarn snapshot:alliances
    • Date: 2025-11-08
 ```
 
-### ⏰ Automated Cron Job Setup
+### ⏰ Schedule
 
-Set up a cron job to run snapshots automatically every day:
-
-```bash
-# Edit crontab
-crontab -e
-
-# Run every day at midnight (00:00)
-0 0 * * * cd /root/killreport/backend && yarn snapshot:alliances >> /var/log/alliance-snapshots.log 2>&1
-```
-
-### 📅 Cron Schedule Examples
-
-| Schedule          | Cron Expression | Description       |
-| ----------------- | --------------- | ----------------- |
-| Daily at midnight | `0 0 * * *`     | Most recommended  |
-| Daily at 2 AM     | `0 2 * * *`     | Off-peak hours    |
-| Daily at 6 AM     | `0 6 * * *`     | Before peak usage |
-| Every 12 hours    | `0 */12 * * *`  | Twice daily       |
+In production the `killreport-snapshot-alliances.timer` runs it daily at 01:00 UTC
+(`OnCalendar=*-*-* 01:00:00 UTC`). The unit is in
+[`deploy/systemd/`](../../../deploy/systemd/killreport-snapshot-alliances.service);
+see [systemd.md](../ops/systemd.md). Run it now with
+`sudo systemctl start killreport-snapshot-alliances`.
 
 ### 🛡️ Worker Behavior
 

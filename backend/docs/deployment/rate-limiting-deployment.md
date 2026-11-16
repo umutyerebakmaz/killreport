@@ -13,9 +13,9 @@ git pull origin main
 scp -r backend/src/plugins/rate-limit.plugin.ts root@api.killreport.com:/root/killreport/backend/src/plugins/
 scp backend/src/server.ts root@api.killreport.com:/root/killreport/backend/src/
 
-# Restart with PM2
-pm2 restart killreport-backend
-pm2 logs killreport-backend --lines 50
+# Restart
+sudo systemctl restart killreport-backend
+journalctl -u killreport-backend -n 50
 ```
 
 ## 2. Nginx Config Update
@@ -73,7 +73,7 @@ redis-cli ttl "ratelimit:ip:YOUR_IP"
 
 ```bash
 # Search for rate limit messages in backend logs
-pm2 logs killreport-backend | grep "Rate limit"
+journalctl -u killreport-backend | grep "Rate limit"
 
 # Expected output:
 # ✅ Rate limit: ip:123.45.67.89 (1/100)
@@ -93,7 +93,7 @@ pm2 logs killreport-backend | grep "Rate limit"
 
 1. Check Redis connection: `redis-cli ping`
 2. Are there "Rate limit error" messages in backend logs?
-3. Are there errors after PM2 restart? `pm2 logs killreport-backend --err`
+3. Are there errors after the restart? `journalctl -u killreport-backend -p err`
 
 ### Always getting "Rate limit exceeded"
 

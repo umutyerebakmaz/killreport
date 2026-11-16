@@ -3,7 +3,7 @@
 Runbook for filling `solar_systems.position_2d_x` / `position_2d_y`, the layout
 `/map` opens on.
 
-Static universe data is scheduled by neither PM2 nor the crontab. It is run by
+Static universe data is scheduled by no systemd timer. It is run by
 hand and left alone — so this is the procedure. The script is
 [`../../src/scripts/import-sde-map-2d.ts`](../../src/scripts/import-sde-map-2d.ts);
 the design is in

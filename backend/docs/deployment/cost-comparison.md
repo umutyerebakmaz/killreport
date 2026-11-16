@@ -240,21 +240,21 @@ vm_memory_high_watermark.relative = 0.6  # Use max 60% RAM
 disk_free_limit.absolute = 2GB
 ```
 
-### 3. PM2 Memory Limits
+### 3. Memory Limits
 
-```javascript
-// ecosystem.config.js
-max_memory_restart: '1G',  // Restart if > 1GB
+```ini
+# killreport-backend.service
+MemoryHigh=900M
+MemoryMax=1G   # OOM-killed and restarted if > 1GB
 ```
 
 ### 4. Log Rotation
 
-```bash
-# PM2 log rotation
-pm2 install pm2-logrotate
-pm2 set pm2-logrotate:max_size 100M   # Max 100MB per log
-pm2 set pm2-logrotate:retain 7        # Keep 7 days
-pm2 set pm2-logrotate:compress true   # Gzip old logs
+Logs are kept by journald. Cap its disk use once in `/etc/systemd/journald.conf`
+(see [systemd.md](../ops/systemd.md)):
+
+```ini
+SystemMaxUse=2G
 ```
 
 ### 5. Nginx Caching

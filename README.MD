@@ -44,7 +44,7 @@ KillReport is a full-stack application built for EVE Online players and corporat
 - **Modern Stack**: Next.js 16 (App Router), React 19, TypeScript 5+
 - **GraphQL API**: Type-safe API with automatic code generation
 - **Database**: PostgreSQL with Prisma ORM and pre-aggregated stats tables
-- **Background Jobs**: RabbitMQ-based distributed task queue, run under PM2
+- **Background Jobs**: RabbitMQ-based distributed task queue, run under systemd
 - **Subscriptions**: `graphql-ws` over WebSocket, with Redis PubSub for multi-process fan-out
 - **External APIs**: Integration with zKillboard and EVE ESI
 - **Type Safety**: Full TypeScript coverage across frontend and backend
@@ -106,7 +106,7 @@ yarn worker:info:characters
 ```
 
 See the [worker documentation](./backend/docs/workers/worker-documentation.md) for the
-full list, and [PM2 operations](./backend/docs/ops/pm2.md) for how they are run in
+full list, and [systemd operations](./backend/docs/ops/systemd.md) for how they are run in
 production.
 
 ## Testing
@@ -136,15 +136,15 @@ deployment. Start there.
 
 The most common entry points:
 
-| Topic                         | Document                                                                          |
-| ----------------------------- | --------------------------------------------------------------------------------- |
-| How the pieces fit together   | [Architecture](./backend/docs/architecture.md)                                    |
-| EVE SSO login flow            | [Auth Setup](./backend/docs/authentication/auth-setup.md)                         |
-| Every worker and queue        | [Workers Documentation](./backend/docs/workers/worker-documentation.md)           |
-| Running the app in production | [Deployment Checklist](./backend/docs/deployment/deployment-checklist.md)         |
-| Day-to-day operations         | [Daily Workflows](./backend/docs/ops/daily.md) · [PM2](./backend/docs/ops/pm2.md) |
-| Caching behaviour             | [Cache Strategy](./backend/docs/redis-cache/cache-strategy.md)                    |
-| Leaderboard internals         | [Leaderboards](./backend/docs/leaderboards/leaderboards.md)                       |
+| Topic                         | Document                                                                                  |
+| ----------------------------- | ----------------------------------------------------------------------------------------- |
+| How the pieces fit together   | [Architecture](./backend/docs/architecture.md)                                            |
+| EVE SSO login flow            | [Auth Setup](./backend/docs/authentication/auth-setup.md)                                 |
+| Every worker and queue        | [Workers Documentation](./backend/docs/workers/worker-documentation.md)                   |
+| Running the app in production | [Deployment Checklist](./backend/docs/deployment/deployment-checklist.md)                 |
+| Day-to-day operations         | [Daily Workflows](./backend/docs/ops/daily.md) · [systemd](./backend/docs/ops/systemd.md) |
+| Caching behaviour             | [Cache Strategy](./backend/docs/redis-cache/cache-strategy.md)                            |
+| Leaderboard internals         | [Leaderboards](./backend/docs/leaderboards/leaderboards.md)                               |
 
 Component READMEs: [backend](./backend/README.MD) · [frontend](./frontend/README.MD)
 
@@ -170,7 +170,7 @@ flowchart TB
         Services["Services<br/><i>ESI · zKillboard</i>"]
     end
 
-    Workers["<b>Workers</b><br/><i>supervised by PM2</i>"]
+    Workers["<b>Workers</b><br/><i>supervised by systemd</i>"]
 
     PG[("<b>PostgreSQL</b><br/>via Prisma<br/><i>users · characters · killmails<br/>corporations · alliances</i>")]
     Redis[("<b>Redis</b><br/><i>response cache · PubSub<br/>RedisQ cursor</i>")]
@@ -207,7 +207,7 @@ flowchart TB
 - Prisma ORM with PostgreSQL
 - Redis for response caching and subscription PubSub
 - RabbitMQ for job queues
-- PM2 for process management
+- systemd for process management
 - DataLoader for query optimization
 - TypeScript with auto-generated types
 
@@ -250,7 +250,7 @@ killreport/
 │   ├── docs/                # Backend documentation (see index)
 │   └── package.json
 │
-├── ecosystem.config.js      # PM2 process definitions (API + workers)
+├── deploy/systemd/          # systemd units and timers (API, frontend, workers, jobs)
 └── package.json             # Monorepo root
 ```
 

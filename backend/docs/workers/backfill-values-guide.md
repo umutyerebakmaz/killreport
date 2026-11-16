@@ -109,22 +109,17 @@ yarn worker:backfill-values &
 yarn worker:backfill-values &
 ```
 
-**Production server with PM2:**
+**Production server with systemd:**
 
 ```bash
-# Start 5 workers
-pm2 start "yarn worker:backfill-values" --name backfill-1
-pm2 start "yarn worker:backfill-values" --name backfill-2
-pm2 start "yarn worker:backfill-values" --name backfill-3
-pm2 start "yarn worker:backfill-values" --name backfill-4
-pm2 start "yarn worker:backfill-values" --name backfill-5
+# Start the 3 worker instances
+sudo systemctl start killreport-worker-backfill-values@1 killreport-worker-backfill-values@2 killreport-worker-backfill-values@3
 
 # Monitor progress
-pm2 logs backfill-1 --lines 50
+journalctl -u killreport-worker-backfill-values@1 -n 50 -f
 
 # Stop when complete
-pm2 stop backfill-*
-pm2 delete backfill-*
+sudo systemctl stop killreport-worker-backfill-values@1 killreport-worker-backfill-values@2 killreport-worker-backfill-values@3
 ```
 
 **Sample output:**
@@ -245,8 +240,8 @@ psql $DATABASE_URL -c "
 ### Worker Logs
 
 ```bash
-# With PM2
-pm2 logs backfill-1 --lines 100
+# With systemd
+journalctl -u killreport-worker-backfill-values@1 -n 100
 
 # If running directly
 # Visible in terminal
@@ -331,7 +326,8 @@ echo $RABBITMQ_URL
 psql $DATABASE_URL -c "SELECT COUNT(*) FROM market_prices;"
 
 # Increase parallel worker count
-pm2 scale backfill-1 5  # Run 5 instances
+# systemd runs instances @1, @2 and @3; start more by hand with
+# `yarn worker:backfill-values` in extra shells
 
 # Check database connection pool
 # Connection limit can be increased in prisma-worker.ts
@@ -341,7 +337,7 @@ pm2 scale backfill-1 5  # Run 5 instances
 
 ```bash
 # Restart workers
-pm2 restart backfill-*
+sudo systemctl restart killreport-worker-backfill-values@1 killreport-worker-backfill-values@2 killreport-worker-backfill-values@3
 
 # Reduce prefetch (worker-backfill-values.ts)
 const PREFETCH_COUNT = 2;
@@ -372,19 +368,14 @@ yarn worker:backfill-values
 yarn queue:backfill-values
 # 250,000 killmails queued
 
-# 5. Start 5 workers (estimated ~5 hours)
-pm2 start "yarn worker:backfill-values" --name backfill-1
-pm2 start "yarn worker:backfill-values" --name backfill-2
-pm2 start "yarn worker:backfill-values" --name backfill-3
-pm2 start "yarn worker:backfill-values" --name backfill-4
-pm2 start "yarn worker:backfill-values" --name backfill-5
+# 5. Start the 3 worker instances (estimated ~5 hours)
+sudo systemctl start killreport-worker-backfill-values@1 killreport-worker-backfill-values@2 killreport-worker-backfill-values@3
 
 # 6. Monitor progress
 watch -n 30 'psql $DATABASE_URL -c "SELECT COUNT(*) FROM killmails WHERE total_value IS NULL;"'
 
 # 7. Stop workers when complete
-pm2 stop backfill-*
-pm2 delete backfill-*
+sudo systemctl stop killreport-worker-backfill-values@1 killreport-worker-backfill-values@2 killreport-worker-backfill-values@3
 ```
 
 ## ✅ Verification

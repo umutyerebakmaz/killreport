@@ -60,12 +60,12 @@ Professional infrastructure with automatic backups and high availability.
   ssh root@YOUR_DROPLET_IP
   ```
 
-- [ ] Install Node.js, Yarn, PM2:
+- [ ] Install Node.js and Yarn:
 
   ```bash
   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
   sudo apt install -y nodejs
-  sudo npm install -g yarn pm2
+  sudo corepack enable
   ```
 
 - [ ] Install RabbitMQ:
@@ -142,13 +142,11 @@ Professional infrastructure with automatic backups and high availability.
   yarn build
   ```
 
-- [ ] Start with PM2:
+- [ ] Install, enable and start the systemd units. Follow "Install and update",
+      "Enable" and "Server setup" in [systemd.md](../ops/systemd.md), then:
 
   ```bash
-  cd /var/www/killreport
-  pm2 start ecosystem.config.js --env production
-  pm2 save
-  pm2 startup
+  sudo systemctl start killreport.target
   ```
 
 ---
@@ -211,22 +209,22 @@ Professional infrastructure with automatic backups and high availability.
 - [ ] Backend health check: `https://api.yourdomain.com/health`
 - [ ] GraphQL Yoga Playground: `https://api.yourdomain.com/graphql`
 
-- [ ] Are PM2 processes running?
+- [ ] Are the systemd units running?
 
   ```bash
-  pm2 list
+  systemctl list-units 'killreport-*'
   ```
 
 - [ ] Check worker logs:
 
   ```bash
-  pm2 logs worker-redisq
-  pm2 logs worker-characters
-  pm2 logs worker-corporations
-  pm2 logs worker-alliances
-  pm2 logs worker-types
-  pm2 logs worker-zkillboard
-  pm2 logs worker-user-killmails
+  journalctl -u killreport-worker-redisq -f
+  journalctl -u killreport-worker-characters -f
+  journalctl -u killreport-worker-corporations -f
+  journalctl -u killreport-worker-alliances -f
+  journalctl -u killreport-worker-types -f
+  journalctl -u killreport-worker-zkillboard -f
+  journalctl -u killreport-worker-user-killmails -f
   ```
 
 - [ ] Is RabbitMQ running?
@@ -256,7 +254,7 @@ Professional infrastructure with automatic backups and high availability.
 - **worker-bulk-alliances**: Syncs all alliance list (manual)
 - **worker-bulk-corporations**: Syncs all corporation list (manual)
 
-**Workers running in PM2:** First 7 workers auto-start with ecosystem.config.js. Bulk workers are manually started.
+**Workers running under systemd:** the long-running workers start with `killreport.target`. Bulk workers are manually started.
 
 - [ ] Sync alliance and corporation lists (optional, for initial setup):
 
@@ -265,11 +263,11 @@ Professional infrastructure with automatic backups and high availability.
   yarn queue:alliances
   ```
 
-- [ ] Workers run automatically, watch with PM2 logs:
+- [ ] Workers run automatically, watch with journald:
 
   ```bash
-  pm2 logs worker-alliances
-  pm2 logs worker-corporations
+  journalctl -u killreport-worker-alliances -f
+  journalctl -u killreport-worker-corporations -f
   ```
 
 ---
@@ -279,9 +277,9 @@ Professional infrastructure with automatic backups and high availability.
 - [ ] Setup monitoring:
 
   ```bash
-  pm2 install pm2-logrotate
-  pm2 set pm2-logrotate:max_size 100M
-  pm2 set pm2-logrotate:retain 7
+  # Logs are kept by journald; set SystemMaxUse= in /etc/systemd/journald.conf
+  # (see systemd.md, "Daily commands")
+  systemd-cgtop
   ```
 
 - [ ] Firewall rules (UFW):
@@ -307,12 +305,12 @@ Professional infrastructure with automatic backups and high availability.
 
 ### Daily
 
-- [ ] Process health check with `pm2 list`
+- [ ] Process health check with `systemctl list-units 'killreport-*'`
 - [ ] Check disk usage with `df -h`
 
 ### Weekly
 
-- [ ] Review error logs with `pm2 logs --lines 100`
+- [ ] Review error logs with `journalctl -u 'killreport-*' -p err --since '7 days ago'`
 - [ ] PostgreSQL backup check (DigitalOcean automatic)
 
 ### Monthly
@@ -326,14 +324,14 @@ Professional infrastructure with automatic backups and high availability.
 ## Troubleshooting Commands
 
 ```bash
-# PM2 restart all
-pm2 restart all
+# Restart all
+sudo systemctl restart killreport.target
 
 # Backend logs
-pm2 logs backend --lines 200
+journalctl -u killreport-backend -n 200
 
 # Worker logs
-pm2 logs worker-characters --lines 100
+journalctl -u killreport-worker-characters -n 100
 
 # RabbitMQ status
 sudo rabbitmqctl list_queues
@@ -366,7 +364,7 @@ Scale PostgreSQL to 4 GB when:
 
 Add Worker Droplet when:
 
-- [ ] PM2 CPU usage > 80% sustained
+- [ ] CPU usage > 80% sustained
 - [ ] RabbitMQ queues backing up (> 10k messages)
 - [ ] Processing > 100k killmails/day
 
@@ -375,8 +373,8 @@ Add Worker Droplet when:
 ## Emergency Rollback
 
 ```bash
-# Stop all PM2 processes
-pm2 stop all
+# Stop all application processes
+sudo systemctl stop killreport.target
 
 # Checkout previous git commit
 cd /var/www/killreport
@@ -387,10 +385,7 @@ git checkout <previous_commit_hash>
 cd backend && yarn tsc
 cd ../frontend && yarn build
 
-# Restart (zero-downtime with cluster mode)
+# Restart
 cd ..
-pm2 reload all
-
-# Or restart all (brief downtime)
-pm2 restart all
+sudo systemctl start killreport.target
 ```

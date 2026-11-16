@@ -654,20 +654,20 @@ query {
 
 ---
 
-### 3️⃣ PM2 Monitoring (Production)
+### 3️⃣ systemd Monitoring (Production)
 
 ```bash
 # Worker status
-pm2 status
+systemctl list-units 'killreport-*'
 
 # Watch logs
-pm2 logs worker-user-killmails
+journalctl -u killreport-worker-user-killmails -f
 
 # Memory usage
-pm2 monit
+systemd-cgtop
 
 # Restart
-pm2 restart worker-user-killmails
+sudo systemctl restart killreport-worker-user-killmails
 ```
 
 ---
@@ -722,8 +722,8 @@ WHERE created_at > CURRENT_DATE;
 # Start worker
 yarn worker:user-killmails
 
-# Or with PM2
-pm2 start ecosystem.config.js --only worker-user-killmails
+# Or with systemd
+sudo systemctl start killreport-worker-user-killmails
 ```
 
 ---
@@ -746,10 +746,10 @@ pm2 start ecosystem.config.js --only worker-user-killmails
 
 ```bash
 # Check worker logs
-pm2 logs worker-user-killmails --lines 50
+journalctl -u killreport-worker-user-killmails -n 50
 
 # Restart
-pm2 restart worker-user-killmails
+sudo systemctl restart killreport-worker-user-killmails
 
 # If there's an error, fix it and restart
 ```
@@ -864,40 +864,33 @@ tsx redis/check-queue.ts
 ### Production
 
 ```bash
-# Start server
-pm2 start ecosystem.config.js
+# Start everything
+sudo systemctl start killreport.target
 
 # Only user killmail worker
-pm2 start ecosystem.config.js --only worker-user-killmails
+sudo systemctl start killreport-worker-user-killmails
 
 # Watch logs
-pm2 logs worker-user-killmails
+journalctl -u killreport-worker-user-killmails -f
 
 # Restart
-pm2 restart worker-user-killmails
+sudo systemctl restart killreport-worker-user-killmails
 
 # Stop
-pm2 stop worker-user-killmails
+sudo systemctl stop killreport-worker-user-killmails
 ```
 
 ---
 
 ### Cron Job (Automatic Queue)
 
-**Manual Cron Setup (Optional):**
+**Manual run (optional):**
 
 ```bash
-# Edit crontab
-crontab -e
-
-# Every 10 minutes (if cron service not running)
-*/10 * * * * cd /path/to/killreport/backend && yarn queue:user-killmails
-
-# With logs
-*/10 * * * * cd /path/to/killreport/backend && yarn queue:user-killmails >> /var/log/queue-user-killmails.log 2>&1
+cd backend && yarn queue:user-killmails
 ```
 
-**NOTE:** NO need if cron service in server is already running!
+**NOTE:** No system scheduler is needed for this: the in-server cron service already queues users. systemd has no timer for `queue:user-killmails` (see [systemd.md](../ops/systemd.md)).
 
 ---
 
@@ -958,7 +951,7 @@ Process:
 
 • tsx redis/check-queue.ts
 • GraphQL: workerStatus query
-• PM2: pm2 logs worker-user-killmails
+• systemd: journalctl -u killreport-worker-user-killmails -f
 • Database: last_killmail_sync_at
 
 ────────────────────────────────────────────────────────────────────
@@ -977,7 +970,7 @@ Process:
 
 ### 🎯 To Keep Control
 
-1. **Follow Logs:** `pm2 logs worker-user-killmails`
+1. **Follow Logs:** `journalctl -u killreport-worker-user-killmails -f`
 2. **Watch Queue:** `tsx redis/check-queue.ts` or GraphQL
 3. **Check Database:** `last_killmail_sync_at` fields
 4. **Stop Cron:** `userKillmailCron.stop()` in server
@@ -986,7 +979,7 @@ Process:
 ### 🚀 Understanding the Workflow
 
 - **Is cron service running?** Check console output (when server starts)
-- **Is worker running?** Check with `pm2 status`
+- **Is worker running?** Check with `systemctl list-units 'killreport-*'`
 - **Is queue full?** Look at RabbitMQ management UI
 - **Are users syncing?** Check `last_killmail_sync_at` in database
 

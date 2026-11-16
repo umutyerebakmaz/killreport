@@ -77,8 +77,7 @@ ESI, workers, leaderboards, caching, operations and deployment.
 ### Operations & Maintenance
 
 - [**📅 Daily Operations Guide**](./docs/ops/daily.md) - Daily character/corporation sync and maintenance tasks
-- [PM2 Process Management](./docs/ops/pm2.md) - How the API and workers run in production
-- [Crontab](./docs/ops/crontab.md) - Scheduled jobs
+- [systemd](./docs/ops/systemd.md) - How the API, workers and scheduled jobs run in production
 
 ### Core Features
 

@@ -33,21 +33,21 @@ git pull origin main
 yarn install
 cd backend && yarn build
 cd ../frontend && yarn build
-pm2 restart all
+sudo systemctl restart killreport.target
 ```
 
 ### Monitor
 
 ```bash
-pm2 monit           # Real-time monitoring
-pm2 logs backend    # View logs
-df -h               # Disk usage
+systemd-cgtop                       # Per-unit CPU and memory
+journalctl -u killreport-backend -f # View logs
+df -h                               # Disk usage
 ```
 
 ### Emergency
 
 ```bash
-pm2 restart all     # Restart all services
-pm2 logs --err      # Check errors
-pm2 flush           # Clear logs
+sudo systemctl restart killreport.target       # Restart all services
+journalctl -u 'killreport-*' -p err -n 100     # Check errors
+systemctl --failed                             # Units that exited non-zero
 ```
