@@ -70,6 +70,7 @@
     "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml",
     "scan:entities": "tsx src/workers/scan-killmail-entities.ts",
     "snapshot:alliances": "tsx src/workers/worker-alliance-snapshots.ts",
+    "snapshot:alliances:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-alliance-snapshots",
     "snapshot:corporations": "tsx src/workers/worker-corporation-snapshots.ts",
     "sync:character": "tsx src/workers/sync-character-killmails.ts",
     "worker:system-activity": "tsx src/workers/worker-system-activity.ts",
