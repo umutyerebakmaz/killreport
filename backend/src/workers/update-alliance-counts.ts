@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 /**
- * One-time script to populate member_count and corporation_count for all alliances
+ * Recomputes member_count and corporation_count on every alliance from the
+ * corporations table, in one statement. This script is the only writer of
+ * those two columns; the alliance snapshot reads corporations itself.
+ * Mirrored by backend-rs/workers/update-alliance-counts, same SQL.
  *
  * Usage:
- *   npx tsx update-alliance-counts.ts
+ *   yarn update:alliance-counts
  */
 
 import prismaWorker from '@services/prisma-worker';
@@ -14,53 +17,27 @@ async function updateAllianceCounts() {
   const startTime = new Date();
 
   try {
-    const alliances = await prismaWorker.alliance.findMany({
-      select: { id: true, name: true },
-    });
+    // An alliance with no corporation gets 0; a corporation whose alliance is
+    // not in the table is ignored. updated_at is left alone: it tracks the
+    // ESI data, not this recount.
+    const updated = await prismaWorker.$executeRaw`
+      UPDATE alliances a
+      SET member_count = COALESCE(s.members, 0),
+          corporation_count = COALESCE(s.corps, 0)
+      FROM alliances a2
+      LEFT JOIN (
+        SELECT alliance_id, COUNT(*)::int AS corps, SUM(member_count)::int AS members
+        FROM corporations
+        WHERE alliance_id IS NOT NULL
+        GROUP BY alliance_id
+      ) s ON s.alliance_id = a2.id
+      WHERE a.id = a2.id
+    `;
 
-    console.log(`✓ found ${alliances.length} alliances`);
-
-    let processed = 0;
-
-    for (const alliance of alliances) {
-      // Count corporations
-      const corporationCount = await prismaWorker.corporation.count({
-        where: { alliance_id: alliance.id },
-      });
-
-      // Sum member counts
-      const memberResult = await prismaWorker.corporation.aggregate({
-        where: { alliance_id: alliance.id },
-        _sum: {
-          member_count: true,
-        },
-      });
-
-      const memberCount = memberResult._sum.member_count || 0;
-
-      // Update alliance
-      await prismaWorker.alliance.update({
-        where: { id: alliance.id },
-        data: {
-          member_count: memberCount,
-          corporation_count: corporationCount,
-        },
-      });
-
-      processed++;
-
-      if (processed % 50 === 0) {
-        console.log(`  ⏳ processed: ${processed}/${alliances.length}`);
-      }
-    }
-
-    const endTime = new Date();
-    const duration = ((endTime.getTime() - startTime.getTime()) / 1000).toFixed(
-      2,
-    );
+    const duration = ((Date.now() - startTime.getTime()) / 1000).toFixed(2);
 
     console.log(`✅ update completed!`);
-    console.log(`   • total updated: ${processed}`);
+    console.log(`   • total updated: ${updated}`);
     console.log(`   • duration: ${duration} seconds`);
   } catch (error) {
     console.error('❌ update error:', error);
