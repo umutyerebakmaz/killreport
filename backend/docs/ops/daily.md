@@ -1,9 +1,11 @@
 # Daily Workflows (Backend)
 
-Every step below has a Rust version (`:rs` suffix, built from `backend-rs/`)
-and a Node version (no suffix). Both read and write the same queues, so they
-can be mixed, but run only one consumer type per queue at a time when you want
-comparable numbers. The Rust versions are the default.
+Most steps below have a Rust version (`:rs` suffix, built from `backend-rs/`)
+and a Node version (no suffix). Both read and write the same queues and run
+the same SQL, so they can be mixed, but run only one consumer type per queue at
+a time when you want comparable numbers. The Rust versions are the default.
+Two commands are still Node only: `queue:character-corporations` and
+`scan:entities`.
 
 ## 📋 Simple Daily Sequence
 
@@ -31,8 +33,14 @@ yarn snapshot:alliances:rs
 yarn snapshot:corporations:rs
 ```
 
-Reference numbers from the 2026-11-16 run: 3645 alliances processed,
-18,470 corporations queued, 0 errors.
+Reference numbers from the 2026-11-16 runs:
+
+- Alliance chain: 3645 alliances processed, 18,470 corporations queued,
+  0 errors.
+- `update:alliance-counts:rs`: 4207 alliances updated in 0.06 s.
+- `snapshot:alliances:rs`: 4207 new snapshots in 0.10 s.
+- `snapshot:corporations:rs`: 57,650 new snapshots in 1.16 s. sqlx logs a
+  `slow statement` warning for anything over 1 s; it is informational.
 
 ### Why the chain does not wait between steps
 
@@ -192,6 +200,8 @@ its old `alliance_id`, which inflates that alliance's counts and snapshots.
 
 ### Scenario 2: Fill Missing Entities Only
 
+Both commands are Node only for now.
+
 ```bash
 # Scan and fill all missing entities from killmails
 yarn scan:entities
@@ -211,6 +221,15 @@ yarn queue:character-corporations
 | `worker:info:characters:rs`       | `esi_character_info_queue`        | `characters` table           |
 | `worker:info:types:rs`            | `esi_type_info_queue`             | `types` table                |
 | `worker:alliance-corporations:rs` | `esi_alliance_corporations_queue` | `esi_corporation_info_queue` |
+
+One-shot database jobs. They touch neither RabbitMQ nor ESI, and each writes
+a single table:
+
+| Job (Rust)                  | Reads          | Writes                                                        |
+| --------------------------- | -------------- | ------------------------------------------------------------- |
+| `update:alliance-counts:rs` | `corporations` | `alliances.member_count`, `corporation_count`                 |
+| `snapshot:alliances:rs`     | `corporations` | `alliance_snapshots` (one row per alliance per UTC day)       |
+| `snapshot:corporations:rs`  | `corporations` | `corporation_snapshots` (one row per corporation per UTC day) |
 
 Prefetch for the info workers is `max(ESI_PREFETCH, ceil(ESI_MAX_RPS / 2))`,
 25 with the defaults. The request rate itself is set by the shared ESI limiter
