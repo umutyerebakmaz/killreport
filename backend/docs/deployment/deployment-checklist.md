@@ -90,8 +90,10 @@ Professional infrastructure with automatic backups and high availability.
 
   ```bash
   cd /var/www
+  sudo useradd --system --create-home --shell /usr/sbin/nologin killreport
   sudo git clone https://github.com/YOUR_USERNAME/killreport.git
-  sudo chown -R $USER:$USER killreport
+  # The service user owns the checkout; run git and yarn in it with sudo -u killreport
+  sudo chown -R killreport: killreport
   cd killreport
   ```
 
@@ -122,24 +124,24 @@ Professional infrastructure with automatic backups and high availability.
 - [ ] Install dependencies:
 
   ```bash
-  yarn install
-  cd backend && yarn install
-  cd ../frontend && yarn install
+  sudo -u killreport yarn install
+  cd backend && sudo -u killreport yarn install
+  cd ../frontend && sudo -u killreport yarn install
   ```
 
 - [ ] Backend build:
 
   ```bash
   cd backend
-  yarn prisma:generate
-  yarn tsc
+  sudo -u killreport yarn prisma:generate
+  sudo -u killreport yarn tsc
   ```
 
 - [ ] Frontend build:
 
   ```bash
   cd frontend
-  yarn build
+  sudo -u killreport yarn build
   ```
 
 - [ ] Install, enable and start the systemd units. Follow "Install and update",

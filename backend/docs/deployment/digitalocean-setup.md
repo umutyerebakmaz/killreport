@@ -348,26 +348,30 @@ tail -f /var/log/nginx/access.log
 
 ```bash
 # Pull latest changes
+# Everything that writes to the checkout runs as the service user
 cd /var/www/killreport
-git pull origin main
+sudo -u killreport git pull origin main
 
 # Install new dependencies
-yarn install
+sudo -u killreport yarn install
 
 # Rebuild backend
 cd backend
-yarn tsc
+sudo -u killreport yarn tsc
 
 # Rebuild frontend
 cd ../frontend
-yarn build
+sudo -u killreport yarn build
 
 # Run migrations if needed
 cd ../backend
-yarn prisma:migrate:deploy
+sudo -u killreport yarn prisma:migrate:deploy
+
+# Reinstall units if the pull changed deploy/systemd/
+cd ..
+sudo cp deploy/systemd/* /etc/systemd/system/ && sudo systemctl daemon-reload
 
 # Restart services
-cd ..
 sudo systemctl restart killreport.target
 ```
 

@@ -38,7 +38,26 @@ sudo cp /var/www/killreport/deploy/systemd/* /etc/systemd/system/ && sudo system
 
 The units are copied, not linked with `systemctl link`. A pull that is still
 in progress cannot change the running system; a change takes effect only on
-an explicit copy and reload.
+an explicit copy and reload. `cp` never removes a unit that was deleted from
+the repository: disable it and delete it from `/etc/systemd/system/` by hand.
+
+## Deploy an update
+
+The checkout belongs to the `killreport` user. Run everything that writes to
+it as that user: its shell is `nologin`, which `sudo -u` does not need. A
+`git pull` or `yarn build` as yourself fails with `EACCES`, and one run with
+plain `sudo` leaves root-owned files the services cannot write, such as the
+frontend's `.next/cache`.
+
+```bash
+cd /var/www/killreport
+sudo -u killreport git pull origin main
+sudo -u killreport yarn install
+cd frontend && sudo -u killreport yarn build && cd ..
+# only if the pull changed deploy/systemd/
+sudo cp deploy/systemd/* /etc/systemd/system/ && sudo systemctl daemon-reload
+sudo systemctl restart killreport.target
+```
 
 ## Enable
 
@@ -149,7 +168,10 @@ Static universe and reference data (`queue:regions`, `queue:types`,
   RabbitMQ, so nothing is lost. `MemoryHigh`, about 90% of the cap, makes the
   kernel throttle and reclaim first. The scheduled jobs have no cap.
 - **Shutdown.** Node units stop with `KillSignal=SIGINT`, the signal PM2 sent.
-  Some workers only listen for SIGINT. Rust units use systemd's default,
+  Some workers only listen for SIGINT. Yarn reports a child killed by SIGINT
+  as exit code 130, so every yarn unit sets `SuccessExitStatus=130`;
+  otherwise a clean `systemctl stop` would leave it listed by
+  `systemctl --failed`. Rust units use systemd's default,
   SIGTERM; the runner handles both
   ([`shutdown.rs`](../../../backend-rs/crates/runner/src/shutdown.rs)). Every
   unit gets `TimeoutStopSec=30` to finish in-flight messages before SIGKILL.
@@ -164,6 +186,7 @@ line changes:
 ```diff
 -ExecStart=/usr/bin/yarn worker:info:alliances
 -KillSignal=SIGINT
+-SuccessExitStatus=130
 +ExecStart=/var/www/killreport/backend-rs/bin/worker-info-alliances
 ```
 

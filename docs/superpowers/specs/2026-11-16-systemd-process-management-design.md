@@ -199,6 +199,7 @@ Environment=NODE_ENV=production
 Environment=LOG_LEVEL=debug
 ExecStart=/usr/bin/yarn worker:info:alliances
 KillSignal=SIGINT
+SuccessExitStatus=130
 TimeoutStopSec=30
 Restart=always
 RestartSec=5
@@ -257,6 +258,7 @@ Environment=NODE_ENV=production
 Environment=LOG_LEVEL=info
 ExecStart=/usr/bin/yarn queue:alliances
 KillSignal=SIGINT
+SuccessExitStatus=130
 TimeoutStopSec=30
 NoNewPrivileges=true
 PrivateTmp=true
@@ -369,7 +371,7 @@ Zamanlanmış job'larda PM2'de bellek sınırı yoktu; burada da konmaz.
 ### Kapanış sinyali
 
 - **Node unit'leri:** `KillSignal=SIGINT`, bugünkü PM2 davranışı. Yalnızca
-  `SIGINT` dinleyen worker'lar temiz kapanmaya devam eder.
+  `SIGINT` dinleyen worker'lar temiz kapanmaya devam eder. Yarn, SIGINT ile ölen çocuğunu 130 çıkış koduyla bildirir; bu yüzden her yarn unit'inde `SuccessExitStatus=130` vardır, yoksa temiz bir `systemctl stop` unit'i `failed` bırakır (2026-11-16 son inceleme bulgusu).
 - **Rust unit'leri:** `KillSignal=SIGTERM` (systemd varsayılanı; runner hem
   `SIGINT` hem `SIGTERM` dinler, `backend-rs/crates/runner/src/shutdown.rs:1-8`).
 
@@ -407,6 +409,7 @@ Bir worker veya queue Rust'a geçtiğinde, o unit'in diff'i:
 ```diff
 -ExecStart=/usr/bin/yarn worker:info:alliances
 -KillSignal=SIGINT
+-SuccessExitStatus=130
 +ExecStart=/var/www/killreport/backend-rs/bin/worker-info-alliances
 ```
 

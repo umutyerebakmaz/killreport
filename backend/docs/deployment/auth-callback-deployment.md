@@ -27,15 +27,15 @@ ssh YOUR_USER@YOUR_DOMAIN
 
 ```bash
 cd /var/www/killreport
-git pull origin main
+sudo -u killreport git pull origin main
 ```
 
 ### 4. Rebuild Frontend
 
 ```bash
 cd frontend
-yarn install  # If there are new dependencies
-yarn build
+sudo -u killreport yarn install  # If there are new dependencies
+sudo -u killreport yarn build
 ```
 
 ### 5. Restart Frontend
@@ -118,9 +118,9 @@ To restart every process under systemd (see [systemd.md](../ops/systemd.md)):
 
 ```bash
 cd /var/www/killreport
-git pull origin main
+sudo -u killreport git pull origin main
 cd frontend
-yarn build
+sudo -u killreport yarn build
 cd ..
 sudo systemctl restart killreport.target
 ```
@@ -181,8 +181,8 @@ sudo systemctl restart killreport.target
 ```bash
 # On server
 cd /var/www/killreport
-git pull origin main
-cd frontend && yarn build && cd ..
+sudo -u killreport git pull origin main
+cd frontend && sudo -u killreport yarn build && cd ..
 sudo systemctl restart killreport-frontend
 journalctl -u killreport-frontend -n 20
 ```

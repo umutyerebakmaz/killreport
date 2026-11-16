@@ -12,6 +12,7 @@ Environment=NODE_ENV=production
 Environment=LOG_LEVEL=info
 ExecStart=/usr/bin/yarn update:alliance-counts
 KillSignal=SIGINT
+SuccessExitStatus=130
 TimeoutStopSec=30
 NoNewPrivileges=true
 PrivateTmp=true

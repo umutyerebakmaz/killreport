@@ -28,11 +28,15 @@ Committed here and copied to `/etc/nginx/sites-available/` during deployment:
 ### Deploy
 
 ```bash
+# Run everything that writes to the checkout as the service user (see ../ops/systemd.md)
 cd /var/www/killreport
-git pull origin main
-yarn install
-cd backend && yarn build
-cd ../frontend && yarn build
+sudo -u killreport git pull origin main
+sudo -u killreport yarn install
+cd backend && sudo -u killreport yarn build
+cd ../frontend && sudo -u killreport yarn build
+cd ..
+# Only if the pull changed deploy/systemd/:
+sudo cp deploy/systemd/* /etc/systemd/system/ && sudo systemctl daemon-reload
 sudo systemctl restart killreport.target
 ```
 

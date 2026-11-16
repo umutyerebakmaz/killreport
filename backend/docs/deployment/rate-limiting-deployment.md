@@ -6,8 +6,8 @@
 # Navigate to backend directory
 cd /root/killreport/backend
 
-# Git pull (if using repo)
-git pull origin main
+# Git pull (if using repo), as the service user
+sudo -u killreport git pull origin main
 
 # Or manually copy files
 scp -r backend/src/plugins/rate-limit.plugin.ts root@api.killreport.com:/root/killreport/backend/src/plugins/

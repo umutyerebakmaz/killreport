@@ -13,6 +13,7 @@ Environment=LOG_LEVEL=info
 Environment=USE_REDIS_PUBSUB=true
 ExecStart=/usr/bin/yarn worker:sov:map
 KillSignal=SIGINT
+SuccessExitStatus=130
 TimeoutStopSec=30
 NoNewPrivileges=true
 PrivateTmp=true

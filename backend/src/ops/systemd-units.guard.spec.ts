@@ -289,6 +289,9 @@ describe('systemd units', () => {
       );
       expect(Object.keys(scripts(workspace))).toContain(yarn[1]);
       expect(value(u, 'Service', 'KillSignal')).toBe('SIGINT');
+      // Yarn turns a child killed by SIGINT into exit 128+2; without this a
+      // clean `systemctl stop` would leave the unit `failed`.
+      expect(value(u, 'Service', 'SuccessExitStatus')).toBe('130');
     },
   );
 

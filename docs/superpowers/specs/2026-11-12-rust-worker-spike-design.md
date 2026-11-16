@@ -384,7 +384,7 @@ Kurallar:
 4. **Geçiş:** 22:00'den önce `killreport-worker-alliances.service`'te
    `ExecStart=/usr/bin/yarn worker:info:alliances` satırı
    `ExecStart=/var/www/killreport/backend-rs/bin/worker-info-alliances` olur
-   ve `KillSignal=SIGINT` satırı silinir (systemd varsayılanı SIGTERM; binary
+   ve `KillSignal=SIGINT` ile `SuccessExitStatus=130` satırları silinir (systemd varsayılanı SIGTERM; binary
    SIGINT'i (`ctrl_c`) ve SIGTERM'i dinler). Unit kopyalanır,
    `sudo systemctl daemon-reload` ve
    `sudo systemctl restart killreport-worker-alliances`. `WorkingDirectory`
