@@ -3287,6 +3287,15 @@ dependencies = [
 [[package]]
 name = "worker-corporation-snapshots"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "db",
+ "runner",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
 
 [[package]]
 name = "worker-info-alliances"

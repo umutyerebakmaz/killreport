@@ -72,6 +72,7 @@
     "snapshot:alliances": "tsx src/workers/worker-alliance-snapshots.ts",
     "snapshot:alliances:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-alliance-snapshots",
     "snapshot:corporations": "tsx src/workers/worker-corporation-snapshots.ts",
+    "snapshot:corporations:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-corporation-snapshots",
     "sync:character": "tsx src/workers/sync-character-killmails.ts",
     "worker:system-activity": "tsx src/workers/worker-system-activity.ts",
     "update:alliance-counts": "tsx src/workers/update-alliance-counts.ts",
