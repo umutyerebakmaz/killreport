@@ -85,6 +85,7 @@
     "worker:info:dogma-effects": "tsx src/workers/worker-info-dogma-effects.ts",
     "worker:info:item-groups": "tsx src/workers/worker-info-item-groups.ts",
     "worker:info:types": "tsx src/workers/worker-info-types.ts",
+    "worker:info:types:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-info-types",
     "worker:type-dogma": "tsx src/workers/worker-type-dogma.ts",
     "worker:regions": "tsx src/workers/worker-regions.ts",
     "worker:solar-systems": "tsx src/workers/worker-solar-systems.ts",
