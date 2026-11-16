@@ -2,9 +2,7 @@
 
 **Modern EVE Online Killmail Tracking & Analytics Platform**
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/) [![GraphQL](https://img.shields.io/badge/GraphQL-E10098?style=for-the-badge&logo=graphql&logoColor=white)](https://graphql.org/) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/) [![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)](https://www.rabbitmq.com/)
-
-[![Powered by DigitalOcean](https://img.shields.io/badge/Powered_by-DigitalOcean-0080FF?style=for-the-badge&logo=digitalocean&logoColor=white)](https://www.digitalocean.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/) [![GraphQL](https://img.shields.io/badge/GraphQL-E10098?style=for-the-badge&logo=graphql&logoColor=white)](https://graphql.org/) [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/) [![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/) [![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)](https://www.rabbitmq.com/) [![Rust](https://img.shields.io/badge/Rust-000000?style=for-the-badge&logo=rust&logoColor=white)](https://www.rust-lang.org/)
 
 _Track, analyze, and visualize EVE Online killmails with real-time data synchronization_
 
@@ -45,6 +43,9 @@ KillReport is a full-stack application built for EVE Online players and corporat
 - **GraphQL API**: Type-safe API with automatic code generation
 - **Database**: PostgreSQL with Prisma ORM and pre-aggregated stats tables
 - **Background Jobs**: RabbitMQ-based distributed task queue, run under systemd
+- **Rust Workers**: the ESI info workers, their queue publishers and the daily
+  count and snapshot jobs also have Rust versions (`backend-rs/`), sharing the
+  same queues, SQL and Redis-backed ESI rate limiter as the Node ones
 - **Subscriptions**: `graphql-ws` over WebSocket, with Redis PubSub for multi-process fan-out
 - **External APIs**: Integration with zKillboard and EVE ESI
 - **Type Safety**: Full TypeScript coverage across frontend and backend
@@ -61,6 +62,9 @@ KillReport is a full-stack application built for EVE Online players and corporat
 - PostgreSQL database
 - Redis (response cache, RedisQ stream cursor, subscription PubSub)
 - RabbitMQ server (for background workers)
+- Rust, only for the `:rs` workers and jobs. `backend-rs/rust-toolchain.toml`
+  pins the version, so [rustup](https://rustup.rs/) installs it on the first
+  `cargo` run
 - EVE Online Developer Application ([Create one here](https://developers.eveonline.com/))
 
 ### Installation
@@ -79,8 +83,10 @@ cp .env.example .env
 # Edit .env with your EVE_CLIENT_ID, EVE_CLIENT_SECRET, DATABASE_URL, etc.
 
 # Setup database
-# The Prisma schema is split across backend/prisma/schema/*.prisma
-yarn prisma:migrate
+# The Prisma schema is split across backend/prisma/schema/*.prisma.
+# Apply the migrations with `migrate deploy`; never `prisma migrate dev`,
+# which would drop tables created by hand-written SQL migrations.
+yarn prisma:migrate:deploy
 yarn prisma:generate
 
 # Setup frontend environment
@@ -100,14 +106,15 @@ least one of them is running. To get live killmails flowing locally:
 
 ```bash
 cd backend
-yarn worker:redisq   # live zKillboard feed
-yarn scan:entities   # queue missing characters/corps/alliances/types
-yarn worker:info:characters
+yarn worker:redisq            # live zKillboard feed
+yarn scan:entities            # queue missing characters/corps/alliances/types
+yarn worker:info:characters:rs   # Rust; drop :rs for the Node version
 ```
 
 See the [worker documentation](./backend/docs/workers/worker-documentation.md) for the
-full list, and [systemd operations](./backend/docs/ops/systemd.md) for how they are run in
-production.
+full list, [daily workflows](./backend/docs/ops/daily.md) for the alliance and
+corporation chain, and [systemd operations](./backend/docs/ops/systemd.md) for how
+they are run in production.
 
 ## Testing
 
@@ -125,8 +132,23 @@ cd backend && yarn test:watch      # watch mode
 cd frontend && yarn test:coverage  # V8 coverage report
 ```
 
-`.github/workflows/ci.yml` runs typecheck and tests for both workspaces on every push
-to `main` and on pull requests.
+The Rust workspace has its own tests, run from `backend-rs/`. Database tests use
+`#[sqlx::test]`, which creates a throwaway database per test on the server
+`DATABASE_URL` points at:
+
+```bash
+cd backend-rs
+cargo test --workspace
+cargo clippy --workspace --all-targets -- -D warnings
+```
+
+`.github/workflows/ci.yml` runs on every push to `main` and on pull requests:
+Prettier over the whole repo, typecheck and tests for both workspaces, frontend
+lint, and the Rust `fmt`, clippy and tests against a PostgreSQL and Redis
+service (`SQLX_OFFLINE=true`, so a stale `.sqlx` cache fails the build).
+
+To exercise the API by hand, visit `http://localhost:4000/graphql` for the
+GraphQL Playground (enabled while `GRAPHQL_PLAYGROUND` is `true`).
 
 ## Documentation
 
@@ -170,7 +192,7 @@ flowchart TB
         Services["Services<br/><i>ESI · zKillboard</i>"]
     end
 
-    Workers["<b>Workers</b><br/><i>supervised by systemd</i>"]
+    Workers["<b>Workers</b><br/><i>Node and Rust · supervised by systemd</i>"]
 
     PG[("<b>PostgreSQL</b><br/>via Prisma<br/><i>users · characters · killmails<br/>corporations · alliances</i>")]
     Redis[("<b>Redis</b><br/><i>response cache · PubSub<br/>RedisQ cursor</i>")]
@@ -211,6 +233,12 @@ flowchart TB
 - DataLoader for query optimization
 - TypeScript with auto-generated types
 
+**Rust workers (`backend-rs/`):**
+
+- tokio, lapin (RabbitMQ), sqlx (PostgreSQL, compile-time checked queries)
+- reqwest for ESI, through the same Redis-backed limiter as the Node workers
+- Shared crates: `esi`, `db`, `mq`, `runner`; one binary per worker, queue or job
+
 **External Services:**
 
 - EVE Online ESI API
@@ -250,6 +278,12 @@ killreport/
 │   ├── docs/                # Backend documentation (see index)
 │   └── package.json
 │
+├── backend-rs/              # Rust workers (Cargo workspace)
+│   ├── crates/              # Shared: esi, db, mq, runner
+│   ├── queues/              # Rust queue publishers
+│   ├── workers/             # Rust workers and database jobs
+│   └── .sqlx/               # Offline query metadata for SQLX_OFFLINE builds
+│
 ├── deploy/systemd/          # systemd units and timers (API, frontend, workers, jobs)
 └── package.json             # Monorepo root
 ```
@@ -274,7 +308,9 @@ yarn codegen          # Generate Apollo Client hooks
 ```
 
 **Backend:** the backend has ~80 scripts (queues, workers, snapshots, Prisma).
-See the [backend README](./backend/README.MD) for the catalogue.
+See the [backend README](./backend/README.MD) for the catalogue. A script with
+an `:rs` suffix runs the Rust version through `cargo run --release` from
+`backend/`, so it reads the same `backend/.env`.
 
 ---
 
@@ -303,6 +339,8 @@ required one is missing.
 | `GRAPHQL_INTROSPECTION`    | no       | `true`                                | Disable in production                            |
 | `GRAPHQL_PLAYGROUND`       | no       | `true`                                | Disable in production                            |
 | `REDISQ_ENABLE_ENRICHMENT` | no       | —                                     | Enrich entities inline in the RedisQ worker      |
+| `ESI_MAX_RPS`              | no       | `50`                                  | Application-wide ESI request rate ceiling        |
+| `ESI_PREFETCH`             | no       | `25`                                  | Unacked messages per info worker (floor)         |
 
 ### Frontend Environment Variables
 
@@ -316,16 +354,6 @@ NEXT_PUBLIC_BACKEND_URL="http://localhost:4000"
 `NEXT_PUBLIC_BACKEND_URL` is used by the EVE SSO callback page. The WebSocket
 subscription endpoint is derived from `NEXT_PUBLIC_GRAPHQL_URL` by swapping
 `http`/`https` for `ws`/`wss`, so it needs no separate variable.
-
----
-
-## Testing
-
-There is no automated test suite yet — this is the largest open gap in the project
-and a good place to contribute.
-
-To exercise the API by hand, visit `http://localhost:4000/graphql` for the GraphQL
-Playground (enabled while `GRAPHQL_PLAYGROUND` is `true`).
 
 ---
 
@@ -343,7 +371,8 @@ Participation is governed by our [Code of Conduct](./.github/CODE_OF_CONDUCT.md)
 
 ### Areas that need help most
 
-- **Test coverage** — there is currently none
+- **Test coverage** — resolvers and components are only partly covered
+- **Rust ports** — the remaining Node workers ([#315](https://github.com/umutyerebakmaz/killreport/issues/315) tracks them)
 - **Frontend documentation** — component and data-flow conventions
 - Bug fixes and issue resolution
 - Performance optimizations
@@ -373,7 +402,3 @@ This project is open source and available under the [MIT License](LICENSE).
 - **In-Game Contact**: General XAN (EVE Online character)
   - Feel free to send ISK, feedback, or questions in-game
   - All donations and feedback are appreciated!
-
----
-
-**Made with ❤️ for the EVE Online community**
