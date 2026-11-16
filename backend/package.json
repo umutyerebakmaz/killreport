@@ -60,6 +60,7 @@
     "queue:moons": "tsx src/queues/queue-moons.ts",
     "queue:asteroid-belts": "tsx src/queues/queue-asteroid-belts.ts",
     "queue:types": "tsx src/queues/queue-types.ts",
+    "queue:types:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p queue-types",
     "queue:type-dogma": "tsx src/queues/queue-type-dogma.ts",
     "queue:zkillboard": "tsx src/queues/queue-zkillboard-sync.ts",
     "queue:character-corporations": "tsx src/queues/queue-character-corporations.ts",
