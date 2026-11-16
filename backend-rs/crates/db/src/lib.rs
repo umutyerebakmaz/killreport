@@ -1,20 +1,22 @@
 //! The database pool a worker uses.
 //!
 //! Mirrors `backend/src/services/prisma-worker.ts`: workers get a small pool
-//! of their own and give connections back quickly, because the managed
-//! PostgreSQL connection limit is shared by the API and every worker process.
+//! of their own and give connections back quickly, because every busy worker
+//! process and the API share PostgreSQL's `max_connections` (default 100).
 
 use std::time::Duration;
 
 use sqlx::postgres::{PgPool, PgPoolOptions};
 
-/// At most this many connections per worker process (`prisma-worker.ts:28`, `max: 2`).
-pub const MAX_CONNECTIONS: u32 = 2;
-/// No connection is kept open while idle (`prisma-worker.ts:29`, `min: 0`).
+/// At most this many connections per worker process (`prisma-worker.ts`,
+/// `MAX_CONNECTIONS`). Prefetched messages queue for one after ESI answers, so
+/// it has to keep up with the ESI rate.
+pub const MAX_CONNECTIONS: u32 = 10;
+/// No connection is kept open while idle (`prisma-worker.ts`, `min: 0`).
 pub const MIN_CONNECTIONS: u32 = 0;
-/// An idle connection is closed after this long (`prisma-worker.ts:30`, `idleTimeoutMillis: 10000`).
+/// An idle connection is closed after this long (`prisma-worker.ts`, `idleTimeoutMillis: 10000`).
 pub const IDLE_TIMEOUT: Duration = Duration::from_secs(10);
-/// Waiting for a free connection gives up after this long (`prisma-worker.ts:31`, `connectionTimeoutMillis: 10000`).
+/// Waiting for a free connection gives up after this long (`prisma-worker.ts`, `connectionTimeoutMillis: 10000`).
 pub const ACQUIRE_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// The pool settings, without connecting. Split out so a test can check them.
@@ -48,7 +50,7 @@ mod tests {
     #[test]
     fn options_match_the_node_worker_pool() {
         let options = worker_pool_options();
-        assert_eq!(options.get_max_connections(), 2);
+        assert_eq!(options.get_max_connections(), 10);
         assert_eq!(options.get_min_connections(), 0);
         assert_eq!(options.get_idle_timeout(), Some(Duration::from_secs(10)));
         assert_eq!(options.get_acquire_timeout(), Duration::from_secs(10));

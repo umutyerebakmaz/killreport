@@ -15,17 +15,19 @@ if (!connectionString) {
 // Remote Postgres keeps SSL enabled.
 const isLocalDb = /@(localhost|127\.0\.0\.1)[:/]/.test(connectionString);
 
-// Configure pg Pool with SSL options
-// WORKER-SPECIFIC CONFIGURATION
-// DigitalOcean allows 22 connections total:
-// - Backend API: 5 connections (reserved)
-// - All Workers: 16 connections total (8 workers × 2 connections)
-// - Buffer: 1 connection for safety
+// Each worker process gets its own pool. Prefetched messages queue here for a
+// connection after ESI answers, so the pool has to keep up with the ESI rate,
+// or a deep prefetch waits past connectionTimeoutMillis. Idle connections are
+// released, so only busy workers hold any: busy workers × MAX_CONNECTIONS
+// plus the API's pool (prisma.ts) must stay under PostgreSQL's
+// max_connections (default 100).
+// Mirrored by backend-rs/crates/db/src/lib.rs.
+const MAX_CONNECTIONS = 10;
+
 const pool = new Pool({
   connectionString,
   ssl: isLocalDb ? false : true, // Local: no SSL; remote: SSL enabled
-  // CRITICAL: Worker pool settings - OPTIMIZED
-  max: 2, // Each worker can use up to 2 connections
+  max: MAX_CONNECTIONS,
   min: 0, // No minimum - release all idle connections
   idleTimeoutMillis: 10000, // Close idle connections after 10 seconds
   connectionTimeoutMillis: 10000, // Wait up to 10 seconds for connection
@@ -33,7 +35,7 @@ const pool = new Pool({
 });
 
 console.log(
-  `✅ [worker] PostgreSQL pool configured: max=2 connections, min=0, idleTimeout=10s, pid=${process.pid}`,
+  `✅ [worker] PostgreSQL pool configured: max=${MAX_CONNECTIONS} connections, min=0, idleTimeout=10s, pid=${process.pid}`,
 );
 
 // Monitor pool connections

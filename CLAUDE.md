@@ -165,11 +165,17 @@ Primary keys are usually remapped too: a model's `id` field is `system_id`,
 
 ### Two Prisma clients
 
-Using the wrong one exhausts the pool — DigitalOcean PostgreSQL allows 22
-connections:
+The two clients are sized for different jobs. Do not swap them:
 
 - Resolvers and the API server: `@services/prisma` (5 connections)
-- Workers and queue scripts: `@services/prisma-worker` (2 connections)
+- Workers and queue scripts: `@services/prisma-worker` (10 connections per
+  process; the Rust `db` crate matches it)
+
+Idle worker connections are released, so only busy workers hold any. The budget
+is busy workers × 10, plus the API's 5, which must stay under PostgreSQL's
+`max_connections` (default 100). DigitalOcean managed PostgreSQL, whose
+22-connection cap the old sizes (API 5, workers 2) were cut for, is no longer
+used. The `backend/docs/deployment/` pages describing it are historical.
 
 ---
 
@@ -572,10 +578,11 @@ Concurrency is `channel.prefetch(N)`. Three families of worker exist today:
   workers compute it as `max(ESI_PREFETCH, ceil(ESI_MAX_RPS / 2))`, which is 25
   with the defaults. The Rust runner computes it in
   `backend-rs/crates/runner/src/prefetch.rs`. Each message is one ESI call and
-  one short upsert, so the 2-connection worker pool can keep up at that depth.
+  one short upsert, so the worker pool keeps up at that depth.
 - The rest set a fixed `PREFETCH_COUNT` constant (1–10) and rely on the
   limiter for the real rate. `worker-killmail-detail` is fixed on purpose: its
-  writes are heavy, and at 100 they hit the pool's 10 s connection timeout.
+  writes are heavy, and at 100 they hit the 10 s connection timeout of the
+  2-connection pool workers had then.
 - `worker-regions` and `worker-constellations` use `prefetch(1)` with a manual
   100 ms sleep, which is 10 req/sec serial. Slower, but simple and safe for
   workers whose write path is a large transaction. They no longer read the

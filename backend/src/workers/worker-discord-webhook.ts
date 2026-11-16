@@ -12,7 +12,7 @@ const QUEUE_NAME = DISCORD_WEBHOOK_QUEUE;
 
 /**
  * How many messages to hold at once. Each one is a few queries and a handful
- * of Discord posts, so the limits are the workers' 2-connection Prisma pool
+ * of Discord posts, so the limits are the workers' Prisma pool
  * (`prisma-worker.ts`) and Discord's own rate limits, not ESI.
  */
 const PREFETCH_COUNT = 5;

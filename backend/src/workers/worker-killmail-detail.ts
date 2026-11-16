@@ -15,10 +15,10 @@ const QUEUE_NAME = KILLMAIL_DETAIL_QUEUE;
  * How many messages to hold at once.
  *
  * `ESI_PREFETCH` is deliberately not read. That knob exists for the ESI rate
- * ceiling and defaults to 100 in `config.ts`; what limits this worker is not ESI
- * but the workers' 2-connection Prisma pool (`prisma-worker.ts`). Every prefetched
- * message tries to write at once, and 100 concurrent writes on that pool hit
- * the 10-second connection timeout.
+ * ceiling and defaults to 25 in `config.ts`; what limits this worker is not ESI
+ * but the workers' Prisma pool (`prisma-worker.ts`). Every prefetched
+ * message tries to write at once, and 100 concurrent writes on the 2-connection
+ * pool workers had then hit the 10-second connection timeout.
  */
 const PREFETCH_COUNT = 10;
 

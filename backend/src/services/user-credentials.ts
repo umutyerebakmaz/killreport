@@ -36,8 +36,8 @@ export type UserCredentials =
 /**
  * The two Prisma clients are not interchangeable: workers use
  * `@services/prisma-worker` and the API uses `@services/prisma`, because
- * DigitalOcean PostgreSQL allows 22 connections and sharing one pool exhausts
- * it. Both call this function, so the caller passes its own client rather than
+ * each process type gets a pool sized for its own work. Both call this
+ * function, so the caller passes its own client rather than
  * the module picking one.
  */
 export interface CredentialClient {
