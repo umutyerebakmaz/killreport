@@ -14,7 +14,7 @@ flowchart TB
     L2["<b>2 · Entity cache</b> — Redis<br/><i>TTL 30 minutes – 24 hours</i><br/>individual characters, corps, alliances"]
     L3["<b>3 · DataLoader</b> — in-memory batching<br/><i>per request, rebuilt each time</i><br/>collapses N+1 into one batch query"]
     Prisma["Prisma Client"]
-    PG[("<b>PostgreSQL</b><br/>API server: 5 connections<br/>workers: 2 connections each<br/><i>plus built-in shared_buffers</i>")]
+    PG[("<b>PostgreSQL</b><br/>API server: 5 connections<br/>workers: 10 connections each<br/><i>plus built-in shared_buffers</i>")]
 
     L1 -->|"cache miss"| L2
     L2 -->|"cache miss"| L3
@@ -202,7 +202,7 @@ Cache Hit Rate: 70-85%
 1. ✅ **Redis GraphQL Response Cache** - All query results are cached
 2. ✅ **Redis Entity Cache** - Individual entities are cached
 3. ✅ **DataLoader for N+1 Solution** - Batch queries are performed
-4. ✅ **Optimized Connection Pool** - API 5, Workers 2 connections
+4. ✅ **Optimized Connection Pool** - API 5, Workers 10 connections
 
 ### ❌ **What Should NOT Be Done**
 

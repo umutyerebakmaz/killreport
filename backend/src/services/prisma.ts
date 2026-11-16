@@ -18,11 +18,8 @@ const isLocalDb = /@(localhost|127\.0\.0\.1)[:/]/.test(connectionString);
 const pool = new Pool({
   connectionString,
   ssl: isLocalDb ? false : true, // Local: no SSL; remote: SSL enabled
-  // CRITICAL: DigitalOcean allows 22 connections total
-  // Optimized connection pool distribution:
-  // - Backend API: 5 connections (for parallel GraphQL queries)
-  // - All Workers: 16 connections (8 workers × 2 connections)
-  // - Total: 21 connections (1 connection buffer)
+  // The API server's pool. Workers use their own (prisma-worker.ts); together
+  // they must stay under PostgreSQL's max_connections.
   max: 5, // API server needs more connections for parallel queries
   min: 1, // Keep 1 connection alive for fast response
   idleTimeoutMillis: 30000, // Close idle connections after 30 seconds

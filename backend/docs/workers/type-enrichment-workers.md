@@ -316,9 +316,9 @@ yarn queue:type-dogma && yarn worker:type-dogma
 
 **Solution**:
 
-- Ensure `prisma-worker.ts` is being used (max: 2 connections)
+- Ensure `prisma-worker.ts` is being used (max: 10 connections per worker)
 - Don't run too many workers simultaneously
-- DigitalOcean limit: 22 connections total
+- Busy workers × 10 plus the API's 5 must stay under PostgreSQL's `max_connections`
 
 ---
 

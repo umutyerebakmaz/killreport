@@ -147,7 +147,7 @@ For a Capsule killmail with implants:
 The value calculation uses appropriate Prisma clients:
 
 - **Resolvers/API:** `src/services/prisma.ts` (5 connections)
-- **Workers:** `src/services/prisma-worker.ts` (2 connections per worker)
+- **Workers:** `src/services/prisma-worker.ts` (10 connections per worker)
 
 This prevents connection pool exhaustion when multiple workers run in parallel.
 
