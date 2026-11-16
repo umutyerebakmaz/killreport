@@ -1,0 +1,25 @@
+[Unit]
+Description=KillReport Next.js frontend (port 3000)
+Wants=network-online.target rabbitmq-server.service redis-server.service
+After=network-online.target rabbitmq-server.service redis-server.service
+PartOf=killreport.target
+StartLimitIntervalSec=0
+
+[Service]
+User=killreport
+WorkingDirectory=/var/www/killreport/frontend
+Environment=NODE_ENV=production
+Environment=PORT=3000
+ExecStart=/usr/bin/yarn start
+KillSignal=SIGINT
+TimeoutStopSec=30
+Restart=always
+RestartSec=5
+MemoryHigh=900M
+MemoryMax=1G
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=killreport.target
