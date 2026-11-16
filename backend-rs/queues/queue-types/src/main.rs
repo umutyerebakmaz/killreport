@@ -51,9 +51,16 @@ async fn queue_types() -> anyhow::Result<()> {
 
     let (connection, channel) = connect(&rabbitmq_url).await?;
     declare_worker_queue(&channel, QUEUE_NAME).await?;
-    let queued = publish_entities(&channel, QUEUE_NAME, SOURCE, &ids, |batch, total, _| {
-        debug!("queued batch {batch}/{total}");
-    })
+    let queued = publish_entities(
+        &channel,
+        QUEUE_NAME,
+        SOURCE,
+        &ids,
+        None,
+        |batch, total, _| {
+            debug!("queued batch {batch}/{total}");
+        },
+    )
     .await?;
 
     info!("all {queued} types queued successfully!");

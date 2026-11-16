@@ -60,11 +60,18 @@ async fn queue_corporations() -> anyhow::Result<()> {
     // Node reports batches only for more than one batch's worth
     // (`queue-corporations.ts:67`).
     let report = ids.len() > BATCH_SIZE;
-    let queued = publish_entities(&channel, QUEUE_NAME, SOURCE, &ids, |batch, total, len| {
-        if report {
-            debug!("queued batch {batch}/{total} ({len} corporations)");
-        }
-    })
+    let queued = publish_entities(
+        &channel,
+        QUEUE_NAME,
+        SOURCE,
+        &ids,
+        None,
+        |batch, total, len| {
+            if report {
+                debug!("queued batch {batch}/{total} ({len} corporations)");
+            }
+        },
+    )
     .await?;
 
     info!("✅ all {queued} corporation(s) queued successfully!");

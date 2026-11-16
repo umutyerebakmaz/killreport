@@ -33,9 +33,16 @@ async fn queue_alliances() -> anyhow::Result<()> {
 
     let (connection, channel) = connect(&rabbitmq_url).await?;
     declare_worker_queue(&channel, QUEUE_NAME).await?;
-    publish_entities(&channel, QUEUE_NAME, SOURCE, &ids, |batch, total, len| {
-        debug!("queued batch {batch}/{total} ({len} alliances)");
-    })
+    publish_entities(
+        &channel,
+        QUEUE_NAME,
+        SOURCE,
+        &ids,
+        None,
+        |batch, total, len| {
+            debug!("queued batch {batch}/{total} ({len} alliances)");
+        },
+    )
     .await?;
 
     info!("all {} alliances queued successfully!", ids.len());
