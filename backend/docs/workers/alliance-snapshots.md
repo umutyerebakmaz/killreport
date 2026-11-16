@@ -152,23 +152,36 @@ Take snapshots for all alliances right now:
 
 ```bash
 cd backend
-yarn snapshot:alliances
+yarn snapshot:alliances:rs   # Rust (backend-rs/workers/worker-alliance-snapshots)
+yarn snapshot:alliances      # Node, same SQL
 ```
 
 **Output:**
 
 ```
-📸 Alliance Snapshot Worker started...
-✓ Found 3540 alliances
-  ⏳ Processed: 50/3540 (50 new, 0 existing)
-  ⏳ Processed: 100/3540 (100 new, 0 existing)
-✅ Snapshot creation completed!
-   • Total processed: 3540
-   • New snapshots: 3540
-   • Already existing: 0
-   • Duration: 45.23 seconds
-   • Date: 2025-11-08
+📸 alliance snapshot worker started...
+✅ snapshot creation completed!
+   • total alliances: 3645
+   • new snapshots: 3645
+   • already existing: 0
+   • duration: 0.41 seconds
+   • date: 2026-11-16
 ```
+
+Both versions run one `INSERT ... SELECT ... ON CONFLICT DO NOTHING` inside a
+transaction. The counts come straight from `corporations`, grouped by
+`alliance_id`; an alliance with no corporation is recorded with zeros.
+
+The snapshot date is the current **UTC** day. Before 2026-11-16 the Node
+script used the machine's local midnight, so a run on a machine east of UTC
+wrote the previous day. Those old rows were left as they are: readers take the
+closest snapshot on or before a date, so they do no harm.
+
+**The alliances table is not written here.** `alliances.member_count` and
+`corporation_count` belong to `yarn update:alliance-counts` (or `:rs`), one
+`UPDATE` over every alliance. Before 2026-11-16 this script also updated
+them, but only for alliances that had no snapshot yet that day, so a second
+run never refreshed them.
 
 ### ⏰ Schedule
 

@@ -26,9 +26,9 @@ When `esi_corporation_info_queue` has drained, recount the alliances and take
 the snapshots:
 
 ```bash
-yarn update:alliance-counts
-yarn snapshot:alliances
-yarn snapshot:corporations
+yarn update:alliance-counts:rs
+yarn snapshot:alliances:rs
+yarn snapshot:corporations:rs
 ```
 
 Reference numbers from the 2026-11-16 run: 3645 alliances processed,
@@ -78,15 +78,21 @@ its queue, or it misses alliances created since the last run.
 - Performs **UPSERT** in database (updates existing, inserts new)
 - Updated fields: name, ticker, member_count, ceo_id, alliance_id, tax_rate
 
-**`yarn update:alliance-counts`** (Node only)
+**`yarn update:alliance-counts:rs`** (Node: `update:alliance-counts`)
 
 - Recomputes `member_count` and `corporation_count` on every alliance from the
-  `corporations` table
+  `corporations` table, in one SQL statement
+- The only writer of those two columns
 - Without it the alliance counts stay stale even after the corporations update
 
-**`yarn snapshot:alliances`** / **`yarn snapshot:corporations`** (Node only)
+**`yarn snapshot:alliances:rs`** / **`yarn snapshot:corporations:rs`** (Node: `snapshot:alliances` / `snapshot:corporations`)
 
-- Takes a snapshot of all alliances / corporations
+- Takes a snapshot of all alliances / corporations for the current **UTC** day
+- One snapshot per alliance / corporation per day: a second run the same day
+  adds nothing (`new snapshots: 0`)
+- The alliance snapshot computes its counts straight from `corporations` and
+  writes only `alliance_snapshots`, so it does not wait for
+  `update:alliance-counts`
 
 ---
 
@@ -174,9 +180,9 @@ yarn queue:characters:rs
 yarn queue:character-corporations
 
 # 5. Recount and take snapshots (after esi_corporation_info_queue has drained)
-yarn update:alliance-counts
-yarn snapshot:alliances
-yarn snapshot:corporations
+yarn update:alliance-counts:rs
+yarn snapshot:alliances:rs
+yarn snapshot:corporations:rs
 ```
 
 Step 2 is what catches a corporation that left its alliance without joining

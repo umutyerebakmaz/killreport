@@ -325,7 +325,9 @@ yarn worker:zkillboard
 
 ### `worker-alliance-snapshots.ts`
 
-**Purpose**: Creates and saves alliance snapshots.
+**Purpose**: Records each alliance's member and corporation count for the
+current UTC day into `alliance_snapshots`, one row per alliance per day. See
+[alliance-snapshots.md](./alliance-snapshots.md).
 
 **Usage**:
 
@@ -333,7 +335,13 @@ yarn worker:zkillboard
 yarn snapshot:alliances
 ```
 
-**Note**: See worker file for details.
+**Rust counterparts**: `yarn snapshot:alliances:rs`,
+`yarn snapshot:corporations:rs` and `yarn update:alliance-counts:rs`
+([`backend-rs/workers/`](../../../backend-rs/workers)). Each runs the same
+single SQL statement as its Node script: the snapshots
+`INSERT ... SELECT ... ON CONFLICT DO NOTHING`, the counts one `UPDATE` over
+every alliance. `update:alliance-counts` is the only writer of
+`alliances.member_count` and `corporation_count`.
 
 ---
 
