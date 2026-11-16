@@ -589,6 +589,11 @@ crontab stays empty. Described in `backend/docs/ops/systemd.md`;
 `backend/src/ops/systemd-units.guard.spec.ts` pins every unit to that
 inventory.
 
+One schedule lives inside an application instead: the API server publishes
+the user and corporation killmail syncs every 10 minutes itself
+(`backend/src/services/killmail-sync-cron.ts`, started in `server.ts`). Never
+add a timer for those two queues.
+
 A job is scheduled by exactly one timer. The character queues once sat in
 both PM2 and the crontab and ran twice (#316); a second mechanism is how that
 comes back.

@@ -54,10 +54,13 @@ yarn worker:info:types
 
 ### Scheduling
 
-`queue:user-killmails` and `queue:corporation-killmails` have no systemd timer.
-Run them by hand from `backend/` (`yarn queue:user-killmails`,
-`yarn queue:corporation-killmails`), or add a timer in `deploy/systemd/` as
-described in [systemd.md](../ops/systemd.md).
+The user and corporation killmail syncs need no timer and no scheduler of their
+own. The API server publishes both every 10 minutes from inside its own process
+(`KillmailSyncCron` in
+[`killmail-sync-cron.ts`](../../src/services/killmail-sync-cron.ts), started in
+`server.ts`), so they run whenever `killreport-backend` runs. The
+`yarn queue:user-killmails` and `yarn queue:corporation-killmails` scripts are
+for queueing by hand. See [systemd.md](../ops/systemd.md).
 
 ### systemd Example
 

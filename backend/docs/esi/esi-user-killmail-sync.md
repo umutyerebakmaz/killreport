@@ -132,7 +132,7 @@ systemctl list-units 'killreport-*'
 
 #### Queueing Users
 
-systemd has no timer for `queue:user-killmails` (see [systemd.md](../ops/systemd.md)). Run it by hand when you want to queue users:
+The API server queues users itself every 10 minutes (`KillmailSyncCron` in [`killmail-sync-cron.ts`](../../src/services/killmail-sync-cron.ts)), so no timer is needed (see [systemd.md](../ops/systemd.md)). To queue them by hand now:
 
 ```bash
 cd backend && yarn queue:user-killmails

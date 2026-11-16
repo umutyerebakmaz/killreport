@@ -158,6 +158,14 @@ The jobs run with `LOG_LEVEL=info`. `worker-sov-campaigns` and
 `worker-sov-map` also set `USE_REDIS_PUBSUB=true`. Check an expression before
 changing it with `systemd-analyze calendar '<expression>'`.
 
+One schedule lives outside systemd on purpose. The API server publishes the
+user and corporation killmail syncs every 10 minutes from inside its own
+process (`KillmailSyncCron` in
+[`killmail-sync-cron.ts`](../../src/services/killmail-sync-cron.ts), started in
+`server.ts`). Those two run whenever `killreport-backend` runs. Do not add
+timers for `queue:user-killmails` or `queue:corporation-killmails`, or they
+run twice.
+
 Static universe and reference data (`queue:regions`, `queue:types`,
 `queue:dogma-*` and their workers) has no unit. It is run by hand, once.
 
