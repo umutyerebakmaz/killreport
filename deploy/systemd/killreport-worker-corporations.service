@@ -1,0 +1,25 @@
+[Unit]
+Description=KillReport worker: corporation info (esi_corporation_info_queue)
+Wants=network-online.target rabbitmq-server.service redis-server.service
+After=network-online.target rabbitmq-server.service redis-server.service
+PartOf=killreport.target
+StartLimitIntervalSec=0
+
+[Service]
+User=killreport
+WorkingDirectory=/var/www/killreport/backend
+Environment=NODE_ENV=production
+Environment=LOG_LEVEL=debug
+ExecStart=/usr/bin/yarn worker:info:corporations
+KillSignal=SIGINT
+TimeoutStopSec=30
+Restart=always
+RestartSec=5
+MemoryHigh=460M
+MemoryMax=512M
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+
+[Install]
+WantedBy=killreport.target

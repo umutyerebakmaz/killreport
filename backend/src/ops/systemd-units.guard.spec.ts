@@ -94,7 +94,36 @@ type Continuous = {
   memory: [high: string, max: string];
 };
 
+const worker = (script: string): Continuous => ({
+  script,
+  workspace: 'backend',
+  env: { NODE_ENV: 'production', LOG_LEVEL: 'debug' },
+  memory: ['460M', '512M'],
+});
+
 const CONTINUOUS: Record<string, Continuous> = {
+  'killreport-worker-redisq.service': worker('worker:redisq'),
+  'killreport-worker-alliances.service': worker('worker:info:alliances'),
+  'killreport-worker-corporations.service': worker('worker:info:corporations'),
+  'killreport-worker-alliance-corporations.service': worker(
+    'worker:alliance-corporations',
+  ),
+  'killreport-worker-types.service': worker('worker:info:types'),
+  'killreport-worker-zkillboard.service': worker('worker:zkillboard'),
+  'killreport-worker-user-killmails.service': worker('worker:user-killmails'),
+  'killreport-worker-corporation-killmails.service': worker(
+    'worker:corporation-killmails',
+  ),
+  'killreport-worker-killmail-detail.service': worker('worker:killmail-detail'),
+  'killreport-worker-discord-webhook.service': worker('worker:discord-webhook'),
+  'killreport-worker-characters.service': worker('worker:info:characters'),
+  'killreport-worker-character-corporation-history.service': worker(
+    'worker:character-corporation-history',
+  ),
+  'killreport-worker-prices.service': worker('worker:prices'),
+  'killreport-worker-backfill-values@.service': worker(
+    'worker:backfill-values',
+  ),
   'killreport-backend.service': {
     script: 'start',
     workspace: 'backend',
