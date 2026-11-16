@@ -1,0 +1,11 @@
+[Unit]
+Description=KillReport timer: worker-sov-structures, at :15 and :45 every hour
+PartOf=killreport.target
+
+[Timer]
+OnCalendar=*-*-* *:15,45:00 UTC
+Persistent=true
+AccuracySec=1s
+
+[Install]
+WantedBy=killreport.target

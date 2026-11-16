@@ -1,0 +1,11 @@
+[Unit]
+Description=KillReport timer: worker-sov-campaigns, every 5 minutes
+PartOf=killreport.target
+
+[Timer]
+OnCalendar=*-*-* *:00/5:00 UTC
+Persistent=true
+AccuracySec=1s
+
+[Install]
+WantedBy=killreport.target

@@ -1,3 +1,4 @@
+import { execFileSync, spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
@@ -144,6 +145,104 @@ const CONTINUOUS: Record<string, Continuous> = {
   },
 };
 
+type Scheduled = {
+  script: string;
+  onCalendar: string;
+  env: Record<string, string>;
+};
+
+const job = (
+  script: string,
+  onCalendar: string,
+  extra: Record<string, string> = {},
+): Scheduled => ({
+  script,
+  onCalendar,
+  env: { NODE_ENV: 'production', LOG_LEVEL: 'info', ...extra },
+});
+
+const PUBSUB = { USE_REDIS_PUBSUB: 'true' };
+
+const SCHEDULED: Record<string, Scheduled> = {
+  'killreport-queue-characters.service': job(
+    'queue:characters',
+    'Mon *-*-* 16:10:00 UTC',
+  ),
+  'killreport-queue-character-corporations.service': job(
+    'queue:character-corporations',
+    'Mon *-*-* 17:00:00 UTC',
+  ),
+  'killreport-queue-character-corporation-history.service': job(
+    'queue:character-corporation-history',
+    'Mon *-*-* 03:00:00 UTC',
+  ),
+  'killreport-queue-alliances.service': job(
+    'queue:alliances',
+    '*-*-* 22:00:00 UTC',
+  ),
+  'killreport-queue-alliance-corporations.service': job(
+    'queue:alliance-corporations',
+    '*-*-* 22:05:00 UTC',
+  ),
+  'killreport-snapshot-alliances.service': job(
+    'snapshot:alliances',
+    '*-*-* 01:00:00 UTC',
+  ),
+  'killreport-update-alliance-counts.service': job(
+    'update:alliance-counts',
+    '*-*-* 01:00:00 UTC',
+  ),
+  'killreport-snapshot-corporations.service': job(
+    'snapshot:corporations',
+    '*-*-* 01:00:00 UTC',
+  ),
+  'killreport-worker-system-activity.service': job(
+    'worker:system-activity',
+    '*-*-* *:00:00 UTC',
+  ),
+  'killreport-worker-sov-campaigns.service': job(
+    'worker:sov:campaigns',
+    '*-*-* *:00/5:00 UTC',
+    PUBSUB,
+  ),
+  'killreport-worker-sov-map.service': job(
+    'worker:sov:map',
+    '*-*-* *:00/30:00 UTC',
+    PUBSUB,
+  ),
+  'killreport-worker-sov-structures.service': job(
+    'worker:sov:structures',
+    '*-*-* *:15,45:00 UTC',
+  ),
+  'killreport-worker-sov-snapshot.service': job(
+    'worker:sov:snapshot',
+    '*-*-* 01:00:00 UTC',
+  ),
+  'killreport-worker-sov-correlate.service': job(
+    'worker:sov:correlate',
+    '*-*-* *:00/10:00 UTC',
+  ),
+  'killreport-queue-prices.service': job('queue:prices', '*-*-* 06:00:00 UTC'),
+};
+
+const MANUAL = ['killreport-queue-backfill-values.service'];
+const BACKUP = 'killreport-backup-db.service';
+
+/** Units with an [Install] section, the `@` template expanded to its three instances. */
+function installedUnits(): string[] {
+  return Object.entries(loadUnits())
+    .filter(([, u]) => u.has('Install'))
+    .flatMap(([file]) =>
+      file.includes('@.')
+        ? [1, 2, 3].map((i) => file.replace('@.', `@${i}.`))
+        : [file],
+    )
+    .sort();
+}
+
+const hasSystemdAnalyze =
+  spawnSync('systemd-analyze', ['--version']).status === 0;
+
 describe('systemd units', () => {
   it('every file is a killreport unit with LF endings', () => {
     expect(unitFiles()).not.toEqual([]);
@@ -217,6 +316,121 @@ describe('systemd units', () => {
       for (const dep of DEPS) {
         expect(list(u, 'Unit', 'Wants')).toContain(dep);
         expect(list(u, 'Unit', 'After')).toContain(dep);
+      }
+    },
+  );
+
+  it.each(Object.entries(SCHEDULED))(
+    '%s: oneshot job matches the inventory',
+    (file, s) => {
+      const u = loadUnits()[file];
+      expect(u).toBeDefined();
+      expect(value(u, 'Service', 'Type')).toBe('oneshot');
+      expect(value(u, 'Service', 'ExecStart')).toBe(
+        `/usr/bin/yarn ${s.script}`,
+      );
+      expect(value(u, 'Service', 'WorkingDirectory')).toBe(
+        '/var/www/killreport/backend',
+      );
+      expect(env(u)).toEqual(s.env);
+      expect(value(u, 'Service', 'Restart')).toBeUndefined();
+      expect(value(u, 'Service', 'MemoryMax')).toBeUndefined();
+      expect(u.has('Install')).toBe(false);
+      expect(value(u, 'Unit', 'PartOf')).toBe('killreport.target');
+      for (const dep of DEPS) {
+        expect(list(u, 'Unit', 'Wants')).toContain(dep);
+        expect(list(u, 'Unit', 'After')).toContain(dep);
+      }
+
+      const t = loadUnits()[file.replace(/\.service$/, '.timer')];
+      expect(t).toBeDefined();
+      expect(value(t, 'Timer', 'OnCalendar')).toBe(s.onCalendar);
+      expect(value(t, 'Timer', 'Persistent')).toBe('true');
+      expect(value(t, 'Timer', 'AccuracySec')).toBe('1s');
+      expect(value(t, 'Unit', 'PartOf')).toBe('killreport.target');
+      expect(value(t, 'Install', 'WantedBy')).toBe('killreport.target');
+    },
+  );
+
+  it('every timer has a service and every oneshot has a timer, except the manual ones', () => {
+    const files = unitFiles();
+    for (const timer of files.filter((f) => f.endsWith('.timer'))) {
+      expect(files).toContain(timer.replace(/\.timer$/, '.service'));
+    }
+    const units = loadUnits();
+    const oneshots = serviceFiles().filter(
+      (f) => value(units[f], 'Service', 'Type') === 'oneshot',
+    );
+    const timed = oneshots.filter(
+      (f) => !files.includes(f.replace(/\.service$/, '.timer')),
+    );
+    expect(timed).toEqual(MANUAL);
+  });
+
+  it('the manual backfill queue is a oneshot with no timer and no [Install]', () => {
+    const u = loadUnits()[MANUAL[0]];
+    expect(u).toBeDefined();
+    expect(value(u, 'Service', 'Type')).toBe('oneshot');
+    expect(value(u, 'Service', 'ExecStart')).toBe(
+      '/usr/bin/yarn queue:backfill-values',
+    );
+    expect(env(u)).toEqual({ NODE_ENV: 'production', LOG_LEVEL: 'info' });
+    expect(value(u, 'Unit', 'PartOf')).toBe('killreport.target');
+    expect(u.has('Install')).toBe(false);
+  });
+
+  it('backup runs daily at 04:00 UTC from backend/, outside killreport.target', () => {
+    const u = loadUnits()[BACKUP];
+    expect(u).toBeDefined();
+    expect(value(u, 'Service', 'Type')).toBe('oneshot');
+    expect(value(u, 'Service', 'ExecStart')).toBe(
+      '/bin/bash scripts/backup-db.sh',
+    );
+    expect(value(u, 'Service', 'WorkingDirectory')).toBe(
+      '/var/www/killreport/backend',
+    );
+    expect(fs.existsSync(path.join(REPO, 'backend/scripts/backup-db.sh'))).toBe(
+      true,
+    );
+    expect(value(u, 'Unit', 'PartOf')).toBeUndefined();
+    expect(list(u, 'Unit', 'Wants')).toEqual(['network-online.target']);
+    expect(list(u, 'Unit', 'After')).toEqual(['network-online.target']);
+    expect(u.has('Install')).toBe(false);
+
+    const t = loadUnits()[BACKUP.replace(/\.service$/, '.timer')];
+    expect(t).toBeDefined();
+    expect(value(t, 'Timer', 'OnCalendar')).toBe('*-*-* 04:00:00 UTC');
+    expect(value(t, 'Timer', 'Persistent')).toBe('true');
+    expect(value(t, 'Timer', 'AccuracySec')).toBe('1s');
+    expect(value(t, 'Unit', 'PartOf')).toBeUndefined();
+    expect(value(t, 'Install', 'WantedBy')).toBe('killreport.target');
+  });
+
+  it('only the target, the continuous services and the timers are installable', () => {
+    const expected = [
+      'killreport.target',
+      ...Object.keys(CONTINUOUS).flatMap((f) =>
+        f.includes('@.')
+          ? [1, 2, 3].map((i) => f.replace('@.', `@${i}.`))
+          : [f],
+      ),
+      ...Object.keys(SCHEDULED).map((f) => f.replace(/\.service$/, '.timer')),
+      BACKUP.replace(/\.service$/, '.timer'),
+    ].sort();
+    expect(installedUnits()).toEqual(expected);
+  });
+
+  it.skipIf(!hasSystemdAnalyze)(
+    'every OnCalendar parses with systemd-analyze',
+    () => {
+      const units = loadUnits();
+      for (const timer of unitFiles().filter((f) => f.endsWith('.timer'))) {
+        const expr = value(units[timer], 'Timer', 'OnCalendar') ?? '';
+        expect(() =>
+          execFileSync('systemd-analyze', ['calendar', expr], {
+            stdio: 'pipe',
+          }),
+        ).not.toThrow();
       }
     },
   );

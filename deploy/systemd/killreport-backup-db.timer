@@ -1,0 +1,10 @@
+[Unit]
+Description=KillReport timer: database backup, daily 04:00 UTC
+
+[Timer]
+OnCalendar=*-*-* 04:00:00 UTC
+Persistent=true
+AccuracySec=1s
+
+[Install]
+WantedBy=killreport.target

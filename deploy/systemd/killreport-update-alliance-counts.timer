@@ -1,0 +1,11 @@
+[Unit]
+Description=KillReport timer: update-alliance-counts, daily 01:00 UTC
+PartOf=killreport.target
+
+[Timer]
+OnCalendar=*-*-* 01:00:00 UTC
+Persistent=true
+AccuracySec=1s
+
+[Install]
+WantedBy=killreport.target

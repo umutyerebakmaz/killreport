@@ -1,0 +1,11 @@
+[Unit]
+Description=KillReport timer: queue-alliance-corporations, daily 22:05 UTC
+PartOf=killreport.target
+
+[Timer]
+OnCalendar=*-*-* 22:05:00 UTC
+Persistent=true
+AccuracySec=1s
+
+[Install]
+WantedBy=killreport.target
