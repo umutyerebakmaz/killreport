@@ -1659,6 +1659,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "queue-alliance-corporations"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "esi",
+ "mq",
+ "runner",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "wiremock",
+]
+
+[[package]]
 name = "queue-alliances"
 version = "0.1.0"
 dependencies = [
