@@ -161,10 +161,10 @@ yarn snapshot:alliances      # Node, same SQL
 ```
 📸 alliance snapshot worker started...
 ✅ snapshot creation completed!
-   • total alliances: 3645
-   • new snapshots: 3645
+   • total alliances: 4207
+   • new snapshots: 4207
    • already existing: 0
-   • duration: 0.41 seconds
+   • duration: 0.10 seconds
    • date: 2026-11-16
 ```
 
