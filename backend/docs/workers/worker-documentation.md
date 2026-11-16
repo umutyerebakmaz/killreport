@@ -134,6 +134,13 @@ yarn queue:alliance-corporations
 
 **Next Step**: Processed by `worker-alliance-corporations.ts`
 
+**Rust counterpart**: `yarn queue:alliance-corporations:rs`
+([`backend-rs/queues/queue-alliance-corporations`](../../../backend-rs/queues/queue-alliance-corporations)),
+consumed by `yarn worker:alliance-corporations:rs`. The Rust queue reads the
+alliance list from ESI (`/alliances`) instead of the database, so it needs no
+populated `alliances` table. `yarn queue:alliance-chain:rs` runs
+`queue:alliances:rs` and then `queue:alliance-corporations:rs`.
+
 ---
 
 ### `scan-killmail-entities.ts`
@@ -356,6 +363,12 @@ yarn worker:alliance-corporations
 **Rate Limit**: header-driven limiter via `esiClient`
 
 **Next Step**: Processed by `worker-info-corporations.ts`
+
+**Rust counterpart**: `yarn worker:alliance-corporations:rs`
+([`backend-rs/workers/worker-alliance-corporations`](../../../backend-rs/workers/worker-alliance-corporations)).
+Same queues, messages and log lines; it publishes through a confirm-mode
+channel and, if that channel is lost, leaves the message unsettled so the
+broker redelivers it after the worker reconnects.
 
 ---
 
