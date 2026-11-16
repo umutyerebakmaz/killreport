@@ -7,7 +7,7 @@
 //! `yarn worker:info:alliances:rs`.
 
 use esi::EsiClient;
-use runner::{Processed, Worker};
+use runner::{Context, Outcome, Processed, Worker};
 use sqlx::PgPool;
 use worker_info_alliances::alliance::{upsert_alliance, AllianceInfo};
 
@@ -23,12 +23,16 @@ impl Worker for AllianceWorker {
     const WAITING_FOR: &'static str = "alliances";
     const ENTITY: &'static str = "alliance";
 
-    async fn handle(&self, id: i32) -> anyhow::Result<Processed> {
+    async fn handle(&self, id: i32, _ctx: &Context<'_>) -> anyhow::Result<Processed> {
         // Always take the latest info from ESI.
         let info: AllianceInfo = self.esi.get(&format!("/alliances/{id}")).await?;
         let inserted = upsert_alliance(&self.pool, id, &info).await?;
         Ok(Processed {
-            inserted,
+            outcome: if inserted {
+                Outcome::Created
+            } else {
+                Outcome::Updated
+            },
             detail: format!(" {} [{}] ID:{id}", info.name, info.ticker),
         })
     }

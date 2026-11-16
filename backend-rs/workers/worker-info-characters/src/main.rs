@@ -10,7 +10,7 @@
 //! `yarn worker:info:characters:rs`.
 
 use esi::EsiClient;
-use runner::{Processed, Worker};
+use runner::{Context, Outcome, Processed, Worker};
 use sqlx::PgPool;
 use worker_info_characters::character::{
     upsert_character, CharacterInfo, CHARACTER_COMPATIBILITY_DATE,
@@ -28,7 +28,7 @@ impl Worker for CharacterWorker {
     const WAITING_FOR: &'static str = "characters";
     const ENTITY: &'static str = "character";
 
-    async fn handle(&self, id: i32) -> anyhow::Result<Processed> {
+    async fn handle(&self, id: i32, _ctx: &Context<'_>) -> anyhow::Result<Processed> {
         // Always take the latest info from ESI, at the date that carries the
         // achievement fields. The trailing slash matches the Node service
         // (`character.service.ts:53-56`).
@@ -41,7 +41,11 @@ impl Worker for CharacterWorker {
             .await?;
         let inserted = upsert_character(&self.pool, id, &info).await?;
         Ok(Processed {
-            inserted,
+            outcome: if inserted {
+                Outcome::Created
+            } else {
+                Outcome::Updated
+            },
             detail: format!(" {}", info.name),
         })
     }
