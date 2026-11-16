@@ -6,6 +6,7 @@
 
 use std::future::Future;
 
+mod log_format;
 mod message;
 mod process;
 mod run;

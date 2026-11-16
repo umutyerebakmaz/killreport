@@ -16,6 +16,7 @@ use tracing::{error, info, warn};
 use esi::{EsiClient, RateLimiter};
 use mq::{connect, declare_worker_queue, LapinDelivery};
 
+use crate::log_format::HideInfoLevel;
 use crate::shutdown::shutdown_signal;
 use crate::totals::QUIET;
 use crate::{process_one, Totals, Worker};
@@ -34,7 +35,9 @@ pub struct Resources {
 pub fn init() {
     let _ = dotenvy::dotenv();
     tracing_subscriber::fmt()
-        .with_target(false)
+        .event_format(HideInfoLevel::new(
+            tracing_subscriber::fmt::format().with_target(false),
+        ))
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
                 .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
