@@ -3230,6 +3230,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "worker-alliance-corporations"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "esi",
+ "futures-util",
+ "mq",
+ "runner",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "wiremock",
+]
+
+[[package]]
 name = "worker-info-alliances"
 version = "0.1.0"
 dependencies = [
