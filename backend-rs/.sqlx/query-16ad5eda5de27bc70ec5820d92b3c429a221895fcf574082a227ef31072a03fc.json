@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO types (\n          id, name, description, group_id, published, volume, capacity, mass,\n          icon_id, updated_at\n        ) VALUES (\n          $1, $2, $3, $4, $5, $6, $7, $8, $9, now()\n        )\n        ON CONFLICT (id) DO UPDATE SET\n          name        = EXCLUDED.name,\n          description = EXCLUDED.description,\n          group_id    = EXCLUDED.group_id,\n          published   = EXCLUDED.published,\n          volume      = EXCLUDED.volume,\n          capacity    = EXCLUDED.capacity,\n          mass        = EXCLUDED.mass,\n          icon_id     = EXCLUDED.icon_id,\n          updated_at  = now()\n        RETURNING (xmax = 0) AS \"inserted!\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "inserted!",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4",
+        "Text",
+        "Text",
+        "Int4",
+        "Bool",
+        "Float8",
+        "Float8",
+        "Float8",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "16ad5eda5de27bc70ec5820d92b3c429a221895fcf574082a227ef31072a03fc"
+}
