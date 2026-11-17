@@ -4,8 +4,7 @@ Most steps below have a Rust version (`:rs` suffix, built from `backend-rs/`)
 and a Node version (no suffix). Both read and write the same queues and run
 the same SQL, so they can be mixed, but run only one consumer type per queue at
 a time when you want comparable numbers. The Rust versions are the default.
-Two commands are still Node only: `queue:character-corporations` and
-`scan:entities`.
+One command is still Node only: `scan:entities`.
 
 ## 📋 Simple Daily Sequence
 
@@ -130,12 +129,12 @@ yarn queue:characters:rs         # add all character IDs to the queue
 
 ### Detect and Update Missing Corporations
 
-Detects missing corporations from characters and fetches their info from ESI.
-The queue script has no Rust version yet:
+Detects missing corporations from characters and fetches their info from ESI
+(Node: `queue:character-corporations`):
 
 ```bash
 yarn worker:info:corporations:rs
-yarn queue:character-corporations
+yarn queue:character-corporations:rs
 ```
 
 **What it does:**
@@ -185,7 +184,7 @@ yarn queue:corporations:rs
 yarn queue:characters:rs
 
 # 4. Fill missing corporations (after step 3 has drained)
-yarn queue:character-corporations
+yarn queue:character-corporations:rs
 
 # 5. Recount and take snapshots (after esi_corporation_info_queue has drained)
 yarn update:alliance-counts:rs
@@ -200,14 +199,14 @@ its old `alliance_id`, which inflates that alliance's counts and snapshots.
 
 ### Scenario 2: Fill Missing Entities Only
 
-Both commands are Node only for now.
+`scan:entities` is Node only for now.
 
 ```bash
 # Scan and fill all missing entities from killmails
 yarn scan:entities
 
 # Specifically check character corporations
-yarn queue:character-corporations
+yarn queue:character-corporations:rs
 ```
 
 ---
