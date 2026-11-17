@@ -94,8 +94,9 @@ handles one user at a time (`prefetch(1)`) and waits 10 seconds between users.
 database, not only the ones this sync wrote. RedisQ writes the whole EVE feed,
 so a brand-new user usually has a recent killmail stored already. An
 incremental first sync would stop on it at the top of page 1 and never fetch
-the history. This is why the cron sends `fullSync` for a user who has never
-synced.
+the history. This is why `isFullSync`
+([`killmail-sync-message.ts`](../../src/services/killmail-sync-message.ts))
+sends `fullSync` for a user who has never synced, whoever publishes the job.
 
 ### 4. `worker:killmail-detail` writes them
 
@@ -142,10 +143,11 @@ yarn queue:user-killmails --force    # every user with a valid token
 yarn queue:user-killmails --full     # ignore the cursor, list up to 50 pages
 ```
 
-The script selects users the same way the cron does, with two differences. It
-publishes at priority 5 and does not check the broker first. It also does not
-add `fullSync` for users who have never synced. For a first sync by hand, pass
-`--full`.
+The script selects users the same way the cron does. Users who have never
+synced get a full sync with or without `--full`, because the script and the
+cron make that call through the same function, `isFullSync`. The script
+differs from the cron in two ways: it publishes at priority 5, and it does not
+check the broker first.
 
 ## Checking on it
 

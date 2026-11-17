@@ -1,4 +1,4 @@
-import { buildSyncMessage } from '@services/killmail-sync-message';
+import { buildSyncMessage, isFullSync } from '@services/killmail-sync-message';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
@@ -104,14 +104,18 @@ async function queueCorporationESIKillmails() {
         ? ` (last sync: ${user.last_corp_killmail_sync_at.toLocaleString('tr-TR')})`
         : ' (never synced)';
 
-      const message = buildSyncMessage(user.id, fullSync);
+      const userFullSync = isFullSync(
+        user.last_corp_killmail_sync_at,
+        fullSync,
+      );
+      const message = buildSyncMessage(user.id, userFullSync);
 
       channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
         persistent: true,
         priority: 5, // Medium priority,
       });
 
-      const syncMode = fullSync ? ' [FULL SYNC]' : ' [INCREMENTAL]';
+      const syncMode = userFullSync ? ' [FULL SYNC]' : ' [INCREMENTAL]';
       logger.debug(
         `queued: ${user.character_name} (corp ID: ${user.corporation_id})${lastSyncInfo}${syncMode}`,
       );
