@@ -46,6 +46,21 @@ export async function getRabbitMQChannel(): Promise<amqp.Channel> {
   }
 }
 
+/**
+ * A new confirm channel on the shared connection, for a publisher that must
+ * know the broker has every message before it exits. Not cached: the caller
+ * closes it. The plain channel above stays as it is for everything else.
+ */
+export async function getRabbitMQConfirmChannel(): Promise<amqp.ConfirmChannel> {
+  await getRabbitMQChannel();
+  if (!connection) {
+    throw new Error('RabbitMQ connection is not open');
+  }
+  return (await (
+    connection as any
+  ).createConfirmChannel()) as amqp.ConfirmChannel;
+}
+
 async function getMonitoringChannel(): Promise<amqp.Channel | null> {
   try {
     // If we have a valid channel, return it

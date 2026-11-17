@@ -1687,6 +1687,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "queue-character-corporations"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "mq",
+ "runner",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "queue-characters"
 version = "0.1.0"
 dependencies = [
