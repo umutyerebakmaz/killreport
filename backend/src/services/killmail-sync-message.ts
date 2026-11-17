@@ -14,6 +14,25 @@ export interface KillmailSyncMessage {
   queuedAt: string;
 }
 
+/**
+ * Whether a sync should ignore the incremental cursor.
+ *
+ * Always true for a user who has never synced (`lastSyncedAt` null). The
+ * cursor is MAX(killmail_id) over `killmail_filters`, and every writer feeds
+ * that table — RedisQ writes all of EVE. So a new user usually has a killmail
+ * in the database already, the ESI list stops on it at the first row, and the
+ * history is never fetched (see `killmail-cursor.ts`).
+ *
+ * The cron and both manual queue scripts decide through this one function, so
+ * the rule cannot hold in one publisher and be missing from another.
+ */
+export function isFullSync(
+  lastSyncedAt: Date | null,
+  requested: boolean,
+): boolean {
+  return requested || lastSyncedAt === null;
+}
+
 export function buildSyncMessage(
   userId: number,
   fullSync = false,

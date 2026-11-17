@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { buildSyncMessage } from './killmail-sync-message';
+import { buildSyncMessage, isFullSync } from './killmail-sync-message';
 
 describe('buildSyncMessage', () => {
   it('names a user and nothing else', () => {
@@ -24,5 +24,23 @@ describe('buildSyncMessage', () => {
 
     expect(wire).not.toContain('token');
     expect(wire).not.toContain('expires');
+  });
+});
+
+describe('isFullSync', () => {
+  // The incremental cursor is MAX(killmail_id) over killmail_filters, which
+  // RedisQ fills with all of EVE. A user who has never synced usually has a
+  // killmail there already, so an incremental first sync stops on it at the
+  // top of page 1 and the history is never fetched.
+  it('is full for a user who has never synced, even when not asked for', () => {
+    expect(isFullSync(null, false)).toBe(true);
+  });
+
+  it('is incremental for a user who has synced before', () => {
+    expect(isFullSync(new Date('2026-11-17T10:00:00Z'), false)).toBe(false);
+  });
+
+  it('is full whenever a full resync is asked for', () => {
+    expect(isFullSync(new Date('2026-11-17T10:00:00Z'), true)).toBe(true);
   });
 });

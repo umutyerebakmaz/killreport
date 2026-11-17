@@ -1,5 +1,5 @@
 import { KILLMAIL_DETAIL_QUEUE } from '@services/killmail-detail-message';
-import { buildSyncMessage } from '@services/killmail-sync-message';
+import { buildSyncMessage, isFullSync } from '@services/killmail-sync-message';
 import logger from '@services/logger';
 import prisma from './prisma';
 import { skipReason } from './queue-health';
@@ -142,16 +142,12 @@ export class KillmailSyncCron {
 
       const channel = await getRabbitMQChannel();
       for (const user of users) {
-        // A user who has never synced gets a full sync. The incremental
-        // cursor is MAX(killmail_id) over `killmail_filters`, and every writer
-        // feeds that table — RedisQ writes all of EVE. So a new user already
-        // has a killmail in the database, the ESI list stops on it at the
-        // first row, and the history is never fetched.
-        const neverSynced = user[this.job.sinceField] === null;
+        // A user who has never synced gets a full sync; isFullSync says why.
+        const fullSync = isFullSync(user[this.job.sinceField], false);
 
         channel.sendToQueue(
           this.job.queue,
-          Buffer.from(JSON.stringify(buildSyncMessage(user.id, neverSynced))),
+          Buffer.from(JSON.stringify(buildSyncMessage(user.id, fullSync))),
           { persistent: true, priority: this.job.priority },
         );
         logger.debug(
