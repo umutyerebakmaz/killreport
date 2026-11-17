@@ -36,17 +36,31 @@ const renderRow = (
   );
 
 describe('AttackerRow', () => {
-  it('shows the alliance name and not the corporation name', () => {
+  it('shows the alliance, then the corporation on the line below it', () => {
     renderRow(attacker());
 
-    expect(screen.getByText('Alliance Three')).toBeInTheDocument();
-    expect(screen.queryByText('Corp Two')).toBeNull();
+    const alliance = screen.getByText('Alliance Three');
+    const corporation = screen.getByText('Corp Two');
+    expect(
+      alliance.compareDocumentPosition(corporation) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
-  it('falls back to the corporation name when there is no alliance', () => {
+  it('links the corporation line to the corporation page', () => {
+    renderRow(attacker());
+
+    expect(screen.getByText('Corp Two').closest('a')).toHaveAttribute(
+      'href',
+      '/corporations/2',
+    );
+  });
+
+  it('shows the corporation alone when there is no alliance', () => {
     renderRow(attacker({ alliance: null }));
 
     expect(screen.getByText('Corp Two')).toBeInTheDocument();
+    expect(screen.queryByText('Alliance Three')).toBeNull();
   });
 
   it('prints the damage without a DMG suffix', () => {
