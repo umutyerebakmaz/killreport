@@ -150,7 +150,11 @@ export default function AttackerRow({
 
         <div className="flex justify-between w-full">
           {/* Character Name, Alliance, Corporation */}
-          <div className="flex flex-col leading-tight space-y-0.5">
+          {/* leading-4 here, not just on the links: each Tooltip wrapper is
+              a block whose line box is never shorter than its own inherited
+              line-height, so a tighter leading on the link alone changes
+              nothing. */}
+          <div className="flex flex-col leading-4">
             {attacker.character?.id ? (
               /* No ship name here: the ship is already in the slot beside the
                  portrait, with its name in that slot's tooltip. Printing it
@@ -158,7 +162,7 @@ export default function AttackerRow({
               <Tooltip content="Show Character Info">
                 <Link
                   href={`/characters/${attacker.character?.id}`}
-                  className="font-medium text-ink-muted hover:text-accent-link"
+                  className="font-medium leading-5 text-ink-muted hover:text-accent-link"
                   prefetch={false}
                 >
                   {attacker.character?.name || 'Unknown'}
@@ -183,7 +187,7 @@ export default function AttackerRow({
               <Tooltip content="Show Alliance Info">
                 <Link
                   href={`/alliances/${attacker.alliance.id}`}
-                  className="text-sm text-ink-muted hover:text-accent-link"
+                  className="text-sm/4 text-ink-muted hover:text-accent-link"
                   prefetch={false}
                 >
                   {attacker.alliance.name || 'Unknown'}
@@ -194,7 +198,7 @@ export default function AttackerRow({
               <Tooltip content="Show Corporation Info">
                 <Link
                   href={`/corporations/${attacker.corporation.id}`}
-                  className="text-sm text-ink-muted hover:text-accent-link"
+                  className="text-sm/4 text-ink-muted hover:text-accent-link"
                   prefetch={false}
                 >
                   {attacker.corporation.name || 'Unknown'}
