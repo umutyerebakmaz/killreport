@@ -1,9 +1,9 @@
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { publishEntitiesConfirmed } from '@services/publish-entities';
+import { ensureAllQueuesExist } from '@services/rabbitmq';
 
 const QUEUE_NAME = 'esi_corporation_info_queue';
-const BATCH_SIZE = 100;
 
 /**
  * Queues every corporation a character points at that is not in the database
@@ -45,38 +45,23 @@ async function queueCharacterCorporations() {
     logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
-    const channel = await getRabbitMQChannel();
-
-    // Add to queue in batches with proper message format
-    let queuedCount = 0;
-    for (let i = 0; i < missingCorporationIds.length; i += BATCH_SIZE) {
-      const batch = missingCorporationIds.slice(i, i + BATCH_SIZE);
-
-      for (const id of batch) {
-        const message = {
-          entityId: id,
-          queuedAt: new Date().toISOString(),
-          source: 'queue-character-corporations',
-        };
-        channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
-          persistent: true,
-        });
-        queuedCount++;
-      }
-
-      logger.info(
-        `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
-          missingCorporationIds.length / BATCH_SIZE,
-        )} (${batch.length} corporations)`,
-      );
-    }
+    // Resolves only once the broker has confirmed every message, so the
+    // process.exit below can no longer drop what it had not taken yet.
+    const queuedCount = await publishEntitiesConfirmed(
+      QUEUE_NAME,
+      'queue-character-corporations',
+      missingCorporationIds,
+      {
+        onBatch: (batch, total, size) =>
+          logger.info(`queued batch ${batch}/${total} (${size} corporations)`),
+      },
+    );
 
     logger.info(
       `✅ all ${queuedCount} missing corporations queued successfully!`,
     );
     logger.info('now run the worker: yarn worker:info:corporations');
 
-    await channel.close();
     process.exit(0);
   } catch (error) {
     logger.error('failed to queue character corporations', { error });
