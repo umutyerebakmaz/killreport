@@ -25,8 +25,7 @@ the containing file, and run `yarn docs:check-links` from the repository root.
 
 - [Dogma Hierarchy](esi/esi-dogma-hierarchy.md) — EVE ESI type dogma hierarchy
 - [Dogma Services](../src/services/dogma/README.MD) — type attribute/effect resolution code
-- [User Killmail Sync](esi/esi-user-killmail-sync.md) — ESI user killmail sync system
-- [User Killmails Queue](esi/esi-user-killmails-queue.md) — `esi_user_killmails_queue` details
+- [User Killmail Sync](esi/esi-user-killmail-sync.md) — how a logged-in user's killmails reach the database: cron, both queues, both workers
 
 ## Workers
 
@@ -45,7 +44,6 @@ the containing file, and run `yarn docs:check-links` from the repository root.
 - [Character Corporation History](workers/character-corporation-history.md) — Employment History tab: queue, worker, backfill
 - [Character Refresh Cost Analysis](workers/character-refresh-cost-analysis.md) — refresh cost & performance
 - [Capsule Value Calculation](workers/capsule-value-calculation.md) — pod (capsule) value calculation
-- [Background Sync (Incremental)](workers/background-sync-incremental.md) — incremental background sync
 - [Sovereignty Workers](workers/sovereignty-workers.md) — sovereignty worker flow & how to run
 - [Backfill System](workers/backfill-system-ready.md) — backfill system readiness
 - [Backfill Values Guide](workers/backfill-values-guide.md) — backfill killmail values

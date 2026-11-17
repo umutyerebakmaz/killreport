@@ -1,247 +1,153 @@
-# ESI User Killmail Sync System
+# User Killmail Sync
 
-## Overview
+How KillReport fetches the killmails of a user who logged in with EVE SSO.
 
-This system **fetches killmails for users who have logged in via SSO directly from the ESI API** and saves them to the database. **It has no dependency on zKillboard** - it works completely independently.
+ESI lists a character's recent killmails only to that character's own access
+token, so this is the one killmail source that needs a logged-in user. It has no
+zKillboard dependency.
 
-## How It Works?
+## The short version
 
+```mermaid
+flowchart LR
+    Cron["API server<br/><i>every 10 min</i>"] -->|"{ userId }"| UQ[(esi_user_killmails_queue)]
+    UQ --> UW["worker:user-killmails<br/><i>lists IDs with the user's token</i>"]
+    UW -->|"{ killmailId, hash }<br/>only IDs not in the DB"| DQ[(esi_killmail_detail_queue)]
+    DQ --> DW["worker:killmail-detail<br/><i>fetches detail, writes it</i>"]
+    DW --> DB[(PostgreSQL)]
 ```
-1. User logs in via SSO → Token saved to database
-2. Queue script runs → Adds active users to queue
-3. Worker consumes → Fetches killmails from ESI for each user
-4. Saves to database → Triggers GraphQL subscription
-```
 
-## Features
-
-- ✅ **ESI-only**: No zKillboard dependency
-- ✅ **Token-based**: Uses the user's own access token
-- ✅ **Auto-refresh**: Expired tokens are automatically renewed
-- ✅ **Token validation**: Only users with valid tokens are added to queue
-- ✅ **Pagination**: Up to 50 pages (2,500 killmails max, 50 per page)
-- ✅ **Automatic enrichment**: Character/corp/alliance/type information automatic
-- ✅ **Real-time updates**: GraphQL subscription events
-- ✅ **Duplicate handling**: Skips killmails that already exist
-- ✅ **Rate limit safe**: Respects ESI limits
-
-## Setup and Usage
-
-### Development Environment
-
-#### 1. Add Users to Queue
+Two stages, two workers. Both have to be running for a user's killmails to
+arrive:
 
 ```bash
 cd backend
-yarn queue:user-killmails
+yarn worker:user-killmails     # stage 1: list
+yarn worker:killmail-detail    # stage 2: detail and write
 ```
 
-This command:
+Nothing else needs starting. The API server (`yarn dev:backend`) publishes the
+jobs itself.
 
-- Finds all users in the database with non-expired tokens
-- Adds a message to the `esi_user_killmails_queue` for each user
-- Makes them ready for worker processing
+## Step by step
 
-**Output:**
+### 1. Login stores the token
 
-```
-📡 Queueing users for ESI killmail sync...
+The SSO login asks for the `esi-killmails.read_killmails.v1` scope
+([`config.ts`](../../src/config/config.ts)) and stores `access_token`,
+`refresh_token` and `expires_at` on the user's row in `users`. Login queues
+nothing. The user's first sync starts on the next cron tick, within 10 minutes.
 
-✓ Found 3 active user(s) with valid tokens
-📤 Adding to queue: esi_user_killmails_queue
+### 2. The API server queues users who are due
 
-  ⏳ Queued: General XAN (ID: 365974960)
-  ⏳ Queued: Jane Smith (ID: 123456789)
-  ⏳ Queued: Bob Wilson (ID: 987654321)
+[`killmail-sync-cron.ts`](../../src/services/killmail-sync-cron.ts) runs inside
+the API server. It is started in `server.ts`, runs once at startup, then every
+10 minutes. Each tick:
 
-✅ Successfully queued 3 user(s)!
+1. **Checks the broker first.** If `esi_user_killmails_queue` or
+   `esi_killmail_detail_queue` has no consumer, or still has messages waiting,
+   the tick publishes nothing. A stopped worker therefore never builds up a
+   backlog of duplicate jobs.
+2. **Selects the users who are due:** a refresh token is stored, the access
+   token is valid for at least another 5 minutes, and `last_killmail_sync_at`
+   is null or older than 15 minutes.
+3. **Publishes one message per user** with priority 3:
 
-💡 Now run the worker to process them:
-   yarn worker:user-killmails
-```
+   ```json
+   { "userId": 42, "queuedAt": "2026-11-17T10:00:00.000Z" }
+   ```
 
-#### 2. Start Worker
+   A user who has never synced (`last_killmail_sync_at` is null) also gets
+   `"fullSync": true`. Step 3 explains why.
 
-**Open a new terminal:**
+The message carries no token and no character ID. The worker reads both from
+the database, so a token rotated since publishing is never stale
+([`killmail-sync-message.ts`](../../src/services/killmail-sync-message.ts)).
+
+### 3. `worker:user-killmails` lists the killmail IDs
+
+[`worker-esi-user-killmails.ts`](../../src/workers/worker-esi-user-killmails.ts)
+handles one user at a time (`prefetch(1)`) and waits 10 seconds between users.
+
+1. **Token.** `loadUserCredentials`
+   ([`user-credentials.ts`](../../src/services/user-credentials.ts)) returns a
+   valid access token, refreshing it first if it expires within 5 minutes and
+   saving the rotated refresh token. If the user is missing, has no refresh
+   token, or the refresh fails, the message is acked and skipped. Retrying
+   cannot help until the user logs in again.
+2. **Where to stop.** `lastStoredKillmailId`
+   ([`killmail-cursor.ts`](../../src/services/killmail-cursor.ts)) takes the
+   highest killmail ID in `killmail_filters` that involves the character, as
+   victim or attacker. That is the incremental cursor. A full sync skips it.
+3. **List.** `CharacterService.getCharacterKillmails` pages through
+   `GET /characters/{id}/killmails/recent/`, newest first, at most 50 pages. It
+   stops early at the cursor ID, an empty page or a 404. The result is a list of
+   `{ killmail_id, killmail_hash }` pairs.
+4. **Hand off.** `publishKillmailDetails`
+   ([`publish-killmail-details.ts`](../../src/queues/publish-killmail-details.ts))
+   drops every ID already in `killmails` and publishes the rest to
+   `esi_killmail_detail_queue` with priority 5 and `announce: true`.
+5. **Stamp.** Sets `users.last_killmail_sync_at = now()`. The cron's 15-minute
+   window reads this column.
+
+**Why a first sync is always full.** The cursor counts every killmail in the
+database, not only the ones this sync wrote. RedisQ writes the whole EVE feed,
+so a brand-new user usually has a recent killmail stored already. An
+incremental first sync would stop on it at the top of page 1 and never fetch
+the history. This is why the cron sends `fullSync` for a user who has never
+synced.
+
+### 4. `worker:killmail-detail` writes them
+
+[`worker-killmail-detail.ts`](../../src/workers/worker-killmail-detail.ts)
+needs no token, because `GET /killmails/{id}/{hash}/` is public. The worker
+does not know which stage published a message. User sync, corporation sync and
+the zKillboard sync all feed the same queue.
+
+For each message it fetches the detail and calls `saveKillmail`
+([`killmail-writer.ts`](../../src/services/killmail-writer.ts)), the only place
+a killmail is written. One transaction writes `killmails`, `victims`,
+`attackers`, `killmail_items` and the daily leaderboard aggregates. The writer
+then inserts the `killmail_filters` row. Because `announce` is true, it also
+publishes `NEW_KILLMAIL` for GraphQL subscriptions and queues a Discord webhook
+job.
+
+A killmail that already exists returns `false` and is not an error. Two sources
+can find the same killmail.
+
+## Errors and retries
+
+Both workers share `handleWorkerError`
+([`worker-error.ts`](../../src/workers/worker-error.ts)):
+
+- **ESI throttle (420/429):** requeued at once without using up an attempt. The
+  shared ESI limiter holds the brake.
+- **404:** warned and skipped.
+- **Anything else:** retried through the broker, and parked in
+  `killreport.parking` after five attempts.
+
+Every ESI call goes through `esiClient` and the shared limiter. Neither worker
+paces ESI itself. The 10-second wait between users is the only exception.
+
+A killmail that parks leaves a gap the incremental sync never refills, because
+the cursor is a `MAX()` and the gap sits below it. The parking queue is the
+record of what is missing.
+
+## Running it by hand
 
 ```bash
 cd backend
-yarn worker:user-killmails
+yarn queue:user-killmails            # users not synced in the last 15 minutes
+yarn queue:user-killmails --force    # every user with a valid token
+yarn queue:user-killmails --full     # ignore the cursor, list up to 50 pages
 ```
 
-Worker does the following:
+The script selects users the same way the cron does, with two differences. It
+publishes at priority 5 and does not check the broker first. It also does not
+add `fullSync` for users who have never synced. For a first sync by hand, pass
+`--full`.
 
-- Consumes messages from queue
-- Fetches killmail list from ESI API for each user
-- Gets details for each killmail
-- Saves to database (killmail, victim, attackers, items)
-- Triggers GraphQL subscription event
-
-**Output:**
-
-```
-🔄 ESI User Killmail Worker Started
-📦 Queue: esi_user_killmails_queue
-⚡ Prefetch: 3 concurrent users
-🌐 Data Source: ESI API (direct, no zKillboard)
-
-✅ Connected to RabbitMQ
-⏳ Waiting for user killmail jobs...
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-👤 Processing: General XAN (ID: 365974960)
-🆔 User ID: 1
-📅 Queued at: 2025-12-24T10:30:00.000Z
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  📡 [General XAN] Fetching killmails from ESI...
-     📄 Page 1: 50 killmails
-     📄 Page 2: 50 killmails
-     📄 Page 3: 12 killmails
-     ✓ Last page (12 < 50)
-     ✅ Total: 112 killmails from ESI
-  📥 Total killmails found: 112
-  💾 Processing killmails...
-
-     📊 Progress: 50/112 (Saved: 45, Skipped: 5, Errors: 0)
-     📊 Progress: 100/112 (Saved: 92, Skipped: 8, Errors: 0)
-
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  ✅ Saved: 100 new killmails
-  ⏭️  Skipped: 12 (already in database)
-  ❌ Errors: 0
-  📊 Total processed: 112
-  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-✅ Completed: General XAN
-```
-
-### Production Environment (systemd)
-
-#### Start Worker
-
-```bash
-# Start only the user-killmails worker
-sudo systemctl start killreport-worker-user-killmails
-
-# Watch logs
-journalctl -u killreport-worker-user-killmails -f
-
-# Check status
-systemctl list-units 'killreport-*'
-```
-
-#### Queueing Users
-
-The API server queues users itself every 10 minutes (`KillmailSyncCron` in [`killmail-sync-cron.ts`](../../src/services/killmail-sync-cron.ts)), so no timer is needed (see [systemd.md](../ops/systemd.md)). To queue them by hand now:
-
-```bash
-cd backend && yarn queue:user-killmails
-```
-
-## Technical Details
-
-### Queue Message Format
-
-```typescript
-interface UserKillmailMessage {
-  userId: number; // Database user ID
-  characterId: number; // EVE character ID
-  characterName: string; // Character name (for logging)
-  accessToken: string; // ESI access token
-  queuedAt: string; // ISO timestamp
-}
-```
-
-### ESI Endpoints
-
-Worker uses these endpoints:
-
-1. **Character Killmails** (Authenticated):
-
-   ```
-   GET /characters/{character_id}/killmails/recent/?page={page}
-   Headers: Authorization: Bearer {access_token}
-   Returns: Array of {killmail_id, killmail_hash}
-   Rate: 50 killmails per page, max 50 pages = 2,500 total
-   ```
-
-2. **Killmail Details** (Public):
-   ```
-   GET /killmails/{killmail_id}/{killmail_hash}/
-   No authentication needed
-   Returns: Full killmail details (victim, attackers, items)
-   ```
-
-### Rate Limiting
-
-- **ESI Limit**: route-group token buckets and an error limit, paced by `esiClient` and the limiter from response headers
-- **Worker Delay**: 50ms between killmail fetches
-- **Concurrent Users**: 3 (PREFETCH_COUNT)
-- **Safe**: ~20 requests/second per worker instance
-
-### Database Schema
-
-Worker updates these tables:
-
-```sql
-killmail (killmail_id, killmail_hash, killmail_time, solar_system_id)
-victim (killmail_id, character_id, corporation_id, alliance_id, ship_type_id, damage_taken)
-attacker (killmail_id, character_id, damage_done, final_blow, ...)
-killmail_item (killmail_id, item_type_id, quantity_dropped, quantity_destroyed)
-```
-
-## Comparison: ESI-only vs zKillboard
-
-| Feature                   | ESI User Killmails (This System)  | zKillboard Worker        |
-| ------------------------- | --------------------------------- | ------------------------ |
-| **Data Source**           | ESI API (direct)                  | zKillboard → ESI         |
-| **Authentication**        | ✅ SSO Token required             | ❌ Public API            |
-| **Killmail Limit**        | 2,500 (50 page × 50)              | Unlimited (full history) |
-| **Scope Requirement**     | `esi-killmails.read_killmails.v1` | None                     |
-| **Rate Limit**            | ESI: header-driven limiter        | zKillboard: 10s delay    |
-| **Target Audience**       | Our own users                     | Any character            |
-| **Real-time**             | ❌ (polling required)             | ✅ (RedisQ stream)       |
-| **zKillboard Dependency** | ❌ None                           | ✅ Yes                   |
-
-## Troubleshooting
-
-### Problem: "No active users found"
-
-**Cause**: No users with valid tokens in the database.
-
-**Solution**: Users need to log in via SSO. Check the login flow in the frontend.
-
-### Problem: "Failed to fetch killmails: 403"
-
-**Cause**: Token expired or insufficient scope.
-
-**Solution (Automatic)**:
-
-- ✅ Worker automatically refreshes token (using refresh token)
-- ✅ Database token is automatically updated
-- ⚠️ If refresh token is also invalid, user needs to log in again
-
-**Manual Check**:
-
-- Ensure SSO scope includes `esi-killmails.read_killmails.v1`
-- Refresh token must be saved in database
-
-### Problem: Worker processing too slowly
-
-**Cause**: Rate limiting or network latency.
-
-**Solution**:
-
-- Increase `PREFETCH_COUNT` value (carefully, don't exceed ESI rate limit)
-- Reduce delay (50ms → 25ms) but don't exceed ESI limit
-
-### Problem: Duplicate key errors (P2002)
-
-**Normal**: Worker handles this automatically. Skips killmails that already exist.
-
-## Monitoring
-
-### Worker Status (GraphQL)
+## Checking on it
 
 ```graphql
 query {
@@ -253,59 +159,38 @@ query {
 }
 ```
 
-### systemd Monitoring
-
-```bash
-# General status
-systemctl list-units 'killreport-*'
-
-# Memory usage
-systemd-cgtop
-
-# Logs
-journalctl -u killreport-worker-user-killmails -n 100
-
-# Restart
-sudo systemctl restart killreport-worker-user-killmails
-```
-
-### Database Queries
+A queue with messages and no consumer means its worker is not running. While
+that lasts, the cron holds off and reports the reason in the debug log.
 
 ```sql
--- Recently added killmails
-SELECT k.killmail_id, k.killmail_time, c.name as victim_name
-FROM killmail k
-JOIN victim v ON k.killmail_id = v.killmail_id
-JOIN character c ON v.character_id = c.character_id
-ORDER BY k.killmail_time DESC
-LIMIT 10;
-
--- Killmail count per user
-SELECT u.character_name, COUNT(DISTINCT k.killmail_id) as killmail_count
-FROM "user" u
-LEFT JOIN victim v ON u.character_id = v.character_id
-LEFT JOIN killmail k ON v.killmail_id = k.killmail_id
-GROUP BY u.character_name
-ORDER BY killmail_count DESC;
+-- When was each user last synced?
+SELECT character_name, last_killmail_sync_at FROM users ORDER BY last_killmail_sync_at DESC NULLS LAST;
 ```
 
-## Future Improvements
+`users.last_killmail_id` is no longer read or written. The cursor now comes
+from `killmail_filters`.
 
-- [ ] **Incremental sync**: Fetch only new killmails (since last sync timestamp)
-- [ ] **Priority queue**: Process VIP users first
-- [ ] **Webhook notifications**: Send Discord/Slack notifications when killmail is saved
-- [ ] **Metrics dashboard**: Queue size, processing speed, error rate
-- [ ] **Auto-retry**: Automatically retry failed killmails
-- [ ] **Batch processing**: Save multiple killmails in a single transaction
+## Corporation killmails
 
-## Related Files
+The corporation sync is the same pipeline with different inputs:
+`esi_corporation_killmails_queue`, `worker:corporation-killmails`, the
+`esi-killmails.read_corporation_killmails.v1` scope and
+`last_corp_killmail_sync_at`. The same cron class runs it
+(`CORPORATION_SYNC_JOB`), and it feeds the same detail queue. See
+[corporation-killmail-sync.md](../workers/corporation-killmail-sync.md).
 
-- Queue Script: [`backend/src/queues/queue-user-esi-killmails.ts`](../../src/queues/queue-user-esi-killmails.ts)
-- Worker: [`backend/src/workers/worker-esi-user-killmails.ts`](../../src/workers/worker-esi-user-killmails.ts)
-- Character Service: [`backend/src/services/character/character.service.ts`](../../src/services/character/character.service.ts)
-- Killmail Service: [`backend/src/services/killmail/killmail.service.ts`](../../src/services/killmail/killmail.service.ts)
-- systemd units: [`deploy/systemd/`](../../../deploy/systemd/), see [systemd.md](../ops/systemd.md)
+## Files
 
-## License
-
-This project is licensed under the MIT License.
+| Stage               | File                                                                                           |
+| ------------------- | ---------------------------------------------------------------------------------------------- |
+| Scheduling          | [`services/killmail-sync-cron.ts`](../../src/services/killmail-sync-cron.ts)                   |
+| Sync message        | [`services/killmail-sync-message.ts`](../../src/services/killmail-sync-message.ts)             |
+| Manual queue script | [`queues/queue-user-esi-killmails.ts`](../../src/queues/queue-user-esi-killmails.ts)           |
+| List worker         | [`workers/worker-esi-user-killmails.ts`](../../src/workers/worker-esi-user-killmails.ts)       |
+| Token refresh       | [`services/user-credentials.ts`](../../src/services/user-credentials.ts)                       |
+| Incremental cursor  | [`services/killmail-cursor.ts`](../../src/services/killmail-cursor.ts)                         |
+| ESI list call       | [`services/character/character.service.ts`](../../src/services/character/character.service.ts) |
+| Hand-off to detail  | [`queues/publish-killmail-details.ts`](../../src/queues/publish-killmail-details.ts)           |
+| Detail worker       | [`workers/worker-killmail-detail.ts`](../../src/workers/worker-killmail-detail.ts)             |
+| Writer              | [`services/killmail-writer.ts`](../../src/services/killmail-writer.ts)                         |
+| systemd units       | [`deploy/systemd/`](../../../deploy/systemd/), see [systemd.md](../ops/systemd.md)             |
