@@ -149,7 +149,7 @@ export default function AttackerRow({
         </div>
 
         <div className="flex justify-between w-full">
-          {/* Character Name, Corporation, Alliance */}
+          {/* Character Name, Alliance, Corporation */}
           <div className="flex flex-col leading-tight space-y-0.5">
             {attacker.character?.id ? (
               /* No ship name here: the ship is already in the slot beside the
@@ -175,12 +175,11 @@ export default function AttackerRow({
             )}
 
             {/*
-             * One organisation line, not two. The row used to print the
-             * corporation and the alliance under each other; the alliance is
-             * the one that places a pilot, so it wins, and the corporation is
-             * what is left to say when there is no alliance.
+             * The alliance places a pilot, so it comes first; the corporation
+             * sits on the line below it. Without an alliance the corporation
+             * moves up and the row is one line shorter.
              */}
-            {attacker.alliance?.id ? (
+            {attacker.alliance?.id && (
               <Tooltip content="Show Alliance Info">
                 <Link
                   href={`/alliances/${attacker.alliance.id}`}
@@ -190,7 +189,8 @@ export default function AttackerRow({
                   {attacker.alliance.name || 'Unknown'}
                 </Link>
               </Tooltip>
-            ) : attacker.corporation?.id ? (
+            )}
+            {attacker.corporation?.id && (
               <Tooltip content="Show Corporation Info">
                 <Link
                   href={`/corporations/${attacker.corporation.id}`}
@@ -200,7 +200,7 @@ export default function AttackerRow({
                   {attacker.corporation.name || 'Unknown'}
                 </Link>
               </Tooltip>
-            ) : null}
+            )}
           </div>
 
           {/* Damage, Damage Percentage. The corporation and alliance logos
