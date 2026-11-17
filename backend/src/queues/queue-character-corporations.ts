@@ -1,7 +1,7 @@
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { publishEntitiesConfirmed } from '@services/publish-entities';
 import { ensureAllQueuesExist } from '@services/rabbitmq';
+import { publishEntitiesConfirmed } from './publish-entities';
 
 const QUEUE_NAME = 'esi_corporation_info_queue';
 

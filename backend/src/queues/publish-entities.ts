@@ -49,7 +49,9 @@ export async function publishEntitiesConfirmed(
     }
     await channel.waitForConfirms();
   } finally {
-    await channel.close();
+    // On a channel that has already died, close() rejects as well; letting
+    // that through would replace the confirm error, which is the real cause.
+    await channel.close().catch(() => {});
   }
   return ids.length;
 }

@@ -83,6 +83,16 @@ describe('publishEntitiesConfirmed', () => {
     );
   });
 
+  it('keeps the confirm error when closing the dead channel fails too', async () => {
+    const lost = new Error('channel closed');
+    channel.waitForConfirms.mockRejectedValueOnce(lost);
+    channel.close.mockRejectedValueOnce(new Error('Channel closed'));
+
+    await expect(publishEntitiesConfirmed(QUEUE, SOURCE, [7])).rejects.toBe(
+      lost,
+    );
+  });
+
   it('closes the confirm channel even on nack', async () => {
     channel.waitForConfirms.mockRejectedValueOnce(new Error('nacked'));
 
