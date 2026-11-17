@@ -2,11 +2,6 @@
 
 Guidance for Claude Code and other AI agents working in this repository.
 
-This file replaces `.github/COPILOT_INSTRUCTIONS.MD`, removed on 2026-08-28.
-Everything still true was carried over. Where the old guide had drifted from the
-code the entry is marked **Correction:** so the difference is visible rather than
-silently overwritten.
-
 **KillReport** — a full-stack EVE Online killmail tracker. Yarn workspaces
 monorepo: GraphQL Yoga backend on :4000, Next.js App Router frontend on :3000,
 PostgreSQL via Prisma, RabbitMQ workers, Redis cache.
@@ -71,9 +66,6 @@ anyway.
 - ❌ Database query logic inside a resolver.
 - ❌ Nested resolvers that cause N+1.
 
-**Correction:** the old guide said schemas live in `src/schema/` and queue
-scripts in `src/scripts/`. They are `src/schemas/` and `src/queues/`.
-
 ### The service layer, in practice
 
 The table above is the target, not a description of the code. As of 2026-09-03
@@ -116,41 +108,10 @@ the leaderboard resolvers. Prisma sees all five as drift and offers to drop them
 `prisma migrate status` does not reveal this. It only checks applied migrations
 and reports "Database schema is up to date!" while the drift is present.
 
-Create a migration this way instead:
-
-```bash
-cd backend
-
-# 1. Record row counts first, so you can prove nothing was lost.
-DB=$(grep -m1 '^DATABASE_URL' .env | cut -d= -f2- | tr -d '"' | tr -d "'")
-psql "$DB" -c "SELECT COUNT(*) FROM killmail_filters;"   # ...and the other four
-
-# 2. Generate the DDL.
-npx prisma migrate diff --from-config-datasource prisma.config.ts \
-  --to-schema prisma/schema --script > /tmp/diff.sql
-
-# 3. Delete every DROP TABLE for those five tables from the output.
-grep -n "^DROP" /tmp/diff.sql
-
-# 4. Save the rest as a migration, matching the existing hand-written ones.
-mkdir -p prisma/migrations/$(date -u +%Y%m%d%H%M%S)_<name>
-# ...write migration.sql, then confirm no executable DROP survived:
-grep -n "^[^-]*DROP" prisma/migrations/*_<name>/migration.sql   # must be empty
-
-# 5. Apply. migrate deploy applies pending migrations and never drops anything.
-npx prisma migrate deploy
-npx prisma generate
-
-# 6. Re-check the row counts from step 1. None may have gone down.
-```
-
-Adding those five tables to `prisma/schema/` would remove the hazard for good.
-Worthwhile, but its own piece of work — do not fold it into an unrelated change.
-
-**Correction:** the schema is a **directory** (`prisma/schema/`, one model per
-file, camelCase filenames), not the single `prisma/schema.prisma` the old guide
-described. The old guide also recommended `yarn prisma:migrate`, which was an
-alias for the dangerous command; that script no longer exists.
+Create one with the procedure in `backend/prisma/CLAUDE.md`, which loads when
+you work under `backend/prisma/`. It records row counts, generates the DDL with
+`prisma migrate diff`, strips the `DROP TABLE`s for those five tables and
+applies with `migrate deploy`.
 
 ### Prisma naming
 
@@ -277,37 +238,9 @@ first one's processes.
 Never kill by process name. `pkill -f 'next.*dev'` and `pkill node` reach every
 project on the machine, not just this one.
 
-Both scripts delegate the actual killing to `scripts/kill-port.sh`, which picks
-its tool by platform because **each tool is broken on the other one**, and both
-failures are silent — the port stays held and the script exits 0, so you go
-looking for the process by name, which is the one thing the rule above forbids:
-
-- **Linux: use `fuser`, not `lsof`.** `next-server` renames itself, the kernel
-  truncates `/proc/PID/comm` to 15 characters leaving `next-server (v1` with an
-  unbalanced paren, and lsof 4.93.2 parses `/proc/PID/stat` by matching that
-  paren. Failing, it drops the process from its output entirely.
-- **macOS: use `lsof`, not `fuser`.** BSD fuser has no `-k` and no `-s`. It
-  answers `Unknown option: k` and exits 0. macOS lsof never reads `/proc`, so
-  the truncation bug cannot reach it.
-
-Two more ways the same silence appeared, both fixed in `kill-port.sh`:
-
-- **A suspended process cannot act on SIGTERM.** Ctrl+Z stops the whole
-  foreground process group — nodemon, yarn and the server alike — and a stopped
-  process keeps its listening socket. A bare `kill` queues a signal nobody is
-  running to receive, so the script must send `SIGCONT` after it, then wait for
-  the socket to close and `kill -9` whatever is left.
-- **`lsof -ti tcp:3000` is not "who is listening on 3000".** It matches 3000 at
-  either end of a socket, so with the app open in a browser it also returns the
-  tab's process — Chrome's client socket is `[::1]:55578->[::1]:3000`. Ask with
-  `-sTCP:LISTEN`. fuser matches the local port only and needs no equivalent.
-
-`kill $pids` returning 0 means the signal was sent, never that anything acted on
-it, so the script waits for the port to actually free and exits **1** if it
-could not. Only "nothing was listening" exits 0 without doing anything.
-
-Checking one platform is how this gets broken: the move to `fuser` (087e0214)
-and the move back (#215) were each correct on the machine they were tested on.
+Both scripts delegate the killing to `scripts/kill-port.sh`. Why it picks its
+tool per platform, and the silent failures it guards against, are in
+`scripts/CLAUDE.md`.
 
 Redis needs the same treatment. Keys carry no project prefix, and the
 response-cache `invalidate` runs a `KEYS` pattern scan across the whole database
@@ -338,38 +271,11 @@ so keep this to a local `.env`.
 5. Add the frontend document under `frontend/src/graphql/`, then `yarn codegen`
    in frontend for typed hooks.
 
-**Correction:** the old guide said frontend `.graphql` files are co-located with
-components. In practice every document lives in `frontend/src/graphql/`.
-
 ### Frontend components
 
 App Router: any component using hooks or state needs the `"use client"`
 directive at the top of the file. Components stay presentational — data fetching
 belongs in the page or a container, business logic in `utils/`.
-
-### Resolver organisation
-
-```text
-backend/src/resolvers/
-├── index.ts              # combines everything with the spread operator
-├── character/
-│   ├── fields.ts         # field resolvers, relations via DataLoader
-│   ├── mutations.ts
-│   └── queries.ts
-├── leaderboard/queries.ts
-└── ...
-```
-
-Export one object per file — `characterQueries`, `characterMutations`,
-`characterFields` — and combine them in `index.ts`:
-
-```typescript
-export const resolvers: Resolvers = {
-  Query: { ...userQueries, ...characterQueries, ...leaderboardQueries },
-  Mutation: { ...userMutations, ...characterMutations },
-  Character: characterFields,
-};
-```
 
 ### DataLoaders
 
@@ -380,17 +286,6 @@ are in `backend/src/services/dataloaders.ts`. The pattern is one batched
 an empty relation is an empty list and not an error.
 
 ### Redis caching
-
-```typescript
-const cacheKey = `domain:action:${param1}:${param2}:${limit}`;
-const cached = await redis.get(cacheKey);
-if (cached) return JSON.parse(cached);
-
-const data = await; /* ...query... */
-
-await redis.setex(cacheKey, isToday ? 300 : 3600, JSON.stringify(data));
-return data;
-```
 
 Key format is `{domain}:{action}:{param}:{param}` and **every** filter parameter
 must appear, or one query poisons another's cache.
@@ -404,30 +299,6 @@ must appear, or one query poisons another's cache.
 
 `::BIGINT` columns come back from `$queryRaw` as JavaScript `BigInt`, and
 `JSON.stringify` throws on those — convert with `Number()` before caching.
-
-### Common patterns
-
-```typescript
-// Dynamic limit with a hard cap
-const limit = Math.min(filter?.limit ?? 100, 100);
-
-// Batch + Map lookup instead of a query inside a loop
-const characters = await prisma.character.findMany({ where: { id: { in: ids } } });
-const charMap = new Map(characters.map((c) => [c.id, c]));
-
-// Prisma Date → ISO string for GraphQL
-{ ...char, birthday: char.birthday.toISOString(),
-  updatedAt: char.updated_at?.toISOString() ?? null,
-  securityStatus: char.security_status ?? null }
-
-// Week Monday, UTC
-function getWeekMonday(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00Z");
-  const day = d.getUTCDay();              // 0=Sun
-  d.setUTCDate(d.getUTCDate() + (day === 0 ? -6 : 1 - day));
-  return d.toISOString().split("T")[0];
-}
-```
 
 ---
 
@@ -472,20 +343,6 @@ The Rust `queue-alliance-corporations` is a root scan that reads the alliance li
 RabbitMQ is a conveyor belt, not a store. The durable record of outstanding work
 is the database.
 
-Established ESI queues and their consumers:
-
-| Queue                             | Worker script                  |
-| --------------------------------- | ------------------------------ |
-| `esi_alliance_info_queue`         | `worker:info:alliances`        |
-| `esi_character_info_queue`        | `worker:info:characters`       |
-| `esi_corporation_info_queue`      | `worker:info:corporations`     |
-| `esi_type_info_queue`             | `worker:info:types`            |
-| `esi_alliance_corporations_queue` | `worker:alliance-corporations` |
-| `esi_solar_systems_queue`         | `worker:solar-systems`         |
-| `zkillboard_character_queue`      | `worker:zkillboard`            |
-| `esi_killmail_detail_queue`       | `worker:killmail-detail`       |
-| `discord_webhook_queue`           | `worker:discord-webhook`       |
-
 ### Entity enrichment
 
 `yarn scan:entities` walks killmails and queues the character, corporation,
@@ -494,10 +351,6 @@ them from ESI. Upserts keep concurrent workers from racing. NPCs are filtered ou
 by ID range — the real predicate, in
 `queues/queue-alliance-corporation-characters.ts`, is
 `id < 1_000_000 || (id >= 3_000_000 && id < 4_000_000)`.
-
-**Correction:** the old guide gave this filter as "character_id < 3000000 or
-
-> 100000000", which is not what the code does.
 
 ### zKillboard sync
 
@@ -524,29 +377,9 @@ system queues and workers, which were all unable to start until it was fixed on
 
 ### Rate limiting
 
-ESI publishes no single req/sec ceiling. It runs two limit systems, and both
-speak through response headers:
-
-- **Route-group token buckets** (`X-Ratelimit-Group` / `-Limit` / `-Remaining`).
-  Below 20% remaining a group is spaced at its refill pace; with under two
-  tokens left it waits for one to come back. A grouped 429 pauses only that
-  group for `Retry-After`.
-- **The legacy error limit** (`X-ESI-Error-Limit-Remain` / `-Reset`). Below 20
-  remaining, or on any 420, every ESI caller brakes until the reset (60 s when
-  the header is missing).
-
-A 429 with no group header is the deeper server limiter: every ESI caller
-brakes for `Retry-After` (15 s when it is missing, as it always has been so far)
-and the shared dispatch rate drops by a quarter (floor 1 req/s, at most once per
-10 s), then climbs +1 req/s per 10 s, counted only while requests are being granted:
-a gap of 10 s or more without a grant freezes the rate earned so far, so a
-learnt rate survives an idle period. The shared bucket holds 6 tokens
-(the 5-token live reserve plus one), so bulk work does not burst when a brake ends. Brakes are capped at
-15 minutes. The source of truth is the Lua scripts in
-`backend/src/services/esi-limiter/` (`lib.lua`, `acquire.lua`, `observe.lua`);
-`backend/src/services/rate-limiter.ts` and
-`backend-rs/crates/esi/src/limiter.rs` are the local fallback used while Redis
-is unreachable.
+ESI rate limits, the shared Redis budget, `ESI_MAX_RPS`, worker prefetch and
+`handleWorkerError` are described in `backend/CLAUDE.md`, which loads when you
+work under `backend/`. The rules:
 
 **Every ESI request goes through `esiClient.get`**
 (`backend/src/services/esi-client.ts`). It sends the `User-Agent` and
@@ -556,49 +389,6 @@ headers back to the limiter, throws `EsiThrottledError` on 420/429 and keeps the
 if any other file names `esi.evetech.net`. Do not write a rate limit, an
 error-limit check or a retry sleep of your own. zKillboard needs 10 seconds
 between calls to the same endpoint.
-
-The budget is shared, not per process. The brake, the adaptive rate and the
-group buckets live in Redis (`backend/src/services/esi-limiter/`, Lua scripts
-shared with the Rust workers), so every Node and Rust process on this machine
-spends one common budget. `ESI_MAX_RPS` (default 50) is the upper bound of that
-**application-wide** rate. If Redis cannot be reached, each process drops to its
-own local limiter (`rate-limiter.ts`, logged as `Redis unreachable`) and the
-ceiling is per process again until Redis returns. Requests carry a class: the
-API server and `worker-redisq-stream` call `setEsiPriority('live')` and keep a
-reserve of the budget; every other process is `bulk`. Two checkouts share a
-budget only if they share a `REDIS_URL` database; different logical databases
-mean separate budgets.
-
-`ESI_PREFETCH` is a separate, per-worker knob: how many messages a worker holds
-unacked. The API server and `worker-redisq-stream` call `setEsiMaxWait(10_000)`,
-so a brake longer than 10 s fails the request with `EsiThrottledError` instead
-of hanging; workers wait the brake out.
-
-Concurrency is `channel.prefetch(N)`. Three families of worker exist today:
-
-- The info workers (`worker-info-*`, Node and Rust alike) and the universe
-  workers compute it as `max(ESI_PREFETCH, ceil(ESI_MAX_RPS / 2))`, which is 25
-  with the defaults. The Rust runner computes it in
-  `backend-rs/crates/runner/src/prefetch.rs`. Each message is one ESI call and
-  one short upsert, so the worker pool keeps up at that depth.
-- The rest set a fixed `PREFETCH_COUNT` constant (1–10) and rely on the
-  limiter for the real rate. `worker-killmail-detail` is fixed on purpose: its
-  writes are heavy, and at 100 they hit the 10 s connection timeout of the
-  2-connection pool workers had then.
-- `worker-regions` and `worker-constellations` use `prefetch(1)` with a manual
-  100 ms sleep, which is 10 req/sec serial. Slower, but simple and safe for
-  workers whose write path is a large transaction. They no longer read the
-  error-limit header themselves.
-
-**Correction:** `worker-solar-systems` belonged in that second group until the
-topology chain reduced it to a single table and four publishes. The transaction
-that justified `prefetch(1)` is gone, so it now sets `PREFETCH_COUNT` like the
-first group.
-
-Workers share one failure path, `handleWorkerError`. On an `EsiThrottledError`
-it requeues at once, without sleeping and without burning an attempt — the brake
-lives in the limiter. A 420/429 that did not come from ESI (zKillboard) still
-sleeps 60 s before the requeue. A 404 warns and skips.
 
 ### Scheduling is only for mutable data
 
@@ -629,24 +419,6 @@ their workers are run by hand, once, and left alone.
 Never call ESI directly from a resolver, a service used by resolvers, or an
 ad-hoc script — it goes through a queue and a worker, and every request in the
 worker goes through `esiClient`.
-
-### ESI endpoint shapes worth knowing
-
-Checked against `https://esi.evetech.net/meta/openapi.json` on 2026-08-28.
-
-Under `/universe/`, only `systems`, `regions`, `constellations`, `types`,
-`categories`, `groups` and `graphics` have a **list** form. `stargates`, `stars`,
-`planets`, `moons`, `asteroid_belts` and `stations` are by-ID only — so for those
-the database is the only possible source of "what still needs fetching".
-
-`POST /universe/names` resolves up to 1000 IDs per call, but only for `alliance`,
-`character`, `constellation`, `corporation`, `inventory_type`, `region`,
-`solar_system`, `station` and `faction`. Star, planet, moon, asteroid belt and
-stargate IDs return 404.
-
-`/universe/systems/{id}/` omits keys entirely rather than returning empty arrays:
-`stargates`, `stations`, `security_class` and the per-planet `moons` /
-`asteroid_belts` can all be absent. Read them with `?? []` / `?? null`.
 
 ---
 
@@ -712,32 +484,6 @@ truth. Required: `EVE_CLIENT_ID`, `EVE_CLIENT_SECRET`, `DATABASE_URL`,
 
 ---
 
-## File map
-
-| What                     | Where                                                          |
-| ------------------------ | -------------------------------------------------------------- |
-| Resolvers                | `backend/src/resolvers/{domain}/{queries,mutations,fields}.ts` |
-| Services                 | `backend/src/services/`                                        |
-| GraphQL schema           | `backend/src/schemas/*.graphql`                                |
-| Env config               | `backend/src/config.ts`                                        |
-| Prisma client (API)      | `backend/src/services/prisma.ts`                               |
-| Prisma client (workers)  | `backend/src/services/prisma-worker.ts`                        |
-| DataLoaders              | `backend/src/services/dataloaders.ts`                          |
-| ESI rate limiter         | `backend/src/services/esi-limiter/`                            |
-| Live leaderboard updates | `backend/src/services/kill-stats-realtime.ts`                  |
-| Workers                  | `backend/src/workers/`                                         |
-| Queue publishers         | `backend/src/queues/`                                          |
-| Prisma models            | `backend/prisma/schema/*.prisma` (one model per file)          |
-| Frontend documents       | `frontend/src/graphql/*.graphql`                               |
-| Generated frontend types | `frontend/src/generated/graphql.ts`                            |
-| Apollo Client            | `frontend/src/lib/apolloClient.ts`                             |
-| Components               | `frontend/src/components/`                                     |
-| Routes                   | `frontend/src/app/`                                            |
-| systemd units and timers | `deploy/systemd/`                                              |
-
-**Correction:** the old guide also listed `yarn test:enrichment` and
-`test-killmails.sh` under debugging. Neither exists.
-
 ---
 
 ## Documentation
@@ -745,25 +491,6 @@ truth. Required: `EVE_CLIENT_ID`, `EVE_CLIENT_SECRET`, `DATABASE_URL`,
 Living docs are under `backend/docs/` — `architecture.md`, `workers/`,
 `leaderboards/`, `esi/`, `redis-cache/`, `authentication/`, `deployment/`.
 Design specs and implementation plans live under `docs/superpowers/`.
-
-**Correction:** the old guide's "Documentation References" pointed at paths that
-had all been moved into `backend/docs/` and renamed to kebab-case. The documents
-themselves are alive:
-
-| Old reference                                | Current location                                                                                                             |
-| -------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `backend/EVE_SSO_README.md`                  | `backend/docs/authentication/eve-sso-readme.md`                                                                              |
-| `backend/ENRICHMENT_README.md`               | `backend/docs/workers/enrichment.md`                                                                                         |
-| `backend/CHARACTER_KILLMAIL_WORKER.md`       | `backend/docs/workers/character-killmail-worker.md`                                                                          |
-| `backend/MODULAR_ARCHITECTURE.md`            | `backend/docs/architecture.md`                                                                                               |
-| `backend/docs/LEADERBOARD_QUERIES.MD`        | `backend/docs/leaderboards/leaderboard-queries.md`                                                                           |
-| `backend/docs/CACHE_OPTIMIZATION_SUMMARY.MD` | `backend/docs/redis-cache/cache-optimization-summary.md`                                                                     |
-| `backend/docs/CAPSULE_VALUE_CALCULATION.MD`  | `backend/docs/workers/capsule-value-calculation.md`                                                                          |
-| `backend/POOL_CONNECTION_FIX.md`             | no longer its own file; the connection-limit reasoning is in `backend/docs/deployment/cost-comparison.md` and repeated above |
-
-Directories worth knowing: `backend/docs/ops/` (systemd, daily operations,
-performance), `workers/`, `leaderboards/`, `redis-cache/`, `esi/`,
-`authentication/`, `deployment/`, `api/`.
 
 ### Markdown links
 
