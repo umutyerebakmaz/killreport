@@ -37,13 +37,13 @@ flowchart LR
 
 All of them run from `backend/`.
 
-| Command                                                                       | What it does                                                                                                                |
-| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| `yarn queue:character-corporation-history`                                    | Queues every character whose history was never fetched or is older than 6 days                                              |
-| `yarn queue:character-corporation-history <id>`                               | Queues only the given character(s), regardless of age. Several IDs separated by spaces work too                             |
-| `yarn worker:character-corporation-history`                                   | Consumes the queue: fetches from ESI, saves, queues missing corporations                                                    |
-| `yarn worker:info:corporations`                                               | Resolves the corporations the worker queued, so names appear instead of IDs                                                 |
-| `yarn queue:character-corporations:rs` (Node: `queue:character-corporations`) | Weekly safety net: queues every corporation in the history (or a character's current one) still missing from `corporations` |
+| Command                                                                                       | What it does                                                                                                                |
+| --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `yarn queue:character-corporation-history:rs` (Node: `queue:character-corporation-history`)   | Queues every character whose history was never fetched or is older than 6 days                                              |
+| `yarn queue:character-corporation-history:rs <id>`                                            | Queues only the given character(s), regardless of age. Several IDs separated by spaces work too                             |
+| `yarn worker:character-corporation-history:rs` (Node: `worker:character-corporation-history`) | Consumes the queue: fetches from ESI, saves, queues missing corporations                                                    |
+| `yarn worker:info:corporations:rs` (Node: `worker:info:corporations`)                         | Resolves the corporations the worker queued, so names appear instead of IDs                                                 |
+| `yarn queue:character-corporations:rs` (Node: `queue:character-corporations`)                 | Weekly safety net: queues every corporation in the history (or a character's current one) still missing from `corporations` |
 
 The queue script exits when it has finished queueing. The worker keeps running
 and waits for new messages; stop it with `Ctrl+C`. When the queue drains it
