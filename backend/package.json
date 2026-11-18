@@ -69,6 +69,7 @@
     "queue:character-corporations": "tsx src/queues/queue-character-corporations.ts",
     "queue:character-corporations:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p queue-character-corporations",
     "queue:killmail-characters:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p queue-killmail-characters",
+    "queue:killmail-corporations:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p queue-killmail-corporations",
     "queue:backfill-values": "tsx src/queues/queue-backfill-values.ts",
     "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml",
     "scan:entities": "tsx src/workers/scan-killmail-entities.ts",
