@@ -3298,6 +3298,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "worker-character-corporation-history"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "esi",
+ "futures-util",
+ "mq",
+ "runner",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "wiremock",
+]
+
+[[package]]
 name = "worker-corporation-snapshots"
 version = "0.1.0"
 dependencies = [
