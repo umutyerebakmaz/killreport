@@ -17,7 +17,12 @@ const { channel, getRabbitMQConfirmChannel } = vi.hoisted(() => {
 
 vi.mock('@services/rabbitmq', () => ({ getRabbitMQConfirmChannel }));
 
-import { publishEntitiesConfirmed } from './publish-entities';
+import { EventEmitter } from 'node:events';
+import type amqp from 'amqplib';
+import {
+  publishEntitiesConfirmed,
+  sendEntitiesConfirmed,
+} from './publish-entities';
 
 const QUEUE = 'esi_corporation_info_queue';
 const SOURCE = 'queue-character-corporations';
@@ -99,5 +104,92 @@ describe('publishEntitiesConfirmed', () => {
     await publishEntitiesConfirmed(QUEUE, SOURCE, [7]).catch(() => {});
 
     expect(channel.close).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * A long-lived confirm channel whose confirms the test settles by hand:
+ * every sendToQueue callback waits in `callbacks` until the test calls it.
+ */
+function confirmChannel() {
+  const emitter = new EventEmitter();
+  const callbacks: Array<(err: unknown) => void> = [];
+  const fake = Object.assign(emitter, {
+    sendToQueue: vi.fn(
+      (_q: string, _b: Buffer, _o: unknown, cb: (err: unknown) => void) => {
+        callbacks.push(cb);
+        return true;
+      },
+    ),
+    close: vi.fn(async () => {}),
+  });
+  return { channel: fake as unknown as amqp.ConfirmChannel, fake, callbacks };
+}
+
+describe('sendEntitiesConfirmed', () => {
+  it('resolves once every send is acked', async () => {
+    const { channel, fake, callbacks } = confirmChannel();
+
+    const sent = sendEntitiesConfirmed(channel, QUEUE, SOURCE, [7, 8]);
+    callbacks.forEach((cb) => cb(null));
+
+    await expect(sent).resolves.toBe(2);
+    const [queue, content, options] = fake.sendToQueue.mock.calls[0];
+    expect(queue).toBe(QUEUE);
+    expect(JSON.parse(content.toString())).toEqual({
+      entityId: 7,
+      queuedAt: expect.any(String),
+      source: SOURCE,
+    });
+    expect(options).toEqual({ persistent: true });
+  });
+
+  it('rejects when one send is nacked', async () => {
+    const { channel, callbacks } = confirmChannel();
+
+    const sent = sendEntitiesConfirmed(channel, QUEUE, SOURCE, [7, 8]);
+    callbacks[0](null);
+    callbacks[1](new Error('nack'));
+
+    await expect(sent).rejects.toThrow('nack');
+  });
+
+  it('rejects pending sends when the channel closes', async () => {
+    const { channel, fake } = confirmChannel();
+
+    const sent = sendEntitiesConfirmed(channel, QUEUE, SOURCE, [7]);
+    fake.emit('close');
+
+    await expect(sent).rejects.toThrow();
+  });
+
+  it('sends nothing for an empty list', async () => {
+    const { channel, fake } = confirmChannel();
+
+    await expect(
+      sendEntitiesConfirmed(channel, QUEUE, SOURCE, []),
+    ).resolves.toBe(0);
+    expect(fake.sendToQueue).not.toHaveBeenCalled();
+  });
+
+  it('does not close the channel', async () => {
+    const { channel, fake, callbacks } = confirmChannel();
+
+    const sent = sendEntitiesConfirmed(channel, QUEUE, SOURCE, [7]);
+    callbacks[0](null);
+    await sent;
+
+    expect(fake.close).not.toHaveBeenCalled();
+  });
+
+  it('stops listening once it has settled', async () => {
+    const { channel, fake, callbacks } = confirmChannel();
+
+    const sent = sendEntitiesConfirmed(channel, QUEUE, SOURCE, [7]);
+    callbacks[0](null);
+    await sent;
+
+    expect(fake.listenerCount('close')).toBe(0);
+    expect(fake.listenerCount('error')).toBe(0);
   });
 });

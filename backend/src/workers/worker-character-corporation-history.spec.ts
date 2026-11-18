@@ -7,12 +7,17 @@ import type amqp from 'amqplib';
  * answers for those.
  */
 
-const { getCorporationHistory, saveCorporationHistory, findMissing } =
-  vi.hoisted(() => ({
-    getCorporationHistory: vi.fn(),
-    saveCorporationHistory: vi.fn(),
-    findMissing: vi.fn(),
-  }));
+const {
+  getCorporationHistory,
+  saveCorporationHistory,
+  findMissing,
+  sendEntitiesConfirmed,
+} = vi.hoisted(() => ({
+  getCorporationHistory: vi.fn(),
+  saveCorporationHistory: vi.fn(),
+  findMissing: vi.fn(),
+  sendEntitiesConfirmed: vi.fn(async (_c, _q, _s, ids: number[]) => ids.length),
+}));
 
 vi.mock('@services/character', () => ({
   CharacterService: { getCorporationHistory },
@@ -33,11 +38,13 @@ vi.mock('@services/logger', () => ({
 vi.mock('@services/rabbitmq', () => ({
   ensureAllQueuesExist: vi.fn(),
   getRabbitMQChannel: vi.fn(),
+  getRabbitMQConfirmChannel: vi.fn(),
 }));
+vi.mock('../queues/publish-entities', () => ({ sendEntitiesConfirmed }));
 
 import { processCharacter } from './worker-character-corporation-history';
 
-const channel = { sendToQueue: vi.fn() } as unknown as amqp.Channel;
+const channel = {} as unknown as amqp.ConfirmChannel;
 
 const RECORDS = [
   {
@@ -68,14 +75,12 @@ describe('processCharacter', () => {
       expect.any(Date),
     );
     expect(findMissing).toHaveBeenCalledWith([98221968, 109299958, 1000171]);
-    expect(channel.sendToQueue).toHaveBeenCalledTimes(1);
-    const [queue, body, options] = vi.mocked(channel.sendToQueue).mock.calls[0];
-    expect(queue).toBe('esi_corporation_info_queue');
-    expect(JSON.parse(body.toString())).toMatchObject({
-      entityId: 109299958,
-      source: 'worker-character-corporation-history',
-    });
-    expect(options).toEqual({ persistent: true });
+    expect(sendEntitiesConfirmed).toHaveBeenCalledWith(
+      channel,
+      'esi_corporation_info_queue',
+      'worker-character-corporation-history',
+      [109299958],
+    );
     expect(result).toEqual({ records: 3, missingCorporations: 1 });
   });
 
@@ -85,7 +90,33 @@ describe('processCharacter', () => {
 
     await processCharacter(channel, 42);
 
-    expect(channel.sendToQueue).not.toHaveBeenCalled();
+    expect(sendEntitiesConfirmed).not.toHaveBeenCalled();
+  });
+
+  it('does not resolve before the corporation messages are confirmed', async () => {
+    getCorporationHistory.mockResolvedValue(RECORDS);
+    findMissing.mockResolvedValue([109299958]);
+    let confirm!: (n: number) => void;
+    sendEntitiesConfirmed.mockReturnValueOnce(
+      new Promise<number>((resolve) => (confirm = resolve)),
+    );
+
+    let settled = false;
+    const done = processCharacter(channel, 42).then(() => (settled = true));
+    await new Promise((r) => setTimeout(r, 0));
+    expect(settled).toBe(false);
+
+    confirm(1);
+    await done;
+    expect(settled).toBe(true);
+  });
+
+  it('rejects when publishing fails, so the character is not acked', async () => {
+    getCorporationHistory.mockResolvedValue(RECORDS);
+    findMissing.mockResolvedValue([109299958]);
+    sendEntitiesConfirmed.mockRejectedValueOnce(new Error('nack'));
+
+    await expect(processCharacter(channel, 42)).rejects.toThrow('nack');
   });
 
   it('saves nothing and rethrows when ESI fails, leaving it to handleWorkerError', async () => {

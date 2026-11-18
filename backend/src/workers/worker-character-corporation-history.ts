@@ -12,7 +12,12 @@ import {
 } from '@services/character/character-corporation-history-writer';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import {
+  ensureAllQueuesExist,
+  getRabbitMQChannel,
+  getRabbitMQConfirmChannel,
+} from '@services/rabbitmq';
+import { sendEntitiesConfirmed } from '../queues/publish-entities';
 import { handleWorkerError } from './worker-error';
 
 export const QUEUE_NAME = 'esi_character_corporation_history_queue';
@@ -25,6 +30,8 @@ const PREFETCH_COUNT = Math.max(
   Math.ceil(config.esi.maxRequestsPerSecond / 2),
 );
 
+const SOURCE = 'worker-character-corporation-history';
+
 interface EntityQueueMessage {
   entityId: number;
   queuedAt: string;
@@ -36,10 +43,12 @@ let emptyCheckInterval: NodeJS.Timeout | null = null;
 
 /**
  * Fetches and saves one character's history, then queues the corporations
- * that are not in the database yet so their names get resolved.
+ * that are not in the database yet so their names get resolved. Resolves
+ * only once the broker has confirmed those messages: the caller acks the
+ * character after this, so a crash in between can no longer lose them.
  */
 export async function processCharacter(
-  channel: amqp.Channel,
+  channel: amqp.ConfirmChannel,
   characterId: number,
 ): Promise<{ records: number; missingCorporations: number }> {
   const records = await CharacterService.getCorporationHistory(characterId);
@@ -48,16 +57,12 @@ export async function processCharacter(
   const missing = await findMissingCorporationIds(
     records.map((r) => r.corporation_id),
   );
-  for (const corporationId of missing) {
-    const message: EntityQueueMessage = {
-      entityId: corporationId,
-      queuedAt: new Date().toISOString(),
-      source: 'worker-character-corporation-history',
-    };
-    channel.sendToQueue(
+  if (missing.length > 0) {
+    await sendEntitiesConfirmed(
+      channel,
       CORPORATION_QUEUE_NAME,
-      Buffer.from(JSON.stringify(message)),
-      { persistent: true },
+      SOURCE,
+      missing,
     );
   }
 
@@ -76,6 +81,38 @@ async function characterCorporationHistoryWorker() {
   while (!isShuttingDown) {
     try {
       const channel = await getRabbitMQChannel();
+      // The corporation messages go out on their own confirm channel, kept
+      // for this connection's lifetime. If it closes on its own it is
+      // reopened in place: tearing the turn down would consume a second time
+      // on the cached consume channel, which is still open. A message caught
+      // in the gap fails its send and goes down handleWorkerError.
+      let turnOver = false;
+      // A dropped connection closes both channels; this one going too means
+      // the whole turn is over and the outer loop reconnects instead.
+      channel.once('close', () => (turnOver = true));
+      const openConfirmChannel = async (): Promise<amqp.ConfirmChannel> => {
+        const ch = await getRabbitMQConfirmChannel();
+        ch.on('error', (err) =>
+          logger.error('❌ confirm channel error:', err.message),
+        );
+        ch.once('close', () =>
+          // Wait for every close event of a dropped connection to land first
+          setImmediate(() => {
+            if (turnOver || isShuttingDown) return;
+            logger.warn('⚠️  confirm channel closed, reopening');
+            openConfirmChannel()
+              .then((next) => (confirmChannel = next))
+              .catch((err) =>
+                logger.error(
+                  '❌ could not reopen confirm channel:',
+                  err.message,
+                ),
+              );
+          }),
+        );
+        return ch;
+      };
+      let confirmChannel = await openConfirmChannel();
 
       channel.prefetch(PREFETCH_COUNT);
 
@@ -133,7 +170,7 @@ async function characterCorporationHistoryWorker() {
 
           try {
             const { records, missingCorporations } = await processCharacter(
-              channel,
+              confirmChannel,
               characterId,
             );
 
@@ -162,11 +199,16 @@ async function characterCorporationHistoryWorker() {
         { noAck: false },
       );
 
-      // Wait indefinitely unless connection fails
-      await new Promise((resolve, reject) => {
-        channel.on('error', reject);
-        channel.on('close', reject);
-      });
+      // Wait indefinitely unless the connection fails
+      try {
+        await new Promise((resolve, reject) => {
+          channel.on('error', reject);
+          channel.on('close', reject);
+        });
+      } finally {
+        turnOver = true;
+        await confirmChannel.close().catch(() => {});
+      }
     } catch (error: any) {
       if (isShuttingDown) {
         logger.info('worker stopped during shutdown');
