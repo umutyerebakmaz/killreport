@@ -1,10 +1,9 @@
 # Daily Workflows (Backend)
 
-Most steps below have a Rust version (`:rs` suffix, built from `backend-rs/`)
+Every step below has a Rust version (`:rs` suffix, built from `backend-rs/`)
 and a Node version (no suffix). Both read and write the same queues and run
 the same SQL, so they can be mixed, but run only one consumer type per queue at
 a time when you want comparable numbers. The Rust versions are the default.
-One command is still Node only: `scan:entities`.
 
 ## 📋 Simple Daily Sequence
 
@@ -199,15 +198,31 @@ its old `alliance_id`, which inflates that alliance's counts and snapshots.
 
 ### Scenario 2: Fill Missing Entities Only
 
-`scan:entities` is Node only for now.
+With the four info workers (`worker:info:characters:rs`,
+`worker:info:corporations:rs`, `worker:info:alliances:rs`,
+`worker:info:types:rs`) running:
 
 ```bash
-# Scan and fill all missing entities from killmails
-yarn scan:entities
+# Scan and fill all missing entities from killmails (Node: scan:entities)
+yarn scan:entities:rs
 
 # Specifically check character corporations
 yarn queue:character-corporations:rs
 ```
+
+**`yarn scan:entities:rs`** (Node: `scan:entities`)
+
+- Chains four commands, each of which can also run on its own:
+  `queue:killmail-characters:rs`, `queue:killmail-corporations:rs`,
+  `queue:killmail-alliances:rs` and `queue:killmail-types:rs`
+- Each runs one SQL anti-join over `victims`, `attackers` (and, for types,
+  `killmail_items`) against its own table and queues only what is missing
+- NPCs are kept: ESI resolves them and killmail pages show their names
+- A part with nothing to queue prints `✅ no missing <entity> to queue!` and
+  the chain goes on
+
+Reference numbers from the 2026-11-19 run: 140 characters, 1 corporation,
+1 alliance and 0 types queued; the slowest query (types) takes about 1.5 s.
 
 ---
 
@@ -220,6 +235,15 @@ yarn queue:character-corporations:rs
 | `worker:info:characters:rs`       | `esi_character_info_queue`        | `characters` table           |
 | `worker:info:types:rs`            | `esi_type_info_queue`             | `types` table                |
 | `worker:alliance-corporations:rs` | `esi_alliance_corporations_queue` | `esi_corporation_info_queue` |
+
+The four parts of `scan:entities:rs`, one queue each:
+
+| Queue script (Rust)              | Reads                                    | Queue                        |
+| -------------------------------- | ---------------------------------------- | ---------------------------- |
+| `queue:killmail-characters:rs`   | `victims`, `attackers`                   | `esi_character_info_queue`   |
+| `queue:killmail-corporations:rs` | `victims`, `attackers`                   | `esi_corporation_info_queue` |
+| `queue:killmail-alliances:rs`    | `victims`, `attackers`                   | `esi_alliance_info_queue`    |
+| `queue:killmail-types:rs`        | `victims`, `attackers`, `killmail_items` | `esi_type_info_queue`        |
 
 One-shot database jobs. They touch neither RabbitMQ nor ESI, and each writes
 a single table:
@@ -265,7 +289,7 @@ query {
    response headers. Do not add sleeps or limits of your own.
 2. **Database Connections:** Workers use up to 10 connections per process
    (`prisma-worker.ts`, mirrored by the Rust `db` crate), released when idle.
-3. **Always run `scan:entities` after killmail sync**
+3. **Always run `scan:entities:rs` after killmail sync**
 4. Keep workers running continuously in production with systemd (see [systemd](./systemd.md))
 
 ---
