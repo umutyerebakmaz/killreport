@@ -12,7 +12,8 @@ const QUEUE_NAME = 'esi_corporation_info_queue';
  *
  * worker-character-corporation-history queues a history's missing
  * corporations as soon as it saves them, but RabbitMQ is not the record of
- * outstanding work; this daily scan is what catches a message that was lost.
+ * outstanding work; this weekly scan (Monday 17:00 UTC) is what catches a
+ * message that was lost.
  */
 async function queueCharacterCorporations() {
   logger.info(
