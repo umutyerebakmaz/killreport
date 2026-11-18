@@ -1687,6 +1687,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "queue-character-corporation-history"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "mq",
+ "runner",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "queue-character-corporations"
 version = "0.1.0"
 dependencies = [
@@ -3295,6 +3308,23 @@ dependencies = [
  "sqlx",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "worker-character-corporation-history"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "esi",
+ "futures-util",
+ "mq",
+ "runner",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "wiremock",
 ]
 
 [[package]]

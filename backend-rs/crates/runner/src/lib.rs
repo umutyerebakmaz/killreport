@@ -29,6 +29,10 @@ pub enum Outcome {
     Updated,
     /// A fan-out worker published this many messages; 0 is allowed.
     Queued(u64),
+    /// A worker wrote the database and also published this many messages.
+    /// Unlike `Queued(0)`, publishing nothing is the normal case, not a
+    /// warning.
+    Saved { queued: u64 },
 }
 
 /// What one successful `handle` reports back.
@@ -75,14 +79,15 @@ pub trait Worker: Send + Sync + 'static {
 }
 
 /// `  ✅ [n]<detail> (created|updated)` for an info worker; for a fan-out
-/// worker `  ✅ [n]<detail>`, or `  ⚠️  [n]<detail>` when nothing was queued.
+/// worker `  ✅ [n]<detail>`, or `  ⚠️  [n]<detail>` when nothing was queued;
+/// for a worker that saves, `  ✅ [n]<detail>` whatever it queued.
 pub fn success_line(n: u64, processed: &Processed) -> String {
     let detail = &processed.detail;
     match processed.outcome {
         Outcome::Created => format!("  ✅ [{n}]{detail} (created)"),
         Outcome::Updated => format!("  ✅ [{n}]{detail} (updated)"),
         Outcome::Queued(0) => format!("  ⚠️  [{n}]{detail}"),
-        Outcome::Queued(_) => format!("  ✅ [{n}]{detail}"),
+        Outcome::Queued(_) | Outcome::Saved { .. } => format!("  ✅ [{n}]{detail}"),
     }
 }
 

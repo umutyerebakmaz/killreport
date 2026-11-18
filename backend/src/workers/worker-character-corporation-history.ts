@@ -12,7 +12,12 @@ import {
 } from '@services/character/character-corporation-history-writer';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import {
+  ensureAllQueuesExist,
+  getRabbitMQChannel,
+  getRabbitMQConfirmChannel,
+} from '@services/rabbitmq';
+import { sendEntitiesConfirmed } from '../queues/publish-entities';
 import { handleWorkerError } from './worker-error';
 
 export const QUEUE_NAME = 'esi_character_corporation_history_queue';
@@ -25,6 +30,8 @@ const PREFETCH_COUNT = Math.max(
   Math.ceil(config.esi.maxRequestsPerSecond / 2),
 );
 
+const SOURCE = 'worker-character-corporation-history';
+
 interface EntityQueueMessage {
   entityId: number;
   queuedAt: string;
@@ -36,10 +43,12 @@ let emptyCheckInterval: NodeJS.Timeout | null = null;
 
 /**
  * Fetches and saves one character's history, then queues the corporations
- * that are not in the database yet so their names get resolved.
+ * that are not in the database yet so their names get resolved. Resolves
+ * only once the broker has confirmed those messages: the caller acks the
+ * character after this, so a crash in between can no longer lose them.
  */
 export async function processCharacter(
-  channel: amqp.Channel,
+  channel: amqp.ConfirmChannel,
   characterId: number,
 ): Promise<{ records: number; missingCorporations: number }> {
   const records = await CharacterService.getCorporationHistory(characterId);
@@ -48,20 +57,72 @@ export async function processCharacter(
   const missing = await findMissingCorporationIds(
     records.map((r) => r.corporation_id),
   );
-  for (const corporationId of missing) {
-    const message: EntityQueueMessage = {
-      entityId: corporationId,
-      queuedAt: new Date().toISOString(),
-      source: 'worker-character-corporation-history',
-    };
-    channel.sendToQueue(
+  if (missing.length > 0) {
+    await sendEntitiesConfirmed(
+      channel,
       CORPORATION_QUEUE_NAME,
-      Buffer.from(JSON.stringify(message)),
-      { persistent: true },
+      SOURCE,
+      missing,
     );
   }
 
   return { records: records.length, missingCorporations: missing.length };
+}
+
+/**
+ * One consume turn on `channel`, publishing through `confirmChannel`. It
+ * lasts until either channel errors or closes, then rejects with the reason.
+ * On the way out it cancels its consumer and closes the confirm channel:
+ * rabbitmq.ts caches the consume channel and replaces it only when the
+ * connection drops, so the next turn may consume on the same channel, and a
+ * consumer left behind would take messages twice over.
+ */
+export async function runConsumeTurn(
+  channel: amqp.Channel,
+  confirmChannel: amqp.ConfirmChannel,
+  onMessage: (msg: amqp.ConsumeMessage) => Promise<void>,
+): Promise<never> {
+  // Every concurrent sendEntitiesConfirmed listens on this channel; with
+  // the prefetch above that is more than Node's default of 10.
+  confirmChannel.setMaxListeners(0);
+  const onConfirmError = (err: Error) =>
+    logger.error('❌ confirm channel error:', err.message);
+  confirmChannel.on('error', onConfirmError);
+
+  let fail: (err: Error) => void = () => {};
+  const failed = new Promise<never>((_, reject) => (fail = reject));
+  const onChannelError = (err: Error) => {
+    logger.error('❌ channel error:', err.message);
+    fail(err);
+  };
+  const onChannelClose = () => {
+    logger.warn('⚠️  channel closed');
+    fail(new Error('channel closed'));
+  };
+  const onConfirmClose = () => {
+    logger.warn('⚠️  confirm channel closed');
+    fail(new Error('confirm channel closed'));
+  };
+  channel.on('error', onChannelError);
+  channel.on('close', onChannelClose);
+  confirmChannel.on('close', onConfirmClose);
+
+  let consumerTag: string | undefined;
+  try {
+    ({ consumerTag } = await channel.consume(
+      QUEUE_NAME,
+      (msg) => (msg ? onMessage(msg) : undefined),
+      { noAck: false },
+    ));
+    return await failed;
+  } finally {
+    channel.removeListener('error', onChannelError);
+    channel.removeListener('close', onChannelClose);
+    confirmChannel.removeListener('close', onConfirmClose);
+    if (consumerTag) await channel.cancel(consumerTag).catch(() => {});
+    await confirmChannel.close().catch(() => {});
+    confirmChannel.removeListener('error', onConfirmError);
+  }
 }
 
 async function characterCorporationHistoryWorker() {
@@ -76,6 +137,10 @@ async function characterCorporationHistoryWorker() {
   while (!isShuttingDown) {
     try {
       const channel = await getRabbitMQChannel();
+      // The corporation messages go out on their own confirm channel, one per
+      // turn. runConsumeTurn closes it, and cancels this turn's consumer,
+      // whenever either channel fails.
+      const confirmChannel = await getRabbitMQConfirmChannel();
 
       channel.prefetch(PREFETCH_COUNT);
 
@@ -104,68 +169,39 @@ async function characterCorporationHistoryWorker() {
         }
       }, 5000);
 
-      channel.on('error', (err) => {
-        logger.error('❌ channel error:', err.message);
-        if (emptyCheckInterval) {
-          clearInterval(emptyCheckInterval);
-          emptyCheckInterval = null;
-        }
-      });
+      await runConsumeTurn(channel, confirmChannel, async (msg) => {
+        lastMessageTime = Date.now();
 
-      channel.on('close', () => {
-        logger.warn('⚠️  channel closed');
-        if (emptyCheckInterval) {
-          clearInterval(emptyCheckInterval);
-          emptyCheckInterval = null;
-        }
-      });
+        const message: EntityQueueMessage = JSON.parse(msg.content.toString());
+        const characterId = message.entityId;
 
-      await channel.consume(
-        QUEUE_NAME,
-        async (msg) => {
-          if (msg) lastMessageTime = Date.now();
-          if (!msg) return;
-
-          const message: EntityQueueMessage = JSON.parse(
-            msg.content.toString(),
+        try {
+          const { records, missingCorporations } = await processCharacter(
+            confirmChannel,
+            characterId,
           );
-          const characterId = message.entityId;
 
-          try {
-            const { records, missingCorporations } = await processCharacter(
-              channel,
-              characterId,
-            );
+          logger.info(
+            `  ✅ [${totalProcessed + 1}] character ${characterId}: ${records} records, ${missingCorporations} corporations queued`,
+          );
 
-            logger.info(
-              `  ✅ [${totalProcessed + 1}] character ${characterId}: ${records} records, ${missingCorporations} corporations queued`,
-            );
+          channel.ack(msg);
+          totalProcessed++;
+        } catch (error) {
+          totalErrors++;
+          totalProcessed++;
+          await handleWorkerError(channel, msg, QUEUE_NAME, error, {
+            warn: (m) => logger.warn(`  ${m} (character ${characterId})`),
+            error: (m, e) =>
+              logger.error(`  ${m} (character ${characterId})`, e),
+          });
+        }
 
-            channel.ack(msg);
-            totalProcessed++;
-          } catch (error) {
-            totalErrors++;
-            totalProcessed++;
-            await handleWorkerError(channel, msg, QUEUE_NAME, error, {
-              warn: (m) => logger.warn(`  ${m} (character ${characterId})`),
-              error: (m, e) =>
-                logger.error(`  ${m} (character ${characterId})`, e),
-            });
-          }
-
-          if (totalProcessed % 50 === 0) {
-            logger.info(
-              `📊 summary: ${totalProcessed} processed (${totalErrors} errors)`,
-            );
-          }
-        },
-        { noAck: false },
-      );
-
-      // Wait indefinitely unless connection fails
-      await new Promise((resolve, reject) => {
-        channel.on('error', reject);
-        channel.on('close', reject);
+        if (totalProcessed % 50 === 0) {
+          logger.info(
+            `📊 summary: ${totalProcessed} processed (${totalErrors} errors)`,
+          );
+        }
       });
     } catch (error: any) {
       if (isShuttingDown) {

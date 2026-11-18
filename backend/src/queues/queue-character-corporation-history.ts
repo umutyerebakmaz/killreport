@@ -1,9 +1,9 @@
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
-import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import { ensureAllQueuesExist } from '@services/rabbitmq';
+import { publishEntitiesConfirmed } from './publish-entities';
 
 const QUEUE_NAME = 'esi_character_corporation_history_queue';
-const BATCH_SIZE = 100;
 
 /**
  * Queues characters whose corporation history needs fetching from ESI
@@ -55,39 +55,26 @@ async function queueCharacterCorporationHistory() {
     logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
-    const channel = await getRabbitMQChannel();
-
-    let queuedCount = 0;
-    for (let i = 0; i < characterIds.length; i += BATCH_SIZE) {
-      const batch = characterIds.slice(i, i + BATCH_SIZE);
-
-      for (const id of batch) {
-        const message = {
-          entityId: id,
-          queuedAt: new Date().toISOString(),
-          source: 'queue-character-corporation-history',
-        };
-        channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
-          persistent: true,
-        });
-        queuedCount++;
-      }
-
-      if (characterIds.length > 100) {
-        logger.debug(
-          `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
-            characterIds.length / BATCH_SIZE,
-          )} (${batch.length} characters)`,
-        );
-      }
-    }
+    // Resolves only once the broker has confirmed every message, so the
+    // process.exit below can no longer drop what it had not taken yet.
+    const queuedCount = await publishEntitiesConfirmed(
+      QUEUE_NAME,
+      'queue-character-corporation-history',
+      characterIds,
+      {
+        onBatch: (batch, total, size) => {
+          if (characterIds.length > 100) {
+            logger.debug(`queued batch ${batch}/${total} (${size} characters)`);
+          }
+        },
+      },
+    );
 
     logger.info(`✅ all ${queuedCount} character(s) queued successfully!`);
     logger.info(
       'now run the worker: yarn worker:character-corporation-history',
     );
 
-    await channel.close();
     process.exit(0);
   } catch (error) {
     logger.error('failed to queue character corporation history', { error });
