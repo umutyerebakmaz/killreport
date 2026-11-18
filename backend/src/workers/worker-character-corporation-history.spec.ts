@@ -42,7 +42,11 @@ vi.mock('@services/rabbitmq', () => ({
 }));
 vi.mock('../queues/publish-entities', () => ({ sendEntitiesConfirmed }));
 
-import { processCharacter } from './worker-character-corporation-history';
+import { EventEmitter } from 'node:events';
+import {
+  processCharacter,
+  runConsumeTurn,
+} from './worker-character-corporation-history';
 
 const channel = {} as unknown as amqp.ConfirmChannel;
 
@@ -124,5 +128,110 @@ describe('processCharacter', () => {
 
     await expect(processCharacter(channel, 42)).rejects.toThrow('ESI 502');
     expect(saveCorporationHistory).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * One consume turn: it lasts until the consume channel or the confirm channel
+ * fails, and on the way out it cancels its consumer and closes the confirm
+ * channel. The consume channel is cached by rabbitmq.ts and outlives the
+ * turn, so a turn that left its consumer behind would be consumed twice by
+ * the next one, and one that left its confirm channel open would leak it.
+ */
+describe('runConsumeTurn', () => {
+  function fakes(consume?: () => Promise<{ consumerTag: string }>) {
+    const deliveries: Array<(msg: unknown) => unknown> = [];
+    const consumeChannel = Object.assign(new EventEmitter(), {
+      consume: vi.fn(async (_q: string, cb: (msg: unknown) => unknown) => {
+        deliveries.push(cb);
+        return consume ? consume() : { consumerTag: 'tag-1' };
+      }),
+      cancel: vi.fn(async () => {}),
+    });
+    const confirmChannel = Object.assign(new EventEmitter(), {
+      close: vi.fn(async () => {}),
+    });
+    return {
+      consumeChannel,
+      confirmChannel,
+      deliveries,
+      run: (onMessage = vi.fn(async () => {})) =>
+        runConsumeTurn(
+          consumeChannel as unknown as amqp.Channel,
+          confirmChannel as unknown as amqp.ConfirmChannel,
+          onMessage,
+        ),
+    };
+  }
+
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+
+  it('closes the confirm channel when consume fails', async () => {
+    const f = fakes(async () => {
+      throw new Error('406');
+    });
+
+    await expect(f.run()).rejects.toThrow('406');
+    expect(f.confirmChannel.close).toHaveBeenCalledTimes(1);
+    expect(f.consumeChannel.cancel).not.toHaveBeenCalled();
+  });
+
+  it('ends the turn when the confirm channel closes, cancelling the consumer', async () => {
+    const f = fakes();
+    const turn = f.run();
+    await tick();
+
+    f.confirmChannel.emit('close');
+
+    await expect(turn).rejects.toThrow('confirm channel closed');
+    expect(f.consumeChannel.cancel).toHaveBeenCalledWith('tag-1');
+    expect(f.confirmChannel.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('ends the turn when the consume channel closes', async () => {
+    const f = fakes();
+    const turn = f.run();
+    await tick();
+
+    f.consumeChannel.emit('close');
+
+    await expect(turn).rejects.toThrow('channel closed');
+    expect(f.confirmChannel.close).toHaveBeenCalledTimes(1);
+  });
+
+  it('lifts the listener limit on the confirm channel', async () => {
+    const f = fakes();
+    const turn = f.run();
+    await tick();
+
+    expect(f.confirmChannel.getMaxListeners()).toBe(0);
+    f.confirmChannel.emit('close');
+    await turn.catch(() => {});
+  });
+
+  it('removes its listeners from the cached consume channel', async () => {
+    const f = fakes();
+    const turn = f.run();
+    await tick();
+
+    f.confirmChannel.emit('close');
+    await turn.catch(() => {});
+
+    expect(f.consumeChannel.listenerCount('close')).toBe(0);
+    expect(f.consumeChannel.listenerCount('error')).toBe(0);
+  });
+
+  it('hands every delivery to onMessage', async () => {
+    const f = fakes();
+    const onMessage = vi.fn(async () => {});
+    const turn = f.run(onMessage);
+    await tick();
+
+    const msg = { content: Buffer.from('{}') };
+    await f.deliveries[0](msg);
+
+    expect(onMessage).toHaveBeenCalledWith(msg);
+    f.confirmChannel.emit('close');
+    await turn.catch(() => {});
   });
 });
