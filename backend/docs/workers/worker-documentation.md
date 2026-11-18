@@ -250,10 +250,9 @@ yarn worker:info:characters
 **How it works**:
 
 1. Gets character ID from queue
-2. Filters NPCs (id < 1M or 3M-4M range)
-3. Skips if already exists in database
-4. Fetches character information from ESI (`getCharacterInfo()`)
-5. Saves to database with `upsert`
+2. Skips if already exists in database
+3. Fetches character information from ESI (`getCharacterInfo()`)
+4. Saves to database with `upsert`
 
 **ESI Endpoint**: `/characters/{character_id}/`
 
