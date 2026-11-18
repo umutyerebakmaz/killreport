@@ -1778,6 +1778,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "queue-killmail-types"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "mq",
+ "runner",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "queue-types"
 version = "0.1.0"
 dependencies = [
