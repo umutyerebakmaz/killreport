@@ -19,7 +19,7 @@ flowchart LR
     ESI["<b>EVE ESI</b><br/><i>corporationhistory</i>"] -->|"history"| Worker
     Worker --> DB[("<img src='https://cdn.simpleicons.org/postgresql' width='28' height='28'/><br/><b>PostgreSQL</b><br/><i>character_corporation_history</i>")]
     Worker -.->|"missing corporations"| Corp["<b>Corporation worker</b><br/><i>fills in names</i>"]
-    Scan["<b>Missing corporations scan</b><br/><i>daily 04:00 UTC</i>"] -.->|"safety net"| Corp
+    Scan["<b>Missing corporations scan</b><br/><i>Monday 17:00 UTC</i>"] -.->|"safety net"| Corp
 ```
 
 ### Read path
@@ -37,13 +37,13 @@ flowchart LR
 
 All of them run from `backend/`.
 
-| Command                                                                       | What it does                                                                                                               |
-| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `yarn queue:character-corporation-history`                                    | Queues every character whose history was never fetched or is older than 6 days                                             |
-| `yarn queue:character-corporation-history <id>`                               | Queues only the given character(s), regardless of age. Several IDs separated by spaces work too                            |
-| `yarn worker:character-corporation-history`                                   | Consumes the queue: fetches from ESI, saves, queues missing corporations                                                   |
-| `yarn worker:info:corporations`                                               | Resolves the corporations the worker queued, so names appear instead of IDs                                                |
-| `yarn queue:character-corporations:rs` (Node: `queue:character-corporations`) | Daily safety net: queues every corporation in the history (or a character's current one) still missing from `corporations` |
+| Command                                                                       | What it does                                                                                                                |
+| ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `yarn queue:character-corporation-history`                                    | Queues every character whose history was never fetched or is older than 6 days                                              |
+| `yarn queue:character-corporation-history <id>`                               | Queues only the given character(s), regardless of age. Several IDs separated by spaces work too                             |
+| `yarn worker:character-corporation-history`                                   | Consumes the queue: fetches from ESI, saves, queues missing corporations                                                    |
+| `yarn worker:info:corporations`                                               | Resolves the corporations the worker queued, so names appear instead of IDs                                                 |
+| `yarn queue:character-corporations:rs` (Node: `queue:character-corporations`) | Weekly safety net: queues every corporation in the history (or a character's current one) still missing from `corporations` |
 
 The queue script exits when it has finished queueing. The worker keeps running
 and waits for new messages; stop it with `Ctrl+C`. When the queue drains it
@@ -116,12 +116,15 @@ Queue depth through the API:
 
 ## Schedule
 
-In production systemd runs both processes (`deploy/systemd/`, described in
+In production systemd runs these (`deploy/systemd/`, described in
 [systemd.md](../ops/systemd.md)):
 
 - `killreport-queue-character-corporation-history.timer` — `Mon *-*-* 03:00:00 UTC`, every
   Monday 03:00 UTC.
 - `killreport-worker-character-corporation-history.service` — always on.
+- `killreport-queue-character-corporations.timer` — `Mon *-*-* 17:00:00 UTC`, the
+  missing corporations scan, every Monday 17:00 UTC. It still runs the Node
+  script.
 
 The threshold is 6 days rather than 7 on purpose. A character fetched a little
 after last Monday's run started is slightly under 7 days old at the next run;
