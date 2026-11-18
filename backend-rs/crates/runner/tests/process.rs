@@ -418,3 +418,50 @@ async fn the_default_summary_is_unchanged() {
         "📊 final: 4 processed (1 created, 2 updated, 1 errors)"
     );
 }
+
+#[test]
+fn a_saved_line_never_warns() {
+    let p = Processed {
+        outcome: Outcome::Saved { queued: 0 },
+        detail: " character 90000001: 3 records, 0 corporations queued".into(),
+    };
+    assert_eq!(
+        success_line(7, &p),
+        "  ✅ [7] character 90000001: 3 records, 0 corporations queued"
+    );
+}
+
+#[test]
+fn a_saved_line_with_queued_corporations() {
+    let p = Processed {
+        outcome: Outcome::Saved { queued: 2 },
+        detail: " character 90000001: 3 records, 2 corporations queued".into(),
+    };
+    assert_eq!(
+        success_line(7, &p),
+        "  ✅ [7] character 90000001: 3 records, 2 corporations queued"
+    );
+}
+
+fn saved() -> anyhow::Result<Processed> {
+    Ok(Processed {
+        outcome: Outcome::Saved { queued: 2 },
+        detail: " Foo".into(),
+    })
+}
+
+#[tokio::test]
+async fn saved_counts_into_queued() {
+    let (worker, settle, totals) = (
+        FakeWorker::new(saved),
+        Fake::new(br#"{"entityId":1}"#),
+        Totals::new(),
+    );
+    let settled = process(&worker, &settle, &totals).await;
+    assert_eq!(settled, Settled::Settled);
+    assert_eq!(settle.calls(), vec![Call::Ack]);
+    assert_eq!(totals.queued(), 2);
+    assert_eq!(totals.processed(), 1);
+    assert_eq!(totals.created(), 0);
+    assert_eq!(totals.updated(), 0);
+}
