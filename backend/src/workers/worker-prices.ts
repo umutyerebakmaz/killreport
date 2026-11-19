@@ -6,14 +6,20 @@
  * Usage: yarn worker:prices
  */
 
+import { config } from '@config/config';
 import logger from '@services/logger';
 import { MarketService } from '@services/market/market.service';
-import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_type_price_queue';
-const PREFETCH_COUNT = 10; // Process 10 types concurrently
+// Concurrency, not a rate limit - the shared limiter (esiLimiter) owns the dispatch ceiling.
+// Its job is to keep that ceiling fed, so it has to be at least a fraction of
+// the target rate. Override per run with ESI_PREFETCH.
+const PREFETCH_COUNT = Math.max(
+  config.esi.prefetch,
+  Math.ceil(config.esi.maxRequestsPerSecond / 2),
+);
 
 interface EntityQueueMessage {
   entityId: number;
@@ -64,31 +70,21 @@ async function priceWorker() {
         const typeId = message.entityId;
 
         try {
-          // Check if already exists
-          const existing = await prismaWorker.marketPrice.findUnique({
-            where: { type_id: typeId },
-          });
-
-          // Fetch from ESI (always get latest price)
+          // Every page, Jita 4-4 only; null when Jita has no orders, and then
+          // the stored price is left as it was. ESI and database errors
+          // reach handleWorkerError below.
           const price = await MarketService.getJitaPrice(typeId);
 
           if (price) {
-            // Save to database (upsert to prevent race condition)
             await MarketService.savePrice(price);
-
-            if (existing) {
-              logger.info(
-                `  ✅ [${totalProcessed + 1}] [${typeId}] buy=${price.buy.toFixed(2)} sell=${price.sell.toFixed(2)} (updated)`,
-              );
-            } else {
-              logger.info(
-                `  ✅ [${totalProcessed + 1}] [${typeId}] buy=${price.buy.toFixed(2)} sell=${price.sell.toFixed(2)} (created)`,
-              );
-            }
+            // Prisma's upsert does not say whether the row was new.
+            logger.info(
+              `  ✅ [${totalProcessed + 1}] [${typeId}] buy=${price.buy.toFixed(2)} sell=${price.sell.toFixed(2)} (saved)`,
+            );
             totalSaved++;
           } else {
             logger.info(
-              `  - [${totalProcessed + 1}] [${typeId}] (no market orders)`,
+              `  - [${totalProcessed + 1}] [${typeId}] (no Jita orders)`,
             );
           }
 

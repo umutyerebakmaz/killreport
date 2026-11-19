@@ -1,71 +1,59 @@
 import logger from '@services/logger';
-import prisma from '@services/prisma';
-import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
+import prismaWorker from '@services/prisma-worker';
+import { ensureAllQueuesExist } from '@services/rabbitmq';
+import { publishEntitiesConfirmed } from './publish-entities';
 
 const QUEUE_NAME = 'esi_type_price_queue';
-const BATCH_SIZE = 100;
 
 /**
- * Fetches unique type IDs from killmail_items and ship_type_ids from victims
- * Only queues types that are actually used in killmails
- * These will be processed by worker:prices
+ * Queues every type a killmail values, the victim's ship and every item, for
+ * worker:prices. A type `types` does not have yet would fail the
+ * `market_prices` foreign key, so it waits until scan:entities has added it
+ * and is priced on the next run. The same SQL as the Rust
+ * `queue-prices` (`backend-rs/queues/queue-prices/src/lib.rs`).
  */
 async function queuePrices() {
   logger.info('fetching unique type IDs from killmail_items and victims...');
 
   try {
-    // Get all unique item_type_id from killmail_items using raw query for better performance
-    logger.info('querying unique item types from killmail_items...');
-    const itemTypes = await prisma.$queryRaw<{ item_type_id: number }[]>`
-      SELECT DISTINCT item_type_id FROM killmail_items
+    // UNION already de-duplicates; EXISTS leaves only the known types
+    const rows = await prismaWorker.$queryRaw<{ id: number }[]>`
+      SELECT ids.id
+      FROM (
+        SELECT item_type_id AS id FROM killmail_items
+        UNION
+        SELECT ship_type_id FROM victims
+      ) ids
+      WHERE EXISTS (SELECT 1 FROM types t WHERE t.id = ids.id)
+      ORDER BY ids.id
     `;
-    logger.info(`✓ found ${itemTypes.length} unique item types`);
+    const typeIds = rows.map((r) => r.id);
 
-    // Get all unique ship_type_id from victims using raw query
-    logger.info('querying unique ship types from victims...');
-    const shipTypes = await prisma.$queryRaw<{ ship_type_id: number }[]>`
-      SELECT DISTINCT ship_type_id FROM victims
-    `;
-    logger.info(`✓ found ${shipTypes.length} unique ship types`);
+    logger.info(`found ${typeIds.length} types to price`);
 
-    // Combine and deduplicate
-    const itemTypeIds = itemTypes.map((i) => i.item_type_id);
-    const shipTypeIds = shipTypes.map((v) => v.ship_type_id);
-    const allTypeIds = [...new Set([...itemTypeIds, ...shipTypeIds])];
-    const typeIds = allTypeIds.sort((a, b) => a - b);
+    if (typeIds.length === 0) {
+      logger.info('✅ no types to price!');
+      process.exit(0);
+    }
 
-    logger.info(`total unique types to queue: ${typeIds.length}`);
     logger.info(`adding to queue: ${QUEUE_NAME}`);
 
     await ensureAllQueuesExist();
-    const channel = await getRabbitMQChannel();
+    // Resolves only once the broker has confirmed every message, so the
+    // process.exit below can no longer drop what it had not taken yet.
+    const queuedCount = await publishEntitiesConfirmed(
+      QUEUE_NAME,
+      'queue-prices',
+      typeIds,
+      {
+        onBatch: (batch, total, size) =>
+          logger.info(`queued batch ${batch}/${total} (${size} types)`),
+      },
+    );
 
-    // Add to queue in batches with proper message format
-    for (let i = 0; i < typeIds.length; i += BATCH_SIZE) {
-      const batch = typeIds.slice(i, i + BATCH_SIZE);
-
-      for (const id of batch) {
-        const message = {
-          entityId: id,
-          queuedAt: new Date().toISOString(),
-          source: 'queue-prices',
-        };
-        channel.sendToQueue(QUEUE_NAME, Buffer.from(JSON.stringify(message)), {
-          persistent: true,
-        });
-      }
-
-      logger.info(
-        `queued batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(
-          typeIds.length / BATCH_SIZE,
-        )} (${batch.length} types)`,
-      );
-    }
-
-    logger.info(`all ${typeIds.length} types queued successfully!`);
+    logger.info(`✅ all ${queuedCount} types queued successfully!`);
     logger.info('now run the worker: yarn worker:prices');
 
-    await channel.close();
     process.exit(0);
   } catch (error) {
     logger.error('failed to queue prices', { error });
