@@ -54,6 +54,7 @@
     "queue:item-groups": "tsx src/queues/queue-item-groups.ts",
     "queue:missing-groups": "tsx src/queues/queue-missing-groups.ts",
     "queue:prices": "tsx src/queues/queue-prices.ts",
+    "queue:prices:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p queue-prices",
     "queue:regions": "tsx src/queues/queue-regions.ts",
     "queue:solar-systems": "tsx src/queues/queue-solar-systems.ts",
     "queue:stargates": "tsx src/queues/queue-stargates.ts",

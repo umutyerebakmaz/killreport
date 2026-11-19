@@ -1791,6 +1791,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "queue-prices"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "mq",
+ "runner",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "queue-types"
 version = "0.1.0"
 dependencies = [
