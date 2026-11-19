@@ -76,6 +76,11 @@ Prefetch sabit olarak 10 (`worker-prices.ts:16`).
   _Bilinen sonuç_ başlığında.
 - **Fiyat kaynağı sadece Jita 4-4:** `location_id = 60003760`, hem buy hem sell
   için. Range'li buy emirleri başka istasyonda verildiyse sayılmaz.
+- **Fiyat, min sell / max buy değil, hacme göre %5'lik dilim** (Fuzzwork ve
+  Janice'in yöntemi). Min sell tek bir emre bağlı: Jita'da piyasanın çok altına
+  konmuş 1 adetlik bir emir, o type'ı içeren bütün killmail'lerin değerini
+  belirliyordu. CCP'nin `/markets/prices/` ortalaması da düşünüldü, ama Jita
+  fiyatı değil ve kuyruk yapısına uymuyor.
 - **Yaklaşım: kuyruk ve worker çifti**, serinin kalıbıyla aynı.
 
 ## Yaklaşımlar
@@ -136,10 +141,16 @@ Mesaj başına:
 2. Saf bir fonksiyon (`jita_price(&[Order]) -> Option<Price>`):
    - `location_id == 60003760` olmayan emirler atılır.
    - Geriye emir kalmazsa `None`.
-   - Kalırsa: `buy` = buy emirlerinin en yüksek fiyatı (yoksa 0), `sell` = sell
-     emirlerinin en düşük fiyatı (yoksa 0), `average = (buy + sell) / 2`,
-     `volume = Σ volume_remain` (Jita emirleri üzerinden). Node'un formülleri;
-     sadece emir kümesi değişiyor.
+   - Kalırsa: `sell` ve `buy` **hacme göre %5'lik dilimle** hesaplanır
+     (aşağıda). Bir tarafta emir yoksa o taraf 0. `average = (buy + sell) / 2`
+     ve `volume = Σ volume_remain` (bütün Jita emirleri), Node'daki gibi.
+   - **%5'lik dilim, sell için:** emirler fiyata göre artan sırada; hedef =
+     Jita sell emirlerinin toplam `volume_remain`'inin %5'i (`f64`, yuvarlama
+     yok). En ucuzdan başlanıp toplanır, hedefi aşan son emirden yalnız eksik
+     kalan kadar sayılır. Fiyat `Σ(price × alınan) / Σ alınan`. Buy için aynısı,
+     fiyata göre azalan sırada. Örnek: sell 1 × 1 ISK, 100 × 10, 99 × 11 →
+     hedef 10 → `(1·1 + 9·10) / 10 = 9.1`. Tek bir emir varsa sonuç onun
+     fiyatıdır.
 3. `None` ise satıra dokunulmaz ve mesaj ack'lenir. Sonuç runner'a yeni bir
    outcome olarak döner (aşağıda).
 4. `Some` ise upsert:

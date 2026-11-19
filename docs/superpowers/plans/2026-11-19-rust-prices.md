@@ -24,9 +24,11 @@ TypeScript (Prisma `$queryRaw`, amqplib, vitest).
   `{ entityId, queuedAt, source }`, `persistent`.
 - Jita 4-4: `location_id = 60003760`, bölge `10000002`.
 - Jita emri yoksa `market_prices` satırına dokunulmaz.
-- `buy` = Jita buy emirlerinin max fiyatı (yoksa 0), `sell` = Jita sell
-  emirlerinin min fiyatı (yoksa 0), `average = (buy + sell) / 2`,
-  `volume = Σ volume_remain` (Jita emirleri).
+- `sell` ve `buy` = hacme göre %5'lik dilimin hacim ağırlıklı ortalaması
+  (sell artan, buy azalan fiyat sırasıyla; hedef = o tarafın toplam
+  `volume_remain`'inin %5'i, son emirden yalnız eksik kalan kadar; spec
+  "Hedefler / 2"). Taraf boşsa 0. `average = (buy + sell) / 2`,
+  `volume = Σ volume_remain` (bütün Jita emirleri).
 - Rust'ta `sqlx::query!` makrosu değil `sqlx::query` / `query_scalar`
   fonksiyonları: CI `SQLX_OFFLINE=true` derliyor, `.sqlx` cache'i
   güncellenmez.
@@ -180,9 +182,13 @@ TypeScript (Prisma `$queryRaw`, amqplib, vitest).
     `Vec<Order>`'a parse olur.
   - `price.rs`: `other_stations_are_ignored` (Jita sell 5.0, başka istasyon
     sell 4.0 → sell 5.0); `buy_only` (buy 3.0 → `buy 3.0, sell 0.0, average 1.5`);
-    `sell_only`; `both_sides` (buy 3,4; sell 6,5; volume_remain 10+20+30+40 →
-    `buy 4, sell 5, average 4.5, volume 100`); `no_jita_orders_is_none`;
-    `empty_is_none`.
+    `sell_only`; `a_single_cheap_order_does_not_set_the_price` (sell
+    1 × 1.0, 100 × 10.0, 99 × 11.0 → sell 9.1);
+    `buy_takes_the_top_five_percent` (buy 1 × 100.0, 100 × 10.0, 99 × 9.0 →
+    `(1·100 + 9·10) / 10 = 19.0`); `both_sides` (buy 1 × 4.0; sell 1 × 5.0;
+    volume 1+1 → `buy 4, sell 5, average 4.5, volume 2`);
+    `no_jita_orders_is_none`; `empty_is_none`. Kayan nokta karşılaştırması
+    `(a - b).abs() < 1e-9`.
   - `upsert.rs` (`fixtures("types", "market_prices")`, type 34 satırı test
     içinde eklenir): ilk çağrı `true` ve `created_at`/`updated_at` dolu; ikinci
     çağrı `false`, değerler yenilenmiş, `updated_at` ilerlemiş.
