@@ -1791,6 +1791,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "queue-prices"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "mq",
+ "runner",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "queue-types"
 version = "0.1.0"
 dependencies = [
@@ -3448,6 +3461,23 @@ dependencies = [
  "serde_json",
  "sqlx",
  "tokio",
+]
+
+[[package]]
+name = "worker-prices"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "esi",
+ "futures-util",
+ "mq",
+ "runner",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "wiremock",
 ]
 
 [[package]]

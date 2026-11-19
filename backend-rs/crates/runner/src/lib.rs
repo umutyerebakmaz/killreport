@@ -33,6 +33,9 @@ pub enum Outcome {
     /// Unlike `Queued(0)`, publishing nothing is the normal case, not a
     /// warning.
     Saved { queued: u64 },
+    /// The worker looked and left the row as it was, e.g. a type with no
+    /// Jita orders keeps its last price. Counted apart, never a warning.
+    Unchanged,
 }
 
 /// What one successful `handle` reports back.
@@ -67,9 +70,15 @@ pub trait Worker: Send + Sync + 'static {
     ) -> impl Future<Output = anyhow::Result<Processed>> + Send;
 
     /// The drained-queue summary line.
+    /// The unchanged count appears only when there is one, so a worker that
+    /// never reports [`Outcome::Unchanged`] keeps its line as it was.
     fn summary(totals: &Totals) -> String {
+        let unchanged = match totals.unchanged() {
+            0 => String::new(),
+            n => format!(", {n} unchanged"),
+        };
         format!(
-            "📊 final: {} processed ({} created, {} updated, {} errors)",
+            "📊 final: {} processed ({} created, {} updated{unchanged}, {} errors)",
             totals.processed(),
             totals.created(),
             totals.updated(),
@@ -80,7 +89,8 @@ pub trait Worker: Send + Sync + 'static {
 
 /// `  ✅ [n]<detail> (created|updated)` for an info worker; for a fan-out
 /// worker `  ✅ [n]<detail>`, or `  ⚠️  [n]<detail>` when nothing was queued;
-/// for a worker that saves, `  ✅ [n]<detail>` whatever it queued.
+/// for a worker that saves, `  ✅ [n]<detail>` whatever it queued; for one
+/// that left the row alone, `  - [n]<detail>`.
 pub fn success_line(n: u64, processed: &Processed) -> String {
     let detail = &processed.detail;
     match processed.outcome {
@@ -88,6 +98,7 @@ pub fn success_line(n: u64, processed: &Processed) -> String {
         Outcome::Updated => format!("  ✅ [{n}]{detail} (updated)"),
         Outcome::Queued(0) => format!("  ⚠️  [{n}]{detail}"),
         Outcome::Queued(_) | Outcome::Saved { .. } => format!("  ✅ [{n}]{detail}"),
+        Outcome::Unchanged => format!("  - [{n}]{detail}"),
     }
 }
 

@@ -177,6 +177,34 @@ The Rust command chains four binaries, `queue:killmail-characters:rs`,
 
 ---
 
+### `queue-prices.ts`
+
+**Purpose**: Queues every type a killmail values, the victim's ship and every
+item, for the Jita price worker.
+
+**Usage**:
+
+```bash
+yarn queue:prices:rs   # Rust
+yarn queue:prices      # Node, same SQL
+```
+
+**How it works**:
+
+1. One SQL `UNION` over `killmail_items.item_type_id` and
+   `victims.ship_type_id`, keeping only the types `types` has. A type not in
+   `types` yet would fail the `market_prices` foreign key; it is priced on
+   the run after `scan:entities` has added it
+2. Each ID goes to the queue, `source: queue-prices`, no priority, and the
+   script waits for the broker to confirm every message
+
+**Queue**: `esi_type_price_queue`
+
+**Schedule**: daily 06:00 UTC (`killreport-queue-prices.timer`, which still
+runs the Node script)
+
+---
+
 ## Worker Scripts
 
 ### `worker-info-alliances.ts`
@@ -291,6 +319,43 @@ The Rust queue reads every page of `/universe/types/` and publishes only the
 types missing from the database, so the Rust worker does not skip: it upserts
 what it is given. The Node `queue:types` reads only the first page of
 `/universe/groups/` and so misses every group past it.
+
+---
+
+### `worker-prices.ts`
+
+**Purpose**: Fetches a type's market orders from ESI and saves its Jita 4-4
+price to `market_prices`. `sell` is what killmail values are computed from
+([`calculate-killmail-values.ts`](../../src/helpers/calculate-killmail-values.ts)).
+
+**Usage**:
+
+```bash
+yarn worker:prices:rs   # Rust (backend-rs/workers/worker-prices)
+yarn worker:prices      # Node, same rules
+```
+
+**Queue**: `esi_type_price_queue`
+
+**Concurrency**: `max(ESI_PREFETCH, ceil(ESI_MAX_RPS / 2))`, like the info
+workers
+
+**How it works**:
+
+1. Reads every page of `/markets/10000002/orders/?type_id={id}` (The Forge)
+2. Keeps only the orders at Jita 4-4 (`location_id = 60003760`)
+3. `sell` is the volume-weighted mean of the cheapest sell orders that make
+   up 5 % of Jita's sell volume; `buy` the same over the dearest buy orders.
+   A single small order far off the market cannot set the price
+4. `average = (buy + sell) / 2`, `volume` = the sum of `volume_remain` over
+   every Jita order
+5. Upserts the row. ESI and database errors go to the shared failure path
+   and are retried, not logged and acked
+
+**No Jita orders**: the row is left as it was, so a type keeps its last
+known price (logged as `- [n] {id} (no Jita orders)`, counted as `unchanged`
+in the Rust summary). A type that has **only buy orders** at Jita gets
+`sell = 0`, and killmails holding it are valued at 0 ISK for that item.
 
 ---
 

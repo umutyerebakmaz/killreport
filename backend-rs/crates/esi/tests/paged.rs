@@ -96,3 +96,26 @@ async fn a_throttled_later_page_brakes_the_limiter() {
     assert!(matches!(error, EsiError::Throttled(_)), "{error:?}");
     assert!(client.limiter().stats().paused_until.is_some());
 }
+
+#[tokio::test]
+async fn a_path_with_a_query_gets_its_page_with_an_ampersand() {
+    const ORDERS: &str = "/markets/10000002/orders/";
+    let server = MockServer::start().await;
+    for (n, body) in [("1", json!([1])), ("2", json!([2]))] {
+        Mock::given(method("GET"))
+            .and(path(ORDERS))
+            .and(query_param("type_id", "34"))
+            .and(query_param("page", n))
+            .respond_with(ids(body, Some("2")))
+            .expect(1)
+            .mount(&server)
+            .await;
+    }
+
+    let all: Vec<i32> = client_for(&server)
+        .await
+        .get_paged(&format!("{ORDERS}?type_id=34"))
+        .await
+        .unwrap();
+    assert_eq!(all, [1, 2]);
+}

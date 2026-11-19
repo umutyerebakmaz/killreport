@@ -13,6 +13,7 @@ pub struct Totals {
     processed: AtomicU64,
     created: AtomicU64,
     updated: AtomicU64,
+    unchanged: AtomicU64,
     errors: AtomicU64,
     queued: AtomicU64,
     last_message: Mutex<Instant>,
@@ -30,6 +31,7 @@ impl Totals {
             processed: AtomicU64::new(0),
             created: AtomicU64::new(0),
             updated: AtomicU64::new(0),
+            unchanged: AtomicU64::new(0),
             errors: AtomicU64::new(0),
             queued: AtomicU64::new(0),
             last_message: Mutex::new(Instant::now()),
@@ -44,6 +46,10 @@ impl Totals {
     }
     pub fn updated(&self) -> u64 {
         self.updated.load(Ordering::SeqCst)
+    }
+    /// Messages that left their row as it was.
+    pub fn unchanged(&self) -> u64 {
+        self.unchanged.load(Ordering::SeqCst)
     }
     pub fn errors(&self) -> u64 {
         self.errors.load(Ordering::SeqCst)
@@ -64,6 +70,9 @@ impl Totals {
     }
     pub(crate) fn count_updated(&self) {
         self.updated.fetch_add(1, Ordering::SeqCst);
+    }
+    pub(crate) fn count_unchanged(&self) {
+        self.unchanged.fetch_add(1, Ordering::SeqCst);
     }
     pub(crate) fn count_error(&self) {
         self.errors.fetch_add(1, Ordering::SeqCst);
