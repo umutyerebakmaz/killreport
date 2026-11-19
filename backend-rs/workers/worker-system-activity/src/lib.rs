@@ -18,6 +18,7 @@ use std::collections::HashMap;
 
 use chrono::{DateTime, DurationRound as _, NaiveDateTime, TimeDelta, Utc};
 use serde::Deserialize;
+use sqlx::PgPool;
 
 /// One entry of `GET /universe/system_kills`.
 #[derive(Debug, Clone, Deserialize)]
@@ -104,4 +105,33 @@ pub fn merge_system_activity(
     }
 
     rows
+}
+
+/// Write one snapshot in a single statement and return how many rows were
+/// written. A row whose `(system_id, timestamp)` is already there is skipped,
+/// so a re-run of the same hour writes nothing and keeps the first rows; one
+/// statement means the snapshot is written whole or not at all.
+pub async fn insert_snapshot(pool: &PgPool, rows: &[SystemActivityRow]) -> sqlx::Result<u64> {
+    if rows.is_empty() {
+        return Ok(0);
+    }
+    let column = |f: fn(&SystemActivityRow) -> i32| rows.iter().map(f).collect::<Vec<_>>();
+    let ship_jumps: Vec<Option<i32>> = rows.iter().map(|r| r.ship_jumps).collect();
+    let timestamps: Vec<NaiveDateTime> = rows.iter().map(|r| r.timestamp).collect();
+
+    let result = sqlx::query(
+        "INSERT INTO system_activity
+           (system_id, npc_kills, pod_kills, ship_kills, ship_jumps, \"timestamp\")
+         SELECT * FROM UNNEST($1::int[], $2::int[], $3::int[], $4::int[], $5::int[], $6::timestamp[])
+         ON CONFLICT (system_id, \"timestamp\") DO NOTHING",
+    )
+    .bind(column(|r| r.system_id))
+    .bind(column(|r| r.npc_kills))
+    .bind(column(|r| r.pod_kills))
+    .bind(column(|r| r.ship_kills))
+    .bind(ship_jumps)
+    .bind(timestamps)
+    .execute(pool)
+    .await?;
+    Ok(result.rows_affected())
 }
