@@ -3464,6 +3464,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "worker-prices"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "esi",
+ "futures-util",
+ "mq",
+ "runner",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "wiremock",
+]
+
+[[package]]
 name = "writeable"
 version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"

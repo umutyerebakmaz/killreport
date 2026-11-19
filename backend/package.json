@@ -123,6 +123,7 @@
     "worker:bloodlines": "tsx src/workers/worker-bloodlines.ts",
     "worker:factions": "tsx src/workers/worker-factions.ts",
     "worker:prices": "tsx src/workers/worker-prices.ts",
+    "worker:prices:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-prices",
     "worker:backfill-values": "tsx src/workers/worker-backfill-values.ts",
     "worker:sov:campaigns": "tsx src/workers/worker-sovereignty-campaigns.ts",
     "worker:sov:map": "tsx src/workers/worker-sovereignty-map.ts",
