@@ -17,6 +17,7 @@
 use std::collections::HashMap;
 
 use chrono::{DateTime, DurationRound as _, NaiveDateTime, TimeDelta, Utc};
+use esi::{CompatibilityDate, EsiClient};
 use serde::Deserialize;
 use sqlx::PgPool;
 
@@ -134,4 +135,61 @@ pub async fn insert_snapshot(pool: &PgPool, rows: &[SystemActivityRow]) -> sqlx:
     .execute(pool)
     .await?;
     Ok(result.rows_affected())
+}
+
+/// The date both routes are read at, as `solar-system.service.ts` sends it.
+pub const COMPATIBILITY_DATE: CompatibilityDate = CompatibilityDate::new("2025-12-16");
+
+/// What one run fetched and wrote, for the log.
+#[derive(Debug)]
+pub struct Snapshot {
+    pub timestamp: NaiveDateTime,
+    pub kill_systems: usize,
+    pub jump_systems: usize,
+    pub ship_kills: i64,
+    pub pod_kills: i64,
+    pub npc_kills: i64,
+    pub ship_jumps: i64,
+    pub rows: usize,
+    pub inserted: u64,
+}
+
+/// Fetch both lists together, merge them and write the snapshot for the hour
+/// `now` falls in. `None` when ESI returned two empty lists. A failed request
+/// fails the run before anything is written: half a snapshot would record the
+/// other half as "not reported" for an hour that is never revisited.
+pub async fn take_snapshot(
+    esi: &EsiClient,
+    pool: &PgPool,
+    now: DateTime<Utc>,
+) -> anyhow::Result<Option<Snapshot>> {
+    let timestamp = hour_snapshot_time(now);
+    let (kills, jumps) = tokio::try_join!(
+        esi.get_with_compatibility_date::<Vec<EsiSystemKills>>(
+            "/universe/system_kills",
+            COMPATIBILITY_DATE
+        ),
+        esi.get_with_compatibility_date::<Vec<EsiSystemJumps>>(
+            "/universe/system_jumps",
+            COMPATIBILITY_DATE
+        ),
+    )?;
+    if kills.is_empty() && jumps.is_empty() {
+        return Ok(None);
+    }
+
+    let sum = |f: fn(&EsiSystemKills) -> i32| kills.iter().map(|k| i64::from(f(k))).sum::<i64>();
+    let rows = merge_system_activity(&kills, &jumps, timestamp);
+    let inserted = insert_snapshot(pool, &rows).await?;
+    Ok(Some(Snapshot {
+        timestamp,
+        kill_systems: kills.len(),
+        jump_systems: jumps.len(),
+        ship_kills: sum(|k| k.ship_kills),
+        pod_kills: sum(|k| k.pod_kills),
+        npc_kills: sum(|k| k.npc_kills),
+        ship_jumps: jumps.iter().map(|j| i64::from(j.ship_jumps)).sum(),
+        rows: rows.len(),
+        inserted,
+    }))
 }
