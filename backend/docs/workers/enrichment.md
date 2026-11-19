@@ -32,7 +32,7 @@ flowchart LR
 
 ### How It Works
 
-1. **Scanner**: `scan-killmail-entities.ts` scans all killmails and detects missing entities
+1. **Scanner**: `yarn scan:entities:rs` (Node: `scan-killmail-entities.ts`) finds missing entities with four SQL anti-joins over victims, attackers and killmail items
 2. **Queuing**: Missing entities are queued to 4 separate RabbitMQ queues
 3. **Workers**: Specialized workers process their respective queues independently
 4. **ESI Fetching**: All workers use rate-limited ESI calls (through `esiClient`, up to `ESI_MAX_RPS` per process)
@@ -80,15 +80,20 @@ Run the scanner to detect missing entities and queue them:
 
 ```bash
 cd backend
-yarn scan:entities
+yarn scan:entities:rs   # Node: yarn scan:entities
 ```
 
 This will:
 
-- Scan all killmails in batches of 100
-- Filter out NPCs automatically
-- Check which entities are missing from database
-- Queue missing entities to specialized queues
+- Run one SQL anti-join per entity type over victims, attackers and killmail
+  items, so nothing is loaded into memory
+- Keep NPCs: ESI resolves them and killmail pages show their names
+- Queue missing entities to specialized queues, waiting for the broker to
+  confirm every message
+
+The Rust command is a chain of `queue:killmail-characters:rs`,
+`queue:killmail-corporations:rs`, `queue:killmail-alliances:rs` and
+`queue:killmail-types:rs`; each can also run on its own.
 
 ### Step 2: Start Specialized Workers
 
@@ -213,28 +218,19 @@ Example output:
 The info fetch system gracefully handles common errors:
 
 - **404 errors**: Silently skipped (deleted/invalid characters, corporations, alliances, or types)
-- **NPC filtering**: Automatically filters NPC characters and corporations
+- **NPCs**: Fetched like any other entity; ESI resolves them and killmail pages show their names
 - **Smart rate limiting**: Built-in rate limiter paces requests from ESI's response headers (up to `ESI_MAX_RPS`)
 - **Partial failures**: Other entities continue processing even if one fails
 - **Conservative processing**: 2 killmails processed concurrently to avoid overwhelming ESI
 - **Guaranteed compliance**: 100ms minimum delay between ESI requests, automatic queue management
 
-### NPC Detection
+### NPCs
 
-NPCs are automatically detected and skipped to prevent unnecessary ESI calls:
-
-**NPC Characters** (rats, mission agents, CONCORD, etc.):
-
-- System NPCs: ID < 1,000,000
-- Standard NPCs: ID 3,000,000 - 4,000,000
-- Note: NPC attackers in killmails appear without `character_id` (ship only)
-
-**NPC Corporations** (empire factions, pirate factions, etc.):
-
-- NPC corps: ID < 2,000,000
-- Player corps: ID ≥ 2,000,000
-
-This prevents unnecessary ESI calls for entities that don't exist in the database
+Neither the scanner nor the info workers skip NPCs. NPC characters (ID below
+1,000,000 or between 3,000,000 and 4,000,000) and NPC corporations (ID below
+2,000,000) are fetched from ESI like player entities, because killmail pages
+show their names. Most NPC attackers in killmails carry no `character_id` at
+all (ship only), so few NPC characters are ever queued.
 
 ## Troubleshooting
 

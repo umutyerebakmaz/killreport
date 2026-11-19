@@ -345,12 +345,14 @@ is the database.
 
 ### Entity enrichment
 
-`yarn scan:entities` walks killmails and queues the character, corporation,
-alliance and type IDs that are missing from the database; four workers then fetch
-them from ESI. Upserts keep concurrent workers from racing. NPCs are filtered out
-by ID range — the real predicate, in
-`queues/queue-alliance-corporation-characters.ts`, is
-`id < 1_000_000 || (id >= 3_000_000 && id < 4_000_000)`.
+`yarn scan:entities:rs` queues the character, corporation, alliance and type
+IDs that killmails name but the database does not have, one SQL anti-join over
+victims, attackers and killmail items per domain; four workers then fetch them
+from ESI. It is a chain of four `queue-killmail-*` binaries; the Node
+`scan:entities` runs the same SQL. Upserts keep concurrent workers from racing.
+It does **not** filter NPCs: ESI resolves them and killmail pages show their
+names. The one NPC filter, in `queues/queue-alliance-corporation-characters.ts`,
+is `id < 1_000_000 || (id >= 3_000_000 && id < 4_000_000)`.
 
 ### zKillboard sync
 

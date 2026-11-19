@@ -145,21 +145,26 @@ populated `alliances` table. `yarn queue:alliance-chain:rs` runs
 
 ### `scan-killmail-entities.ts`
 
-**Purpose**: Scans all entities (character, corporation, alliance, type) in killmails and adds missing ones in database to respective queues.
+**Purpose**: Finds every entity (character, corporation, alliance, type) killmails name that the database does not have, and adds it to the respective queue.
 
 **Usage**:
 
 ```bash
-yarn scan:entities
+yarn scan:entities:rs   # Rust, the default
+yarn scan:entities      # Node, same SQL
 ```
 
 **How it works**:
 
-1. Scans all killmails in database (100 per batch)
-2. Collects character, corporation, alliance, type IDs from each killmail
-3. Filters NPCs (character_id < 1M or between 3M-4M)
-4. Identifies missing ones in database
-5. Adds to separate queue for each entity type
+1. One SQL anti-join per entity type over `victims`, `attackers` and
+   `killmail_items`; nothing is loaded into memory
+2. NPCs are kept: ESI resolves them and killmail pages show their names
+3. Each missing ID goes to its entity type's queue, `source: killmail_scan`,
+   priority 5, and the script waits for the broker to confirm every message
+
+The Rust command chains four binaries, `queue:killmail-characters:rs`,
+`queue:killmail-corporations:rs`, `queue:killmail-alliances:rs` and
+`queue:killmail-types:rs`.
 
 **Queues**:
 
@@ -245,10 +250,9 @@ yarn worker:info:characters
 **How it works**:
 
 1. Gets character ID from queue
-2. Filters NPCs (id < 1M or 3M-4M range)
-3. Skips if already exists in database
-4. Fetches character information from ESI (`getCharacterInfo()`)
-5. Saves to database with `upsert`
+2. Skips if already exists in database
+3. Fetches character information from ESI (`getCharacterInfo()`)
+4. Saves to database with `upsert`
 
 **ESI Endpoint**: `/characters/{character_id}/`
 
@@ -418,7 +422,7 @@ yarn sync:character 365974960 999    # ALL history
 
 ```mermaid
 flowchart TB
-    Scan["<code>yarn scan:entities</code><br/><i>scans killmails for gaps</i>"]
+    Scan["<code>yarn scan:entities:rs</code><br/><i>scans killmails for gaps</i>"]
 
     Scan --> QChar["character_enrichment_queue"]
     Scan --> QCorp["corporation_enrichment_queue"]
@@ -431,7 +435,7 @@ flowchart TB
 
 **Steps**:
 
-1. `yarn scan:entities` - Detect missing entities in killmails
+1. `yarn scan:entities:rs` - Detect missing entities in killmails
 2. `yarn worker:info:characters` - Fetch character information
 3. `yarn worker:info:corporations` - Fetch corporation information
 4. `yarn worker:info:alliances` - Fetch alliance information
@@ -584,7 +588,7 @@ For enrichment operations:
 
 ```bash
 # 1. Scan entities and add to queue
-yarn scan:entities
+yarn scan:entities:rs
 
 # 2. Start workers (separate terminals)
 yarn worker:info:alliances

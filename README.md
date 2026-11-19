@@ -107,7 +107,7 @@ least one of them is running. To get live killmails flowing locally:
 ```bash
 cd backend
 yarn worker:redisq            # live zKillboard feed
-yarn scan:entities            # queue missing characters/corps/alliances/types
+yarn scan:entities:rs         # queue missing characters/corps/alliances/types
 yarn worker:info:characters:rs   # Rust; drop :rs for the Node version
 ```
 
