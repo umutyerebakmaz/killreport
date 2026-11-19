@@ -57,6 +57,7 @@ pub async fn process_one<W: Worker>(
                 Outcome::Created => totals.count_created(),
                 Outcome::Updated => totals.count_updated(),
                 Outcome::Queued(queued) | Outcome::Saved { queued } => totals.count_queued(queued),
+                Outcome::Unchanged => totals.count_unchanged(),
             }
             info!("{}", success_line(n, &processed));
             if let Err(e) = settle.ack().await {

@@ -465,3 +465,48 @@ async fn saved_counts_into_queued() {
     assert_eq!(totals.created(), 0);
     assert_eq!(totals.updated(), 0);
 }
+
+fn unchanged() -> anyhow::Result<Processed> {
+    Ok(Processed {
+        outcome: Outcome::Unchanged,
+        detail: " 34 (no Jita orders)".into(),
+    })
+}
+
+#[test]
+fn unchanged_line_has_a_dash() {
+    let p = unchanged().unwrap();
+    assert_eq!(success_line(3, &p), "  - [3] 34 (no Jita orders)");
+}
+
+#[tokio::test]
+async fn an_unchanged_row_is_acked_and_counted_apart() {
+    let (worker, settle, totals) = (
+        FakeWorker::new(unchanged),
+        Fake::new(br#"{"entityId":34}"#),
+        Totals::new(),
+    );
+    process(&worker, &settle, &totals).await;
+    assert_eq!(settle.calls(), vec![Call::Ack]);
+    assert_eq!(totals.processed(), 1);
+    assert_eq!(totals.unchanged(), 1);
+    assert_eq!(totals.created(), 0);
+    assert_eq!(totals.updated(), 0);
+}
+
+#[tokio::test]
+async fn summary_mentions_unchanged_only_when_there_are_some() {
+    let totals = Totals::new();
+    for result in [created, updated] {
+        let (worker, settle) = (FakeWorker::new(result), Fake::new(br#"{"entityId":1}"#));
+        process(&worker, &settle, &totals).await;
+    }
+    assert!(!FakeWorker::summary(&totals).contains("unchanged"));
+
+    let (worker, settle) = (FakeWorker::new(unchanged), Fake::new(br#"{"entityId":1}"#));
+    process(&worker, &settle, &totals).await;
+    assert_eq!(
+        FakeWorker::summary(&totals),
+        "📊 final: 3 processed (1 created, 1 updated, 1 unchanged, 0 errors)"
+    );
+}
