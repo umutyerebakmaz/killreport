@@ -18,5 +18,5 @@ export function formatISK(amount: number | null | undefined): string {
     return `${(amount / 1_000).toFixed(2)}K`;
   }
 
-  return `${Math.round(amount).toLocaleString()}`;
+  return `${Math.round(amount).toLocaleString('en-US')}`;
 }

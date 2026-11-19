@@ -92,7 +92,7 @@ export default function TopAllianceCard({
 
                     {/* Kill Count */}
                     <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
-                      {alliance.killCount.toLocaleString()}
+                      {alliance.killCount.toLocaleString('en-US')}
                     </span>
                   </div>
                 </div>

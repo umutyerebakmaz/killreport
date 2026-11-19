@@ -30,7 +30,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="p-4 border border-white/10 bg-surface">
       <div className="text-2xl font-medium text-white">
-        {typeof value === 'number' ? value.toLocaleString() : value}
+        {typeof value === 'number' ? value.toLocaleString('en-US') : value}
       </div>
       <div className="mt-1 text-sm text-ink-muted">{label}</div>
     </div>
@@ -145,7 +145,7 @@ function SovereigntyContent() {
                     />
                   </td>
                   <td className="td-cell font-medium text-right text-white whitespace-nowrap">
-                    {r.systemsControlled.toLocaleString()}
+                    {r.systemsControlled.toLocaleString('en-US')}
                   </td>
                   <td className="td-cell text-right text-gray-300 whitespace-nowrap">
                     {r.ihubCount}

@@ -96,7 +96,7 @@ export default function WorkersPage() {
             <p className="text-sm text-ink-muted">
               Last updated:{' '}
               {workerStatus?.timestamp
-                ? new Date(workerStatus.timestamp).toLocaleString()
+                ? new Date(workerStatus.timestamp).toLocaleString('en-US')
                 : 'N/A'}
             </p>
           </div>
@@ -215,7 +215,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
     <div className="p-4 border border-white/5 bg-surface-inset">
       <div className="text-sm font-medium text-ink-muted">{label}</div>
       <div className="mt-1 text-3xl font-bold text-white">
-        {typeof value === 'string' ? value : value.toLocaleString()}
+        {typeof value === 'string' ? value : value.toLocaleString('en-US')}
       </div>
     </div>
   );
@@ -363,7 +363,7 @@ function QueueSection({ title, subtitle, queues }: any) {
                       queue.messageCount > 0 ? 'text-caution' : 'text-ink-muted'
                     }`}
                   >
-                    {queue.messageCount.toLocaleString()}
+                    {queue.messageCount.toLocaleString('en-US')}
                   </span>
                   {queue.health === 'STALLED' && (
                     <span

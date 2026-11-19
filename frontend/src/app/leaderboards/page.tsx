@@ -146,7 +146,7 @@ function PilotList({
                     )}
                   </div>
                   <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap">
-                    {pilot.killCount.toLocaleString()}
+                    {pilot.killCount.toLocaleString('en-US')}
                   </span>
                 </div>
               </div>

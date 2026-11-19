@@ -55,12 +55,12 @@ export default function KillmailsTable({
             <h2 className="flex items-baseline gap-2 text-xl font-medium">
               <span className="text-gray-200">{date}</span>
               <span className="text-sm font-normal text-ink-muted">
-                ({dayCount.toLocaleString()}{' '}
+                ({dayCount.toLocaleString('en-US')}{' '}
                 {dayCount === 1 ? 'killmail' : 'killmails'})
               </span>
               {index === 0 && totalCount !== undefined && totalCount > 0 && (
                 <span className="ml-auto text-sm font-normal text-ink-muted">
-                  Total: {totalCount.toLocaleString()} killmails
+                  Total: {totalCount.toLocaleString('en-US')} killmails
                 </span>
               )}
             </h2>
