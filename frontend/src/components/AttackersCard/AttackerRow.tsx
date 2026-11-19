@@ -217,7 +217,7 @@ export default function AttackerRow({
             {attacker.damageDone > 0 && (
               <>
                 <span className="text-destroyed">
-                  {attacker.damageDone.toLocaleString()}
+                  {attacker.damageDone.toLocaleString('en-US')}
                 </span>
                 <span className="text-ink-muted">{damagePercentage}</span>
               </>

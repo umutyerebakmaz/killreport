@@ -496,7 +496,8 @@ export default function FactionDetailPage({ params }: FactionDetailPageProps) {
               <h2 className="sr-only">Member Corporations</h2>
               {corporationsPageInfo?.totalCount !== undefined && (
                 <p className="text-sm text-ink-muted">
-                  Total: {corporationsPageInfo.totalCount.toLocaleString()}{' '}
+                  Total:{' '}
+                  {corporationsPageInfo.totalCount.toLocaleString('en-US')}{' '}
                   corporations
                 </p>
               )}

@@ -97,7 +97,7 @@ export default function KillmailRow({
               </div>
             )}
             <div className="text-base text-destroyed">
-              {km.victim?.damageTaken?.toLocaleString() || 0}
+              {km.victim?.damageTaken?.toLocaleString('en-US') || 0}
             </div>
           </div>
         </div>

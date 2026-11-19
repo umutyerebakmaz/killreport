@@ -246,9 +246,10 @@ export default function SolarSystemDetailPage({
           {system.latestActivity ? (
             <div className="flex flex-col items-end space-y-2 text-xs text-ink-muted">
               <span>
-                {system.latestActivity.ship_kills.toLocaleString()} ships,{' '}
-                {system.latestActivity.pod_kills.toLocaleString()} pods,{' '}
-                {system.latestActivity.npc_kills.toLocaleString()} NPC killed
+                {system.latestActivity.ship_kills.toLocaleString('en-US')}{' '}
+                ships, {system.latestActivity.pod_kills.toLocaleString('en-US')}{' '}
+                pods, {system.latestActivity.npc_kills.toLocaleString('en-US')}{' '}
+                NPC killed
               </span>
               <span>{formatTimeAgo(system.latestActivity.timestamp)}</span>
             </div>

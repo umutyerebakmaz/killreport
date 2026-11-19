@@ -53,13 +53,13 @@ export default function StarCard({ star, starId }: StarCardProps) {
         {star.temperature != null && (
           <Row
             label="Temperature"
-            value={`${star.temperature.toLocaleString()} K`}
+            value={`${star.temperature.toLocaleString('en-US')} K`}
           />
         )}
         {star.radius != null && (
           <Row
             label="Radius"
-            value={`${(star.radius / 1000).toLocaleString(undefined, {
+            value={`${(star.radius / 1000).toLocaleString('en-US', {
               maximumFractionDigits: 0,
             })} km`}
           />

@@ -92,7 +92,7 @@ export default function TopCorporationCard({
 
                     {/* Kill Count */}
                     <span className="text-base font-medium text-ink-muted tabular-nums whitespace-nowrap shrink-0">
-                      {corporation.killCount.toLocaleString()}
+                      {corporation.killCount.toLocaleString('en-US')}
                     </span>
                   </div>
                 </div>

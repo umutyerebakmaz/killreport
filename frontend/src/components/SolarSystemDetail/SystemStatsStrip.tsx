@@ -51,12 +51,12 @@ export default function SystemStatsStrip({ systemId }: SystemStatsStripProps) {
     <div className="grid grid-cols-2 gap-4 mt-6 lg:grid-cols-4">
       <Box
         label="Total Kills"
-        value={(stats?.totalKills ?? 0).toLocaleString()}
+        value={(stats?.totalKills ?? 0).toLocaleString('en-US')}
       />
       <Box label="ISK Destroyed" value={formatISK(stats?.totalIskDestroyed)} />
       <Box
         label="Kills (24h)"
-        value={(stats?.kills24h ?? 0).toLocaleString()}
+        value={(stats?.kills24h ?? 0).toLocaleString('en-US')}
       />
       <Box
         label="Busiest Hour"

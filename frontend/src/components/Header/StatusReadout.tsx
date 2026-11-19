@@ -59,7 +59,7 @@ export default function StatusReadout() {
       <Tooltip content="Players online on Tranquility" position="bottom">
         <div className="flex items-center gap-2 cursor-help">
           <span className="font-medium text-white">
-            {players?.toLocaleString() ?? '-'}
+            {players?.toLocaleString('en-US') ?? '-'}
           </span>
           <span className="hidden sm:inline">in game</span>
         </div>

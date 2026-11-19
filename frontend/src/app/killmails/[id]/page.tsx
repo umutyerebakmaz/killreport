@@ -320,7 +320,7 @@ export default function KillmailDetailPage({
 
             <SummaryRow label="Damage">
               <span className="text-destroyed tabular-nums">
-                {victim?.damageTaken?.toLocaleString()}
+                {victim?.damageTaken?.toLocaleString('en-US')}
               </span>
             </SummaryRow>
 

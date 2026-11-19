@@ -475,7 +475,7 @@ export default function CorporationDetailPage({
               <div>
                 <span className="text-ink-muted">Member Count</span>
                 <span className="ml-2 font-medium">
-                  {corporation.member_count?.toLocaleString() || 'N/A'}
+                  {corporation.member_count?.toLocaleString('en-US') || 'N/A'}
                 </span>
               </div>
               <div>

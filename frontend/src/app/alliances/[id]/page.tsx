@@ -477,7 +477,7 @@ export default function AllianceDetailPage({
               <div>
                 <span className="text-ink-muted">Start Date:</span>
                 <span className="ml-2 font-medium">
-                  {new Date(alliance.date_founded).toLocaleDateString()}
+                  {new Date(alliance.date_founded).toLocaleDateString('en-US')}
                 </span>
               </div>
             </div>
@@ -622,7 +622,8 @@ export default function AllianceDetailPage({
               <h2 className="sr-only">Member Corporations</h2>
               {corporationsPageInfo?.totalCount !== undefined && (
                 <p className="text-sm text-ink-muted">
-                  Total: {corporationsPageInfo.totalCount.toLocaleString()}{' '}
+                  Total:{' '}
+                  {corporationsPageInfo.totalCount.toLocaleString('en-US')}{' '}
                   corporations
                 </p>
               )}

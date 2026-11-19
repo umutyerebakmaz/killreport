@@ -276,7 +276,7 @@ export default function CharacterDetailPage({
                   className="px-1.5 py-0.5 text-xs text-gray-300 tabular-nums bg-gray-800 border border-gray-600"
                   title="Achievement score"
                 >
-                  {character.achievementScore.toLocaleString()}
+                  {character.achievementScore.toLocaleString('en-US')}
                 </span>
               )}
             </div>
