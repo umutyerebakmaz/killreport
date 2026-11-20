@@ -129,6 +129,7 @@
     "worker:sov:campaigns": "tsx src/workers/worker-sovereignty-campaigns.ts",
     "worker:sov:map": "tsx src/workers/worker-sovereignty-map.ts",
     "worker:sov:structures": "tsx src/workers/worker-sovereignty-structures.ts",
+    "worker:sov:structures:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-sovereignty-structures",
     "worker:sov:snapshot": "tsx src/workers/worker-sovereignty-snapshot.ts",
     "worker:sov:correlate": "tsx src/workers/worker-sovereignty-correlate.ts",
     "populate:char-alliance": "tsx populate-scripts/character-top-alliance.ts",
