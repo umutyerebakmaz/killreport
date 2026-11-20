@@ -54,8 +54,18 @@ pub struct EsiCampaign {
     pub defender_score: Option<f64>,
     pub attackers_score: Option<f64>,
     pub start_time: DateTime<Utc>,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "null_as_empty")]
     pub participants: Vec<EsiParticipant>,
+}
+
+/// A `null` list reads as empty, as Node's `?? []` reads it: one campaign
+/// shaped that way must not fail the whole run.
+fn null_as_empty<'de, D, T>(deserializer: D) -> Result<Vec<T>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de>,
+{
+    Ok(Option::<Vec<T>>::deserialize(deserializer)?.unwrap_or_default())
 }
 
 #[derive(Debug, Clone, Deserialize)]

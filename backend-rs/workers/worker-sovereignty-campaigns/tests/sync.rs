@@ -361,3 +361,11 @@ async fn duplicate_ids_in_the_feed_keep_the_last(pool: PgPool) {
     .unwrap();
     assert_eq!(p, 0.3);
 }
+
+#[test]
+fn explicit_null_participants_deserialise_as_none() {
+    let mut c = esi(1, json!({}));
+    c["participants"] = Value::Null;
+    let parsed: EsiCampaign = serde_json::from_value(c).unwrap();
+    assert!(parsed.participants.is_empty());
+}
