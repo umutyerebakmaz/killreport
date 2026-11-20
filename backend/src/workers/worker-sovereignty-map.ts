@@ -27,8 +27,6 @@ import { SovereigntyService } from '@services/sovereignty/sovereignty.service';
 // Cap territory-change alerts per run so a large reshuffle can't flood clients.
 const MAX_CHANGE_ALERTS = 25;
 
-const CHUNK_SIZE = 100;
-
 type Owner = {
   alliance_id: number | null;
   corporation_id: number | null;
@@ -70,13 +68,21 @@ function changeType(prev: Owner | null, next: Owner | null): string {
   return 'faction_change';
 }
 
-async function syncSovereigntyMap() {
+export async function syncSovereigntyMap() {
   const startTime = Date.now();
   logger.info('🗺️  starting sovereignty map sync...');
 
   try {
     const map = await SovereigntyService.getSovereigntyMap();
     logger.info(`📡 received ${map.length} systems from ESI`);
+
+    // ESI never reports an unclaimed New Eden for real. Acting on it would
+    // log a permanent `lost` row for every system and empty the table, so the
+    // next run would mistake itself for a first run.
+    if (!map.some((entry) => isOwned(ownerOf(entry)))) {
+      logger.warn('⚠️  ESI returned no owned systems — skipping this run');
+      return;
+    }
 
     // Load current ownership state
     const existingRows = await prismaWorker.sovereigntyMapCurrent.findMany();
@@ -135,41 +141,52 @@ async function syncSovereigntyMap() {
       }
     }
 
-    // Persist territory changes
-    if (changes.length > 0) {
-      await prismaWorker.territoryChange.createMany({ data: changes });
-      // Push live alerts (capped so a big reshuffle doesn't flood clients).
-      for (const ch of changes.slice(0, MAX_CHANGE_ALERTS)) {
-        const alert = await buildSovereigntyAlert(prismaWorker, {
-          type: 'territory_change',
-          systemId: ch.solar_system_id,
-          previousOwnerId: ch.previous_owner_id,
-          newOwnerId: ch.new_owner_id,
-          changeType: ch.change_type,
-        });
-        pubsub.publish('SOVEREIGNTY_ALERT', alert);
+    // The change log, the upserts and the deletes commit together, so a
+    // failure cannot leave a change logged against a map that never moved.
+    // The upsert is one statement: row-by-row upserts inside an interactive
+    // transaction run one after another and a first population would outlast
+    // its timeout. `last_updated` is bound in UTC (EVE time), not left to the
+    // session time zone.
+    const stamp = new Date().toISOString();
+    await prismaWorker.$transaction(async (tx) => {
+      if (changes.length > 0) {
+        await tx.territoryChange.createMany({ data: changes });
       }
-    }
+      if (toUpsert.length > 0) {
+        const ids = toUpsert.map((u) => u.solar_system_id);
+        const alliances = toUpsert.map((u) => u.owner.alliance_id);
+        const corporations = toUpsert.map((u) => u.owner.corporation_id);
+        const factions = toUpsert.map((u) => u.owner.faction_id);
+        await tx.$executeRaw`
+          INSERT INTO sovereignty_map_current
+            (solar_system_id, alliance_id, corporation_id, faction_id, last_updated)
+          SELECT u.*, ${stamp}::timestamp(3)
+          FROM unnest(${ids}::int[], ${alliances}::int[], ${corporations}::int[], ${factions}::int[]) AS u
+          ON CONFLICT (solar_system_id) DO UPDATE SET
+            alliance_id = EXCLUDED.alliance_id,
+            corporation_id = EXCLUDED.corporation_id,
+            faction_id = EXCLUDED.faction_id,
+            last_updated = EXCLUDED.last_updated
+        `;
+      }
+      if (toDelete.length > 0) {
+        await tx.sovereigntyMapCurrent.deleteMany({
+          where: { solar_system_id: { in: toDelete } },
+        });
+      }
+    });
 
-    // Upsert changed / new ownership rows
-    for (let i = 0; i < toUpsert.length; i += CHUNK_SIZE) {
-      const chunk = toUpsert.slice(i, i + CHUNK_SIZE);
-      await Promise.all(
-        chunk.map(({ solar_system_id, owner }) =>
-          prismaWorker.sovereigntyMapCurrent.upsert({
-            where: { solar_system_id },
-            create: { solar_system_id, ...owner },
-            update: owner,
-          }),
-        ),
-      );
-    }
-
-    // Remove systems that lost sovereignty
-    if (toDelete.length > 0) {
-      await prismaWorker.sovereigntyMapCurrent.deleteMany({
-        where: { solar_system_id: { in: toDelete } },
+    // Live alerts only after the commit, capped so a big reshuffle doesn't
+    // flood clients.
+    for (const ch of changes.slice(0, MAX_CHANGE_ALERTS)) {
+      const alert = await buildSovereigntyAlert(prismaWorker, {
+        type: 'territory_change',
+        systemId: ch.solar_system_id,
+        previousOwnerId: ch.previous_owner_id,
+        newOwnerId: ch.new_owner_id,
+        changeType: ch.change_type,
       });
+      pubsub.publish('SOVEREIGNTY_ALERT', alert);
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -185,12 +202,15 @@ async function syncSovereigntyMap() {
   }
 }
 
-syncSovereigntyMap()
-  .then(async () => {
-    await prismaWorker.$disconnect();
-    process.exit(0);
-  })
-  .catch(async () => {
-    await prismaWorker.$disconnect();
-    process.exit(1);
-  });
+// Run only when executed directly, so the spec can import the sync
+if (require.main === module) {
+  syncSovereigntyMap()
+    .then(async () => {
+      await prismaWorker.$disconnect();
+      process.exit(0);
+    })
+    .catch(async () => {
+      await prismaWorker.$disconnect();
+      process.exit(1);
+    });
+}
