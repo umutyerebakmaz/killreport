@@ -127,6 +127,7 @@
     "worker:prices:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-prices",
     "worker:backfill-values": "tsx src/workers/worker-backfill-values.ts",
     "worker:sov:campaigns": "tsx src/workers/worker-sovereignty-campaigns.ts",
+    "worker:sov:campaigns:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-sovereignty-campaigns",
     "worker:sov:map": "tsx src/workers/worker-sovereignty-map.ts",
     "worker:sov:structures": "tsx src/workers/worker-sovereignty-structures.ts",
     "worker:sov:structures:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-sovereignty-structures",
