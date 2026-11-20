@@ -20,13 +20,22 @@ import { SovereigntyService } from '@services/sovereignty/sovereignty.service';
 
 const CHUNK_SIZE = 50;
 
-async function syncSovereigntyStructures() {
+export async function syncSovereigntyStructures() {
   const startTime = Date.now();
   logger.info('🛰️  starting sovereignty structures sync...');
 
   try {
     const structures = await SovereigntyService.getSovereigntyStructures();
     logger.info(`📡 received ${structures.length} structures from ESI`);
+
+    // ESI never reports zero sovereignty structures for real. Acting on an
+    // empty answer would mark every IHub and TCU destroyed until the next run.
+    if (structures.length === 0) {
+      logger.warn(
+        '⚠️  ESI returned 0 sovereignty structures — skipping this run',
+      );
+      return;
+    }
 
     const now = new Date();
     let upserted = 0;
@@ -74,9 +83,7 @@ async function syncSovereigntyStructures() {
     const destroyed = await prismaWorker.sovereigntyStructure.updateMany({
       where: {
         destroyed_at: null,
-        structure_id: {
-          notIn: activeIds.length > 0 ? activeIds : [BigInt(-1)],
-        },
+        structure_id: { notIn: activeIds },
       },
       data: { destroyed_at: now },
     });
@@ -91,12 +98,15 @@ async function syncSovereigntyStructures() {
   }
 }
 
-syncSovereigntyStructures()
-  .then(async () => {
-    await prismaWorker.$disconnect();
-    process.exit(0);
-  })
-  .catch(async () => {
-    await prismaWorker.$disconnect();
-    process.exit(1);
-  });
+// Run only when executed directly, so the spec can import the sync
+if (require.main === module) {
+  syncSovereigntyStructures()
+    .then(async () => {
+      await prismaWorker.$disconnect();
+      process.exit(0);
+    })
+    .catch(async () => {
+      await prismaWorker.$disconnect();
+      process.exit(1);
+    });
+}
