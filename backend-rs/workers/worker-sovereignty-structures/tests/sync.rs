@@ -219,3 +219,22 @@ async fn sync_reads_the_esi_list(pool: PgPool) {
         }
     );
 }
+
+#[sqlx::test(migrations = false, fixtures("sovereignty_structures"))]
+async fn a_duplicate_id_in_the_feed_keeps_the_last(pool: PgPool) {
+    let feed = [structure(1, 1, 32226, 1), structure(1, 1, 32226, 2)];
+    let outcome = write_structures(&pool, &feed, now()).await.unwrap();
+    assert_eq!(
+        outcome,
+        StructuresOutcome::Synced {
+            upserted: 1,
+            destroyed: 0
+        }
+    );
+    let alliance: i32 =
+        sqlx::query_scalar("SELECT alliance_id FROM sovereignty_structures WHERE structure_id = 1")
+            .fetch_one(&pool)
+            .await
+            .unwrap();
+    assert_eq!(alliance, 2);
+}

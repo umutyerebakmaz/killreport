@@ -11,6 +11,8 @@
 //! Every time is UTC (EVE time) and bound from the caller's `now`, never the
 //! database's `now()`, which would follow the session time zone.
 
+use std::collections::HashMap;
+
 use chrono::{DateTime, NaiveDateTime, Utc};
 use esi::EsiClient;
 use serde::Deserialize;
@@ -50,6 +52,21 @@ pub async fn write_structures(
     if structures.is_empty() {
         return Ok(StructuresOutcome::EmptyFeed);
     }
+
+    // One `INSERT … ON CONFLICT` cannot touch a row twice; a repeated ID keeps
+    // its first place and its last values, as Node's row-by-row upserts do.
+    let mut unique: Vec<&EsiStructure> = Vec::with_capacity(structures.len());
+    let mut index: HashMap<i64, usize> = HashMap::with_capacity(structures.len());
+    for s in structures {
+        match index.get(&s.structure_id) {
+            Some(&i) => unique[i] = s,
+            None => {
+                index.insert(s.structure_id, unique.len());
+                unique.push(s);
+            }
+        }
+    }
+    let structures = unique;
 
     let ids: Vec<i64> = structures.iter().map(|s| s.structure_id).collect();
     let systems: Vec<i32> = structures.iter().map(|s| s.solar_system_id).collect();
