@@ -17,7 +17,10 @@
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { pubsub } from '@services/pubsub';
-import { buildSovereigntyAlert } from '@services/sovereignty/alert-builder';
+import {
+  buildSovereigntyAlert,
+  type SovereigntyAlertEvent,
+} from '@services/sovereignty/alert-builder';
 import { SovereigntyService } from '@services/sovereignty/sovereignty.service';
 
 // "Nobody really contested" threshold for outcome inference (scores are 0..1).
@@ -42,7 +45,7 @@ function inferOutcome(
   return d >= a ? 'defender_won' : 'attacker_won';
 }
 
-async function syncSovereigntyCampaigns() {
+export async function syncSovereigntyCampaigns() {
   const startTime = Date.now();
   logger.info('🏰 starting sovereignty campaigns sync...');
 
@@ -52,7 +55,8 @@ async function syncSovereigntyCampaigns() {
 
     const now = new Date();
     let participantCount = 0;
-    let startedAlerts = 0;
+    const started: SovereigntyAlertEvent[] = [];
+    const ended: SovereigntyAlertEvent[] = [];
 
     // Which of THIS feed's campaigns already exist (scoped to the feed, not the
     // whole history). Anything in the feed but not here is a new campaign. On a
@@ -115,20 +119,14 @@ async function syncSovereigntyCampaigns() {
         participantCount++;
       }
 
-      // Alert on a genuinely new campaign (in the feed but not previously stored),
-      // skipping the first-run baseline and capping per run.
-      if (
-        !isBaseline &&
-        !existingIds.has(campaign.campaign_id) &&
-        startedAlerts < MAX_ALERTS
-      ) {
-        startedAlerts++;
-        const alert = await buildSovereigntyAlert(prismaWorker, {
+      // A genuinely new campaign (in the feed but not previously stored),
+      // skipping the first-run baseline. Published after every write.
+      if (!isBaseline && !existingIds.has(campaign.campaign_id)) {
+        started.push({
           type: 'campaign_started',
           systemId: campaign.solar_system_id,
           defenderId: campaign.defender_id ?? null,
         });
-        pubsub.publish('SOVEREIGNTY_ALERT', alert);
       }
     }
 
@@ -164,17 +162,24 @@ async function syncSovereigntyCampaigns() {
             data: { end_time: now, outcome },
           });
           endedCount++;
-          const alert = await buildSovereigntyAlert(prismaWorker, {
+          ended.push({
             type: 'campaign_ended',
             systemId: c.solar_system_id,
             defenderId: c.defender_id,
             outcome,
           });
-          pubsub.publish('SOVEREIGNTY_ALERT', alert);
         } catch (err) {
           logger.error(`failed to end campaign ${c.campaign_id}`, { err });
         }
       }
+    }
+
+    // Only after every write, so an alert never announces one that failed.
+    // One cap for both kinds, started first, so a mass ending after downtime
+    // cannot flood clients either.
+    for (const event of [...started, ...ended].slice(0, MAX_ALERTS)) {
+      const alert = await buildSovereigntyAlert(prismaWorker, event);
+      pubsub.publish('SOVEREIGNTY_ALERT', alert);
     }
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
@@ -188,12 +193,15 @@ async function syncSovereigntyCampaigns() {
   }
 }
 
-syncSovereigntyCampaigns()
-  .then(async () => {
-    await prismaWorker.$disconnect();
-    process.exit(0);
-  })
-  .catch(async () => {
-    await prismaWorker.$disconnect();
-    process.exit(1);
-  });
+// Run only when executed directly, so the spec can import the sync
+if (require.main === module) {
+  syncSovereigntyCampaigns()
+    .then(async () => {
+      await prismaWorker.$disconnect();
+      process.exit(0);
+    })
+    .catch(async () => {
+      await prismaWorker.$disconnect();
+      process.exit(1);
+    });
+}
