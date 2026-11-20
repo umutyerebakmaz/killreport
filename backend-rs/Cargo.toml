@@ -33,3 +33,4 @@ db = { path = "crates/db" }
 esi = { path = "crates/esi" }
 mq = { path = "crates/mq" }
 runner = { path = "crates/runner" }
+sov = { path = "crates/sov" }
