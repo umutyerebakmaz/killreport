@@ -129,6 +129,7 @@
     "worker:sov:campaigns": "tsx src/workers/worker-sovereignty-campaigns.ts",
     "worker:sov:campaigns:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-sovereignty-campaigns",
     "worker:sov:map": "tsx src/workers/worker-sovereignty-map.ts",
+    "worker:sov:map:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-sovereignty-map",
     "worker:sov:structures": "tsx src/workers/worker-sovereignty-structures.ts",
     "worker:sov:structures:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-sovereignty-structures",
     "worker:sov:snapshot": "tsx src/workers/worker-sovereignty-snapshot.ts",

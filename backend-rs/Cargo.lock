@@ -3514,6 +3514,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "worker-sovereignty-map"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "db",
+ "esi",
+ "runner",
+ "serde",
+ "serde_json",
+ "sov",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "wiremock",
+]
+
+[[package]]
 name = "worker-sovereignty-structures"
 version = "0.1.0"
 dependencies = [
