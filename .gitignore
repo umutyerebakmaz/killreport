@@ -27,3 +27,6 @@ logs/
 
 # Rust worker spike build output
 backend-rs/target/
+
+# Rust binaries downloaded from CI (yarn rs:download)
+/killreport-rs-linux-x86_64.tar.gz
