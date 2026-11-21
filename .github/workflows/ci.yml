@@ -154,3 +154,63 @@ jobs:
       - run: cargo clippy --all-targets -- -D warnings
       # Tests marked #[ignore] need RabbitMQ or real data and do not run here.
       - run: cargo test
+
+  # Static x86_64 musl binaries of every queue and worker crate, the ones the
+  # systemd units run (backend/docs/ops/systemd.md, "Moving a unit to Rust").
+  # Pull requests build and check them; only a push to main keeps the artifact.
+  backend-rs-linux:
+    name: Backend (Rust, Linux binaries)
+    needs: backend-rs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend-rs
+    env:
+      SQLX_OFFLINE: 'true'
+      CARGO_TERM_COLOR: always
+    steps:
+      - uses: actions/checkout@v4
+      - run: rustup toolchain install
+      # Only here, not in rust-toolchain.toml, so a local Windows checkout
+      # does not download a target it never builds.
+      - run: rustup target add x86_64-unknown-linux-musl
+      # ring compiles C and needs musl-gcc.
+      - run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend-rs
+          key: linux-musl
+      - run: cargo build --release --locked --target x86_64-unknown-linux-musl --bins
+      - name: Collect and check the binaries
+        run: |
+          mkdir -p dist/bin
+          for bin in $(cargo metadata --no-deps --format-version 1 | jq -r '.packages[].targets[] | select(.kind[] == "bin") | .name'); do
+            cp "target/x86_64-unknown-linux-musl/release/$bin" dist/bin/
+          done
+          crates=$(ls -d queues/*/ workers/*/ | wc -l)
+          bins=$(ls dist/bin | wc -l)
+          echo "$bins binaries for $crates crates"
+          if [ "$bins" -ne "$crates" ]; then exit 1; fi
+          file dist/bin/*
+          if file dist/bin/* | grep -Ev 'statically linked|static-pie linked'; then
+            echo "::error::a binary is not statically linked"
+            exit 1
+          fi
+      - name: Package
+        run: |
+          (cd dist/bin && sha256sum * > ../SHA256SUMS)
+          echo "$GITHUB_SHA" > dist/COMMIT
+          tar czf killreport-rs-linux-x86_64.tar.gz -C dist bin SHA256SUMS COMMIT
+          # Unpack it the way the server will, so a broken archive fails here.
+          check=$(mktemp -d)
+          tar xzf killreport-rs-linux-x86_64.tar.gz -C "$check"
+          (cd "$check/bin" && sha256sum -c ../SHA256SUMS)
+          for f in "$check"/bin/*; do test -x "$f"; done
+      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: killreport-rs-linux-x86_64
+          path: backend-rs/killreport-rs-linux-x86_64.tar.gz
+          retention-days: 30
+          if-no-files-found: error

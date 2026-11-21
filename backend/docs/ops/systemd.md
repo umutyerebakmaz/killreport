@@ -186,19 +186,69 @@ Static universe and reference data (`queue:regions`, `queue:types`,
 
 ## Moving a unit to Rust
 
-A Rust binary is built locally for `x86_64-unknown-linux-musl` and copied with
-`scp` to `/var/www/killreport/backend-rs/bin/<crate>`. The droplet has no Rust
-toolchain. The unit keeps its name, its timer and its logs. Only the start
-line changes:
+CI builds every queue and worker crate as a static
+`x86_64-unknown-linux-musl` binary. The job is `Backend (Rust, Linux binaries)`
+in [`ci.yml`](../../../.github/workflows/ci.yml). Each push to `main` keeps the
+result for 30 days as the artifact `killreport-rs-linux-x86_64`: one
+`killreport-rs-linux-x86_64.tar.gz` holding `bin/`, `SHA256SUMS` and `COMMIT`.
+The server has no Rust toolchain and needs none.
+
+### Installing the binaries
+
+1. Download the artifact of the last successful `main` run. Run this from the
+   repo root:
+
+   ```bash
+   yarn rs:download
+   ```
+
+   The file lands in the repo root, which ignores it. `gh run download` does not
+   overwrite files, so delete the previous `.tar.gz` first.
+
+2. Copy it to the server:
+
+   ```bash
+   scp killreport-rs-linux-x86_64.tar.gz <server>:/tmp/
+   ```
+
+3. Unpack it, verify the checksums and install, on the server:
+
+   ```bash
+   cd /tmp && rm -rf bin && tar xzf killreport-rs-linux-x86_64.tar.gz && (cd bin && sha256sum -c ../SHA256SUMS)
+   sudo install -o killreport -g killreport -m 0755 -t /var/www/killreport/backend-rs/bin/ bin/*
+   sudo install -o killreport -g killreport -m 0644 -t /var/www/killreport/backend-rs/bin/ COMMIT
+   ```
+
+   Use `install`, never `scp` straight into `bin/`. `install` writes a new file
+   and puts it in place of the old one, so a running worker keeps its binary
+   while the new one is installed. Overwriting the file in place fails with
+   `Text file busy`. `bin/COMMIT` names the commit the binaries were built
+   from.
+
+4. A continuous worker picks up the new binary on
+   `sudo systemctl restart <unit>`. A timer job picks it up on its next run.
+
+### Switching a unit
+
+The unit keeps its name, its timer and its logs. `WorkingDirectory` stays
+`/var/www/killreport/backend`, because the binary reads `.env` from there.
+Rust reads neither `NODE_ENV` nor `LOG_LEVEL`. Its log level is `RUST_LOG`,
+which defaults to `info`. Rust stops on systemd's default SIGTERM. `NO_COLOR`
+keeps colour escapes out of the journal.
 
 ```diff
+-Environment=NODE_ENV=production
+-Environment=LOG_LEVEL=debug
++Environment=NO_COLOR=1
 -ExecStart=/usr/bin/yarn worker:info:alliances
 -KillSignal=SIGINT
 -SuccessExitStatus=130
 +ExecStart=/var/www/killreport/backend-rs/bin/worker-info-alliances
 ```
 
-Then copy the unit, `sudo systemctl daemon-reload` and
+In `backend/src/ops/systemd-units.guard.spec.ts`, the unit's inventory entry
+names the binary with `crate` instead of `script`. Then copy the unit, run
+`sudo systemctl daemon-reload` and
 `sudo systemctl restart killreport-worker-alliances`. To roll back, revert the
 diff and repeat the same three steps. Lower `MemoryMax` in a separate change,
 after measuring.
@@ -212,9 +262,11 @@ after measuring.
    system time zone does not change when they fire, but logs read more easily
    in UTC.
 3. Set `SystemMaxUse=` in `/etc/systemd/journald.conf` (see _Daily commands_).
-4. Install, enable and start: run the _Install and update_ line and the
+4. Create the directory the Rust binaries go to:
+   `sudo mkdir -p /var/www/killreport/backend-rs/bin && sudo chown killreport: /var/www/killreport/backend-rs/bin`.
+5. Install, enable and start: run the _Install and update_ line and the
    _Enable_ line, then `sudo systemctl start killreport.target`.
-5. Verify. `systemctl list-units 'killreport-*'` shows every long-running unit
+6. Verify. `systemctl list-units 'killreport-*'` shows every long-running unit
    `active (running)`. `systemctl list-timers 'killreport-*'` shows 16 timers.
    `query { workerStatus { queueName consumerCount } }` shows a consumer on
    every queue, three on `backfill_killmail_values_queue`.

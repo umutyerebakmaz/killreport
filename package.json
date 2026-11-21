@@ -17,6 +17,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "docs:check-links": "node scripts/check-doc-links.js",
+    "rs:download": "gh run download \"$(gh run list --workflow ci.yml --branch main --status success --event push -L 1 --json databaseId -q '.[0].databaseId')\" -n killreport-rs-linux-x86_64",
     "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml backend/node_modules backend/yarn.lock backend/package-lock.json backend/pnpm-lock.yaml frontend/node_modules frontend/yarn.lock frontend/package-lock.json frontend/pnpm-lock.yaml frontend/.next",
     "prepare": "husky"
   },
