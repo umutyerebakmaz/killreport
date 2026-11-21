@@ -59,7 +59,7 @@ flowchart TB
 | `worker:sov:campaigns`  | ESI `/sovereignty/campaigns`     | every **5 min**              | campaigns + participants; sets `outcome` when a campaign ends; **publishes campaign_started / campaign_ended alerts** |
 | `worker:sov:map`        | ESI `/sovereignty/map`           | every **30 min**             | system ownership (`map_current`) + `territory_changes`; **publishes territory_change alerts**                         |
 | `worker:sov:structures` | ESI `/sovereignty/structures`    | every **30 min** (offset 15) | IHub/TCU inventory + vulnerability windows; marks destroyed                                                           |
-| `worker:sov:snapshot`   | Postgres (aggregates)            | **daily 01:00 UTC**          | daily map snapshot + per-alliance territory stats                                                                     |
+| `worker:sov:snapshot`   | Postgres (aggregates)            | **daily 01:00 UTC**          | previous UTC day's close: map snapshot + per-alliance territory stats, gained/lost over the full day                  |
 | `worker:sov:correlate`  | Postgres (killmails × campaigns) | every **10 min**             | tags war kills (`is_war_related`) + rolls up combat stats incl. attacker/defender ISK split                           |
 | `worker:redisq`         | RedisQ / R2Z2 stream             | **continuous**               | ingests killmails in real time (feeds correlate + war-kill stats)                                                     |
 

@@ -2,187 +2,115 @@
 /**
  * Sovereignty Daily Snapshot Worker
  *
- * Writes a daily point-in-time snapshot of the current sovereignty map and
- * aggregates per-alliance territory statistics for the day:
- *   - systems_controlled, ihub_count, tcu_count
- *   - campaigns_attacking / campaigns_defending (from active campaigns)
- *   - systems_gained / systems_lost (from today's territory_changes)
+ * Writes the previous UTC day's close: one `sovereignty_map_snapshots` row per
+ * owned system and one `alliance_territory_stats` row per alliance, both dated
+ * that day (D). The systemd timer fires at 01:00 UTC, so map, structure and
+ * campaign counts are those of 01:00, and systems_gained / systems_lost count
+ * the whole of D, `[D 00:00, D+1 00:00)`.
  *
- * Idempotent: uses (system, date) and (alliance, date) unique keys, so re-running
- * on the same day overwrites/skips rather than duplicating.
+ * D is deleted and rewritten in one transaction, so a re-run leaves exactly
+ * the latest state. An empty current map writes nothing. The Rust
+ * counterpart, `backend-rs/workers/worker-sovereignty-snapshot`, runs the same
+ * four statements.
  *
  * Usage:
  *   yarn worker:sov:snapshot
- *
- * PM2 Cron:
- *   Runs daily at 01:00 UTC via ecosystem.config.js
  */
 
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 
-const IHUB_TYPE_ID = 32458; // Infrastructure Hub
-const TCU_TYPE_ID = 32226; // Territorial Claim Unit
-const BATCH_SIZE = 1000;
-
-type StatRow = {
-  systems_controlled: number;
-  ihub_count: number;
-  tcu_count: number;
-  campaigns_attacking: number;
-  campaigns_defending: number;
-  systems_gained: number;
-  systems_lost: number;
-};
-
-function emptyRow(): StatRow {
-  return {
-    systems_controlled: 0,
-    ihub_count: 0,
-    tcu_count: 0,
-    campaigns_attacking: 0,
-    campaigns_defending: 0,
-    systems_gained: 0,
-    systems_lost: 0,
-  };
+/**
+ * The day a run writes, as 'YYYY-MM-DD': the UTC day before `now`. Bound as a
+ * string, not a Date, so the `::date` cast never sees a session time zone.
+ */
+export function snapshotDateFor(now: Date): string {
+  const day = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 1),
+  );
+  return day.toISOString().slice(0, 10);
 }
 
-async function snapshotSovereignty() {
+export async function snapshotSovereignty(now: Date = new Date()) {
   const startTime = Date.now();
-  const now = new Date();
-  const snapshotDate = new Date(
-    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-  );
-  logger.info(
-    `📸 starting sovereignty daily snapshot for ${snapshotDate.toISOString().slice(0, 10)}...`,
-  );
+  const date = snapshotDateFor(now);
+  logger.info(`📸 starting sovereignty daily snapshot for ${date}...`);
 
   try {
-    // 1. Snapshot the current map
-    const current = await prismaWorker.sovereigntyMapCurrent.findMany();
-    logger.info(`   • snapshotting ${current.length} owned systems`);
+    const result = await prismaWorker.$transaction(async (tx) => {
+      const [{ empty }] = await tx.$queryRaw<{ empty: boolean }[]>`
+        SELECT NOT EXISTS (SELECT 1 FROM sovereignty_map_current) AS empty`;
+      if (empty) return null;
 
-    let snapshotInserted = 0;
-    for (let i = 0; i < current.length; i += BATCH_SIZE) {
-      const batch = current.slice(i, i + BATCH_SIZE).map((r) => ({
-        solar_system_id: r.solar_system_id,
-        alliance_id: r.alliance_id,
-        corporation_id: r.corporation_id,
-        faction_id: r.faction_id,
-        snapshot_date: snapshotDate,
-      }));
-      const res = await prismaWorker.sovereigntyMapSnapshot.createMany({
-        data: batch,
-        skipDuplicates: true,
-      });
-      snapshotInserted += res.count;
-    }
-
-    // 2. Aggregate per-alliance territory stats
-    const stats = new Map<number, StatRow>();
-    const rowFor = (allianceId: number) => {
-      let row = stats.get(allianceId);
-      if (!row) {
-        row = emptyRow();
-        stats.set(allianceId, row);
-      }
-      return row;
-    };
-
-    // systems controlled
-    const systemsByAlliance = await prismaWorker.sovereigntyMapCurrent.groupBy({
-      by: ['alliance_id'],
-      where: { alliance_id: { not: null } },
-      _count: { _all: true },
+      await tx.$executeRaw`
+        DELETE FROM sovereignty_map_snapshots WHERE snapshot_date = ${date}::date`;
+      const mapRows = await tx.$executeRaw`
+        INSERT INTO sovereignty_map_snapshots
+          (solar_system_id, alliance_id, corporation_id, faction_id, snapshot_date)
+        SELECT solar_system_id, alliance_id, corporation_id, faction_id, ${date}::date
+        FROM sovereignty_map_current`;
+      await tx.$executeRaw`
+        DELETE FROM alliance_territory_stats WHERE date = ${date}::date`;
+      // IHub 32458, TCU 32226. An attacker is every participant of an open
+      // campaign other than its defender (all of them when it is NULL).
+      const statRows = await tx.$executeRaw`
+        WITH
+          systems AS (
+            SELECT alliance_id, COUNT(*)::int AS n FROM sovereignty_map_current
+            WHERE alliance_id IS NOT NULL GROUP BY alliance_id),
+          ihubs AS (
+            SELECT alliance_id, COUNT(*)::int AS n FROM sovereignty_structures
+            WHERE destroyed_at IS NULL AND structure_type_id = 32458 GROUP BY alliance_id),
+          tcus AS (
+            SELECT alliance_id, COUNT(*)::int AS n FROM sovereignty_structures
+            WHERE destroyed_at IS NULL AND structure_type_id = 32226 GROUP BY alliance_id),
+          defending AS (
+            SELECT defender_id AS alliance_id, COUNT(*)::int AS n FROM sovereignty_campaigns
+            WHERE end_time IS NULL AND defender_id IS NOT NULL GROUP BY defender_id),
+          attacking AS (
+            SELECT p.alliance_id, COUNT(*)::int AS n
+            FROM sovereignty_campaigns c
+            JOIN campaign_participants p ON p.campaign_id = c.campaign_id
+            WHERE c.end_time IS NULL AND p.alliance_id IS DISTINCT FROM c.defender_id
+            GROUP BY p.alliance_id),
+          gained AS (
+            SELECT new_owner_id AS alliance_id, COUNT(*)::int AS n FROM territory_changes
+            WHERE new_owner_id IS NOT NULL
+              AND detected_at >= ${date}::date AND detected_at < ${date}::date + 1
+            GROUP BY new_owner_id),
+          lost AS (
+            SELECT previous_owner_id AS alliance_id, COUNT(*)::int AS n FROM territory_changes
+            WHERE previous_owner_id IS NOT NULL
+              AND detected_at >= ${date}::date AND detected_at < ${date}::date + 1
+            GROUP BY previous_owner_id),
+          ids AS (
+            SELECT alliance_id FROM systems UNION SELECT alliance_id FROM ihubs
+            UNION SELECT alliance_id FROM tcus UNION SELECT alliance_id FROM defending
+            UNION SELECT alliance_id FROM attacking UNION SELECT alliance_id FROM gained
+            UNION SELECT alliance_id FROM lost)
+        INSERT INTO alliance_territory_stats
+          (alliance_id, date, systems_controlled, ihub_count, tcu_count,
+           campaigns_attacking, campaigns_defending, systems_gained, systems_lost)
+        SELECT ids.alliance_id, ${date}::date,
+          COALESCE(systems.n, 0), COALESCE(ihubs.n, 0), COALESCE(tcus.n, 0),
+          COALESCE(attacking.n, 0), COALESCE(defending.n, 0),
+          COALESCE(gained.n, 0), COALESCE(lost.n, 0)
+        FROM ids
+        LEFT JOIN systems USING (alliance_id) LEFT JOIN ihubs USING (alliance_id)
+        LEFT JOIN tcus USING (alliance_id) LEFT JOIN defending USING (alliance_id)
+        LEFT JOIN attacking USING (alliance_id) LEFT JOIN gained USING (alliance_id)
+        LEFT JOIN lost USING (alliance_id)`;
+      return { mapRows, statRows };
     });
-    for (const g of systemsByAlliance) {
-      if (g.alliance_id != null)
-        rowFor(g.alliance_id).systems_controlled = g._count._all;
-    }
 
-    // structure counts (IHub / TCU), only live structures
-    const structuresByAlliance =
-      await prismaWorker.sovereigntyStructure.groupBy({
-        by: ['alliance_id', 'structure_type_id'],
-        where: { destroyed_at: null },
-        _count: { _all: true },
-      });
-    for (const g of structuresByAlliance) {
-      const row = rowFor(g.alliance_id);
-      if (g.structure_type_id === IHUB_TYPE_ID) row.ihub_count = g._count._all;
-      else if (g.structure_type_id === TCU_TYPE_ID)
-        row.tcu_count = g._count._all;
+    if (!result) {
+      logger.warn('⚠️  sovereignty_map_current is empty — skipping this run');
+      return;
     }
-
-    // campaigns defending (active campaigns where alliance is the defender)
-    const defending = await prismaWorker.sovereigntyCampaign.groupBy({
-      by: ['defender_id'],
-      where: { end_time: null, defender_id: { not: null } },
-      _count: { _all: true },
-    });
-    for (const g of defending) {
-      if (g.defender_id != null)
-        rowFor(g.defender_id).campaigns_defending = g._count._all;
-    }
-
-    // campaigns attacking (active campaigns, participants other than the defender)
-    const activeCampaigns = await prismaWorker.sovereigntyCampaign.findMany({
-      where: { end_time: null },
-      select: {
-        defender_id: true,
-        participants: { select: { alliance_id: true } },
-      },
-    });
-    for (const campaign of activeCampaigns) {
-      for (const p of campaign.participants) {
-        if (p.alliance_id !== campaign.defender_id)
-          rowFor(p.alliance_id).campaigns_attacking += 1;
-      }
-    }
-
-    // systems gained / lost today (from territory_changes)
-    const gained = await prismaWorker.territoryChange.groupBy({
-      by: ['new_owner_id'],
-      where: {
-        detected_at: { gte: snapshotDate },
-        new_owner_id: { not: null },
-      },
-      _count: { _all: true },
-    });
-    for (const g of gained) {
-      if (g.new_owner_id != null)
-        rowFor(g.new_owner_id).systems_gained = g._count._all;
-    }
-    const lost = await prismaWorker.territoryChange.groupBy({
-      by: ['previous_owner_id'],
-      where: {
-        detected_at: { gte: snapshotDate },
-        previous_owner_id: { not: null },
-      },
-      _count: { _all: true },
-    });
-    for (const g of lost) {
-      if (g.previous_owner_id != null)
-        rowFor(g.previous_owner_id).systems_lost = g._count._all;
-    }
-
-    // 3. Upsert per-alliance stats
-    let statsUpserted = 0;
-    for (const [allianceId, row] of stats) {
-      await prismaWorker.allianceTerritoryStats.upsert({
-        where: {
-          alliance_id_date: { alliance_id: allianceId, date: snapshotDate },
-        },
-        create: { alliance_id: allianceId, date: snapshotDate, ...row },
-        update: { ...row },
-      });
-      statsUpserted++;
-    }
-
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
-      `✅ snapshot complete: ${snapshotInserted} map rows snapshotted, ` +
-        `${statsUpserted} alliance stat rows written (${duration}s)`,
+      `✅ snapshot complete: ${result.mapRows} map rows snapshotted, ` +
+        `${result.statRows} alliance stat rows written (${duration}s)`,
     );
   } catch (error) {
     logger.error('❌ sovereignty snapshot failed', { error });
@@ -190,12 +118,15 @@ async function snapshotSovereignty() {
   }
 }
 
-snapshotSovereignty()
-  .then(async () => {
-    await prismaWorker.$disconnect();
-    process.exit(0);
-  })
-  .catch(async () => {
-    await prismaWorker.$disconnect();
-    process.exit(1);
-  });
+// Run only when executed directly, so the spec can import the snapshot
+if (require.main === module) {
+  snapshotSovereignty()
+    .then(async () => {
+      await prismaWorker.$disconnect();
+      process.exit(0);
+    })
+    .catch(async () => {
+      await prismaWorker.$disconnect();
+      process.exit(1);
+    });
+}
