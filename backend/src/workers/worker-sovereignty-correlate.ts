@@ -2,124 +2,111 @@
 /**
  * Sovereignty Killmail Correlation Worker
  *
- * The flagship feature: links our killmail database to active sovereignty
- * campaigns. For every active campaign it tags killmails that happened in the
- * same system within the campaign's activity window (start - grace .. end/now)
- * with `related_campaign_id` + `is_war_related`, then rolls up per-campaign
- * combat stats (kill count + ISK destroyed) into `campaign_combat_stats`.
+ * Links killmails to sovereignty campaigns: a killmail in a campaign's system
+ * and activity window gets `related_campaign_id` + `is_war_related`, and the
+ * tagged kills roll up into `campaign_combat_stats` (kill count, ISK
+ * destroyed, defender/attacker split).
  *
- * This is what lets us answer "how much ISK is being destroyed in this war?"
- * and "which kills are part of a sov campaign?" — combining data nobody else
- * has together.
+ * - A campaign is eligible while active and for 24 hours after it ends, so
+ *   the kills of its last minutes and killmails that arrive late still land.
+ * - Its window is [start_time - 24 h, end_time], or up to now while active.
+ * - A killmail two eligible campaigns both claim goes to the one that started
+ *   first, then to the lower campaign_id. A tagged killmail is never
+ *   re-evaluated.
+ *
+ * All three statements run in one transaction. The Rust counterpart,
+ * `backend-rs/workers/worker-sovereignty-correlate`, runs the same SQL.
  *
  * Usage:
  *   yarn worker:sov:correlate
- *
- * PM2 Cron:
- *   Runs every 10 minutes via ecosystem.config.js
  */
 
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 
-// Kills up to this long BEFORE a campaign's start_time count as war-related
-// (staging / pre-timer fights around the contested structure).
-const PRE_GRACE_HOURS = 24;
+/**
+ * `now` as a UTC 'YYYY-MM-DD HH:MM:SS.mmm' string. The columns are `timestamp`
+ * without time zone; a JS Date travels as timestamptz and would be cast in the
+ * session's time zone, and a database now() would be local time too.
+ */
+export function timestampFor(now: Date): string {
+  return now.toISOString().replace('T', ' ').replace('Z', '');
+}
 
-async function correlateSovereigntyKillmails() {
+export async function correlateSovereigntyKillmails(now: Date = new Date()) {
   const startTime = Date.now();
-  const now = new Date();
+  const ts = timestampFor(now);
   logger.info('⚔️  starting sovereignty killmail correlation...');
 
   try {
-    const campaigns = await prismaWorker.sovereigntyCampaign.findMany({
-      where: { end_time: null },
-      select: {
-        campaign_id: true,
-        solar_system_id: true,
-        start_time: true,
-        defender_id: true,
+    const { campaigns, tagged, withKills } = await prismaWorker.$transaction(
+      async (tx) => {
+        const [{ n: campaigns }] = await tx.$queryRaw<{ n: number }[]>`
+          SELECT COUNT(*)::int AS n FROM sovereignty_campaigns
+          WHERE end_time IS NULL OR end_time >= ${ts}::timestamp - interval '24 hours'`;
+
+        const tagged = await tx.$executeRaw`
+          WITH
+            eligible AS (
+              SELECT campaign_id, solar_system_id, start_time,
+                     start_time - interval '24 hours' AS window_start,
+                     COALESCE(end_time, ${ts}::timestamp) AS window_end
+              FROM sovereignty_campaigns
+              WHERE end_time IS NULL OR end_time >= ${ts}::timestamp - interval '24 hours'),
+            picks AS (
+              SELECT DISTINCT ON (k.killmail_id) k.killmail_id, e.campaign_id
+              FROM killmails k
+              JOIN eligible e ON e.solar_system_id = k.solar_system_id
+               AND k.killmail_time >= e.window_start AND k.killmail_time <= e.window_end
+              WHERE k.related_campaign_id IS NULL
+              ORDER BY k.killmail_id, e.start_time, e.campaign_id)
+          UPDATE killmails k
+          SET related_campaign_id = p.campaign_id, is_war_related = true, updated_at = ${ts}::timestamp
+          FROM picks p
+          WHERE k.killmail_id = p.killmail_id`;
+
+        // A kill is a defender loss when its victim's alliance is the
+        // campaign's defender; the attacker side is total - defender. The inner
+        // join writes no row for a campaign without kills.
+        const withKills = await tx.$executeRaw`
+          WITH
+            eligible AS (
+              SELECT campaign_id, defender_id FROM sovereignty_campaigns
+              WHERE end_time IS NULL OR end_time >= ${ts}::timestamp - interval '24 hours'),
+            totals AS (
+              SELECT e.campaign_id,
+                     COUNT(*)::int AS war_kills,
+                     COALESCE(SUM(k.total_value), 0) AS isk,
+                     (COUNT(*) FILTER (WHERE v.alliance_id = e.defender_id))::int AS def_ships,
+                     COALESCE(SUM(k.total_value) FILTER (WHERE v.alliance_id = e.defender_id), 0) AS def_isk
+              FROM eligible e
+              JOIN killmails k ON k.related_campaign_id = e.campaign_id
+              LEFT JOIN victims v ON v.killmail_id = k.killmail_id
+              GROUP BY e.campaign_id)
+          INSERT INTO campaign_combat_stats
+            (campaign_id, war_kills, isk_destroyed, ships_destroyed, defender_isk_lost,
+             attacker_isk_lost, defender_ships_lost, attacker_ships_lost, last_correlated)
+          SELECT campaign_id, war_kills, isk, war_kills, def_isk, isk - def_isk,
+                 def_ships, war_kills - def_ships, ${ts}::timestamp
+          FROM totals
+          ON CONFLICT (campaign_id) DO UPDATE SET
+            war_kills = EXCLUDED.war_kills, isk_destroyed = EXCLUDED.isk_destroyed,
+            ships_destroyed = EXCLUDED.ships_destroyed,
+            defender_isk_lost = EXCLUDED.defender_isk_lost,
+            attacker_isk_lost = EXCLUDED.attacker_isk_lost,
+            defender_ships_lost = EXCLUDED.defender_ships_lost,
+            attacker_ships_lost = EXCLUDED.attacker_ships_lost,
+            last_correlated = EXCLUDED.last_correlated`;
+
+        return { campaigns, tagged, withKills };
       },
-    });
-    logger.info(`📡 correlating against ${campaigns.length} active campaigns`);
+    );
 
-    let totalTagged = 0;
-    let campaignsWithKills = 0;
-
-    for (const campaign of campaigns) {
-      const windowStart = new Date(
-        campaign.start_time.getTime() - PRE_GRACE_HOURS * 60 * 60 * 1000,
-      );
-
-      // Tag untagged killmails in this campaign's system + time window
-      const tagged = await prismaWorker.killmail.updateMany({
-        where: {
-          solar_system_id: campaign.solar_system_id,
-          killmail_time: { gte: windowStart, lte: now },
-          related_campaign_id: null,
-        },
-        data: {
-          related_campaign_id: campaign.campaign_id,
-          is_war_related: true,
-        },
-      });
-      totalTagged += tagged.count;
-
-      // Roll up combat stats from every killmail tagged to this campaign
-      const agg = await prismaWorker.killmail.aggregate({
-        where: { related_campaign_id: campaign.campaign_id },
-        _count: { _all: true },
-        _sum: { total_value: true },
-      });
-
-      const warKills = agg._count._all;
-      if (warKills === 0) continue;
-      campaignsWithKills++;
-
-      const iskDestroyed = agg._sum.total_value ?? 0;
-
-      // Attacker-vs-defender split: a tagged kill is a defender loss when the
-      // victim's alliance is the campaign defender; everything else (attacker
-      // ships and unaffiliated victims) is an attacker/third-party loss. The
-      // attacker side is derived as (total - defender) so the two always sum to
-      // the flat totals above.
-      let defenderShipsLost = 0;
-      let defenderIskLost = 0;
-      if (campaign.defender_id != null) {
-        const defAgg = await prismaWorker.killmail.aggregate({
-          where: {
-            related_campaign_id: campaign.campaign_id,
-            victim: { alliance_id: campaign.defender_id },
-          },
-          _count: { _all: true },
-          _sum: { total_value: true },
-        });
-        defenderShipsLost = defAgg._count._all;
-        defenderIskLost = defAgg._sum.total_value ?? 0;
-      }
-      const attackerShipsLost = warKills - defenderShipsLost;
-      const attackerIskLost = iskDestroyed - defenderIskLost;
-
-      const stats = {
-        war_kills: warKills,
-        isk_destroyed: iskDestroyed,
-        ships_destroyed: warKills,
-        defender_isk_lost: defenderIskLost,
-        attacker_isk_lost: attackerIskLost,
-        defender_ships_lost: defenderShipsLost,
-        attacker_ships_lost: attackerShipsLost,
-      };
-      await prismaWorker.campaignCombatStats.upsert({
-        where: { campaign_id: campaign.campaign_id },
-        create: { campaign_id: campaign.campaign_id, ...stats },
-        update: stats,
-      });
-    }
-
+    logger.info(`📡 correlating against ${campaigns} campaigns`);
     const duration = ((Date.now() - startTime) / 1000).toFixed(2);
     logger.info(
-      `✅ correlation complete: ${totalTagged} new killmails tagged, ` +
-        `${campaignsWithKills}/${campaigns.length} campaigns have war kills (${duration}s)`,
+      `✅ correlation complete: ${tagged} new killmails tagged, ` +
+        `${withKills}/${campaigns} campaigns have war kills (${duration}s)`,
     );
   } catch (error) {
     logger.error('❌ sovereignty correlation failed', { error });
@@ -127,12 +114,15 @@ async function correlateSovereigntyKillmails() {
   }
 }
 
-correlateSovereigntyKillmails()
-  .then(async () => {
-    await prismaWorker.$disconnect();
-    process.exit(0);
-  })
-  .catch(async () => {
-    await prismaWorker.$disconnect();
-    process.exit(1);
-  });
+// Run only when executed directly, so the spec can import the correlation
+if (require.main === module) {
+  correlateSovereigntyKillmails()
+    .then(async () => {
+      await prismaWorker.$disconnect();
+      process.exit(0);
+    })
+    .catch(async () => {
+      await prismaWorker.$disconnect();
+      process.exit(1);
+    });
+}
