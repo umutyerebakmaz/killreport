@@ -133,6 +133,7 @@
     "worker:sov:structures": "tsx src/workers/worker-sovereignty-structures.ts",
     "worker:sov:structures:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-sovereignty-structures",
     "worker:sov:snapshot": "tsx src/workers/worker-sovereignty-snapshot.ts",
+    "worker:sov:snapshot:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-sovereignty-snapshot",
     "worker:sov:correlate": "tsx src/workers/worker-sovereignty-correlate.ts",
     "populate:char-alliance": "tsx populate-scripts/character-top-alliance.ts",
     "populate:char-corp": "tsx populate-scripts/character-top-corporation.ts",
