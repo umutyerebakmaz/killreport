@@ -267,5 +267,7 @@ Boş harita kontrolü, aynı transaction'ın başında:
 - [ ] `qa` agent'ı arka planda: `yarn test`, `yarn workspace backend build`,
       `cargo test --workspace`, `cargo clippy --workspace --all-targets -- -D warnings`,
       değişen dosyalarda `npx prettier --check`.
-- [ ] Elle çalıştırma kullanıcıda: `yarn worker:sov:snapshot:rs` (`backend/` içinde),
-      sonra `SELECT date, COUNT(*) FROM alliance_territory_stats GROUP BY date ORDER BY date DESC LIMIT 3`.
+- [ ] Elle çalıştırma kullanıcıda, `backend/` içinde iki iş de (timer Node'u
+      çalıştırıyor, onun yazma ifadeleri gerçek veritabanında hiç çalışmadı):
+      `yarn worker:sov:snapshot`, sonra `yarn worker:sov:snapshot:rs`; ikisinin de
+      sonunda `SELECT date, COUNT(*) FROM alliance_territory_stats GROUP BY date ORDER BY date DESC LIMIT 3`.
