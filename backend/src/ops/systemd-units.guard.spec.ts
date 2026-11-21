@@ -88,8 +88,55 @@ const DEPS = [
   'redis-server.service',
 ];
 
-type Continuous = {
-  script: string;
+/** A unit runs either a yarn script (Node) or a backend-rs binary (Rust). */
+type Exec = { script: string } | { crate: string };
+
+const RUST_BIN = '/var/www/killreport/backend-rs/bin/';
+
+/**
+ * What is wrong with a unit that runs the Rust binary `crate`; empty when
+ * nothing is. The binary is installed from the CI artifact (systemd.md,
+ * _Moving a unit to Rust_). Rust stops on systemd's default SIGTERM, so the
+ * yarn SIGINT lines have no place here, and nothing reads NODE_ENV or
+ * LOG_LEVEL. NO_COLOR keeps ANSI escapes out of the journal.
+ */
+function rustUnitProblems(u: Unit, crate: string): string[] {
+  const problems: string[] = [];
+  const exec = value(u, 'Service', 'ExecStart');
+  if (exec !== `${RUST_BIN}${crate}`) {
+    problems.push(`ExecStart is ${exec}, not ${RUST_BIN}${crate}`);
+  }
+  const exists = ['queues', 'workers'].some((dir) =>
+    fs.existsSync(path.join(REPO, 'backend-rs', dir, crate, 'Cargo.toml')),
+  );
+  if (!exists) problems.push(`no crate backend-rs/{queues,workers}/${crate}`);
+  if (
+    value(u, 'Service', 'WorkingDirectory') !== '/var/www/killreport/backend'
+  ) {
+    problems.push('WorkingDirectory must be backend/, where .env is read');
+  }
+  for (const key of ['KillSignal', 'SuccessExitStatus']) {
+    if (value(u, 'Service', key) !== undefined) {
+      problems.push(`${key} is a yarn setting`);
+    }
+  }
+  const e = env(u);
+  for (const key of ['NODE_ENV', 'LOG_LEVEL']) {
+    if (key in e) problems.push(`${key} is not read by Rust`);
+  }
+  if (e.NO_COLOR !== '1') problems.push('NO_COLOR=1 is missing');
+  return problems;
+}
+
+function expectExec(u: Unit, e: Exec): void {
+  if ('crate' in e) {
+    expect(rustUnitProblems(u, e.crate)).toEqual([]);
+  } else {
+    expect(value(u, 'Service', 'ExecStart')).toBe(`/usr/bin/yarn ${e.script}`);
+  }
+}
+
+type Continuous = Exec & {
   workspace: 'backend' | 'frontend';
   env: Record<string, string>;
   memory: [high: string, max: string];
@@ -145,8 +192,7 @@ const CONTINUOUS: Record<string, Continuous> = {
   },
 };
 
-type Scheduled = {
-  script: string;
+type Scheduled = Exec & {
   onCalendar: string;
   env: Record<string, string>;
 };
@@ -295,14 +341,22 @@ describe('systemd units', () => {
     },
   );
 
+  it.each(serviceFiles())(
+    '%s: a Rust ExecStart names an existing crate',
+    (file) => {
+      const u = loadUnits()[file];
+      const exec = value(u, 'Service', 'ExecStart') ?? '';
+      if (!exec.startsWith(RUST_BIN)) return;
+      expect(rustUnitProblems(u, exec.slice(RUST_BIN.length))).toEqual([]);
+    },
+  );
+
   it.each(Object.entries(CONTINUOUS))(
     '%s: continuous service matches the inventory',
     (file, c) => {
       const u = loadUnits()[file];
       expect(u).toBeDefined();
-      expect(value(u, 'Service', 'ExecStart')).toBe(
-        `/usr/bin/yarn ${c.script}`,
-      );
+      expectExec(u, c);
       expect(value(u, 'Service', 'WorkingDirectory')).toBe(
         `/var/www/killreport/${c.workspace}`,
       );
@@ -329,9 +383,7 @@ describe('systemd units', () => {
       const u = loadUnits()[file];
       expect(u).toBeDefined();
       expect(value(u, 'Service', 'Type')).toBe('oneshot');
-      expect(value(u, 'Service', 'ExecStart')).toBe(
-        `/usr/bin/yarn ${s.script}`,
-      );
+      expectExec(u, s);
       expect(value(u, 'Service', 'WorkingDirectory')).toBe(
         '/var/www/killreport/backend',
       );
@@ -453,4 +505,57 @@ describe('systemd units', () => {
       }
     },
   );
+});
+
+describe('rust unit rules', () => {
+  const unit = (exec: string, extra: string[] = [], env = ['NO_COLOR=1']) =>
+    parseUnit(
+      [
+        '[Service]',
+        `ExecStart=${exec}`,
+        'WorkingDirectory=/var/www/killreport/backend',
+        ...env.map((e) => `Environment=${e}`),
+        ...extra,
+      ].join('\n'),
+    );
+  const good = (extra: string[] = [], env?: string[]) =>
+    unit(`${RUST_BIN}worker-sovereignty-map`, extra, env);
+
+  it('accepts a binary path that names an existing crate', () => {
+    expect(rustUnitProblems(good(), 'worker-sovereignty-map')).toEqual([]);
+  });
+
+  it('rejects a path outside backend-rs/bin', () => {
+    const u = unit('/usr/local/bin/worker-sovereignty-map');
+    expect(rustUnitProblems(u, 'worker-sovereignty-map')).not.toEqual([]);
+  });
+
+  it('rejects a crate that does not exist', () => {
+    const u = unit(`${RUST_BIN}worker-nope`);
+    expect(rustUnitProblems(u, 'worker-nope')).not.toEqual([]);
+  });
+
+  it('rejects SIGINT and exit 130', () => {
+    expect(
+      rustUnitProblems(good(['KillSignal=SIGINT']), 'worker-sovereignty-map'),
+    ).toHaveLength(1);
+    expect(
+      rustUnitProblems(
+        good(['SuccessExitStatus=130']),
+        'worker-sovereignty-map',
+      ),
+    ).toHaveLength(1);
+  });
+
+  it('rejects Node environment and colours', () => {
+    expect(
+      rustUnitProblems(
+        good([], ['NO_COLOR=1', 'NODE_ENV=production']),
+        'worker-sovereignty-map',
+      ),
+    ).not.toEqual([]);
+    expect(
+      rustUnitProblems(good([], []), 'worker-sovereignty-map'),
+    ).not.toEqual([]);
+  });
 });
