@@ -411,3 +411,37 @@ async fn updated_at_is_the_bound_now(pool: PgPool) {
             .unwrap();
     assert_eq!(updated, now());
 }
+
+/// A concurrent run that tags a row between this run's snapshot and its
+/// row lock wins: the outer `UPDATE` re-checks `related_campaign_id IS NULL`
+/// after the wait, so the row keeps the other run's tag.
+#[sqlx::test(
+    migrations = false,
+    fixtures(
+        "sovereignty_campaigns",
+        "killmails",
+        "victims",
+        "campaign_combat_stats"
+    )
+)]
+async fn concurrent_tag_is_not_overwritten(pool: PgPool) {
+    campaign(&pool, 1, S, "2026-11-22 10:00:00", None, None).await;
+    killmail(&pool, 1, S, "2026-11-22 11:00:00", None, None).await;
+
+    let mut other = pool.begin().await.unwrap();
+    sqlx::query("UPDATE killmails SET related_campaign_id = 99 WHERE killmail_id = 1")
+        .execute(&mut *other)
+        .await
+        .unwrap();
+
+    let run = tokio::spawn({
+        let pool = pool.clone();
+        async move { correlate(&pool, now()).await.unwrap() }
+    });
+    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+    other.commit().await.unwrap();
+
+    let outcome = run.await.unwrap();
+    assert_eq!(outcome.tagged, 0);
+    assert_eq!(tag_of(&pool, 1).await, (Some(99), false));
+}

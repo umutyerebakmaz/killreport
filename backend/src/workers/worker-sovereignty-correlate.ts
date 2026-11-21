@@ -63,7 +63,7 @@ export async function correlateSovereigntyKillmails(now: Date = new Date()) {
           UPDATE killmails k
           SET related_campaign_id = p.campaign_id, is_war_related = true, updated_at = ${ts}::timestamp
           FROM picks p
-          WHERE k.killmail_id = p.killmail_id`;
+          WHERE k.killmail_id = p.killmail_id AND k.related_campaign_id IS NULL`;
 
         // A kill is a defender loss when its victim's alliance is the
         // campaign's defender; the attacker side is total - defender. The inner

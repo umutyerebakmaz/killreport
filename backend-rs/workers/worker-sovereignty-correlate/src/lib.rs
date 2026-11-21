@@ -14,6 +14,9 @@
 //!   started first, then to the lower `campaign_id`. A tagged killmail is
 //!   never re-evaluated.
 //!
+//! The outer `UPDATE` re-checks `related_campaign_id IS NULL`: a concurrent run
+//! that tags a row while this one waits for its lock keeps its tag.
+//!
 //! `now` is bound from the application in UTC. The columns are `timestamp`
 //! without time zone, so a database `now()` would write the session's local
 //! time instead.
@@ -53,7 +56,7 @@ WITH
 UPDATE killmails k
 SET related_campaign_id = p.campaign_id, is_war_related = true, updated_at = $1::timestamp
 FROM picks p
-WHERE k.killmail_id = p.killmail_id";
+WHERE k.killmail_id = p.killmail_id AND k.related_campaign_id IS NULL";
 
 /// A kill is a defender loss when its victim's alliance is the campaign's
 /// defender; everything else, a kill without a victim row included, is on
