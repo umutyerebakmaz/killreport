@@ -3514,6 +3514,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "worker-sovereignty-correlate"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "db",
+ "runner",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "worker-sovereignty-map"
 version = "0.1.0"
 dependencies = [
