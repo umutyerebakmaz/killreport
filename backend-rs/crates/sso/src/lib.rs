@@ -200,6 +200,11 @@ pub async fn load_credentials(
     }
 
     let mut tx = pool.begin().await?;
+    // A waiter gives up after 5 s (an error the worker retries) instead of
+    // holding a pool connection behind another process's SSO call.
+    sqlx::query("SET LOCAL lock_timeout = '5s'")
+        .execute(&mut *tx)
+        .await?;
     let locked: Option<TokenRow> = sqlx::query_as(
         "SELECT access_token, refresh_token, expires_at FROM users WHERE id = $1 FOR UPDATE",
     )

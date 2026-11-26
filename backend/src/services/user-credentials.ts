@@ -19,10 +19,13 @@ import logger from '@services/logger';
 const REFRESH_BUFFER_MS = 5 * 60 * 1000;
 
 /**
- * How long the refresh transaction may hold the row lock: the SSO request's
- * own 10 s timeout plus room for the two statements around it.
+ * The refresh transaction's budget. A waiter gives up on the row lock after
+ * 5 s (`lock_timeout`, an error the caller retries), then has the SSO request's own
+ * 10 s timeout, then two short statements. The budget must outlast all of
+ * them: a transaction that expired after EVE rotated the token would lose the
+ * new refresh token, and the user would be logged out on the next refresh.
  */
-const REFRESH_TRANSACTION_MS = 15_000;
+const REFRESH_TRANSACTION_MS = 20_000;
 
 /** Everything a sync worker needs about a user, minus the credentials. */
 export interface UserSyncRow {
@@ -129,6 +132,8 @@ export async function loadUserCredentials(
 
   return client.$transaction(
     async (tx): Promise<UserCredentials> => {
+      // A waiter gives up after 5 s instead of refreshing past its budget.
+      await tx.$executeRaw`SET LOCAL lock_timeout = '5s'`;
       const [locked] = (await tx.$queryRaw`
         SELECT access_token, refresh_token, expires_at
         FROM users WHERE id = ${userId}

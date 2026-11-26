@@ -197,3 +197,28 @@ async fn missing_user_and_missing_refresh_token(pool: PgPool) {
         Credentials::NoRefreshToken
     ));
 }
+
+#[sqlx::test(migrations = false, fixtures("users"))]
+async fn a_waiter_gives_up_on_a_held_lock_instead_of_refreshing_late(pool: PgPool) {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .respond_with(refreshed())
+        .expect(0)
+        .mount(&server)
+        .await;
+    user(&pool, Some("old-refresh"), now()).await;
+
+    // Another process holds the row for longer than the lock wait.
+    let mut holder = pool.begin().await.unwrap();
+    sqlx::query("SELECT 1 FROM users WHERE id = $1 FOR UPDATE")
+        .bind(USER)
+        .execute(&mut *holder)
+        .await
+        .unwrap();
+
+    let started = std::time::Instant::now();
+    let result = load_credentials(&pool, &sso(&server), USER, now()).await;
+    assert!(result.is_err());
+    assert!(started.elapsed() < Duration::from_secs(8));
+    holder.rollback().await.unwrap();
+}

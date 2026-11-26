@@ -9,7 +9,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { prismaMock, tx, refreshAccessToken, loggerMock, errors } = vi.hoisted(
   () => {
-    const tx = { $queryRaw: vi.fn(), user: { updateMany: vi.fn() } };
+    const tx = {
+      $queryRaw: vi.fn(),
+      $executeRaw: vi.fn(),
+      user: { updateMany: vi.fn() },
+    };
     class SsoGrantRevokedError extends Error {}
     class SsoUnavailableError extends Error {}
     return {
@@ -148,6 +152,30 @@ describe('loadUserCredentials', () => {
     });
     const [sql] = tx.$queryRaw.mock.calls[0];
     expect(sql.join('?')).toMatch(/FOR UPDATE/);
+  });
+
+  it('bounds the lock wait so a waiter never outlives its transaction', async () => {
+    // A waiter that got the lock late would refresh after its transaction
+    // expired: EVE rotates the token, the write is lost, the user is logged
+    // out on the next refresh. lock_timeout makes it give up first.
+    at('2026-09-21T12:58:00Z');
+    prismaMock.user.findUnique.mockResolvedValue(userRow());
+    tx.$queryRaw.mockResolvedValue([STALE]);
+    refreshAccessToken.mockResolvedValue({
+      access_token: 'fresh-access',
+      expires_in: 1200,
+    });
+
+    await loadUserCredentials(7, prismaMock);
+
+    const [sql] = tx.$executeRaw.mock.calls[0];
+    expect(sql.join('?')).toMatch(/SET LOCAL lock_timeout = '5s'/);
+    expect(tx.$executeRaw.mock.invocationCallOrder[0]).toBeLessThan(
+      tx.$queryRaw.mock.invocationCallOrder[0],
+    );
+    const [, options] = prismaMock.$transaction.mock.calls[0];
+    // 5 s lock wait + 10 s SSO timeout + the statements around them.
+    expect(options.timeout).toBeGreaterThanOrEqual(20_000);
   });
 
   it('keeps the old refresh token when EVE does not rotate it', async () => {
