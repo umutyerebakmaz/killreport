@@ -89,3 +89,38 @@ describe('CorporationService.getCorporationKillmails', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 });
+
+describe('CorporationService.getKillmailPage', () => {
+  beforeEach(() => get.mockReset());
+
+  it('asks for one page on the director character bucket', async () => {
+    get.mockResolvedValueOnce({
+      data: [{ killmail_id: 1, killmail_hash: 'a' }],
+      headers: { 'x-pages': '1' },
+    } as never);
+
+    expect(
+      await CorporationService.getKillmailPage(98000001, 'tok', 777, 3),
+    ).toEqual({ refs: [{ killmail_id: 1, killmail_hash: 'a' }], pages: 1 });
+    expect(get).toHaveBeenCalledWith(
+      '/corporations/98000001/killmails/recent/',
+      {
+        params: { page: 3 },
+        headers: { Authorization: 'Bearer tok' },
+        bucketKey: '777',
+      },
+    );
+  });
+
+  it('is null on 404 and throws on 403, which the worker settles', async () => {
+    get.mockRejectedValueOnce(httpError(404));
+    expect(
+      await CorporationService.getKillmailPage(98000001, 'tok', 777, 1),
+    ).toBeNull();
+
+    get.mockRejectedValueOnce(httpError(403));
+    await expect(
+      CorporationService.getKillmailPage(98000001, 'tok', 777, 1),
+    ).rejects.toBeInstanceOf(AxiosError);
+  });
+});
