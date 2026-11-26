@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { isSessionGone } from '@/utils/authErrors';
 
 export interface UserData {
   characterId: string;
@@ -92,7 +93,9 @@ export function useAuth() {
 
       if (result.errors) {
         console.error('token refresh error:', result.errors);
-        logout();
+        // Only a session the server no longer accepts ends here; an SSO
+        // outage keeps the user logged in for the next attempt.
+        if (isSessionGone(result.errors)) logout();
         return false;
       }
 
