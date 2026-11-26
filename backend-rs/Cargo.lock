@@ -3399,6 +3399,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "worker-backfill-values"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "killmail-value",
+ "runner",
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
 name = "worker-character-corporation-history"
 version = "0.1.0"
 dependencies = [
