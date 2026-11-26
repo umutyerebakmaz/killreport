@@ -1,3 +1,15 @@
+# Capsule (Pod) Value Calculation
+
+## Overview
+
+Capsules (pods) in EVE Online killmails have a fixed ship value of **10 ISK** in value calculations. This ensures consistent pricing across all calculations while implants and other items are still calculated based on market prices.
+
+## Changes Made
+
+### 1. Value Calculation Functions
+
+**File:** `src/helpers/calculate-killmail-values.ts`
+
 A victim ship in a capsule group (`CAPSULE_GROUP_IDS`, group 29) is priced at
 10 ISK. Group, not type 670, so the Genolution variant counts as well:
 
@@ -12,33 +24,9 @@ const shipPrice =
 ```
 
 The Rust workers use the same formula from
-[killmail-value](../../../backend-rs/crates/killmail-value/src/lib.rs).# Capsule (Pod) Value Calculation
+[killmail-value](../../../backend-rs/crates/killmail-value/src/lib.rs).
 
-## Overview
-
-Capsules (pods) in EVE Online killmails now have a fixed ship value of **10 ISK** in value calculations. This ensures consistent pricing across all calculations while implants and other items are still calculated based on market prices.
-
-## Changes Made
-
-### 1. Value Calculation Functions
-
-**File:** `src/helpers/calculate-killmail-values.ts`
-
-Added special handling for Capsule (type_id: 670):
-
-```typescript
-// Constants
-const CAPSULE_TYPE_ID = 670;
-const CAPSULE_VALUE = 10;
-
-// Usage in calculateKillmailValues()
-const shipPrice =
-  killmailData.victim.ship_type_id === CAPSULE_TYPE_ID
-    ? CAPSULE_VALUE
-    : priceMap.get(killmailData.victim.ship_type_id) || 0;
-```
-
-**Functions Updated:**
+**Functions:**
 
 - `calculateKillmailValues()` - Single killmail calculation
 - `calculateKillmailValuesBatch()` - Batch calculation for multiple killmails
@@ -54,7 +42,9 @@ the same capsule rule. See [backfill-values-guide.md](./backfill-values-guide.md
 
 **File:** `src/resolvers/killmail/fields.ts`
 
-GraphQL resolvers for `totalValue` and `destroyedValue` also check for Capsules:
+GraphQL resolvers for `totalValue` and `destroyedValue` also check for Capsules,
+but only for type 670; a Genolution pod falls through to its market price
+there. They are used only when a killmail has no cached value:
 
 ```typescript
 // Special case: Capsule (pod) has fixed value of 10 ISK

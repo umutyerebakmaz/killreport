@@ -42,3 +42,23 @@ fn rejects_a_bad_limit() {
         assert!(parse_args(&args(&[bad])).is_err(), "{bad} was accepted");
     }
 }
+
+mod next_take {
+    use queue_backfill_values::{next_take, PAGE_SIZE};
+
+    /// Without --limit a run pages until a page comes back empty: the count
+    /// at the start is only for the progress line, because a sync can save
+    /// an old killmail below the cursor while the run goes.
+    #[test]
+    fn without_a_limit_it_never_stops_on_a_count() {
+        assert_eq!(next_take(None, 0), Some(PAGE_SIZE));
+        assert_eq!(next_take(None, 5_000_000), Some(PAGE_SIZE));
+    }
+
+    #[test]
+    fn a_limit_caps_the_run() {
+        assert_eq!(next_take(Some(1200), 0), Some(PAGE_SIZE));
+        assert_eq!(next_take(Some(1200), 1000), Some(200));
+        assert_eq!(next_take(Some(1200), 1200), None);
+    }
+}

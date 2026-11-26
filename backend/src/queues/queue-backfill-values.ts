@@ -118,12 +118,20 @@ export async function queueBackfillValues(args: BackfillArgs): Promise<number> {
   let batchNumber = 0;
   let below = maxId + 1;
 
-  while (queuedCount < toProcess) {
+  // With --limit the run stops at the limit. Without one it stops only on
+  // an empty page: a killmail sync can save an old killmail below the
+  // cursor mid-run, and stopping at the starting count would leave the
+  // oldest killmails unqueued. The count is for the progress line.
+  while (args.limit === undefined || queuedCount < args.limit) {
+    const take =
+      args.limit === undefined
+        ? BATCH_SIZE
+        : Math.min(BATCH_SIZE, args.limit - queuedCount);
     const killmails = await prismaWorker.killmail.findMany({
       where: { AND: [where, { killmail_id: { lt: below } }] },
       select: { killmail_id: true },
       orderBy: { killmail_id: 'desc' },
-      take: Math.min(BATCH_SIZE, toProcess - queuedCount),
+      take,
     });
     if (killmails.length === 0) break;
 
@@ -134,7 +142,7 @@ export async function queueBackfillValues(args: BackfillArgs): Promise<number> {
     below = ids[ids.length - 1];
     batchNumber++;
 
-    const progress = ((queuedCount / toProcess) * 100).toFixed(1);
+    const progress = Math.min((queuedCount / toProcess) * 100, 100).toFixed(1);
     logger.info(
       `  📤 queued batch ${batchNumber} ` +
         `(${queuedCount.toLocaleString()}/${toProcess.toLocaleString()} - ${progress}%)`,

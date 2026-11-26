@@ -48,6 +48,19 @@ fn positive(value: &str, flag: &str) -> Result<i64, String> {
     }
 }
 
+/// How many IDs the next page takes, or `None` when the run is done. With
+/// `--limit` the run stops at the limit. Without one it stops only on an
+/// empty page: a killmail sync can save an old killmail below the cursor
+/// while the run goes, and stopping at the starting count would then leave
+/// the oldest killmails of the original set unqueued.
+pub fn next_take(limit: Option<i64>, queued: i64) -> Option<i64> {
+    match limit {
+        None => Some(PAGE_SIZE),
+        Some(limit) if queued >= limit => None,
+        Some(limit) => Some(PAGE_SIZE.min(limit - queued)),
+    }
+}
+
 /// How many killmails match, and the largest ID among them when the run
 /// starts. Pages never go above that ID, so killmails saved while the run
 /// is going neither shift the pages nor push older ones past `--limit`.

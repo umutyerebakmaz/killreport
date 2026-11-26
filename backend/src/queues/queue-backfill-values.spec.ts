@@ -33,6 +33,9 @@ const ids = (from: number, to: number) =>
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // clearAllMocks keeps queued mockResolvedValueOnce values; a test that
+  // stops early must not hand its leftovers to the next one.
+  prisma.killmail.findMany.mockReset();
 });
 
 describe('parseArgs', () => {
@@ -85,7 +88,8 @@ describe('queueBackfillValues', () => {
     });
     prisma.killmail.findMany
       .mockResolvedValueOnce(ids(1000, 501))
-      .mockResolvedValueOnce(ids(500, 301));
+      .mockResolvedValueOnce(ids(500, 301))
+      .mockResolvedValueOnce([]);
 
     expect(await queueBackfillValues({ capsulesOnly: false })).toBe(700);
 
@@ -101,7 +105,7 @@ describe('queueBackfillValues', () => {
     expect(second.where).toEqual({
       AND: [{}, { killmail_id: { lt: 501 } }],
     });
-    expect(second.take).toBe(200);
+    expect(second.take).toBe(500);
     expect(first).not.toHaveProperty('skip');
     expect(publishEntitiesConfirmed).toHaveBeenCalledWith(
       'backfill_killmail_values_queue',
@@ -109,6 +113,26 @@ describe('queueBackfillValues', () => {
       ids(1000, 501).map((k) => k.killmail_id),
       { idField: 'killmailId' },
     );
+  });
+
+  it('without --limit pages past the starting count until a page is empty', async () => {
+    // A sync saved an old killmail below the cursor mid-run: the run must
+    // still reach the oldest killmail it counted at the start.
+    prisma.killmail.count.mockResolvedValue(600);
+    prisma.killmail.aggregate.mockResolvedValue({
+      _max: { killmail_id: 1000 },
+    });
+    prisma.killmail.findMany
+      .mockResolvedValueOnce(ids(1000, 501))
+      .mockResolvedValueOnce(ids(500, 400))
+      .mockResolvedValueOnce([{ killmail_id: 1 }])
+      .mockResolvedValueOnce([]);
+
+    expect(await queueBackfillValues({ capsulesOnly: false })).toBe(602);
+    expect(prisma.killmail.findMany).toHaveBeenCalledTimes(4);
+    expect(prisma.killmail.findMany.mock.calls.map((c) => c[0].take)).toEqual([
+      500, 500, 500, 500,
+    ]);
   });
 
   it('respects --limit and stops on an empty page', async () => {

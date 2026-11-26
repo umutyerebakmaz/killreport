@@ -15,7 +15,9 @@
 use anyhow::Context as _;
 use lapin::options::ConfirmSelectOptions;
 use mq::{connect, declare_worker_queue, publish_killmails};
-use queue_backfill_values::{page, parse_args, target, Args, PAGE_SIZE, QUEUE_NAME, SOURCE};
+use queue_backfill_values::{
+    next_take, page, parse_args, target, Args, PAGE_SIZE, QUEUE_NAME, SOURCE,
+};
 use tracing::{error, info};
 
 #[tokio::main]
@@ -94,15 +96,15 @@ async fn queue_pages(
     let mut queued: i64 = 0;
     let mut batch = 0;
     let mut below = max_id.saturating_add(1);
-    while queued < to_process {
-        let take = PAGE_SIZE.min(to_process - queued);
+    // The count is for the progress line; see `next_take` for when to stop.
+    while let Some(take) = next_take(args.limit, queued) {
         let ids = page(pool, args, below, take).await?;
         let Some(&last) = ids.last() else { break };
         let confirmed = publish_killmails(&channel, QUEUE_NAME, SOURCE, &ids).await?;
         queued += i64::try_from(confirmed)?;
         below = last;
         batch += 1;
-        let progress = queued as f64 / to_process as f64 * 100.0;
+        let progress = (queued as f64 / to_process as f64 * 100.0).min(100.0);
         info!("  📤 queued batch {batch} ({queued}/{to_process} - {progress:.1}%)");
     }
 
