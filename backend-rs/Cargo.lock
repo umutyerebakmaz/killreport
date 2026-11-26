@@ -1253,6 +1253,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "killmail-value"
+version = "0.1.0"
+dependencies = [
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
 name = "lapin"
 version = "2.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
