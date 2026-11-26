@@ -13,7 +13,7 @@ const {
   recordRefs,
   isForbidden,
 } = vi.hoisted(() => ({
-  isForbidden: vi.fn(() => false),
+  isForbidden: vi.fn((_error: unknown) => false),
   prismaMock: { user: { update: vi.fn() } },
   loadUserCredentials: vi.fn(),
   getKillmailPage: vi.fn(),
@@ -139,7 +139,7 @@ describe('syncUser', () => {
     const forbidden = { response: { status: 403 } };
     loadUserCredentials.mockResolvedValue(credentials(new Date(0)));
     getKillmailPage.mockRejectedValueOnce(forbidden);
-    isForbidden.mockImplementation((e) => e === forbidden);
+    isForbidden.mockImplementation((e: unknown) => e === forbidden);
 
     expect(await syncUser(message(), NOW)).toBe('skipped');
     expect(prismaMock.user.update).toHaveBeenCalledWith({

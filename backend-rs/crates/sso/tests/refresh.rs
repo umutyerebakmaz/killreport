@@ -2,7 +2,7 @@
 //! a revoked grant is told from an outage.
 
 use sso::{RefreshError, SsoClient};
-use wiremock::matchers::{body_string_contains, header, method, path};
+use wiremock::matchers::{basic_auth, body_string_contains, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 fn client(server: &MockServer) -> SsoClient {
@@ -16,13 +16,9 @@ fn client(server: &MockServer) -> SsoClient {
 #[tokio::test]
 async fn posts_the_refresh_grant_with_basic_auth() {
     let server = MockServer::start().await;
-    // base64("client-id:client-secret")
     Mock::given(method("POST"))
         .and(path("/token"))
-        .and(header(
-            "authorization",
-            "Basic Y2xpZW50LWlkOmNsaWVudC1zZWNyZXQ=",
-        ))
+        .and(basic_auth("client-id", "client-secret"))
         .and(body_string_contains("grant_type=refresh_token"))
         .and(body_string_contains("refresh_token=old-refresh"))
         .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
