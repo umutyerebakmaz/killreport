@@ -1,7 +1,7 @@
 import { config } from '@config/config';
 import { MutationResolvers } from '@generated-types';
 import { createAuthState, sanitizeReturnTo } from '@services/auth-state-store';
-import { getAuthUrl } from '@services/eve-sso';
+import { getAuthUrl, SsoUnavailableError } from '@services/eve-sso';
 import prisma from '@services/prisma';
 import {
   clearSessionCookie,
@@ -41,7 +41,19 @@ export const authMutations: MutationResolvers = {
       });
     }
 
-    const credentials = await loadUserCredentials(session.userId, prisma);
+    let credentials: Awaited<ReturnType<typeof loadUserCredentials>>;
+    try {
+      credentials = await loadUserCredentials(session.userId, prisma);
+    } catch (error) {
+      // SSO is down, not the session: keep the user logged in and let the
+      // client try again.
+      if (error instanceof SsoUnavailableError) {
+        throw new GraphQLError('EVE SSO is unavailable, try again shortly', {
+          extensions: { code: 'SERVICE_UNAVAILABLE' },
+        });
+      }
+      throw error;
+    }
     if (!credentials.ok) {
       throw new GraphQLError('Not authenticated', {
         extensions: { code: 'UNAUTHENTICATED' },

@@ -269,6 +269,10 @@ const SCHEDULED: Record<string, Scheduled> = {
     '*-*-* *:00/10:00 UTC',
   ),
   'killreport-queue-prices.service': job('queue:prices', '*-*-* 06:00:00 UTC'),
+  'killreport-queue-killmail-refs.service': job(
+    'queue:killmail-refs',
+    '*-*-* *:00/5:00 UTC',
+  ),
 };
 
 const MANUAL = ['killreport-queue-backfill-values.service'];

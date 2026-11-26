@@ -13,8 +13,8 @@ model SovereigntyCampaign {
   first_seen       DateTime  @default(now())
   updated_at       DateTime  @updatedAt
 
-  participants     CampaignParticipant[]
-  combatStats      CampaignCombatStats?
+  participants CampaignParticipant[]
+  combatStats  CampaignCombatStats?
 
   @@index([solar_system_id, start_time])
   @@index([constellation_id])

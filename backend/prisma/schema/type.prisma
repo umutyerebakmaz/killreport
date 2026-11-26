@@ -1,23 +1,23 @@
 model Type {
-  id          Int                  @id
-  name        String
-  description String?
-  group_id    Int
-  published   Boolean              @default(true)
-  volume      Float?
-  capacity    Float?
-  mass        Float?
-  icon_id     Int?
+  id            Int                  @id
+  name          String
+  description   String?
+  group_id      Int
+  published     Boolean              @default(true)
+  volume        Float?
+  capacity      Float?
+  mass          Float?
+  icon_id       Int?
   /// The type's meta group (1 Tech I, 2 Tech II, 4 Faction, 14 Tech III, …) from
   /// CCP's Static Data Export. ESI's type endpoint does not carry it, and the
   /// metaGroupID dogma attribute (1692) is missing on many types, recent faction
   /// hulls among them. Filled by `yarn sde:meta-groups`; null until then.
   meta_group_id Int?
-  created_at  DateTime             @default(now())
-  updated_at  DateTime             @updatedAt
-  attributes                TypeDogmaAttribute[]
-  effects                   TypeDogmaEffect[]
-  marketPrice               MarketPrice?
+  created_at    DateTime             @default(now())
+  updated_at    DateTime             @updatedAt
+  attributes    TypeDogmaAttribute[]
+  effects       TypeDogmaEffect[]
+  marketPrice   MarketPrice?
 
   @@index([group_id])
   @@map("types")

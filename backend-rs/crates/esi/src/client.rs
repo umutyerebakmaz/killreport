@@ -122,7 +122,7 @@ impl EsiClient {
         path: &str,
         date: CompatibilityDate,
     ) -> Result<T, EsiError> {
-        let (body, _headers) = self.fetch(path, date).await?;
+        let (body, _headers) = self.fetch(path, date, None).await?;
         Ok(body)
     }
 
@@ -138,7 +138,7 @@ impl EsiClient {
         let date = CompatibilityDate::DEFAULT;
         let separator = if path.contains('?') { '&' } else { '?' };
         let (mut all, headers): (Vec<T>, _) = self
-            .fetch(&format!("{path}{separator}page=1"), date)
+            .fetch(&format!("{path}{separator}page=1"), date, None)
             .await?;
         let pages = headers
             .get("x-pages")
@@ -146,11 +146,48 @@ impl EsiClient {
             .unwrap_or(1);
         for page in 2..=pages {
             let (items, _): (Vec<T>, _) = self
-                .fetch(&format!("{path}{separator}page={page}"), date)
+                .fetch(&format!("{path}{separator}page={page}"), date, None)
                 .await?;
             all.extend(items);
         }
         Ok(all)
+    }
+
+    /// One page of an authenticated paged list (`/characters/{id}/killmails/recent/`),
+    /// on the bucket of the character whose token it is: the grouped
+    /// `char-killmail` and `corp-killmail` limits are per character. `Ok(None)`
+    /// on 404, which ESI answers for an empty list or a page past the end.
+    /// Every other failure, a 403 included, is an error; the token goes in a
+    /// header and never into an error message.
+    pub async fn get_page_authed<T: DeserializeOwned>(
+        &self,
+        path: &str,
+        page: u32,
+        access_token: &str,
+        bucket_key: &str,
+    ) -> Result<Option<Page<T>>, EsiError> {
+        let separator = if path.contains('?') { '&' } else { '?' };
+        let paged = format!("{path}{separator}page={page}");
+        match self
+            .fetch::<Vec<T>>(
+                &paged,
+                CompatibilityDate::DEFAULT,
+                Some(Auth {
+                    access_token,
+                    bucket_key,
+                }),
+            )
+            .await
+        {
+            Ok((items, headers)) => Ok(Some(Page {
+                items,
+                pages: headers
+                    .get("x-pages")
+                    .and_then(|value| value.trim().parse::<u32>().ok()),
+            })),
+            Err(EsiError::Http { status: 404, .. }) => Ok(None),
+            Err(error) => Err(error),
+        }
     }
 
     /// One GET: the decoded body and the response headers, lowercased.
@@ -158,25 +195,27 @@ impl EsiClient {
         &self,
         path: &str,
         date: CompatibilityDate,
+        auth: Option<Auth<'_>>,
     ) -> Result<(T, HashMap<String, String>), EsiError> {
-        let route = EsiRoute::new(path);
+        let route = match &auth {
+            Some(auth) => EsiRoute::with_bucket_key(path, auth.bucket_key),
+            None => EsiRoute::new(path),
+        };
         // Held until the body has been read; dropping it gives the slot back
         // on every path out of this function.
         let _permit = self.limiter.acquire(&route, None).await?;
 
-        let response = self
-            .http
-            .get(format!("{}{path}", self.base_url))
-            .header(
-                "x-compatibility-date",
-                HeaderValue::from_static(date.as_str()),
-            )
-            .send()
-            .await
-            .map_err(|source| EsiError::Transport {
-                path: path.to_owned(),
-                source,
-            })?;
+        let mut request = self.http.get(format!("{}{path}", self.base_url)).header(
+            "x-compatibility-date",
+            HeaderValue::from_static(date.as_str()),
+        );
+        if let Some(auth) = &auth {
+            request = request.bearer_auth(auth.access_token);
+        }
+        let response = request.send().await.map_err(|source| EsiError::Transport {
+            path: path.to_owned(),
+            source,
+        })?;
 
         let status = response.status().as_u16();
         let headers = lowercase_headers(response.headers());
@@ -229,4 +268,18 @@ fn lowercase_headers(headers: &HeaderMap) -> HashMap<String, String> {
             Some((name.as_str().to_ascii_lowercase(), value.to_owned()))
         })
         .collect()
+}
+
+/// The token and the bucket of an authenticated request.
+struct Auth<'a> {
+    access_token: &'a str,
+    bucket_key: &'a str,
+}
+
+/// One page of an authenticated list and ESI's `X-Pages`, `None` when it is
+/// absent or unreadable.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Page<T> {
+    pub items: Vec<T>,
+    pub pages: Option<u32>,
 }

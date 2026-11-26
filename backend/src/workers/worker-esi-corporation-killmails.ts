@@ -1,8 +1,10 @@
-import type amqp from 'amqplib';
 import { CorporationService } from '@services/corporation/corporation.service';
-import { type KillmailSyncMessage } from '@services/killmail-sync-message';
-import { lastStoredKillmailId } from '@services/killmail-cursor';
-import { publishKillmailDetails } from '../queues/publish-killmail-details';
+import { recordRefs } from '@services/killmail-refs';
+import {
+  isFullSync,
+  type KillmailSyncMessage,
+} from '@services/killmail-sync-message';
+import { walkKillmails } from '@services/killmail-walk';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
@@ -10,30 +12,22 @@ import { loadUserCredentials } from '@services/user-credentials';
 import { handleWorkerError, isForbidden } from './worker-error';
 
 const QUEUE_NAME = 'esi_corporation_killmails_queue';
-const PREFETCH_COUNT = 1; // Process 1 corporation at a time to avoid rate limiting
+const PREFETCH_COUNT = 1;
 
-/** What one corporation sync needs, resolved from the database up front. */
-interface CorporationSyncContext {
-  userId: number;
-  characterId: number;
-  characterName: string;
-  corporationId: number;
-  corporationName: string;
-  accessToken: string;
+/** NPC corporations: no corporation killmails, and ESI answers 403. */
+export function isNpcCorporation(corporationId: number): boolean {
+  return corporationId >= 1_000_000 && corporationId < 2_000_000;
 }
 
 /**
- * ESI Corporation Killmail Worker
+ * ESI corporation killmail sync.
  *
- * This worker fetches corporation killmails directly from ESI API using user's access token.
- * Requires: Director/CEO role + esi-killmails.read_corporation_killmails.v1 scope
- *
- * Features:
- * - Fetches corporation killmails from ESI (up to 50 pages = 2500 killmails)
- * - Automatically enriches related entities (characters, corps, etc.)
- * - Publishes GraphQL subscription events for real-time updates
- * - Handles duplicates gracefully
- * - Respects ESI rate limits
+ * Reads a corporation's killmail list with a member's token (Director/CEO
+ * and `esi-killmails.read_corporation_killmails.v1`) and records every
+ * killmail it lists in `killmail_refs`; `queue:killmail-refs` feeds the
+ * detail queue from there. The Rust counterpart is
+ * `worker:corporation-killmails:rs`; see
+ * docs/superpowers/specs/2026-11-26-killmail-refs-sync-design.md.
  *
  * Usage: yarn worker:corporation-killmails
  */
@@ -41,7 +35,6 @@ export async function esiCorporationKillmailWorker() {
   logger.info('🔄 ESI corporation killmail worker started');
   logger.info(`📦 queue: ${QUEUE_NAME}`);
   logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent corporations`);
-  logger.info(`🏢 data source: ESI API (corporation killmails)`);
   logger.info(
     `🔐 required: Director/CEO + esi-killmails.read_corporation_killmails.v1\n`,
   );
@@ -49,113 +42,25 @@ export async function esiCorporationKillmailWorker() {
   try {
     await ensureAllQueuesExist();
     const channel = await getRabbitMQChannel();
-
-    // Set prefetch to limit concurrent processing
     channel.prefetch(PREFETCH_COUNT);
 
     logger.info('✅ connected to RabbitMQ');
     logger.info('⏳ waiting for corporation killmail jobs...\n');
 
-    // Consume messages
-    const consumerTag = await channel.consume(
+    await channel.consume(
       QUEUE_NAME,
       async (msg) => {
-        if (!msg) {
-          logger.info('⚠️  received null message from RabbitMQ');
-          return;
-        }
-
-        logger.info('📨 received message from queue!');
+        if (!msg) return;
 
         let message: KillmailSyncMessage | undefined;
-
         try {
           message = JSON.parse(msg.content.toString()) as KillmailSyncMessage;
-
-          logger.info(`\n${'━'.repeat(70)}`);
-          logger.info(`🆔 user ID: ${message.userId}`);
-          logger.info(`📅 queued at: ${message.queuedAt}`);
-          logger.info('━'.repeat(70));
-
-          const credentials = await loadUserCredentials(
-            message.userId,
-            prismaWorker,
-          );
-
-          if (!credentials.ok) {
-            // None of these is retryable: the user has to log in again
-            // before any attempt can succeed. Ack and move on.
-            logger.error(
-              `  ❌ ${credentials.reason} for user ${message.userId}`,
-            );
-            logger.error(`  ⏭️  skipping user - requires re-login via SSO`);
-            channel.ack(msg);
-            return;
-          }
-
-          const { user, accessToken } = credentials;
-
-          if (!user.corporation_id) {
-            // The publishers filter these out, but the filter is a shortcut,
-            // not the rule: a user can leave a corporation between publish
-            // and consume.
-            logger.warn(
-              `  ⏭️  ${user.character_name} has no corporation, skipping`,
-            );
-            channel.ack(msg);
-            return;
-          }
-
-          const corporation = await prismaWorker.corporation.findUnique({
-            where: { id: user.corporation_id },
-            select: { name: true },
-          });
-          const corporationName =
-            corporation?.name ?? `Corporation ${user.corporation_id}`;
-
-          logger.info(
-            `🏢 processing: ${corporationName} (ID: ${user.corporation_id})`,
-          );
-          logger.info(
-            `👤 user: ${user.character_name} (ID: ${user.character_id})`,
-          );
-
-          const lastKillmailId = message.fullSync
-            ? undefined
-            : await lastStoredKillmailId({
-                corporationId: user.corporation_id,
-              });
-
-          await syncCorporationKillmailsFromESI(
-            {
-              userId: user.id,
-              characterId: user.character_id,
-              characterName: user.character_name,
-              corporationId: user.corporation_id,
-              corporationName,
-              accessToken,
-            },
-            lastKillmailId,
-          );
-
-          // Acknowledge message
+          await syncCorporation(message);
           channel.ack(msg);
-          logger.info(`✅ completed: ${corporationName}\n`);
         } catch (error) {
-          // 403 is this worker's own case and is settled before the shared
-          // path sees it; everything else falls through unchanged.
-          if (
-            message !== undefined &&
-            (await settleForbidden(channel, msg, message.userId, error))
-          ) {
-            return;
-          }
-
           // A malformed message throws here too - JSON.parse is inside the
-          // try, so it settles through the same shared path rather than
-          // escaping the consumer callback unhandled and unsettled.
-          // 404, the 420 backoff and the attempt count all live in the
-          // shared path now; this worker only says which message it was.
+          // try. 404, throttles, an SSO outage and the attempt count all
+          // live in the shared path.
           await handleWorkerError(channel, msg, QUEUE_NAME, error, {
             warn: (m) => logger.warn(`  ${m} (user ${message?.userId})`),
             error: (m, e) =>
@@ -165,9 +70,6 @@ export async function esiCorporationKillmailWorker() {
       },
       { noAck: false },
     );
-
-    logger.info(`📢 consumer started with tag: ${consumerTag.consumerTag}`);
-    logger.info(`📊 ready to process messages from ${QUEUE_NAME}\n`);
   } catch (error) {
     logger.error('💥 worker failed to start:', error);
     process.exit(1);
@@ -175,135 +77,93 @@ export async function esiCorporationKillmailWorker() {
 }
 
 /**
- * Settle a permission failure here rather than through the retry path.
+ * One user's corporation sync: record what ESI lists, then stamp the user.
  *
- * ESI answers 403 when the user is not a Director or CEO of the corporation,
- * or logged in without `esi-killmails.read_corporation_killmails.v1`. No
- * number of attempts changes either, and `killmail-sync-cron.ts` re-selects
- * anyone whose `last_corp_killmail_sync_at` is stale — so left to the shared
- * path the same user is queued every tick, burns all five attempts and parks,
- * every ten minutes for as long as they hold an account.
+ * The corporation comes from `characters`, kept current by
+ * `worker:info:characters`; `users.corporation_id` was never written. A
+ * character not fetched yet, or one in an NPC corporation, is stamped and
+ * skipped.
  *
- * Writing the timestamp is what ends that: it is a record that the attempt
- * happened, not a claim that killmails were read, and it drops the user out of
- * the publisher's selection for the next fifteen minutes. That leaves one
- * empty ESI call per user per fifteen minutes, and the user starts syncing on
- * their own the moment they gain the role — no second column to clear.
- *
- * Returns true when the message has been settled here. If the stamp cannot be
- * written the message is left alone and reported false, because acking it
- * without the row would drop the work while the loop it prevents stays.
+ * A 403 means the user is not a Director/CEO or lacks the scope. Retrying
+ * cannot change either, so it is recorded in `corp_killmails_denied_at`;
+ * the cron stops selecting the user for this job until the next login
+ * clears it (`auth-callback.handler.ts`).
  */
-export async function settleForbidden(
-  channel: amqp.Channel,
-  msg: amqp.ConsumeMessage,
-  userId: number,
-  error: unknown,
-): Promise<boolean> {
-  if (!isForbidden(error)) return false;
-
-  try {
-    await prismaWorker.user.update({
-      where: { id: userId },
-      data: { last_corp_killmail_sync_at: new Date() },
-    });
-  } catch (stampError) {
-    logger.error(
-      `  ! could not record the 403 for user ${userId}; leaving the message to the retry path`,
-      stampError,
+export async function syncCorporation(
+  message: KillmailSyncMessage,
+  now: Date = new Date(),
+): Promise<'synced' | 'skipped' | 'denied'> {
+  const credentials = await loadUserCredentials(message.userId, prismaWorker);
+  if (!credentials.ok) {
+    logger.warn(
+      `  ⏭️  user ${message.userId}: ${credentials.reason}, skipping until the next login`,
     );
-    return false;
+    return 'skipped';
   }
 
-  logger.warn(
-    `  ! user ${userId}: ESI returned 403 - not a Director/CEO, or missing esi-killmails.read_corporation_killmails.v1. skipping.`,
-  );
-  channel.ack(msg);
-  return true;
-}
+  const { user, accessToken } = credentials;
+  const stamp = () =>
+    prismaWorker.user.update({
+      where: { id: user.id },
+      data: { last_corp_killmail_sync_at: now },
+    });
 
-/**
- * Fetch corporation killmails from ESI
- */
-async function syncCorporationKillmailsFromESI(
-  ctx: CorporationSyncContext,
-  lastKillmailId?: number,
-): Promise<void> {
-  try {
-    if (lastKillmailId) {
-      logger.info(
-        `  📡 [${ctx.corporationName}] fetching new corporation killmails from ESI (incremental sync)...`,
-      );
-      logger.info(`     🔍 will stop at killmail ID: ${lastKillmailId}`);
-      logger.info(
-        `     📄 max pages: 50 (will stop earlier if last synced killmail is found)`,
-      );
-    } else {
-      logger.info(
-        `  📡 [${ctx.corporationName}] fetching corporation killmails from ESI (full sync)...`,
-      );
-      logger.info(`     📄 max pages: 50 (2,500 killmails max - 50 per page)`);
-    }
-
-    // Fetch killmail list from ESI (max 50 pages = 2500 killmails, 50 per page)
-    // ESI returns killmails in reverse chronological order (newest first)
-    const killmailList = await CorporationService.getCorporationKillmails(
-      ctx.corporationId,
-      ctx.accessToken,
-      ctx.characterId,
-      50, // Max pages (50 killmails per page)
-      lastKillmailId, // Stop when we hit this ID (incremental sync)
-    );
-
-    logger.info(`  📥 total killmails found from ESI: ${killmailList.length}`);
-
-    if (killmailList.length > 0) {
-      logger.info(
-        `  📄 first killmail: ID ${killmailList[0].killmail_id}, hash ${killmailList[0].killmail_hash.substring(0, 10)}...`,
-      );
-      logger.info(
-        `  📄 last killmail: ID ${killmailList[killmailList.length - 1].killmail_id}, hash ${killmailList[killmailList.length - 1].killmail_hash.substring(0, 10)}...`,
-      );
-    }
-
-    if (killmailList.length === 0) {
-      logger.info(`  ℹ️  no killmails found for this corporation`);
-      return;
-    }
-
-    const queued = await publishKillmailDetails(
-      killmailList.map((km) => ({
-        killmail_id: km.killmail_id,
-        killmail_hash: km.killmail_hash,
-      })),
-      { announce: true, priority: 5 },
-    );
-
+  const character = await prismaWorker.character.findUnique({
+    where: { id: user.character_id },
+    select: { corporation_id: true },
+  });
+  const corporationId = character?.corporation_id;
+  if (!corporationId || isNpcCorporation(corporationId)) {
     logger.info(
-      `  📤 queued ${queued}/${killmailList.length} killmail(s) for detail fetch`,
+      `  ⏭️  ${user.character_name}: ${corporationId ? 'NPC corporation' : 'character not fetched yet'}, skipping`,
     );
-
-    // When this user was last handled — not the cursor. The cursor is derived
-    // from killmail_filters via `lastStoredKillmailId`; read the warning there,
-    // it does not repair itself. What reads this stamp is killmail-sync-cron's
-    // 15-minute window, and null means "never synced": the cron publishes it
-    // as a full sync.
-    await prismaWorker.user.update({
-      where: { id: ctx.userId },
-      data: { last_corp_killmail_sync_at: new Date() },
-    });
-  } catch (error: any) {
-    logger.error(
-      `  ❌ ESI sync failed for ${ctx.corporationName}:`,
-      error.message,
-    );
-    throw error;
+    await stamp();
+    return 'skipped';
   }
+
+  const fullSync = isFullSync(
+    user.last_corp_killmail_sync_at,
+    message.fullSync ?? false,
+  );
+
+  let walk;
+  try {
+    walk = await walkKillmails(
+      (page) =>
+        CorporationService.getKillmailPage(
+          corporationId,
+          accessToken,
+          user.character_id,
+          page,
+        ),
+      (refs) => recordRefs(refs, 'corporation', now),
+      fullSync,
+    );
+  } catch (error) {
+    if (!isForbidden(error)) throw error;
+    await prismaWorker.user.update({
+      where: { id: user.id },
+      data: { corp_killmails_denied_at: now, last_corp_killmail_sync_at: now },
+    });
+    logger.warn(
+      `  ! ${user.character_name}: ESI returned 403 - not a Director/CEO, or missing esi-killmails.read_corporation_killmails.v1. not retried until the next login.`,
+    );
+    return 'denied';
+  }
+
+  if (walk.capped) {
+    logger.warn(
+      `  ⚠️  corporation ${corporationId}: stopped at the page cap; older killmails were not read`,
+    );
+  }
+  await stamp();
+
+  logger.info(
+    `✅ corporation ${corporationId} (${user.character_name}): ${walk.found} listed on ${walk.pages} page(s), ${walk.inserted} new${fullSync ? ' (full sync)' : ''}`,
+  );
+  return 'synced';
 }
 
-/**
- * Graceful shutdown handlers
- */
 function setupShutdownHandlers() {
   process.on('SIGINT', () => {
     logger.info('\n⚠️  received SIGINT, shutting down gracefully...');

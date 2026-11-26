@@ -1,0 +1,14 @@
+// A killmail ID and hash discovered through a user's ESI killmail sync,
+// recorded before the killmail itself is fetched. No relation to killmails:
+// the ref exists first.
+model KillmailRef {
+  killmail_id    Int       @id
+  killmail_hash  String
+  source         String // 'character' or 'corporation'
+  discovered_at  DateTime
+  queued_count   Int       @default(0)
+  last_queued_at DateTime?
+
+  @@index([last_queued_at])
+  @@map("killmail_refs")
+}

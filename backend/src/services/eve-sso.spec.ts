@@ -51,6 +51,8 @@ import {
   exchangeCodeForToken,
   getAuthUrl,
   refreshAccessToken,
+  SsoGrantRevokedError,
+  SsoUnavailableError,
   verifyToken,
 } from './eve-sso';
 
@@ -66,9 +68,10 @@ function jsonResponse(body: unknown) {
   };
 }
 
-function errorResponse(text: string) {
+function errorResponse(text: string, status = 400) {
   return {
     ok: false,
+    status,
     json: vi.fn(),
     text: vi.fn().mockResolvedValue(text),
   };
@@ -208,6 +211,40 @@ describe('refreshAccessToken', () => {
     await expect(refreshAccessToken('spent')).rejects.toThrow(
       /^Token refresh failed/,
     );
+  });
+});
+
+describe('refreshAccessToken failure kinds', () => {
+  it('calls a revoked grant revoked', async () => {
+    fetchMock.mockResolvedValue(
+      errorResponse(JSON.stringify({ error: 'invalid_grant' }), 400),
+    );
+
+    await expect(refreshAccessToken('dead')).rejects.toBeInstanceOf(
+      SsoGrantRevokedError,
+    );
+  });
+
+  it('calls a 5xx an outage, not a revoked grant', async () => {
+    fetchMock.mockResolvedValue(errorResponse('busy', 503));
+
+    const error = await refreshAccessToken('live').catch((e) => e);
+    expect(error).toBeInstanceOf(SsoUnavailableError);
+    expect(error).not.toBeInstanceOf(SsoGrantRevokedError);
+  });
+
+  it('calls a network failure an outage', async () => {
+    fetchMock.mockRejectedValue(new TypeError('fetch failed'));
+
+    await expect(refreshAccessToken('live')).rejects.toBeInstanceOf(
+      SsoUnavailableError,
+    );
+  });
+
+  it('gives up after a timeout', async () => {
+    await refreshAccessToken('live');
+
+    expect(fetchCall().init.signal).toBeInstanceOf(AbortSignal);
   });
 });
 

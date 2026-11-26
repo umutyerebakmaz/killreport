@@ -17,8 +17,8 @@ model SolarSystem {
 
   system_activity   SystemActivity[]
   star              Star?
-  stargates         Stargate[]     @relation("StargateSystem")
-  inbound_stargates Stargate[]     @relation("StargateDestination")
+  stargates         Stargate[]       @relation("StargateSystem")
+  inbound_stargates Stargate[]       @relation("StargateDestination")
   planets           Planet[]
   moons             Moon[]
   asteroid_belts    AsteroidBelt[]

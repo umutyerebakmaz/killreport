@@ -1,5 +1,7 @@
 import { esiClient } from '@services/esi-client';
 import { isAxiosError } from 'axios';
+import { xPages } from '@helpers/x-pages';
+import type { KillmailPage } from '@services/killmail-refs';
 
 export interface EsiKillmail {
   killmail_id: number;
@@ -69,6 +71,33 @@ export class CharacterService {
       `/characters/${characterId}/corporationhistory/`,
     );
     return response.data;
+  }
+
+  /**
+   * One page of the character's recent killmails, for the sync walk
+   * (`killmail-walk.ts`). `null` on 404, which ESI answers for a character
+   * with no killmails or a page past the end; every other failure, a
+   * throttle included, goes to the caller.
+   */
+  static async getKillmailPage(
+    characterId: number,
+    token: string,
+    page: number,
+  ): Promise<KillmailPage | null> {
+    try {
+      const response = await esiClient.get<EsiKillmail[]>(
+        `/characters/${characterId}/killmails/recent/`,
+        {
+          params: { page },
+          headers: { Authorization: `Bearer ${token}` },
+          bucketKey: String(characterId),
+        },
+      );
+      return { refs: response.data, pages: xPages(response.headers) };
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) return null;
+      throw error;
+    }
   }
 
   /**

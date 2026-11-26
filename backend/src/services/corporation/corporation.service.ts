@@ -1,5 +1,7 @@
 import { esiClient } from '@services/esi-client';
 import { isAxiosError } from 'axios';
+import { xPages } from '@helpers/x-pages';
+import type { KillmailPage } from '@services/killmail-refs';
 import logger from '../logger';
 
 export interface EsiKillmail {
@@ -21,6 +23,34 @@ export class CorporationService {
       `/corporations/${corporationId}/`,
     );
     return response.data;
+  }
+
+  /**
+   * One page of the corporation's recent killmails, for the sync walk
+   * (`killmail-walk.ts`), on the director character's bucket. `null` on 404;
+   * a 403 (not a Director, or the scope is missing) throws like any other
+   * failure and the worker settles it.
+   */
+  static async getKillmailPage(
+    corporationId: number,
+    token: string,
+    characterId: number,
+    page: number,
+  ): Promise<KillmailPage | null> {
+    try {
+      const response = await esiClient.get<EsiKillmail[]>(
+        `/corporations/${corporationId}/killmails/recent/`,
+        {
+          params: { page },
+          headers: { Authorization: `Bearer ${token}` },
+          bucketKey: String(characterId),
+        },
+      );
+      return { refs: response.data, pages: xPages(response.headers) };
+    } catch (error) {
+      if (isAxiosError(error) && error.response?.status === 404) return null;
+      throw error;
+    }
   }
 
   /**

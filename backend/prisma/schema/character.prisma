@@ -1,20 +1,20 @@
 model Character {
-  id                       Int                              @id
-  name                     String
-  corporation_id           Int
-  alliance_id              Int?
-  birthday                 DateTime
-  bloodline_id             Int
-  race_id                  Int
-  gender                   String
-  security_status          Float?
-  description              String?
-  title                    String?
-  faction_id               Int?
-  character_title_id       String?                          @db.Uuid
-  achievement_score        Int?
-  created_at               DateTime                         @default(now())
-  updated_at               DateTime                         @updatedAt
+  id                 Int      @id
+  name               String
+  corporation_id     Int
+  alliance_id        Int?
+  birthday           DateTime
+  bloodline_id       Int
+  race_id            Int
+  gender             String
+  security_status    Float?
+  description        String?
+  title              String?
+  faction_id         Int?
+  character_title_id String?  @db.Uuid
+  achievement_score  Int?
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
 
   @@index([faction_id])
   @@map("characters")

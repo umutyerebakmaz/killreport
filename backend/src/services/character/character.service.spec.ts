@@ -97,3 +97,46 @@ describe('CharacterService.getCharacterKillmails', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 });
+
+describe('CharacterService.getKillmailPage', () => {
+  beforeEach(() => get.mockReset());
+
+  it('asks for one page with the token and the character bucket', async () => {
+    get.mockResolvedValueOnce({
+      data: page(3),
+      headers: { 'x-pages': '4' },
+    } as never);
+
+    expect(await CharacterService.getKillmailPage(777, 'tok', 2)).toEqual({
+      refs: page(3),
+      pages: 4,
+    });
+    expect(get).toHaveBeenCalledWith('/characters/777/killmails/recent/', {
+      params: { page: 2 },
+      headers: { Authorization: 'Bearer tok' },
+      bucketKey: '777',
+    });
+  });
+
+  it('reads a missing X-Pages as unknown', async () => {
+    get.mockResolvedValueOnce({ data: page(1), headers: {} } as never);
+
+    expect((await CharacterService.getKillmailPage(777, 'tok', 1))?.pages).toBe(
+      null,
+    );
+  });
+
+  it('is null on 404, the answer for no killmails', async () => {
+    get.mockRejectedValueOnce(httpError(404));
+
+    expect(await CharacterService.getKillmailPage(777, 'tok', 1)).toBeNull();
+  });
+
+  it('lets any other failure through', async () => {
+    get.mockRejectedValueOnce(httpError(502));
+
+    await expect(
+      CharacterService.getKillmailPage(777, 'tok', 1),
+    ).rejects.toBeInstanceOf(AxiosError);
+  });
+});

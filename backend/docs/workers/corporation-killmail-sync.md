@@ -1,5 +1,10 @@
 # Corporation Killmail Sync via ESI
 
+> **Outdated sync logic.** Since 2026-11-26 the sync records what it finds in
+> `killmail_refs` and no longer uses an incremental cursor or publishes to the
+> detail queue itself. The current behaviour is in
+> [killmail-refs.md](./killmail-refs.md).
+
 This feature allows users with Director/CEO roles to sync their corporation's killmails directly from ESI API.
 
 ## Requirements

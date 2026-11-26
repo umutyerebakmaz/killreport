@@ -84,22 +84,28 @@ describe('publishing', () => {
 });
 
 describe('the job decides who is asked for', () => {
-  it('the corporation job wants a corporation and its own timestamp', async () => {
+  it('the corporation job skips denied users and its own timestamp', async () => {
     await new KillmailSyncCron(CORPORATION_SYNC_JOB).runOnce();
 
     const { where } = prismaMock.user.findMany.mock.calls[0][0];
-    expect(where.corporation_id).toEqual({ not: null });
+    // The corporation comes from characters at sync time; users never had one.
+    expect(where.corporation_id).toBeUndefined();
+    expect(where.corp_killmails_denied_at).toBeNull();
+    expect(where.expires_at).toBeUndefined();
+    expect(where.refresh_token).toEqual({ not: null });
     expect(where.OR).toEqual([
       { last_corp_killmail_sync_at: null },
       { last_corp_killmail_sync_at: { lt: expect.any(Date) } },
     ]);
   });
 
-  it('the user job asks for everyone with a live token', async () => {
+  it('the user job asks for everyone with a refresh token, however old the access token', async () => {
     await new KillmailSyncCron(USER_SYNC_JOB).runOnce();
 
     const { where } = prismaMock.user.findMany.mock.calls[0][0];
     expect(where.corporation_id).toBeUndefined();
+    expect(where.expires_at).toBeUndefined();
+    expect(where.corp_killmails_denied_at).toBeUndefined();
     expect(where.OR).toEqual([
       { last_killmail_sync_at: null },
       { last_killmail_sync_at: { lt: expect.any(Date) } },
@@ -133,6 +139,9 @@ describe('back-pressure', () => {
     await new KillmailSyncCron(USER_SYNC_JOB).runOnce();
 
     expect(getQueueStats).toHaveBeenCalledWith('esi_user_killmails_queue');
+    // Syncs record refs; the detail queue's backlog is the publisher's
+    // concern, not a reason to stop reading ESI.
+    expect(getQueueStats).not.toHaveBeenCalledWith('esi_killmail_detail_queue');
   });
 });
 
@@ -230,10 +239,10 @@ describe('a user who has never been synced', () => {
 });
 
 describe('the queue the work actually lands in', () => {
-  it('holds off when the detail queue has no consumer', async () => {
-    // The list stages drain their own queue in seconds now; the backlog lives
-    // in esi_killmail_detail_queue. Publishing against a stalled detail queue
-    // re-lists from ESI and re-publishes everything not yet written.
+  it('keeps syncing while the detail queue has no consumer', async () => {
+    // A sync records refs in killmail_refs and publishes nothing downstream;
+    // a stalled detail queue is queue-killmail-refs' concern, and the refs
+    // wait in the table instead of piling up as duplicate messages.
     getQueueStats.mockImplementation(async (queue: string) =>
       queue === 'esi_killmail_detail_queue'
         ? { messageCount: 0, consumerCount: 0 }
@@ -243,8 +252,8 @@ describe('the queue the work actually lands in', () => {
 
     await new KillmailSyncCron(USER_SYNC_JOB).runOnce();
 
-    expect(channel.sendToQueue).not.toHaveBeenCalled();
-    expect(prismaMock.user.findMany).not.toHaveBeenCalled();
+    expect(prismaMock.user.findMany).toHaveBeenCalled();
+    expect(channel.sendToQueue).toHaveBeenCalled();
   });
 
   it('holds off when the detail queue is still full', async () => {

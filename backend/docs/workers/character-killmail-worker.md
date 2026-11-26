@@ -1,5 +1,10 @@
 # Character Killmail Sync Worker
 
+> **Outdated sync logic.** Since 2026-11-26 the sync records what it finds in
+> `killmail_refs` and no longer uses an incremental cursor or publishes to the
+> detail queue itself. The current behaviour is in
+> [killmail-refs.md](./killmail-refs.md).
+
 ## Overview
 
 Character-specific killmail sync worker allows you to fetch and save **all killmail history** of any EVE Online character from zKillboard to the database. No login required, uses public API.

@@ -82,6 +82,16 @@ export async function verifyToken(token: string): Promise<EveCharacter> {
 /**
  * Gets a new access token using a refresh token
  */
+/** SSO answered `invalid_grant`: the user revoked consent or CCP invalidated
+ * the grant. No retry helps; the user has to log in again. */
+export class SsoGrantRevokedError extends Error {}
+
+/** Anything else: network, timeout, 5xx, an unexpected 4xx. Worth retrying. */
+export class SsoUnavailableError extends Error {}
+
+/** How long a refresh may take; it runs while the user row is locked. */
+const REFRESH_TIMEOUT_MS = 10_000;
+
 export async function refreshAccessToken(refreshToken: string): Promise<{
   access_token: string;
   token_type: string;
@@ -92,22 +102,42 @@ export async function refreshAccessToken(refreshToken: string): Promise<{
     `${config.eveSso.clientId}:${config.eveSso.clientSecret}`,
   ).toString('base64');
 
-  const response = await fetch(config.eveSso.tokenUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Basic ${credentials}`,
-    },
-    body: new URLSearchParams({
-      grant_type: 'refresh_token',
-      refresh_token: refreshToken,
-    }),
-  });
+  let response: Response;
+  try {
+    response = await fetch(config.eveSso.tokenUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        Authorization: `Basic ${credentials}`,
+      },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+      }),
+      signal: AbortSignal.timeout(REFRESH_TIMEOUT_MS),
+    });
+  } catch (error) {
+    throw new SsoUnavailableError(
+      `Token refresh failed: ${(error as Error).message}`,
+    );
+  }
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Token refresh failed: ${error}`);
+    const text = await response.text();
+    if (response.status === 400 && isInvalidGrant(text)) {
+      throw new SsoGrantRevokedError(`Token refresh failed: ${text}`);
+    }
+    throw new SsoUnavailableError(`Token refresh failed: ${text}`);
   }
 
   return await response.json();
+}
+
+/** `{"error":"invalid_grant", ...}`, the OAuth answer for a dead grant. */
+function isInvalidGrant(body: string): boolean {
+  try {
+    return (JSON.parse(body) as { error?: unknown }).error === 'invalid_grant';
+  } catch {
+    return false;
+  }
 }

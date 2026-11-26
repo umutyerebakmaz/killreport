@@ -1,4 +1,3 @@
-import { KILLMAIL_DETAIL_QUEUE } from '@services/killmail-detail-message';
 import { buildSyncMessage, isFullSync } from '@services/killmail-sync-message';
 import logger from '@services/logger';
 import prisma from './prisma';
@@ -10,13 +9,6 @@ const SYNC_INTERVAL_MINUTES = 10;
 
 /** How long a user's last sync may be before they are queued again. */
 const STALE_AFTER_MINUTES = 15;
-
-/**
- * How much life a token must have left to be worth queueing. The worker
- * refreshes an expiring token itself (`user-credentials.ts`), so this only
- * keeps the queue free of users whose session has clearly lapsed.
- */
-const TOKEN_BUFFER_MINUTES = 5;
 
 /**
  * One scheduled sync: which queue it feeds, which users it is about, and
@@ -34,23 +26,14 @@ export interface SyncJob {
   queue: string;
   sinceField: 'last_killmail_sync_at' | 'last_corp_killmail_sync_at';
   /**
-   * Corporation killmails are read through a user's corporation, so a user
-   * without one has nothing to sync.
+   * The corporation job skips users whose last corporation read was a 403
+   * (`corp_killmails_denied_at`), until a login clears it. The corporation
+   * itself is read from `characters` by the worker, not filtered on here:
+   * `users.corporation_id` was never written.
    */
   requiresCorporation: boolean;
   /** Background work yields to anything a person is waiting on. */
   priority: number;
-  /**
-   * The queue where the work actually piles up.
-   *
-   * The list stage drains its own queue within seconds — all it does is fetch
-   * the list from ESI and publish it. The backlog builds in
-   * `esi_killmail_detail_queue`, and publishing on while that is blocked means
-   * refetching the ESI list every round and republishing every killmail not
-   * yet written: the queue grows without bound on duplicates. That is why
-   * #237's back-pressure check looks at both queues.
-   */
-  downstreamQueue: string;
 }
 
 export const USER_SYNC_JOB: SyncJob = {
@@ -59,7 +42,6 @@ export const USER_SYNC_JOB: SyncJob = {
   sinceField: 'last_killmail_sync_at',
   requiresCorporation: false,
   priority: 3,
-  downstreamQueue: KILLMAIL_DETAIL_QUEUE,
 };
 
 export const CORPORATION_SYNC_JOB: SyncJob = {
@@ -68,7 +50,6 @@ export const CORPORATION_SYNC_JOB: SyncJob = {
   sinceField: 'last_corp_killmail_sync_at',
   requiresCorporation: true,
   priority: 3,
-  downstreamQueue: KILLMAIL_DETAIL_QUEUE,
 };
 
 /**
@@ -126,12 +107,15 @@ export class KillmailSyncCron {
       // monitoring channel and answers zeros when the queue is missing or the
       // broker is unreachable, which reads as "no consumer" and holds off —
       // an unreadable broker is not a reason to publish blindly.
-      for (const queue of [this.job.queue, this.job.downstreamQueue]) {
-        const reason = skipReason(await getQueueStats(queue));
-        if (reason) {
-          logger.debug(`⏭️  ${this.job.label}: skipping - ${queue}: ${reason}`);
-          return;
-        }
+      // Only the job's own queue: a sync records refs and publishes nothing
+      // downstream, so the detail queue's backlog is queue-killmail-refs's
+      // concern (it checks for a consumer itself).
+      const reason = skipReason(await getQueueStats(this.job.queue));
+      if (reason) {
+        logger.debug(
+          `⏭️  ${this.job.label}: skipping - ${this.job.queue}: ${reason}`,
+        );
+        return;
       }
 
       const users = await this.usersDue();
@@ -173,11 +157,13 @@ export class KillmailSyncCron {
     };
   }
 
-  /** Users with a live session whose last sync for this job has gone stale. */
+  /**
+   * Users who can still be synced (a refresh token) and whose last sync for
+   * this job has gone stale. The access token's lifetime is not a filter:
+   * the worker refreshes it, and filtering on it used to drop every user
+   * about twenty minutes after their last login.
+   */
   private async usersDue() {
-    const tokenAliveUntil = new Date(
-      Date.now() + TOKEN_BUFFER_MINUTES * 60 * 1000,
-    );
     const staleBefore = new Date(Date.now() - STALE_AFTER_MINUTES * 60 * 1000);
 
     // Written out per job rather than through a computed key, so the column
@@ -195,10 +181,9 @@ export class KillmailSyncCron {
 
     return prisma.user.findMany({
       where: {
-        expires_at: { gt: tokenAliveUntil },
         refresh_token: { not: null },
         ...(this.job.requiresCorporation
-          ? { corporation_id: { not: null } }
+          ? { corp_killmails_denied_at: null }
           : {}),
         OR: stale,
       },

@@ -69,6 +69,17 @@ pub trait Worker: Send + Sync + 'static {
         ctx: &Context<'_>,
     ) -> impl Future<Output = anyhow::Result<Processed>> + Send;
 
+    /// Handle a whole message. The default hands [`Worker::handle`] its ID;
+    /// a worker that needs another field of the message (the killmail syncs
+    /// read `fullSync`) overrides this instead.
+    fn handle_message(
+        &self,
+        message: &EntityQueueMessage,
+        ctx: &Context<'_>,
+    ) -> impl Future<Output = anyhow::Result<Processed>> + Send {
+        self.handle(message.entity_id, ctx)
+    }
+
     /// The drained-queue summary line.
     /// The unchanged count appears only when there is one, so a worker that
     /// never reports [`Outcome::Unchanged`] keeps its line as it was.
