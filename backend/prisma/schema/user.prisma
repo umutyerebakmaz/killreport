@@ -16,6 +16,7 @@ model User {
   last_corp_killmail_sync_at DateTime? // Last corporation killmail sync time
   last_corp_killmail_id      Int? // Last synced corporation killmail ID (for incremental sync)
   corporation_id             Int? // The user's corporation ID
+  corp_killmails_denied_at   DateTime? // Set when ESI answered 403 for corporation killmails; cleared on login
   sessions                   Session[]
   tracked_entities           TrackedEntity[]
   discord_webhooks           DiscordWebhook[]
