@@ -16,9 +16,10 @@ pub struct UserKillmailWorker {
 }
 
 /// What one sync did.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Synced {
-    Synced(Walk),
+    /// The walk, and whose list it was, for the log line.
+    Synced { walk: Walk, character_name: String },
     /// Nothing to do until the user logs in again; acked.
     Skipped(&'static str),
 }
@@ -80,7 +81,10 @@ pub async fn sync_user(
     }
 
     stamp(pool, user.id, now).await?;
-    Ok(Synced::Synced(walked))
+    Ok(Synced::Synced {
+        walk: walked,
+        character_name: user.character_name,
+    })
 }
 
 async fn stamp(pool: &PgPool, user_id: i32, now: NaiveDateTime) -> sqlx::Result<()> {
@@ -96,10 +100,13 @@ async fn stamp(pool: &PgPool, user_id: i32, now: NaiveDateTime) -> sqlx::Result<
 /// was nothing to do.
 pub fn processed(user_id: i32, synced: Synced) -> Processed {
     match synced {
-        Synced::Synced(w) => Processed {
+        Synced::Synced {
+            walk: w,
+            character_name,
+        } => Processed {
             outcome: Outcome::Updated,
             detail: format!(
-                " user {user_id}: {} listed on {} page(s), {} new",
+                " {character_name} (user {user_id}): {} listed on {} page(s), {} new",
                 w.found, w.pages, w.inserted
             ),
         },

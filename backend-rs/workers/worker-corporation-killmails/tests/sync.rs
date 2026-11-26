@@ -109,7 +109,7 @@ async fn reads_the_corporation_from_characters(pool: PgPool) {
     let synced = sync_corporation(&pool, &esi, &sso, USER, false, now())
         .await
         .unwrap();
-    assert!(matches!(synced, Synced::Synced(walk) if walk.inserted == 2));
+    assert!(matches!(synced, Synced::Synced { walk, .. } if walk.inserted == 2));
     assert_eq!(sources(&pool).await, ["corporation", "corporation"]);
     assert_eq!(stamps(&pool).await, (Some(now()), None));
 }
@@ -198,4 +198,24 @@ async fn failure_mid_walk_keeps_refs_and_no_stamp(pool: PgPool) {
         .is_err());
     assert_eq!(sources(&pool).await.len(), 1);
     assert_eq!(stamps(&pool).await, (Some(before()), None));
+}
+
+#[test]
+fn the_success_line_names_the_character() {
+    let line = worker_corporation_killmails::processed(
+        USER,
+        Synced::Synced {
+            walk: killmail_refs::Walk {
+                pages: 2,
+                found: 73,
+                inserted: 73,
+                capped: false,
+            },
+            character_name: "General XAN".to_owned(),
+        },
+    );
+    assert_eq!(
+        line.detail,
+        " General XAN (user 7): 73 listed on 2 page(s), 73 new"
+    );
 }

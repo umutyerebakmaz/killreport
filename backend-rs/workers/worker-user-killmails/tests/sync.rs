@@ -88,7 +88,7 @@ async fn records_character_refs_and_stamps_the_user(pool: PgPool) {
     let synced = sync_user(&pool, &esi, &sso, USER, false, now())
         .await
         .unwrap();
-    assert!(matches!(synced, Synced::Synced(walk) if walk.inserted == 2));
+    assert!(matches!(synced, Synced::Synced { walk, .. } if walk.inserted == 2));
     assert_eq!(
         refs(&pool).await,
         [(1, "character".into()), (2, "character".into())]
@@ -191,4 +191,24 @@ async fn a_403_on_the_character_list_is_stamped_and_skipped(pool: PgPool) {
         .unwrap();
     assert!(matches!(synced, Synced::Skipped(_)));
     assert_eq!(stamp(&pool).await, Some(now()));
+}
+
+#[test]
+fn the_success_line_names_the_character() {
+    let line = worker_user_killmails::processed(
+        USER,
+        Synced::Synced {
+            walk: killmail_refs::Walk {
+                pages: 2,
+                found: 73,
+                inserted: 73,
+                capped: false,
+            },
+            character_name: "General XAN".to_owned(),
+        },
+    );
+    assert_eq!(
+        line.detail,
+        " General XAN (user 7): 73 listed on 2 page(s), 73 new"
+    );
 }
