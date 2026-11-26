@@ -71,24 +71,20 @@ handles one user at a time (`prefetch(1)`) and waits 10 seconds between users.
 
 1. **Token.** `loadUserCredentials`
    ([`user-credentials.ts`](../../src/services/user-credentials.ts)) returns a
-   valid access token, refreshing it first if it expires within 5 minutes and
-   saving the rotated refresh token. If the user is missing, has no refresh
-   token, or the refresh fails, the message is acked and skipped. Retrying
-   cannot help until the user logs in again.
-2. **Where to stop.** `lastStoredKillmailId`
-   ([`killmail-cursor.ts`](../../src/services/killmail-cursor.ts)) takes the
-   highest killmail ID in `killmail_filters` that involves the character, as
-   victim or attacker. That is the incremental cursor. A full sync skips it.
-3. **List.** `CharacterService.getCharacterKillmails` pages through
-   `GET /characters/{id}/killmails/recent/`, newest first, at most 50 pages. It
-   stops early at the cursor ID, an empty page or a 404. The result is a list of
-   `{ killmail_id, killmail_hash }` pairs.
-4. **Hand off.** `publishKillmailDetails`
-   ([`publish-killmail-details.ts`](../../src/queues/publish-killmail-details.ts))
-   drops every ID already in `killmails` and publishes the rest to
-   `esi_killmail_detail_queue` with priority 5 and `announce: true`.
-5. **Stamp.** Sets `users.last_killmail_sync_at = now()`. The cron's 15-minute
-   window reads this column.
+   valid access token, refreshing it first, under a row lock, if it expires
+   within 5 minutes. A missing user, no refresh token or a revoked grant
+   (`invalid_grant`, which clears the refresh token) is acked and skipped; an
+   SSO outage is retried.
+2. **List and record.** `CharacterService.getKillmailPage` reads
+   `GET /characters/{id}/killmails/recent/` page by page, newest first, and
+   each page is recorded in `killmail_refs`. It stops on a 404, an empty page,
+   `X-Pages`, 14 pages, or a page that added no new ref (unless it is a full
+   sync: `--full`, or a user who has never synced).
+3. **Stamp.** Sets `users.last_killmail_sync_at`. The cron's 15-minute window
+   reads this column.
+4. **Hand off.** Nothing is published here. `queue:killmail-refs` publishes
+   the refs that have no killmail yet to `esi_killmail_detail_queue`; see
+   [killmail-refs.md](../workers/killmail-refs.md).
 
 **Why a first sync is always full.** The cursor counts every killmail in the
 database, not only the ones this sync wrote. RedisQ writes the whole EVE feed,
@@ -190,9 +186,9 @@ The corporation sync is the same pipeline with different inputs:
 | Manual queue script | [`queues/queue-user-esi-killmails.ts`](../../src/queues/queue-user-esi-killmails.ts)           |
 | List worker         | [`workers/worker-esi-user-killmails.ts`](../../src/workers/worker-esi-user-killmails.ts)       |
 | Token refresh       | [`services/user-credentials.ts`](../../src/services/user-credentials.ts)                       |
-| Incremental cursor  | [`services/killmail-cursor.ts`](../../src/services/killmail-cursor.ts)                         |
+| Walk and refs       | [`services/killmail-walk.ts`](../../src/services/killmail-walk.ts)                             |
 | ESI list call       | [`services/character/character.service.ts`](../../src/services/character/character.service.ts) |
-| Hand-off to detail  | [`queues/publish-killmail-details.ts`](../../src/queues/publish-killmail-details.ts)           |
+| Hand-off to detail  | [`queues/queue-killmail-refs.ts`](../../src/queues/queue-killmail-refs.ts)                     |
 | Detail worker       | [`workers/worker-killmail-detail.ts`](../../src/workers/worker-killmail-detail.ts)             |
 | Writer              | [`services/killmail-writer.ts`](../../src/services/killmail-writer.ts)                         |
 | systemd units       | [`deploy/systemd/`](../../../deploy/systemd/), see [systemd.md](../ops/systemd.md)             |
