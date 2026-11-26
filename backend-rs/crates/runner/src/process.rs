@@ -45,8 +45,8 @@ pub async fn process_one<W: Worker>(
     };
 
     let outcome = async {
-        let id = parsed?.entity_id;
-        worker.handle(id, ctx).await
+        let message = parsed?;
+        worker.handle_message(&message, ctx).await
     }
     .await;
 

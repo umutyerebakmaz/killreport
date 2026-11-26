@@ -8,7 +8,8 @@ fn reads_the_entity_id_and_ignores_the_other_fields() {
     assert_eq!(
         EntityQueueMessage::parse(body).unwrap(),
         EntityQueueMessage {
-            entity_id: 99000001
+            entity_id: 99000001,
+            full_sync: false,
         }
     );
 }
@@ -27,7 +28,8 @@ fn parses_what_mq_publishes() {
     assert_eq!(
         EntityQueueMessage::parse(&body).unwrap(),
         EntityQueueMessage {
-            entity_id: 98000001
+            entity_id: 98000001,
+            full_sync: false,
         }
     );
 }
@@ -38,12 +40,16 @@ fn parses_entity_id_and_killmail_id() {
     assert_eq!(
         EntityQueueMessage::parse(killmail).unwrap(),
         EntityQueueMessage {
-            entity_id: 133900250
+            entity_id: 133900250,
+            full_sync: false,
         }
     );
     assert_eq!(
         EntityQueueMessage::parse(br#"{"entityId":1}"#).unwrap(),
-        EntityQueueMessage { entity_id: 1 }
+        EntityQueueMessage {
+            entity_id: 1,
+            full_sync: false,
+        }
     );
     assert!(EntityQueueMessage::parse(b"{}").is_err());
 }
@@ -54,7 +60,18 @@ fn parses_what_mq_publishes_for_a_killmail() {
     assert_eq!(
         EntityQueueMessage::parse(&body).unwrap(),
         EntityQueueMessage {
-            entity_id: 133900250
+            entity_id: 133900250,
+            full_sync: false,
         }
     );
+}
+
+#[test]
+fn parses_user_id_and_full_sync() {
+    let body = br#"{"userId":7,"fullSync":true,"queuedAt":"2026-11-26T10:00:00.000Z"}"#;
+    let message = EntityQueueMessage::parse(body).unwrap();
+    assert_eq!((message.entity_id, message.full_sync), (7, true));
+
+    let message = EntityQueueMessage::parse(br#"{"userId":7,"queuedAt":"x"}"#).unwrap();
+    assert!(!message.full_sync);
 }

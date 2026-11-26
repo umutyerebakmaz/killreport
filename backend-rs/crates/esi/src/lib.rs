@@ -10,7 +10,7 @@ pub mod shared;
 pub mod shared_limiter;
 mod throttled;
 
-pub use client::{EsiClient, EsiError};
+pub use client::{EsiClient, EsiError, Page};
 pub use compatibility::CompatibilityDate;
 pub use limiter::{
     max_rps_from_env, parse_max_rps, EsiRoute, LimiterStats, Permit, RateLimiter, DEFAULT_REDIS_URL,
