@@ -38,6 +38,7 @@ the containing file, and run `yarn docs:check-links` from the repository root.
 - [Alliance–Corporation](workers/alliance-corporation.md) — alliance corporation enrichment
 - [Alliance–Corporation–Character Enrichment](workers/alliance-corporation-character-enrichment.md) — combined enrichment
 - [Alliance Snapshots](workers/alliance-snapshots.md) — alliance snapshot & metrics
+- [Killmail Refs](workers/killmail-refs.md) — user and corporation killmail sync through killmail_refs
 - [Corporation Killmail Sync](workers/corporation-killmail-sync.md) — corporation killmails via ESI
 - [Character Killmail Worker](workers/character-killmail-worker.md) — character killmail sync worker
 - [Character Sync (Quick Reference)](workers/character-sync.md) — one-line sync commands
