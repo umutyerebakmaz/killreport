@@ -265,7 +265,7 @@ For detailed information about killmail value calculations, including the specia
 
 Key points:
 
-- Capsules (type_id: 670) have a fixed ship value of 10 ISK
+- Capsules (victim ship group 29) have a fixed ship value of 10 ISK
 - Other ships use market prices
 - Implants and items always use market prices
-- Values can be backfilled using: `yarn queue:backfill-values --mode=zero --capsules-only`
+- Values can be backfilled using: `yarn queue:backfill-values:rs --capsules-only`

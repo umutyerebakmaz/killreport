@@ -1,4 +1,18 @@
-# Capsule (Pod) Value Calculation
+A victim ship in a capsule group (`CAPSULE_GROUP_IDS`, group 29) is priced at
+10 ISK. Group, not type 670, so the Genolution variant counts as well:
+
+```typescript
+const CAPSULE_VALUE = 10;
+
+const victimGroupId = typeGroupMap.get(killmailData.victim.ship_type_id);
+const shipPrice =
+  victimGroupId !== undefined && CAPSULE_GROUP_IDS.includes(victimGroupId)
+    ? CAPSULE_VALUE
+    : priceMap.get(killmailData.victim.ship_type_id) || 0;
+```
+
+The Rust workers use the same formula from
+[killmail-value](../../../backend-rs/crates/killmail-value/src/lib.rs).# Capsule (Pod) Value Calculation
 
 ## Overview
 
@@ -33,16 +47,8 @@ const shipPrice =
 
 **File:** `src/workers/worker-backfill-values.ts`
 
-The backfill worker now uses the same Capsule handling when recalculating values:
-
-```typescript
-// Calculate ship value
-// Special case: Capsule (pod) has fixed value of 10 ISK
-const shipPrice =
-  killmail.victim.ship_type_id === CAPSULE_TYPE_ID
-    ? CAPSULE_VALUE
-    : priceMap.get(killmail.victim.ship_type_id) || 0;
-```
+The backfill worker recalculates with `calculateKillmailValues`, so it uses
+the same capsule rule. See [backfill-values-guide.md](./backfill-values-guide.md).
 
 ### 3. GraphQL Field Resolvers
 
@@ -65,14 +71,10 @@ if (victim?.ship_type_id) {
 
 **File:** `src/queues/queue-backfill-values.ts`
 
-Added `--capsules-only` flag to process only Capsule killmails:
+`--capsules-only` queues only killmails whose victim ship is in group 29:
 
 ```bash
-# Original behavior - all killmails with zero value
-yarn queue:backfill-values --mode=zero
-
-# New - only Capsule killmails with zero value
-yarn queue:backfill-values --mode=zero --capsules-only
+yarn queue:backfill-values --capsules-only
 ```
 
 ## Usage
@@ -80,29 +82,17 @@ yarn queue:backfill-values --mode=zero --capsules-only
 ### Queuing Capsule Killmails for Processing
 
 ```bash
-# Process Capsule killmails where total_value = 0
-yarn queue:backfill-values --mode=zero --capsules-only
-
-# Process Capsule killmails where total_value = NULL
-yarn queue:backfill-values --mode=null --capsules-only
-
-# Recalculate all Capsule killmails
-yarn queue:backfill-values --mode=all --capsules-only
+# Recalculate every Capsule killmail
+yarn queue:backfill-values:rs --capsules-only
 
 # With limit
-yarn queue:backfill-values --mode=all --capsules-only --limit=10000
+yarn queue:backfill-values:rs --capsules-only --limit=10000
 ```
 
 ### Running the Worker
 
 ```bash
-# Single worker
-yarn worker:backfill-values
-
-# Multiple workers in parallel (recommended)
-yarn worker:backfill-values &
-yarn worker:backfill-values &
-yarn worker:backfill-values
+yarn worker:backfill-values:rs
 ```
 
 ## Value Calculation Example
@@ -129,7 +119,7 @@ For a Capsule killmail with implants:
 
 ### Capsule Characteristics
 
-- **Type ID:** 670
+- **Group ID:** 29 (Capsule 670, Genolution variants)
 - **Fixed Ship Value:** 10 ISK
 - **Applies to:** All Capsule kills regardless of implants
 - **Retroactive:** Worker can update historical killmails
@@ -183,7 +173,7 @@ If killmail still shows wrong value after backfill:
 
 ```bash
 # Force recalculation
-yarn queue:backfill-values --mode=all --capsules-only --limit=100
+yarn queue:backfill-values:rs --capsules-only --limit=100
 
 # Verify specific killmail
 yarn worker:backfill-values
@@ -198,5 +188,6 @@ To check Capsule killmails with incorrect values:
 SELECT km.killmail_id, km.total_value, v.ship_type_id
 FROM killmails km
 JOIN victims v ON v.killmail_id = km.killmail_id
-WHERE v.ship_type_id = 670 AND km.total_value < 10;
+JOIN types t ON t.id = v.ship_type_id
+WHERE t.group_id = 29 AND km.total_value < 10;
 ```
