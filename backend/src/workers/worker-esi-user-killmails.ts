@@ -1,7 +1,10 @@
 import { CharacterService } from '@services/character/character.service';
-import { type KillmailSyncMessage } from '@services/killmail-sync-message';
-import { lastStoredKillmailId } from '@services/killmail-cursor';
-import { publishKillmailDetails } from '../queues/publish-killmail-details';
+import { recordRefs } from '@services/killmail-refs';
+import {
+  isFullSync,
+  type KillmailSyncMessage,
+} from '@services/killmail-sync-message';
+import { walkKillmails } from '@services/killmail-walk';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
@@ -9,35 +12,22 @@ import { loadUserCredentials } from '@services/user-credentials';
 import { handleWorkerError } from './worker-error';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
-const PREFETCH_COUNT = 1; // Process 1 user at a time to avoid rate limiting
+const PREFETCH_COUNT = 1;
 
-// Shutdown flag and interval tracking
+// Shutdown flag
 let isShuttingDown = false;
-let emptyCheckInterval: NodeJS.Timeout | null = null;
-
-/** What one character sync needs, resolved from the database up front. */
-interface UserSyncContext {
-  userId: number;
-  characterId: number;
-  characterName: string;
-  accessToken: string;
-}
 
 /**
- * ESI-only killmail worker for logged-in users
+ * ESI killmail sync for logged-in users.
  *
- * This worker fetches killmails directly from ESI API using user's access token.
- * No zKillboard dependency - completely independent system.
- *
- * Features:
- * - Fetches recent killmails from ESI (up to 100 pages = 2500 killmails)
- * - Automatically enriches related entities (characters, corps, etc.)
- * - Publishes GraphQL subscription events for real-time updates
- * - Handles duplicates gracefully
- * - Respects ESI rate limits
+ * Reads the character's own killmail list with their token and records every
+ * killmail it lists in `killmail_refs`. It publishes nothing: the detail queue
+ * is fed from that table by `queue:killmail-refs`, so a killmail this sync saw
+ * is fetched eventually even if a message is lost or parked. The Rust
+ * counterpart is `worker:user-killmails:rs`; see
+ * docs/superpowers/specs/2026-11-26-killmail-refs-sync-design.md.
  *
  * Usage: yarn worker:user-killmails
- * Or: Start with server process via ENABLE_USER_KILLMAIL_WORKER=true
  */
 export async function esiUserKillmailWorker() {
   await ensureAllQueuesExist();
@@ -45,31 +35,21 @@ export async function esiUserKillmailWorker() {
     logger.info('🔄 ESI user killmail worker started');
     logger.info(`📦 queue: ${QUEUE_NAME}`);
     logger.info(`⚡ prefetch: ${PREFETCH_COUNT} concurrent users`);
-    logger.info(`🌐 data source: ESI API (direct, no zKillboard)\n`);
 
     try {
       const channel = await getRabbitMQChannel();
-
-      // Set prefetch to limit concurrent processing
       channel.prefetch(PREFETCH_COUNT);
 
       logger.info('✅ connected to RabbitMQ');
       logger.info('⏳ waiting for user killmail jobs...\n');
 
-      // Add channel error handlers
       channel.on('error', (err) => {
-        if (!isShuttingDown) {
-          logger.error('💥 channel error:', err);
-        }
+        if (!isShuttingDown) logger.error('💥 channel error:', err);
       });
-
       channel.on('close', () => {
-        if (!isShuttingDown) {
-          logger.warn('⚠️  channel closed unexpectedly');
-        }
+        if (!isShuttingDown) logger.warn('⚠️  channel closed unexpectedly');
       });
 
-      // Consume messages
       await channel.consume(
         QUEUE_NAME,
         async (msg) => {
@@ -78,72 +58,15 @@ export async function esiUserKillmailWorker() {
             return;
           }
 
-          logger.info('📨 received message from queue!');
-
           let message: KillmailSyncMessage | undefined;
-
           try {
             message = JSON.parse(msg.content.toString()) as KillmailSyncMessage;
-
-            logger.info(`\n${'━'.repeat(70)}`);
-            logger.info(`🆔 user ID: ${message.userId}`);
-            logger.info(`📅 queued at: ${message.queuedAt}`);
-            logger.info('━'.repeat(70));
-
-            const credentials = await loadUserCredentials(
-              message.userId,
-              prismaWorker,
-            );
-
-            if (!credentials.ok) {
-              // None of these is retryable: the user has to log in again
-              // before any attempt can succeed. Ack and move on.
-              logger.error(
-                `  ❌ ${credentials.reason} for user ${message.userId}`,
-              );
-              logger.error(`  ⏭️  skipping user - requires re-login via SSO`);
-              channel.ack(msg);
-              return;
-            }
-
-            const { user, accessToken } = credentials;
-
-            logger.info(
-              `👤 processing: ${user.character_name} (ID: ${user.character_id})`,
-            );
-
-            const lastKillmailId = message.fullSync
-              ? undefined
-              : await lastStoredKillmailId({
-                  characterId: user.character_id,
-                });
-
-            await syncUserKillmailsFromESI(
-              {
-                userId: user.id,
-                characterId: user.character_id,
-                characterName: user.character_name,
-                accessToken,
-              },
-              lastKillmailId,
-            );
-
-            // Acknowledge message
+            await syncUser(message);
             channel.ack(msg);
-            logger.info(`✅ completed: ${user.character_name}\n`);
-
-            // Add delay between users to prevent rate limiting
-            // This is critical when multiple users are queued
-            logger.debug(
-              `⏸️  waiting 10 seconds before next user to prevent rate limiting...\n`,
-            );
-            await new Promise((resolve) => setTimeout(resolve, 10000));
           } catch (error) {
             // A malformed message throws here too - JSON.parse is inside the
-            // try, so it settles through the same shared path rather than
-            // escaping the consumer callback unhandled and unsettled.
-            // 404, the 420 backoff and the attempt count all live in the
-            // shared path now; this worker only says which message it was.
+            // try, so it settles through the same shared path. 404, throttles,
+            // an SSO outage and the attempt count all live there.
             await handleWorkerError(channel, msg, QUEUE_NAME, error, {
               warn: (m) => logger.warn(`  ${m} (user ${message?.userId})`),
               error: (m, e) =>
@@ -155,8 +78,6 @@ export async function esiUserKillmailWorker() {
       );
 
       logger.info(`📢 consumer started`);
-      logger.info(`📊 ready to process messages from ${QUEUE_NAME}\n`);
-
       // Wait indefinitely (until error or shutdown)
       await new Promise(() => {});
     } catch (error) {
@@ -166,83 +87,64 @@ export async function esiUserKillmailWorker() {
     }
   }
 
-  // Cleanup
   logger.info('🧹 worker cleanup completed');
   await prismaWorker.$disconnect();
 }
 
 /**
- * Fetch killmails from ESI for a single user
+ * One user's character sync: record what ESI lists, then stamp the user.
+ *
+ * `skipped` when the user cannot be synced until they log in again (no
+ * refresh token, a revoked grant, the user gone); those are acked, because no
+ * retry helps. A failure part-way through the walk keeps the pages already
+ * recorded and throws before the stamp, so the user is selected again.
  */
-async function syncUserKillmailsFromESI(
-  ctx: UserSyncContext,
-  lastKillmailId?: number,
-): Promise<void> {
-  try {
-    if (lastKillmailId) {
-      logger.info(
-        `  📡 [${ctx.characterName}] fetching new killmails from ESI (incremental sync)...`,
-      );
-      logger.info(`     🔍 will stop at killmail ID: ${lastKillmailId}`);
-      logger.info(
-        `     📄 max pages: 50 (will stop earlier if last synced killmail is found)`,
-      );
-    } else {
-      logger.info(
-        `  📡 [${ctx.characterName}] fetching killmails from ESI (full sync)...`,
-      );
-      logger.info(`     📄 max pages: 50 (2,500 killmails max - 50 per page)`);
-    }
-
-    // Fetch killmail list from ESI (max 50 pages = 2500 killmails, 50 per page)
-    // ESI returns killmails in reverse chronological order (newest first)
-    const killmailList = await CharacterService.getCharacterKillmails(
-      ctx.characterId,
-      ctx.accessToken,
-      50, // Max pages (50 killmails per page)
-      lastKillmailId, // Stop when we hit this ID (incremental sync)
+export async function syncUser(
+  message: KillmailSyncMessage,
+  now: Date = new Date(),
+): Promise<'synced' | 'skipped'> {
+  const credentials = await loadUserCredentials(message.userId, prismaWorker);
+  if (!credentials.ok) {
+    logger.warn(
+      `  ⏭️  user ${message.userId}: ${credentials.reason}, skipping until the next login`,
     );
-
-    const queued = await publishKillmailDetails(
-      killmailList.map((km) => ({
-        killmail_id: km.killmail_id,
-        killmail_hash: km.killmail_hash,
-      })),
-      { announce: true, priority: 5 },
-    );
-
-    logger.info(
-      `  📤 queued ${queued}/${killmailList.length} killmail(s) for detail fetch`,
-    );
-
-    // When this user was last handled — not the cursor. The cursor is derived
-    // from killmail_filters via `lastStoredKillmailId`; read the warning there,
-    // it does not repair itself. What reads this stamp is killmail-sync-cron's
-    // 15-minute window, and null means "never synced": the cron publishes it
-    // as a full sync.
-    await prismaWorker.user.update({
-      where: { id: ctx.userId },
-      data: { last_killmail_sync_at: new Date() },
-    });
-  } catch (error: any) {
-    logger.error(
-      `  ❌ ESI sync failed for ${ctx.characterName}:`,
-      error.message,
-    );
-    throw error;
+    return 'skipped';
   }
+
+  const { user, accessToken } = credentials;
+  const fullSync = isFullSync(
+    user.last_killmail_sync_at,
+    message.fullSync ?? false,
+  );
+
+  const walk = await walkKillmails(
+    (page) =>
+      CharacterService.getKillmailPage(user.character_id, accessToken, page),
+    (refs) => recordRefs(refs, 'character', now),
+    fullSync,
+  );
+  if (walk.capped) {
+    logger.warn(
+      `  ⚠️  ${user.character_name}: stopped at the page cap; older killmails were not read`,
+    );
+  }
+
+  // When this user was last handled; killmail-sync-cron's 15-minute window
+  // reads it, and null means "never synced" (a full sync).
+  await prismaWorker.user.update({
+    where: { id: user.id },
+    data: { last_killmail_sync_at: now },
+  });
+
+  logger.info(
+    `✅ ${user.character_name}: ${walk.found} listed on ${walk.pages} page(s), ${walk.inserted} new${fullSync ? ' (full sync)' : ''}`,
+  );
+  return 'synced';
 }
 
-/**
- * Graceful shutdown handlers
- */
 function setupShutdownHandlers() {
   const shutdown = async () => {
     isShuttingDown = true;
-    if (emptyCheckInterval) {
-      clearInterval(emptyCheckInterval);
-      emptyCheckInterval = null;
-    }
     logger.warn('\n⚠️  received shutdown signal, shutting down gracefully...');
     await prismaWorker.$disconnect();
     process.exit(0);
