@@ -76,6 +76,7 @@
     "queue:backfill-values": "tsx src/queues/queue-backfill-values.ts",
     "queue:backfill-values:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p queue-backfill-values",
     "queue:killmail-refs": "tsx src/queues/queue-killmail-refs.ts",
+    "queue:killmail-refs:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p queue-killmail-refs",
     "remove:all": "rm -rf node_modules yarn.lock package-lock.json pnpm-lock.yaml",
     "scan:entities": "tsx src/workers/scan-killmail-entities.ts",
     "scan:entities:rs": "yarn queue:killmail-characters:rs && yarn queue:killmail-corporations:rs && yarn queue:killmail-alliances:rs && yarn queue:killmail-types:rs",

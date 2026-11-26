@@ -1813,6 +1813,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "queue-killmail-refs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "db",
+ "killmail-refs",
+ "lapin",
+ "mq",
+ "runner",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "queue-killmail-types"
 version = "0.1.0"
 dependencies = [
