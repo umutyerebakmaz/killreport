@@ -15,6 +15,9 @@ vi.mock('@services/logger', () => ({
   default: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
 }));
 vi.mock('@services/rabbitmq', () => ({}));
+// The real one pulls in rate-limiter and with it config.ts, which exits
+// the process when the environment has no .env (CI).
+vi.mock('./worker-error', () => ({ handleWorkerError: vi.fn() }));
 
 import { saveValues } from './worker-backfill-values';
 
