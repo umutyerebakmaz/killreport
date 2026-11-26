@@ -3471,6 +3471,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "worker-corporation-killmails"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "dotenvy",
+ "esi",
+ "killmail-refs",
+ "runner",
+ "serde_json",
+ "sqlx",
+ "sso",
+ "tokio",
+ "tracing",
+ "wiremock",
+]
+
+[[package]]
 name = "worker-corporation-snapshots"
 version = "0.1.0"
 dependencies = [
@@ -3649,6 +3667,24 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
+ "tokio",
+ "tracing",
+ "wiremock",
+]
+
+[[package]]
+name = "worker-user-killmails"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "dotenvy",
+ "esi",
+ "killmail-refs",
+ "runner",
+ "serde_json",
+ "sqlx",
+ "sso",
  "tokio",
  "tracing",
  "wiremock",
