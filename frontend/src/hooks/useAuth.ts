@@ -1,28 +1,60 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSyncExternalStore } from 'react';
+import { isSessionGone } from '@/utils/authErrors';
 
 export interface UserData {
   characterId: string;
   characterName: string;
 }
 
+interface AuthState {
+  user: UserData | null;
+  isLoading: boolean;
+  loginError: string | null;
+}
+
+const GRAPHQL_URL =
+  process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql';
 const LOGIN_ERROR_MESSAGE = 'Login failed. Please try again.';
 const LOGIN_ERROR_VISIBLE_MS = 5000;
+// Refresh this long before the access token expires.
+const REFRESH_MARGIN_MS = 5 * 60 * 1000;
+
+/*
+ * One session per page, shared by every component that calls `useAuth`.
+ *
+ * The header alone mounts several of them (TrackerMenu, AuthButton, the
+ * drawer's copies). When each kept its own state, the first to mount took the
+ * SSO `login` marker and refreshed for itself, the rest read an empty
+ * localStorage, and AuthButton kept showing LOGIN until a reload. Each also ran
+ * its own refresh timer, so the token was refreshed once per component.
+ */
+const SERVER_STATE: AuthState = {
+  user: null,
+  isLoading: true,
+  loginError: null,
+};
+let state: AuthState = SERVER_STATE;
+const listeners = new Set<() => void>();
+let started = false;
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+let loginErrorTimer: ReturnType<typeof setTimeout> | null = null;
+
+function setState(patch: Partial<AuthState>) {
+  state = { ...state, ...patch };
+  listeners.forEach((listener) => listener());
+}
 
 /**
  * Read the `login` marker the SSO callback leaves behind, and take it out of
  * the address bar.
  *
- * The round trip used to land on `/auth/success`, a full page whose only job
- * was to call `refreshSession` and then push somewhere real. That page is gone:
- * the callback now redirects straight to the page the user pressed LOGIN on,
- * and this marker is the whole of what it has to say. `replaceState` keeps it
- * out of history, so a back button or a reload never replays a login.
+ * The callback redirects straight to the page the user pressed LOGIN on, and
+ * this marker is the whole of what it has to say. `replaceState` keeps it out
+ * of history, so a back button or a reload never replays a login.
  */
 function takeLoginMarker(): string | null {
-  if (typeof window === 'undefined') return null;
-
   const params = new URLSearchParams(window.location.search);
   const marker = params.get('login');
   if (!marker) return null;
@@ -38,245 +70,185 @@ function takeLoginMarker(): string | null {
   return marker;
 }
 
-export function useAuth() {
-  const [user, setUser] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [loginError, setLoginError] = useState<string | null>(null);
-  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const loginErrorTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // A failed login says so beside the button and then gets out of the way. It
-  // is not worth a page, and it is not worth a dialog the user has to dismiss.
-  const reportLoginError = useCallback(
-    (message: string = LOGIN_ERROR_MESSAGE) => {
-      if (loginErrorTimerRef.current) clearTimeout(loginErrorTimerRef.current);
-      setLoginError(message);
-      loginErrorTimerRef.current = setTimeout(
-        () => setLoginError(null),
-        LOGIN_ERROR_VISIBLE_MS,
-      );
-    },
-    [],
+// A failed login says so beside the button and then gets out of the way. It is
+// not worth a page, and it is not worth a dialog the user has to dismiss.
+function reportLoginError(message: string = LOGIN_ERROR_MESSAGE) {
+  if (loginErrorTimer) clearTimeout(loginErrorTimer);
+  setState({ loginError: message });
+  loginErrorTimer = setTimeout(
+    () => setState({ loginError: null }),
+    LOGIN_ERROR_VISIBLE_MS,
   );
+}
 
-  // Token refresh function
-  const refreshToken = useCallback(async () => {
-    try {
-      console.log('🔄 refreshing access token...');
-      const response = await fetch(
-        process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
-        {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: `
-                            mutation RefreshSession {
-                                refreshSession {
-                                    accessToken
-                                    expiresIn
-                                    user {
-                                        id
-                                        name
-                                    }
-                                }
-                            }
-                        `,
-          }),
-        },
-      );
+function clearRefreshTimer() {
+  if (refreshTimer) {
+    clearTimeout(refreshTimer);
+    refreshTimer = null;
+  }
+}
 
-      const result = await response.json();
+function scheduleTokenRefresh(expiresInMs: number) {
+  clearRefreshTimer();
+  const refreshInMs = expiresInMs - REFRESH_MARGIN_MS;
+  if (refreshInMs > 0) {
+    refreshTimer = setTimeout(() => void refreshToken(), refreshInMs);
+  }
+}
 
-      if (result.errors) {
-        console.error('token refresh error:', result.errors);
-        logout();
-        return false;
-      }
+async function refreshToken(): Promise<boolean> {
+  try {
+    const response = await fetch(GRAPHQL_URL, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query: `
+          mutation RefreshSession {
+            refreshSession {
+              accessToken
+              expiresIn
+              user {
+                id
+                name
+              }
+            }
+          }
+        `,
+      }),
+    });
 
-      const data = result.data.refreshSession;
+    const result = await response.json();
 
-      // Update tokens
-      localStorage.setItem('eve_access_token', data.accessToken);
-      const expiryTime = Date.now() + data.expiresIn * 1000;
-      localStorage.setItem('eve_token_expiry', expiryTime.toString());
-
-      // Update user data
-      const userData = {
-        characterId: data.user.id,
-        characterName: data.user.name,
-      };
-      localStorage.setItem('eve_user', JSON.stringify(userData));
-      setUser(userData);
-
-      console.log('✅ token refreshed successfully');
-
-      // Schedule next refresh (5 minutes before expiry)
-      scheduleTokenRefresh(data.expiresIn);
-
-      return true;
-    } catch (error) {
-      console.error('error refreshing token:', error);
-      logout();
+    if (result.errors) {
+      console.error('token refresh error:', result.errors);
+      // Only a session the server no longer accepts ends here; an SSO outage
+      // keeps the user logged in for the next attempt.
+      if (isSessionGone(result.errors)) await logout();
       return false;
     }
-  }, []);
 
-  // Schedule automatic token refresh
-  const scheduleTokenRefresh = useCallback(
-    (expiresIn: number) => {
-      // Clear existing timer
-      if (refreshTimerRef.current) {
-        clearTimeout(refreshTimerRef.current);
-      }
+    const data = result.data.refreshSession;
+    localStorage.setItem('eve_access_token', data.accessToken);
+    localStorage.setItem(
+      'eve_token_expiry',
+      String(Date.now() + data.expiresIn * 1000),
+    );
+    const user: UserData = {
+      characterId: data.user.id,
+      characterName: data.user.name,
+    };
+    localStorage.setItem('eve_user', JSON.stringify(user));
+    setState({ user });
 
-      // Refresh 5 minutes before expiry (300 seconds = 5 minutes)
-      const refreshTime = (expiresIn - 300) * 1000;
+    scheduleTokenRefresh(data.expiresIn * 1000);
+    return true;
+  } catch (error) {
+    // A network failure says nothing about the session either.
+    console.error('error refreshing token:', error);
+    return false;
+  }
+}
 
-      if (refreshTime > 0) {
-        console.log(
-          `⏰ token will be refreshed in ${refreshTime / 1000} seconds`,
-        );
-        refreshTimerRef.current = setTimeout(() => {
-          refreshToken();
-        }, refreshTime);
-      }
-    },
-    [refreshToken],
-  );
+// Re-read the session from localStorage, which apolloClient also writes.
+function checkAuth() {
+  try {
+    const token = localStorage.getItem('eve_access_token');
+    const userData = localStorage.getItem('eve_user');
+    const expiryTime = localStorage.getItem('eve_token_expiry');
 
-  const checkAuth = useCallback(() => {
-    try {
-      const token = localStorage.getItem('eve_access_token');
-      const userData = localStorage.getItem('eve_user');
-      const expiryTime = localStorage.getItem('eve_token_expiry');
-
-      // Is there a token, and is it still valid?
-      if (token && userData && expiryTime) {
-        const expiry = parseInt(expiryTime);
-        const now = Date.now();
-        const timeUntilExpiry = expiry - now;
-
-        if (timeUntilExpiry > 0) {
-          setUser(JSON.parse(userData));
-
-          // If token expires in less than 5 minutes, refresh immediately
-          if (timeUntilExpiry < 5 * 60 * 1000) {
-            console.log('token expires soon, refreshing immediately...');
-            refreshToken();
-          } else {
-            // Schedule refresh for 5 minutes before expiry
-            const expiresInSeconds = Math.floor(timeUntilExpiry / 1000);
-            scheduleTokenRefresh(expiresInSeconds);
-          }
-        } else {
-          // Token expired, try to refresh
-          console.log('token expired, attempting refresh...');
-          refreshToken();
-        }
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('error checking auth:', error);
-      setUser(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [refreshToken, scheduleTokenRefresh]);
-
-  useEffect(() => {
-    // One-time cleanup for browsers that logged in before the EVE refresh
-    // token was removed from the client: it used to live in localStorage
-    // indefinitely, which is the exact thing this branch removes it to fix.
-    // Safe to delete this block once it has been deployed for a while.
-    try {
-      localStorage.removeItem('eve_refresh_token');
-    } catch {
-      // localStorage unavailable (e.g. private browsing) - nothing to clean up.
+    if (!token || !userData || !expiryTime) {
+      clearRefreshTimer();
+      setState({ user: null });
+      return;
     }
 
-    const marker = takeLoginMarker();
-
-    if (marker === '1') {
-      // Fresh back from EVE: the session cookie is already set, but the access
-      // token is not in localStorage yet. `isLoading` stays true across the
-      // exchange so the button shows its loader instead of flashing LOGIN at a
-      // user who has just logged in.
-      //
-      // The session is an external system and this effect is the one-shot
-      // synchronisation with it - the use the rule's own documentation allows.
-      // Nothing here sets state synchronously: every `setState` inside
-      // `refreshToken` runs in a promise callback, after a network round trip.
-      // The rule cannot see that, because it follows the call into
-      // `refreshToken` and stops at the first `setState` it finds.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      refreshToken()
-        .then((ok) => {
-          if (!ok) reportLoginError();
-        })
-        .finally(() => setIsLoading(false));
+    const timeUntilExpiry = parseInt(expiryTime) - Date.now();
+    if (timeUntilExpiry > 0) {
+      setState({ user: JSON.parse(userData) });
+      if (timeUntilExpiry < REFRESH_MARGIN_MS) void refreshToken();
+      else scheduleTokenRefresh(timeUntilExpiry);
     } else {
-      if (marker === 'error') reportLoginError();
-      checkAuth();
+      void refreshToken();
     }
+  } catch (error) {
+    console.error('error checking auth:', error);
+    setState({ user: null });
+  }
+}
 
-    // Listen for auth changes
-    const handleAuthChange = () => {
-      checkAuth();
-    };
+async function logout() {
+  clearRefreshTimer();
 
-    window.addEventListener('auth-change', handleAuthChange);
+  try {
+    await fetch(GRAPHQL_URL, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: 'mutation Logout { logout }' }),
+    });
+  } catch (error) {
+    console.error('error logging out:', error);
+  }
 
-    // Cleanup timer on unmount
-    return () => {
-      window.removeEventListener('auth-change', handleAuthChange);
-      if (refreshTimerRef.current) {
-        clearTimeout(refreshTimerRef.current);
-      }
-      if (loginErrorTimerRef.current) {
-        clearTimeout(loginErrorTimerRef.current);
-      }
-    };
-  }, [checkAuth, refreshToken, reportLoginError]);
+  localStorage.removeItem('eve_access_token');
+  localStorage.removeItem('eve_token_expiry');
+  localStorage.removeItem('eve_user');
+  setState({ user: null });
+  window.dispatchEvent(new Event('auth-change'));
+}
 
-  const logout = async () => {
-    // Clear refresh timer
-    if (refreshTimerRef.current) {
-      clearTimeout(refreshTimerRef.current);
-      refreshTimerRef.current = null;
-    }
+// Runs once per page load, when the first component subscribes.
+function start() {
+  if (started) return;
+  started = true;
 
-    try {
-      await fetch(
-        process.env.NEXT_PUBLIC_GRAPHQL_URL || 'http://localhost:4000/graphql',
-        {
-          method: 'POST',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: `
-                            mutation Logout {
-                                logout
-                            }
-                        `,
-          }),
-        },
-      );
-    } catch (error) {
-      console.error('error logging out:', error);
-    }
+  // One-time cleanup for browsers that logged in before the EVE refresh token
+  // was removed from the client. Safe to delete once deployed for a while.
+  try {
+    localStorage.removeItem('eve_refresh_token');
+  } catch {
+    // localStorage unavailable (e.g. private browsing) - nothing to clean up.
+  }
 
-    localStorage.removeItem('eve_access_token');
-    localStorage.removeItem('eve_token_expiry');
-    localStorage.removeItem('eve_user');
-    setUser(null);
-    window.dispatchEvent(new Event('auth-change'));
+  // apolloClient clears the session on its own and announces it this way.
+  window.addEventListener('auth-change', checkAuth);
+
+  const marker = takeLoginMarker();
+  if (marker === '1') {
+    // Fresh back from EVE: the session cookie is set, the access token is not
+    // in localStorage yet. `isLoading` stays true across the exchange so the
+    // button shows its loader instead of flashing LOGIN.
+    void refreshToken()
+      .then((ok) => {
+        if (!ok) reportLoginError();
+      })
+      .finally(() => setState({ isLoading: false }));
+    return;
+  }
+
+  if (marker === 'error') reportLoginError();
+  checkAuth();
+  setState({ isLoading: false });
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  start();
+  return () => {
+    listeners.delete(listener);
   };
+}
+
+const getSnapshot = () => state;
+const getServerSnapshot = () => SERVER_STATE;
+
+export function useAuth() {
+  const { user, isLoading, loginError } = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
 
   return {
     user,
@@ -285,6 +257,6 @@ export function useAuth() {
     loginError,
     reportLoginError,
     logout,
-    refreshToken, // Export for manual refresh
+    refreshToken,
   };
 }
