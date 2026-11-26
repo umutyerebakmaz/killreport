@@ -16,7 +16,7 @@ use lapin::options::{BasicPublishOptions, ConfirmSelectOptions, QueueDeclareOpti
 use lapin::publisher_confirm::Confirmation;
 use lapin::types::FieldTable;
 use lapin::Channel;
-use queue_killmail_refs::{publish_pending, Broker, PRIORITY, QUEUE_NAME};
+use queue_killmail_refs::{publish_pending, Broker, QueueDepth, PRIORITY, QUEUE_NAME};
 use tracing::error;
 
 struct LapinBroker {
@@ -24,7 +24,7 @@ struct LapinBroker {
 }
 
 impl Broker for LapinBroker {
-    async fn consumer_count(&self) -> anyhow::Result<u32> {
+    async fn depth(&self) -> anyhow::Result<QueueDepth> {
         // Passive: asks about the queue without declaring it with arguments
         // that could disagree with the real ones.
         let queue = self
@@ -38,7 +38,10 @@ impl Broker for LapinBroker {
                 FieldTable::default(),
             )
             .await?;
-        Ok(queue.consumer_count())
+        Ok(QueueDepth {
+            messages: queue.message_count(),
+            consumers: queue.consumer_count(),
+        })
     }
 
     async fn publish_confirmed(&self, bodies: &[Vec<u8>]) -> anyhow::Result<()> {

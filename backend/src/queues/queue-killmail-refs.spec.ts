@@ -58,6 +58,19 @@ describe('publishPendingRefs', () => {
     expect(channel.sendToQueue).not.toHaveBeenCalled();
   });
 
+  it('waits while the detail queue still holds messages', async () => {
+    // Republishing then would stack a second copy of every pending ref behind
+    // the first and burn a round on each; the earlier messages may still work.
+    getQueueStats.mockResolvedValue({
+      messageCount: 3,
+      consumerCount: 1,
+      exists: true,
+    });
+
+    expect(await publishPendingRefs(NOW)).toBe(0);
+    expect(prisma.$queryRaw).not.toHaveBeenCalled();
+  });
+
   it('selects pending refs by the three retry rules, newest first', async () => {
     await publishPendingRefs(NOW);
 

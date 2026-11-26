@@ -5,7 +5,7 @@
 use std::sync::Mutex;
 
 use chrono::{NaiveDate, NaiveDateTime};
-use queue_killmail_refs::{detail_body, publish_pending, Broker};
+use queue_killmail_refs::{detail_body, publish_pending, Broker, QueueDepth};
 use sqlx::PgPool;
 
 fn now() -> NaiveDateTime {
@@ -18,13 +18,17 @@ fn now() -> NaiveDateTime {
 #[derive(Default)]
 struct FakeBroker {
     consumers: u32,
+    messages: u32,
     refuse: bool,
     published: Mutex<Vec<Vec<u8>>>,
 }
 
 impl Broker for FakeBroker {
-    async fn consumer_count(&self) -> anyhow::Result<u32> {
-        Ok(self.consumers)
+    async fn depth(&self) -> anyhow::Result<QueueDepth> {
+        Ok(QueueDepth {
+            messages: self.messages,
+            consumers: self.consumers,
+        })
     }
 
     async fn publish_confirmed(&self, bodies: &[Vec<u8>]) -> anyhow::Result<()> {
@@ -72,6 +76,20 @@ fn the_body_matches_the_node_publisher() {
 async fn no_consumer_skips_the_tick(pool: PgPool) {
     ref_row(&pool, 1).await;
     let broker = FakeBroker::default();
+
+    assert_eq!(publish_pending(&pool, &broker, now()).await.unwrap(), 0);
+    assert!(broker.published.lock().unwrap().is_empty());
+    assert_eq!(rounds(&pool).await, [(1, 0)]);
+}
+
+#[sqlx::test(migrations = false, fixtures("killmail_refs", "killmails"))]
+async fn waits_while_the_detail_queue_still_holds_messages(pool: PgPool) {
+    ref_row(&pool, 1).await;
+    let broker = FakeBroker {
+        consumers: 1,
+        messages: 3,
+        ..FakeBroker::default()
+    };
 
     assert_eq!(publish_pending(&pool, &broker, now()).await.unwrap(), 0);
     assert!(broker.published.lock().unwrap().is_empty());

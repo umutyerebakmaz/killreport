@@ -35,10 +35,17 @@ pub fn detail_body(r: &Ref) -> Vec<u8> {
     .expect("an integer, a string and a bool always serialize")
 }
 
+/// Messages waiting in, and consumers on, the detail queue.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct QueueDepth {
+    pub messages: u32,
+    pub consumers: u32,
+}
+
 /// What the publisher needs from RabbitMQ.
 pub trait Broker {
-    /// Consumers on the detail queue.
-    fn consumer_count(&self) -> impl Future<Output = anyhow::Result<u32>> + Send;
+    /// The detail queue's depth.
+    fn depth(&self) -> impl Future<Output = anyhow::Result<QueueDepth>> + Send;
     /// Publish every body and return once the broker confirmed all of them;
     /// a nack is an error.
     fn publish_confirmed(
@@ -47,7 +54,8 @@ pub trait Broker {
     ) -> impl Future<Output = anyhow::Result<()>> + Send;
 }
 
-/// One run: skip while the detail queue has no consumer, otherwise publish
+/// One run: skip while the detail queue has no consumer or still holds
+/// messages (`skipReason` in `queue-health.ts`), otherwise publish
 /// the pending batch and count the round once the broker confirmed it.
 /// Returns how many refs went out. `now` is UTC.
 pub async fn publish_pending(
@@ -55,8 +63,16 @@ pub async fn publish_pending(
     broker: &impl Broker,
     now: NaiveDateTime,
 ) -> anyhow::Result<usize> {
-    if broker.consumer_count().await? == 0 {
-        info!("⏭️  {QUEUE_NAME} has no consumer, nothing published this run");
+    let depth = broker.depth().await?;
+    if depth.consumers == 0 {
+        info!("⏭️  {QUEUE_NAME}: no worker is consuming the queue, nothing published this run");
+        return Ok(0);
+    }
+    if depth.messages > 0 {
+        info!(
+            "⏭️  {QUEUE_NAME}: {} message(s) still pending, nothing published this run",
+            depth.messages
+        );
         return Ok(0);
     }
 

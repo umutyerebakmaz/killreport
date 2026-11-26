@@ -57,7 +57,7 @@ Rust [killmail-refs](../../../backend-rs/crates/killmail-refs/src/lib.rs),
 ## The publisher
 
 A ref is **pending** while `killmails` has no row for it. Each run, unless the
-detail queue has no consumer, it publishes up to 5000 pending refs, newest
+detail queue has no consumer or still holds messages, it publishes up to 5000 pending refs, newest
 first: never queued ones at once, then at most hourly for five rounds, then
 daily. `queued_count` and `last_queued_at` move only after the broker
 confirmed the messages.

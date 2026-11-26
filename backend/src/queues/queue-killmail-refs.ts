@@ -19,6 +19,7 @@ import {
   KILLMAIL_DETAIL_QUEUE,
 } from '@services/killmail-detail-message';
 import logger from '@services/logger';
+import { skipReason } from '@services/queue-health';
 import prismaWorker from '@services/prisma-worker';
 import {
   ensureAllQueuesExist,
@@ -40,8 +41,9 @@ interface PendingRef {
 /**
  * Publish one batch of pending refs and return how many went out.
  *
- * Skips the run while the detail queue has no consumer: publishing then would
- * only spend the refs' rounds against a worker that is not there. The rounds
+ * Skips the run while the detail queue has no consumer or still holds
+ * messages: publishing then would only spend the refs' rounds, or queue a
+ * second copy of each behind the first. The rounds
  * are counted after the broker confirmed the messages, never before.
  *
  * `announce` is always false: these are kills the live feed missed or old
@@ -50,10 +52,12 @@ interface PendingRef {
 export async function publishPendingRefs(
   now: Date = new Date(),
 ): Promise<number> {
-  const stats = await getQueueStats(KILLMAIL_DETAIL_QUEUE);
-  if (stats.consumerCount === 0) {
+  // No consumer, or messages still waiting: publishing now would only spend
+  // rounds, or stack a second copy of every pending ref behind the first.
+  const reason = skipReason(await getQueueStats(KILLMAIL_DETAIL_QUEUE));
+  if (reason) {
     logger.info(
-      `⏭️  ${KILLMAIL_DETAIL_QUEUE} has no consumer, nothing published this run`,
+      `⏭️  ${KILLMAIL_DETAIL_QUEUE}: ${reason}, nothing published this run`,
     );
     return 0;
   }
