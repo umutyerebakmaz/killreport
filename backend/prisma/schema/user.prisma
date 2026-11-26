@@ -1,16 +1,16 @@
 // User and sync models
 
 model User {
-  id                         Int       @id @default(autoincrement())
-  character_id               Int       @unique
+  id                         Int              @id @default(autoincrement())
+  character_id               Int              @unique
   character_name             String
   character_owner_hash       String
   access_token               String
   refresh_token              String?
   expires_at                 DateTime
-  email                      String?   @unique
-  created_at                 DateTime  @default(now())
-  updated_at                 DateTime  @updatedAt
+  email                      String?          @unique
+  created_at                 DateTime         @default(now())
+  updated_at                 DateTime         @updatedAt
   last_killmail_sync_at      DateTime? // Last character killmail sync time
   last_killmail_id           Int? // Last synced character killmail ID (for incremental sync)
   last_corp_killmail_sync_at DateTime? // Last corporation killmail sync time

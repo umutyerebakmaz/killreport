@@ -5,7 +5,7 @@ model CampaignParticipant {
   score       Float
   updated_at  DateTime @updatedAt
 
-  campaign    SovereigntyCampaign @relation(fields: [campaign_id], references: [campaign_id], onDelete: Cascade, onUpdate: Cascade)
+  campaign SovereigntyCampaign @relation(fields: [campaign_id], references: [campaign_id], onDelete: Cascade, onUpdate: Cascade)
 
   @@unique([campaign_id, alliance_id])
   @@index([alliance_id])
