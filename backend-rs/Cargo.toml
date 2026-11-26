@@ -33,4 +33,5 @@ db = { path = "crates/db" }
 esi = { path = "crates/esi" }
 mq = { path = "crates/mq" }
 runner = { path = "crates/runner" }
+killmail-value = { path = "crates/killmail-value" }
 sov = { path = "crates/sov" }

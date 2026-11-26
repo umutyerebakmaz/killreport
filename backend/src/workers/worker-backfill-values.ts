@@ -8,7 +8,8 @@
  * - Batch processing for efficiency
  * - Single market price query for all items
  * - Progress tracking and statistics
- * - Safe upsert to prevent race conditions
+ * - killmails and killmail_filters written in one transaction
+ * - Rust counterpart: `yarn worker:backfill-values:rs`
  *
  * Usage: yarn worker:backfill-values
  *
@@ -29,6 +30,38 @@ interface BackfillMessage {
   killmailId: number;
   queuedAt: string;
   source: string;
+}
+
+interface KillmailValues {
+  totalValue: number;
+  destroyedValue: number;
+  droppedValue: number;
+}
+
+/**
+ * Save a killmail's values and the denormalized copy `killmail_filters`
+ * keeps for scope-and-value queries, in one transaction: this worker is the
+ * copy's second writer, and a crash between the two would leave it stale.
+ */
+export async function saveValues(
+  killmailId: number,
+  values: KillmailValues,
+): Promise<void> {
+  await prismaWorker.$transaction(async (tx) => {
+    await tx.killmail.update({
+      where: { killmail_id: killmailId },
+      data: {
+        total_value: values.totalValue,
+        destroyed_value: values.destroyedValue,
+        dropped_value: values.droppedValue,
+      },
+    });
+    await tx.$executeRaw`
+      UPDATE killmail_filters
+      SET total_value = ${values.totalValue}
+      WHERE killmail_id = ${killmailId}
+    `;
+  });
 }
 
 async function backfillValuesWorker() {
@@ -163,33 +196,8 @@ async function backfillValuesWorker() {
           return;
         }
 
-        // Update killmail
-        const updated = await prismaWorker.killmail.update({
-          where: { killmail_id: killmailId },
-          data: {
-            total_value: values.totalValue,
-            destroyed_value: values.destroyedValue,
-            dropped_value: values.droppedValue,
-          },
-        });
-
-        // killmail_filters carries a denormalized copy for scope-and-value queries.
-        // This worker is its second writer; without this the copy goes stale.
-        await prismaWorker.$executeRaw`
-          UPDATE killmail_filters
-          SET total_value = ${values.totalValue}
-          WHERE killmail_id = ${killmailId}
-        `;
-
-        // Verify the update
-        if (updated.total_value !== values.totalValue) {
-          logger.error(
-            `❌ [${totalProcessed + 1}] killmail ${killmailId} update failed! expected ${values.totalValue}, got ${updated.total_value}`,
-          );
-          totalErrors++;
-        } else {
-          totalUpdated++;
-        }
+        await saveValues(killmailId, values);
+        totalUpdated++;
 
         totalProcessed++;
         channel.ack(msg);
@@ -229,4 +237,6 @@ async function backfillValuesWorker() {
   }
 }
 
-backfillValuesWorker();
+if (require.main === module) {
+  backfillValuesWorker();
+}

@@ -9,6 +9,11 @@ export interface PublishEntitiesOptions {
   priority?: number;
   /** After each batch of 100 is sent: batch counts from 1. */
   onBatch?: (batch: number, totalBatches: number, size: number) => void;
+  /**
+   * The name the ID goes under: `entityId` for the info queues, `killmailId`
+   * for `backfill_killmail_values_queue`. Either way it is the first field.
+   */
+  idField?: 'entityId' | 'killmailId';
 }
 
 /**
@@ -23,7 +28,7 @@ export async function publishEntitiesConfirmed(
   ids: number[],
   options: PublishEntitiesOptions = {},
 ): Promise<number> {
-  const { priority, onBatch } = options;
+  const { priority, onBatch, idField = 'entityId' } = options;
   const publishOptions =
     priority === undefined
       ? { persistent: true }
@@ -36,7 +41,7 @@ export async function publishEntitiesConfirmed(
       const batch = ids.slice(i, i + BATCH_SIZE);
       for (const entityId of batch) {
         const message = {
-          entityId,
+          [idField]: entityId,
           queuedAt: new Date().toISOString(),
           source,
         };

@@ -1253,6 +1253,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "killmail-value"
+version = "0.1.0"
+dependencies = [
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
 name = "lapin"
 version = "2.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1684,6 +1692,21 @@ dependencies = [
  "tokio",
  "tracing",
  "wiremock",
+]
+
+[[package]]
+name = "queue-backfill-values"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "killmail-value",
+ "lapin",
+ "mq",
+ "runner",
+ "sqlx",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -3388,6 +3411,18 @@ dependencies = [
  "sqlx",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "worker-backfill-values"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "killmail-value",
+ "runner",
+ "sqlx",
+ "tokio",
 ]
 
 [[package]]
