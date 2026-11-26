@@ -14,6 +14,8 @@ pub use failure::{
     death_count, handle_worker_error, is_forbidden, HttpStatusError, Settle, WorkerLog,
     MAX_ATTEMPTS,
 };
-pub use message::EntityMessage;
-pub use publish::{message_properties, publish_entities, publish_messages, BATCH_SIZE};
+pub use message::{EntityMessage, KillmailMessage};
+pub use publish::{
+    message_properties, publish_entities, publish_killmails, publish_messages, BATCH_SIZE,
+};
 pub use topology::{connect, declare_worker_queue, retry_topology};

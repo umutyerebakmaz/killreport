@@ -4,12 +4,12 @@ use serde::Deserialize;
 
 /// `{ "entityId": 99000001, "queuedAt": "...", "source": "queue-alliances" }`,
 /// as any info-queue publisher sends it.
-/// Only `entityId` is read; the other
-/// fields are ignored rather than refused, so a publisher that adds one does
-/// not break a worker.
+/// Only `entityId` is read, or `killmailId`, the name a killmail queue gives
+/// it (`backfill_killmail_values_queue`); the other fields are ignored rather
+/// than refused, so a publisher that adds one does not break a worker.
 #[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct EntityQueueMessage {
-    #[serde(rename = "entityId")]
+    #[serde(rename = "entityId", alias = "killmailId")]
     pub entity_id: i32,
 }
 

@@ -8,7 +8,7 @@ use lapin::publisher_confirm::Confirmation;
 use lapin::types::FieldTable;
 use lapin::{BasicProperties, Channel};
 
-use crate::EntityMessage;
+use crate::{EntityMessage, KillmailMessage};
 
 /// IDs per progress report (`queue-alliances.ts:7`).
 pub const BATCH_SIZE: usize = 100;
@@ -51,7 +51,13 @@ pub async fn publish_entities(
         for &id in batch {
             pending.push((
                 id,
-                publish(channel, queue, &EntityMessage::new(id, source), priority).await?,
+                publish(
+                    channel,
+                    queue,
+                    &EntityMessage::new(id, source).to_body(),
+                    priority,
+                )
+                .await?,
             ));
         }
         on_batch(index + 1, total_batches, batch.len());
@@ -74,8 +80,27 @@ pub async fn publish_messages(
     for message in messages {
         pending.push((
             message.entity_id,
-            publish(channel, queue, message, priority).await?,
+            publish(channel, queue, &message.to_body(), priority).await?,
         ));
+    }
+    await_confirms(pending).await
+}
+
+/// Publish one persistent [`KillmailMessage`] per ID onto `queue`, in order,
+/// and wait until the broker has confirmed every one. Like
+/// [`publish_messages`] it does not call `confirm_select`: the caller puts
+/// the channel in confirm mode once and publishes page after page on it.
+/// Returns how many messages were confirmed; a broker nack is an error.
+pub async fn publish_killmails(
+    channel: &Channel,
+    queue: &str,
+    source: &'static str,
+    ids: &[i32],
+) -> anyhow::Result<u64> {
+    let mut pending = Vec::with_capacity(ids.len());
+    for &id in ids {
+        let body = KillmailMessage::new(id, source).to_body();
+        pending.push((id, publish(channel, queue, &body, None).await?));
     }
     await_confirms(pending).await
 }
@@ -84,7 +109,7 @@ pub async fn publish_messages(
 async fn publish(
     channel: &Channel,
     queue: &str,
-    message: &EntityMessage,
+    body: &[u8],
     priority: Option<u8>,
 ) -> anyhow::Result<lapin::publisher_confirm::PublisherConfirm> {
     Ok(channel
@@ -92,7 +117,7 @@ async fn publish(
             "",
             queue,
             BasicPublishOptions::default(),
-            &message.to_body(),
+            body,
             message_properties(priority),
         )
         .await?)

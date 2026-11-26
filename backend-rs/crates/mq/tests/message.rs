@@ -42,3 +42,13 @@ fn priority_is_set_only_when_given() {
         Some(FieldTable::default())
     );
 }
+
+#[test]
+fn killmail_message_body_matches_node() {
+    let now = Utc.with_ymd_and_hms(2026, 11, 26, 10, 0, 0).unwrap();
+    let body = mq::KillmailMessage::at(133900250, "queue-backfill-values", now).to_body();
+    assert_eq!(
+        std::str::from_utf8(&body).unwrap(),
+        r#"{"killmailId":133900250,"queuedAt":"2026-11-26T10:00:00.000Z","source":"queue-backfill-values"}"#
+    );
+}

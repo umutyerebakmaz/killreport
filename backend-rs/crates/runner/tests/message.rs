@@ -31,3 +31,30 @@ fn parses_what_mq_publishes() {
         }
     );
 }
+
+#[test]
+fn parses_entity_id_and_killmail_id() {
+    let killmail = br#"{"killmailId":133900250,"queuedAt":"2026-11-26T10:00:00.000Z","source":"queue-backfill-values"}"#;
+    assert_eq!(
+        EntityQueueMessage::parse(killmail).unwrap(),
+        EntityQueueMessage {
+            entity_id: 133900250
+        }
+    );
+    assert_eq!(
+        EntityQueueMessage::parse(br#"{"entityId":1}"#).unwrap(),
+        EntityQueueMessage { entity_id: 1 }
+    );
+    assert!(EntityQueueMessage::parse(b"{}").is_err());
+}
+
+#[test]
+fn parses_what_mq_publishes_for_a_killmail() {
+    let body = mq::KillmailMessage::new(133900250, "queue-backfill-values").to_body();
+    assert_eq!(
+        EntityQueueMessage::parse(&body).unwrap(),
+        EntityQueueMessage {
+            entity_id: 133900250
+        }
+    );
+}
