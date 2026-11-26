@@ -1695,6 +1695,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "queue-backfill-values"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "db",
+ "killmail-value",
+ "lapin",
+ "mq",
+ "runner",
+ "sqlx",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "queue-character-corporation-history"
 version = "0.1.0"
 dependencies = [
