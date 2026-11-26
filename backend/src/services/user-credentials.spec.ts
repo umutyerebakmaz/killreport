@@ -1,18 +1,33 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
- * The worker-side credential reader. Tokens live in `users`, never in a queue
- * message, so every sync path asks this module for a valid access token right
- * before it calls ESI.
+ * The credential reader every sync path and the API's refreshSession share.
+ * A refresh happens under a row lock, so two workers syncing the same user
+ * never both go to SSO; the write is a compare-and-swap on the old refresh
+ * token; a revoked grant clears the token, an outage throws.
  */
 
-const { prismaMock, refreshAccessToken, loggerMock } = vi.hoisted(() => ({
-  prismaMock: { user: { findUnique: vi.fn(), update: vi.fn() } },
-  refreshAccessToken: vi.fn(),
-  loggerMock: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
-}));
+const { prismaMock, tx, refreshAccessToken, loggerMock, errors } = vi.hoisted(
+  () => {
+    const tx = { $queryRaw: vi.fn(), user: { updateMany: vi.fn() } };
+    class SsoGrantRevokedError extends Error {}
+    class SsoUnavailableError extends Error {}
+    return {
+      tx,
+      prismaMock: { user: { findUnique: vi.fn() }, $transaction: vi.fn() },
+      refreshAccessToken: vi.fn(),
+      loggerMock: {
+        debug: vi.fn(),
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+      },
+      errors: { SsoGrantRevokedError, SsoUnavailableError },
+    };
+  },
+);
 
-vi.mock('@services/eve-sso', () => ({ refreshAccessToken }));
+vi.mock('@services/eve-sso', () => ({ refreshAccessToken, ...errors }));
 vi.mock('@services/logger', () => ({ default: loggerMock }));
 
 import { loadUserCredentials, needsRefresh } from './user-credentials';
@@ -24,23 +39,32 @@ const ROW = {
   corporation_id: 98000001,
   last_killmail_id: 1234,
   last_corp_killmail_id: null,
+  last_killmail_sync_at: null,
+  last_corp_killmail_sync_at: null,
   email: 'pilot@example.com',
   created_at: new Date('2026-01-01T00:00:00Z'),
 };
 
+const STALE = {
+  access_token: 'current-access',
+  refresh_token: 'current-refresh',
+  expires_at: new Date('2026-09-21T13:00:00Z'),
+};
+
 function userRow(overrides: Record<string, unknown> = {}) {
-  return {
-    ...ROW,
-    access_token: 'current-access',
-    refresh_token: 'current-refresh',
-    expires_at: new Date('2026-09-21T13:00:00Z'),
-    ...overrides,
-  };
+  return { ...ROW, ...STALE, ...overrides };
+}
+
+function at(iso: string) {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date(iso));
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
   vi.useRealTimers();
+  prismaMock.$transaction.mockImplementation(async (fn) => fn(tx));
+  tx.user.updateMany.mockResolvedValue({ count: 1 });
 });
 
 describe('needsRefresh', () => {
@@ -82,27 +106,24 @@ describe('loadUserCredentials', () => {
     expect(refreshAccessToken).not.toHaveBeenCalled();
   });
 
-  it('returns the stored token without refreshing when it is still valid', async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-09-21T12:00:00Z'));
+  it('fresh_token_needs_no_lock', async () => {
+    at('2026-09-21T12:00:00Z');
     prismaMock.user.findUnique.mockResolvedValue(userRow());
 
-    const result = await loadUserCredentials(7, prismaMock);
-
-    expect(result).toEqual({
+    expect(await loadUserCredentials(7, prismaMock)).toEqual({
       ok: true,
       user: ROW,
       accessToken: 'current-access',
       expiresAt: new Date('2026-09-21T13:00:00Z'),
     });
+    expect(prismaMock.$transaction).not.toHaveBeenCalled();
     expect(refreshAccessToken).not.toHaveBeenCalled();
-    expect(prismaMock.user.update).not.toHaveBeenCalled();
   });
 
-  it('refreshes an expiring token and writes the new pair back', async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-09-21T12:58:00Z'));
+  it('refresh_writes_with_compare_and_swap', async () => {
+    at('2026-09-21T12:58:00Z');
     prismaMock.user.findUnique.mockResolvedValue(userRow());
+    tx.$queryRaw.mockResolvedValue([STALE]);
     refreshAccessToken.mockResolvedValue({
       access_token: 'fresh-access',
       token_type: 'Bearer',
@@ -110,29 +131,29 @@ describe('loadUserCredentials', () => {
       refresh_token: 'fresh-refresh',
     });
 
-    const result = await loadUserCredentials(7, prismaMock);
-
-    expect(result).toEqual({
+    expect(await loadUserCredentials(7, prismaMock)).toEqual({
       ok: true,
       user: ROW,
       accessToken: 'fresh-access',
       expiresAt: new Date('2026-09-21T13:18:00Z'),
     });
     expect(refreshAccessToken).toHaveBeenCalledWith('current-refresh');
-    expect(prismaMock.user.update).toHaveBeenCalledWith({
-      where: { id: 7 },
+    expect(tx.user.updateMany).toHaveBeenCalledWith({
+      where: { id: 7, refresh_token: 'current-refresh' },
       data: {
         access_token: 'fresh-access',
         refresh_token: 'fresh-refresh',
         expires_at: new Date('2026-09-21T13:18:00Z'),
       },
     });
+    const [sql] = tx.$queryRaw.mock.calls[0];
+    expect(sql.join('?')).toMatch(/FOR UPDATE/);
   });
 
   it('keeps the old refresh token when EVE does not rotate it', async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-09-21T12:58:00Z'));
+    at('2026-09-21T12:58:00Z');
     prismaMock.user.findUnique.mockResolvedValue(userRow());
+    tx.$queryRaw.mockResolvedValue([STALE]);
     refreshAccessToken.mockResolvedValue({
       access_token: 'fresh-access',
       token_type: 'Bearer',
@@ -141,23 +162,63 @@ describe('loadUserCredentials', () => {
 
     await loadUserCredentials(7, prismaMock);
 
-    expect(prismaMock.user.update).toHaveBeenCalledWith(
+    expect(tx.user.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({ refresh_token: 'current-refresh' }),
       }),
     );
   });
 
-  it('reports refresh-failed instead of throwing, so the caller can ack and move on', async () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-09-21T12:58:00Z'));
+  it('concurrent_refresh_calls_sso_once', async () => {
+    // Stale when read without the lock; refreshed by another process by the
+    // time the lock is held.
+    at('2026-09-21T12:58:00Z');
     prismaMock.user.findUnique.mockResolvedValue(userRow());
-    refreshAccessToken.mockRejectedValue(new Error('invalid_grant'));
+    tx.$queryRaw.mockResolvedValue([
+      {
+        access_token: 'other-access',
+        refresh_token: 'other-refresh',
+        expires_at: new Date('2026-09-21T13:18:00Z'),
+      },
+    ]);
+
+    expect(await loadUserCredentials(7, prismaMock)).toEqual({
+      ok: true,
+      user: ROW,
+      accessToken: 'other-access',
+      expiresAt: new Date('2026-09-21T13:18:00Z'),
+    });
+    expect(refreshAccessToken).not.toHaveBeenCalled();
+    expect(tx.user.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('invalid_grant_clears_the_refresh_token', async () => {
+    at('2026-09-21T12:58:00Z');
+    prismaMock.user.findUnique.mockResolvedValue(userRow());
+    tx.$queryRaw.mockResolvedValue([STALE]);
+    refreshAccessToken.mockRejectedValue(
+      new errors.SsoGrantRevokedError('revoked'),
+    );
 
     expect(await loadUserCredentials(7, prismaMock)).toEqual({
       ok: false,
-      reason: 'refresh-failed',
+      reason: 'token-revoked',
     });
-    expect(prismaMock.user.update).not.toHaveBeenCalled();
+    expect(tx.user.updateMany).toHaveBeenCalledWith({
+      where: { id: 7, refresh_token: 'current-refresh' },
+      data: { refresh_token: null },
+    });
+  });
+
+  it('transient_sso_error_throws_and_keeps_token', async () => {
+    at('2026-09-21T12:58:00Z');
+    prismaMock.user.findUnique.mockResolvedValue(userRow());
+    tx.$queryRaw.mockResolvedValue([STALE]);
+    refreshAccessToken.mockRejectedValue(new errors.SsoUnavailableError('503'));
+
+    await expect(loadUserCredentials(7, prismaMock)).rejects.toBeInstanceOf(
+      errors.SsoUnavailableError,
+    );
+    expect(tx.user.updateMany).not.toHaveBeenCalled();
   });
 });

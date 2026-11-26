@@ -91,6 +91,8 @@ export async function handleAuthCallback(
         access_token: tokenData.access_token,
         refresh_token: tokenData.refresh_token,
         expires_at: expiresAt,
+        // A fresh login may come with a role the last 403 lacked.
+        corp_killmails_denied_at: null,
       },
       create: {
         character_id: character.characterId,
