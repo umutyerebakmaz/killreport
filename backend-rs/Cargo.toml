@@ -35,3 +35,5 @@ mq = { path = "crates/mq" }
 runner = { path = "crates/runner" }
 killmail-value = { path = "crates/killmail-value" }
 sov = { path = "crates/sov" }
+sso = { path = "crates/sso" }
+killmail-refs = { path = "crates/killmail-refs" }
