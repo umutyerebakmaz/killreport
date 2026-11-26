@@ -6,13 +6,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
  * docs/superpowers/specs/2026-11-26-killmail-refs-sync-design.md.
  */
 
-const { prismaMock, loadUserCredentials, getKillmailPage, recordRefs } =
-  vi.hoisted(() => ({
-    prismaMock: { user: { update: vi.fn() } },
-    loadUserCredentials: vi.fn(),
-    getKillmailPage: vi.fn(),
-    recordRefs: vi.fn(),
-  }));
+const {
+  prismaMock,
+  loadUserCredentials,
+  getKillmailPage,
+  recordRefs,
+  isForbidden,
+} = vi.hoisted(() => ({
+  isForbidden: vi.fn(() => false),
+  prismaMock: { user: { update: vi.fn() } },
+  loadUserCredentials: vi.fn(),
+  getKillmailPage: vi.fn(),
+  recordRefs: vi.fn(),
+}));
 
 vi.mock('@config/config', () => ({
   config: { esi: { maxRequestsPerSecond: 50, prefetch: 25 } },
@@ -25,7 +31,7 @@ vi.mock('@services/rabbitmq', () => ({
   ensureAllQueuesExist: vi.fn(),
   getRabbitMQChannel: vi.fn(),
 }));
-vi.mock('./worker-error', () => ({ handleWorkerError: vi.fn() }));
+vi.mock('./worker-error', () => ({ handleWorkerError: vi.fn(), isForbidden }));
 vi.mock('@services/user-credentials', () => ({ loadUserCredentials }));
 vi.mock('@services/character/character.service', () => ({
   CharacterService: { getKillmailPage },
@@ -62,6 +68,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   getKillmailPage.mockReset();
   recordRefs.mockReset();
+  isForbidden.mockReturnValue(false);
 });
 
 describe('syncUser', () => {
@@ -126,6 +133,19 @@ describe('syncUser', () => {
     await expect(syncUser(message(), NOW)).rejects.toThrow('ESI 502');
     expect(recordRefs).toHaveBeenCalledTimes(1);
     expect(prismaMock.user.update).not.toHaveBeenCalled();
+  });
+
+  it('settles a 403 on the character list: stamp and skip, not retried', async () => {
+    const forbidden = { response: { status: 403 } };
+    loadUserCredentials.mockResolvedValue(credentials(new Date(0)));
+    getKillmailPage.mockRejectedValueOnce(forbidden);
+    isForbidden.mockImplementation((e) => e === forbidden);
+
+    expect(await syncUser(message(), NOW)).toBe('skipped');
+    expect(prismaMock.user.update).toHaveBeenCalledWith({
+      where: { id: 7 },
+      data: { last_killmail_sync_at: NOW },
+    });
   });
 
   it('skips a user whose token was revoked without calling ESI', async () => {

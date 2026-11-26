@@ -2,7 +2,7 @@
 //! can reach them: the sync and `handle_message`.
 
 use chrono::{NaiveDateTime, Utc};
-use esi::EsiClient;
+use esi::{EsiClient, EsiError};
 use killmail_refs::{walk, Walk};
 use runner::{Context, EntityQueueMessage, Outcome, Processed, Worker};
 use sqlx::PgPool;
@@ -45,14 +45,33 @@ pub async fn sync_user(
     let full_sync = full_sync || user.last_killmail_sync_at.is_none();
     let path = format!("/characters/{}/killmails/recent/", user.character_id);
     let bucket = user.character_id.to_string();
-    let walked = walk(
+    let walked = match walk(
         |page| esi.get_page_authed(&path, page, &access_token, &bucket),
         pool,
         "character",
         full_sync,
         now,
     )
-    .await?;
+    .await
+    {
+        Ok(walked) => walked,
+        // The token lacks esi-killmails.read_killmails.v1. No retry helps; a
+        // login with the scope does. Stamped, so the cron waits its 15 minutes.
+        Err(error)
+            if matches!(
+                error.downcast_ref::<EsiError>(),
+                Some(EsiError::Http { status: 403, .. })
+            ) =>
+        {
+            stamp(pool, user.id, now).await?;
+            warn!(
+                "  ! {}: ESI returned 403 - missing esi-killmails.read_killmails.v1. skipping.",
+                user.character_name
+            );
+            return Ok(Synced::Skipped("403, scope missing"));
+        }
+        Err(error) => return Err(error),
+    };
     if walked.capped {
         warn!(
             "  ⚠️  {}: stopped at the page cap; older killmails were not read",
@@ -60,12 +79,17 @@ pub async fn sync_user(
         );
     }
 
+    stamp(pool, user.id, now).await?;
+    Ok(Synced::Synced(walked))
+}
+
+async fn stamp(pool: &PgPool, user_id: i32, now: NaiveDateTime) -> sqlx::Result<()> {
     sqlx::query("UPDATE users SET last_killmail_sync_at = $2, updated_at = $2 WHERE id = $1")
-        .bind(user.id)
+        .bind(user_id)
         .bind(now)
         .execute(pool)
         .await?;
-    Ok(Synced::Synced(walked))
+    Ok(())
 }
 
 /// The runner's view of a sync: `Updated` when it ran, `Unchanged` when there

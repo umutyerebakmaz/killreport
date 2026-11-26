@@ -174,3 +174,21 @@ async fn a_user_without_a_refresh_token_is_skipped(pool: PgPool) {
     assert!(matches!(synced, Synced::Skipped(_)));
     assert_eq!(stamp(&pool).await, None);
 }
+
+#[sqlx::test(migrations = false, fixtures("users", "killmail_refs"))]
+async fn a_403_on_the_character_list_is_stamped_and_skipped(pool: PgPool) {
+    let (esi_server, sso_server) = (MockServer::start().await, MockServer::start().await);
+    Mock::given(method("GET"))
+        .and(path(LIST))
+        .respond_with(ResponseTemplate::new(403))
+        .mount(&esi_server)
+        .await;
+    user(&pool, Some("refresh"), Some(now() - TimeDelta::hours(1))).await;
+    let (esi, sso) = clients(&esi_server, &sso_server);
+
+    let synced = sync_user(&pool, &esi, &sso, USER, false, now())
+        .await
+        .unwrap();
+    assert!(matches!(synced, Synced::Skipped(_)));
+    assert_eq!(stamp(&pool).await, Some(now()));
+}

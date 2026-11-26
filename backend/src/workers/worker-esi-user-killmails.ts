@@ -9,7 +9,7 @@ import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { ensureAllQueuesExist, getRabbitMQChannel } from '@services/rabbitmq';
 import { loadUserCredentials } from '@services/user-credentials';
-import { handleWorkerError } from './worker-error';
+import { handleWorkerError, isForbidden } from './worker-error';
 
 const QUEUE_NAME = 'esi_user_killmails_queue';
 const PREFETCH_COUNT = 1;
@@ -117,12 +117,30 @@ export async function syncUser(
     message.fullSync ?? false,
   );
 
-  const walk = await walkKillmails(
-    (page) =>
-      CharacterService.getKillmailPage(user.character_id, accessToken, page),
-    (refs) => recordRefs(refs, 'character', now),
-    fullSync,
-  );
+  const stamp = () =>
+    prismaWorker.user.update({
+      where: { id: user.id },
+      data: { last_killmail_sync_at: now },
+    });
+
+  let walk;
+  try {
+    walk = await walkKillmails(
+      (page) =>
+        CharacterService.getKillmailPage(user.character_id, accessToken, page),
+      (refs) => recordRefs(refs, 'character', now),
+      fullSync,
+    );
+  } catch (error) {
+    // The token lacks esi-killmails.read_killmails.v1. No retry helps; a
+    // login with the scope does. Stamped, so the cron waits its 15 minutes.
+    if (!isForbidden(error)) throw error;
+    await stamp();
+    logger.warn(
+      `  ! ${user.character_name}: ESI returned 403 - missing esi-killmails.read_killmails.v1. skipping.`,
+    );
+    return 'skipped';
+  }
   if (walk.capped) {
     logger.warn(
       `  ⚠️  ${user.character_name}: stopped at the page cap; older killmails were not read`,
@@ -131,10 +149,7 @@ export async function syncUser(
 
   // When this user was last handled; killmail-sync-cron's 15-minute window
   // reads it, and null means "never synced" (a full sync).
-  await prismaWorker.user.update({
-    where: { id: user.id },
-    data: { last_killmail_sync_at: now },
-  });
+  await stamp();
 
   logger.info(
     `✅ ${user.character_name}: ${walk.found} listed on ${walk.pages} page(s), ${walk.inserted} new${fullSync ? ' (full sync)' : ''}`,
