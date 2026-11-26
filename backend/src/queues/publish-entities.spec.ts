@@ -51,6 +51,16 @@ describe('publishEntitiesConfirmed', () => {
     ).toBe(8);
   });
 
+  it('names the id killmailId when asked, in the same field order', async () => {
+    await publishEntitiesConfirmed(QUEUE, SOURCE, [133900250], {
+      idField: 'killmailId',
+    });
+
+    expect(channel.sendToQueue.mock.calls[0][1].toString()).toMatch(
+      /^{"killmailId":133900250,"queuedAt":"[^"]+","source":"queue-character-corporations"}$/,
+    );
+  });
+
   it('passes priority when given', async () => {
     await publishEntitiesConfirmed(QUEUE, SOURCE, [7], { priority: 5 });
 
