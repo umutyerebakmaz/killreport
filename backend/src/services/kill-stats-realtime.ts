@@ -32,6 +32,13 @@ export interface KillmailAggregateData {
   alliance_ids: (number | null)[];
 }
 
+/** The IDs without nulls and duplicates, ascending. */
+function sortedUnique(ids: (number | null)[]): number[] {
+  return [...new Set(ids.filter((id): id is number => id !== null))].sort(
+    (a, b) => a - b,
+  );
+}
+
 /**
  * Update daily aggregates for a single killmail in real-time
  * Called within the same transaction as killmail save for consistency.
@@ -44,16 +51,11 @@ export async function updateDailyAggregatesRealtime(
 ): Promise<void> {
   const killDate = data.killmail_time.toISOString().split('T')[0]; // YYYY-MM-DD
 
-  // Extract unique IDs (remove nulls and duplicates)
-  const uniqueCharacterIds = [
-    ...new Set(data.character_ids.filter((id): id is number => id !== null)),
-  ];
-  const uniqueCorporationIds = [
-    ...new Set(data.corporation_ids.filter((id): id is number => id !== null)),
-  ];
-  const uniqueAllianceIds = [
-    ...new Set(data.alliance_ids.filter((id): id is number => id !== null)),
-  ];
+  // Unique IDs, ascending: every writer locking the stats rows in one order
+  // keeps two concurrent saves of one fight from deadlocking.
+  const uniqueCharacterIds = sortedUnique(data.character_ids);
+  const uniqueCorporationIds = sortedUnique(data.corporation_ids);
+  const uniqueAllianceIds = sortedUnique(data.alliance_ids);
 
   // Update all three tables in parallel for speed
   await Promise.all([

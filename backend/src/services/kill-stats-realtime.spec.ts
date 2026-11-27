@@ -170,6 +170,25 @@ describe('updateDailyAggregatesRealtime', () => {
     expect($executeRaw).not.toHaveBeenCalled();
   });
 
+  it('upserts in ascending id order so concurrent saves lock rows the same way', async () => {
+    // Two killmails of one fight listing the same corporations in opposite
+    // order would otherwise lock the same two rows in opposite order.
+    const { tx, $executeRaw } = makeTx();
+
+    await updateDailyAggregatesRealtime(
+      tx,
+      killmail('2026-09-03T12:00:00Z', {
+        character_ids: [1002, 1001],
+        corporation_ids: [2009, 2001, 2009],
+        alliance_ids: [3005, 3001],
+      }),
+    );
+
+    expect(upserts($executeRaw).map((u) => u.entityId)).toEqual([
+      1001, 1002, 2001, 2009, 3001, 3005,
+    ]);
+  });
+
   it('rethrows a database error so the transaction fails', async () => {
     // A failed statement aborts a PostgreSQL transaction whatever the caller
     // does next, so swallowing it only moved the failure to the commit.

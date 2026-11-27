@@ -130,6 +130,15 @@ fn unique(ids: impl Iterator<Item = Option<i32>>) -> Vec<i32> {
     ids.flatten().filter(|id| seen.insert(*id)).collect()
 }
 
+/// The IDs without nulls and duplicates, ascending. The stats upserts lock
+/// one row per ID; every writer locking them in the same order is what keeps
+/// two concurrent saves of one fight from deadlocking.
+fn sorted_unique(ids: impl Iterator<Item = Option<i32>>) -> Vec<i32> {
+    let mut ids = unique(ids);
+    ids.sort_unstable();
+    ids
+}
+
 async fn write_victim(
     tx: &mut Transaction<'_, Postgres>,
     detail: &KillmailDetail,
@@ -226,17 +235,17 @@ async fn write_stats(
         (
             "character_kill_stats",
             "character_id",
-            unique(a.iter().map(|x| x.character_id)),
+            sorted_unique(a.iter().map(|x| x.character_id)),
         ),
         (
             "corporation_kill_stats",
             "corporation_id",
-            unique(a.iter().map(|x| x.corporation_id)),
+            sorted_unique(a.iter().map(|x| x.corporation_id)),
         ),
         (
             "alliance_kill_stats",
             "alliance_id",
-            unique(a.iter().map(|x| x.alliance_id)),
+            sorted_unique(a.iter().map(|x| x.alliance_id)),
         ),
     ];
     for (table, column, ids) in tables {
@@ -322,4 +331,17 @@ async fn write_filter(
     .execute(&mut **tx)
     .await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn stats_ids_are_sorted_so_concurrent_saves_lock_rows_in_one_order() {
+        // Two killmails of one fight, one listing corp 9 then 3, the other 3
+        // then 9: locking in listed order is how two writers deadlock.
+        let ids = [Some(9), None, Some(3), Some(9), Some(5)];
+        assert_eq!(sorted_unique(ids.into_iter()), vec![3, 5, 9]);
+    }
 }
