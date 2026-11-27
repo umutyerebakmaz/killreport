@@ -3605,6 +3605,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "worker-killmail-detail"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "dotenvy",
+ "esi",
+ "futures-util",
+ "killmail-writer",
+ "mq",
+ "pubsub",
+ "runner",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "wiremock",
+]
+
+[[package]]
 name = "worker-prices"
 version = "0.1.0"
 dependencies = [
