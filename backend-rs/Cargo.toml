@@ -34,6 +34,7 @@ esi = { path = "crates/esi" }
 mq = { path = "crates/mq" }
 runner = { path = "crates/runner" }
 killmail-value = { path = "crates/killmail-value" }
+killmail-writer = { path = "crates/killmail-writer" }
 sov = { path = "crates/sov" }
 pubsub = { path = "crates/pubsub" }
 sso = { path = "crates/sso" }
