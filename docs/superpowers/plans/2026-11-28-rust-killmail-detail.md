@@ -55,7 +55,7 @@ TypeScript (Prisma, vitest).
 
 ---
 
-### Görev 1: `crates/pubsub`, ortak Redis PUBLISH
+### Task 1: `crates/pubsub`, ortak Redis PUBLISH
 
 **Dosyalar:**
 
@@ -94,7 +94,7 @@ TypeScript (Prisma, vitest).
       `crates/sov/tests/publish.rs` değişmeden PASS olmalı.
 - [ ] **Adım 5:** Commit: `refactor(rust): move Redis PUBLISH into a pubsub crate`
 
-### Görev 2: runner, mesaj alanları ve killmail publish
+### Task 2: runner, mesaj alanları ve killmail publish
 
 **Dosyalar:**
 
@@ -137,7 +137,7 @@ TypeScript (Prisma, vitest).
       RabbitMQ varsa çalıştırılır; yoksa raporda "çalıştırılmadı" denir.
 - [ ] **Adım 5:** Commit: `feat(runner): killmail detail fields and killmail publish`
 
-### Görev 3: `crates/killmail-writer`
+### Task 3: `crates/killmail-writer`
 
 **Dosyalar:**
 
@@ -224,7 +224,7 @@ CONFLICT … DO UPDATE SET kill_count = <t>.kill_count + 1` (ID'ler tekilleştir
       `cargo clippy -p killmail-writer -- -D warnings` temiz çıkmalı.
 - [ ] **Adım 5:** Commit: `feat(rust): killmail-writer crate, one transaction for every derived write`
 
-### Görev 4: `workers/worker-killmail-detail` ve script
+### Task 4: `workers/worker-killmail-detail` ve script
 
 **Dosyalar:**
 
@@ -282,7 +282,7 @@ CONFLICT … DO UPDATE SET kill_count = <t>.kill_count + 1` (ID'ler tekilleştir
       worker'ı kendiliğinden sayar, oraya dokunulmaz.
 - [ ] **Adım 5:** Commit: `feat(rust): killmail-detail worker on the shared writer`
 
-### Görev 5: Node yazıcısındaki düzeltmeler
+### Task 5: Node yazıcısındaki düzeltmeler
 
 **Dosyalar:**
 
@@ -329,7 +329,7 @@ CONFLICT … DO UPDATE SET kill_count = <t>.kill_count + 1` (ID'ler tekilleştir
       çalıştır, ikisi de PASS olmalı (repair spec'i dahil).
 - [ ] **Adım 5:** Commit: `fix(killmails): claim first, filter row inside the transaction, no swallowed errors`
 
-### Görev 6: Dokümanlar
+### Task 6: Dokümanlar
 
 **Dosyalar:**
 
