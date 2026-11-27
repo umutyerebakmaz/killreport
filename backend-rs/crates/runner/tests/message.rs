@@ -10,6 +10,8 @@ fn reads_the_entity_id_and_ignores_the_other_fields() {
         EntityQueueMessage {
             entity_id: 99000001,
             full_sync: false,
+            killmail_hash: None,
+            announce: false,
         }
     );
 }
@@ -30,6 +32,8 @@ fn parses_what_mq_publishes() {
         EntityQueueMessage {
             entity_id: 98000001,
             full_sync: false,
+            killmail_hash: None,
+            announce: false,
         }
     );
 }
@@ -42,6 +46,8 @@ fn parses_entity_id_and_killmail_id() {
         EntityQueueMessage {
             entity_id: 133900250,
             full_sync: false,
+            killmail_hash: None,
+            announce: false,
         }
     );
     assert_eq!(
@@ -49,6 +55,8 @@ fn parses_entity_id_and_killmail_id() {
         EntityQueueMessage {
             entity_id: 1,
             full_sync: false,
+            killmail_hash: None,
+            announce: false,
         }
     );
     assert!(EntityQueueMessage::parse(b"{}").is_err());
@@ -62,6 +70,8 @@ fn parses_what_mq_publishes_for_a_killmail() {
         EntityQueueMessage {
             entity_id: 133900250,
             full_sync: false,
+            killmail_hash: None,
+            announce: false,
         }
     );
 }
@@ -74,4 +84,20 @@ fn parses_user_id_and_full_sync() {
 
     let message = EntityQueueMessage::parse(br#"{"userId":7,"queuedAt":"x"}"#).unwrap();
     assert!(!message.full_sync);
+}
+
+#[test]
+fn parses_a_detail_message() {
+    let body = br#"{"killmailId":5,"killmailHash":"abc","announce":true}"#;
+    let message = EntityQueueMessage::parse(body).unwrap();
+    assert_eq!(message.entity_id, 5);
+    assert_eq!(message.killmail_hash.as_deref(), Some("abc"));
+    assert!(message.announce);
+}
+
+#[test]
+fn detail_fields_default_when_absent() {
+    let message = EntityQueueMessage::parse(br#"{"entityId":1}"#).unwrap();
+    assert_eq!(message.killmail_hash, None);
+    assert!(!message.announce);
 }

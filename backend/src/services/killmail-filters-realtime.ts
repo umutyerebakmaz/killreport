@@ -5,7 +5,8 @@
  * This pre-computes attacker arrays for fast GIN index lookups.
  *
  * Strategy:
- * - Called after each killmail is saved (within or after the transaction)
+ * - Called inside the transaction that saves the killmail; errors are not
+ *   caught, so a killmail is never committed without its filter row
  * - Single INSERT with aggregated attacker arrays
  * - On conflict, updates only the derived columns, and only where they are
  *   still NULL, so a row written before its solar system existed can heal
@@ -55,121 +56,111 @@ export async function insertKillmailFilter(
   data: KillmailFilterData,
   client: FilterWriteClient = prismaWorker,
 ): Promise<void> {
-  try {
-    // Remove nulls and get unique IDs for arrays
-    const shipIds = [
-      ...new Set(
-        data.attacker_ship_type_ids.filter((id): id is number => id !== null),
-      ),
-    ];
-    const charIds = [
-      ...new Set(
-        data.attacker_character_ids.filter((id): id is number => id !== null),
-      ),
-    ];
-    const corpIds = [
-      ...new Set(
-        data.attacker_corporation_ids.filter((id): id is number => id !== null),
-      ),
-    ];
-    const allianceIds = [
-      ...new Set(
-        data.attacker_alliance_ids.filter((id): id is number => id !== null),
-      ),
-    ];
-    const factionIds = [
-      ...new Set(
-        data.attacker_faction_ids.filter((id): id is number => id !== null),
-      ),
-    ];
+  // Remove nulls and get unique IDs for arrays
+  const shipIds = [
+    ...new Set(
+      data.attacker_ship_type_ids.filter((id): id is number => id !== null),
+    ),
+  ];
+  const charIds = [
+    ...new Set(
+      data.attacker_character_ids.filter((id): id is number => id !== null),
+    ),
+  ];
+  const corpIds = [
+    ...new Set(
+      data.attacker_corporation_ids.filter((id): id is number => id !== null),
+    ),
+  ];
+  const allianceIds = [
+    ...new Set(
+      data.attacker_alliance_ids.filter((id): id is number => id !== null),
+    ),
+  ];
+  const factionIds = [
+    ...new Set(
+      data.attacker_faction_ids.filter((id): id is number => id !== null),
+    ),
+  ];
 
-    await client.$executeRaw`
-      WITH data_row AS (
-        SELECT
-          ${data.killmail_id}::bigint as killmail_id,
-          ${data.killmail_time}::timestamp as killmail_time,
-          ${data.solar_system_id}::int as solar_system_id,
-          ${data.attacker_count}::int as attacker_count,
-          ${data.victim_ship_type_id}::int as victim_ship_type_id,
-          ${data.victim_character_id}::int as victim_character_id,
-          ${data.victim_corporation_id}::int as victim_corporation_id,
-          ${data.victim_alliance_id}::int as victim_alliance_id,
-          ${data.victim_faction_id}::int as victim_faction_id,
-          ${shipIds}::int[] as attacker_ship_type_ids,
-          ${charIds}::int[] as attacker_character_ids,
-          ${corpIds}::int[] as attacker_corporation_ids,
-          ${allianceIds}::int[] as attacker_alliance_ids,
-          ${factionIds}::int[] as attacker_faction_ids
-      )
-      INSERT INTO killmail_filters (
-        killmail_id,
-        killmail_time,
-        solar_system_id,
-        constellation_id,
-        region_id,
-        attacker_count,
-        victim_ship_type_id,
-        victim_character_id,
-        victim_corporation_id,
-        victim_alliance_id,
-        victim_faction_id,
-        attacker_ship_type_ids,
-        attacker_character_ids,
-        attacker_corporation_ids,
-        attacker_alliance_ids,
-        attacker_faction_ids,
-        security_status,
-        security_class,
-        victim_ship_group_id,
-        total_value
-      )
+  await client.$executeRaw`
+    WITH data_row AS (
       SELECT
-        d.killmail_id,
-        d.killmail_time,
-        d.solar_system_id,
-        ss.constellation_id,
-        c.region_id,
-        d.attacker_count,
-        d.victim_ship_type_id,
-        d.victim_character_id,
-        d.victim_corporation_id,
-        d.victim_alliance_id,
-        d.victim_faction_id,
-        d.attacker_ship_type_ids,
-        d.attacker_character_ids,
-        d.attacker_corporation_ids,
-        d.attacker_alliance_ids,
-        d.attacker_faction_ids,
-        ss.security_status,
-        ss.security_class,
-        t.group_id,
-        k.total_value
-      FROM data_row d
-      LEFT JOIN solar_systems  ss ON ss.system_id       = d.solar_system_id
-      LEFT JOIN constellations c  ON c.constellation_id = ss.constellation_id
-      LEFT JOIN types          t  ON t.id               = d.victim_ship_type_id
-      LEFT JOIN killmails      k  ON k.killmail_id      = d.killmail_id
-      ON CONFLICT (killmail_id) DO UPDATE SET
-        constellation_id     = EXCLUDED.constellation_id,
-        region_id            = EXCLUDED.region_id,
-        security_status      = EXCLUDED.security_status,
-        security_class       = EXCLUDED.security_class,
-        victim_ship_group_id = EXCLUDED.victim_ship_group_id,
-        total_value          = EXCLUDED.total_value
-      WHERE killmail_filters.region_id             IS NULL
-         OR killmail_filters.security_status       IS NULL
-         OR killmail_filters.total_value           IS NULL
-         OR killmail_filters.victim_ship_group_id  IS NULL
-    `;
+        ${data.killmail_id}::bigint as killmail_id,
+        ${data.killmail_time}::timestamp as killmail_time,
+        ${data.solar_system_id}::int as solar_system_id,
+        ${data.attacker_count}::int as attacker_count,
+        ${data.victim_ship_type_id}::int as victim_ship_type_id,
+        ${data.victim_character_id}::int as victim_character_id,
+        ${data.victim_corporation_id}::int as victim_corporation_id,
+        ${data.victim_alliance_id}::int as victim_alliance_id,
+        ${data.victim_faction_id}::int as victim_faction_id,
+        ${shipIds}::int[] as attacker_ship_type_ids,
+        ${charIds}::int[] as attacker_character_ids,
+        ${corpIds}::int[] as attacker_corporation_ids,
+        ${allianceIds}::int[] as attacker_alliance_ids,
+        ${factionIds}::int[] as attacker_faction_ids
+    )
+    INSERT INTO killmail_filters (
+      killmail_id,
+      killmail_time,
+      solar_system_id,
+      constellation_id,
+      region_id,
+      attacker_count,
+      victim_ship_type_id,
+      victim_character_id,
+      victim_corporation_id,
+      victim_alliance_id,
+      victim_faction_id,
+      attacker_ship_type_ids,
+      attacker_character_ids,
+      attacker_corporation_ids,
+      attacker_alliance_ids,
+      attacker_faction_ids,
+      security_status,
+      security_class,
+      victim_ship_group_id,
+      total_value
+    )
+    SELECT
+      d.killmail_id,
+      d.killmail_time,
+      d.solar_system_id,
+      ss.constellation_id,
+      c.region_id,
+      d.attacker_count,
+      d.victim_ship_type_id,
+      d.victim_character_id,
+      d.victim_corporation_id,
+      d.victim_alliance_id,
+      d.victim_faction_id,
+      d.attacker_ship_type_ids,
+      d.attacker_character_ids,
+      d.attacker_corporation_ids,
+      d.attacker_alliance_ids,
+      d.attacker_faction_ids,
+      ss.security_status,
+      ss.security_class,
+      t.group_id,
+      k.total_value
+    FROM data_row d
+    LEFT JOIN solar_systems  ss ON ss.system_id       = d.solar_system_id
+    LEFT JOIN constellations c  ON c.constellation_id = ss.constellation_id
+    LEFT JOIN types          t  ON t.id               = d.victim_ship_type_id
+    LEFT JOIN killmails      k  ON k.killmail_id      = d.killmail_id
+    ON CONFLICT (killmail_id) DO UPDATE SET
+      constellation_id     = EXCLUDED.constellation_id,
+      region_id            = EXCLUDED.region_id,
+      security_status      = EXCLUDED.security_status,
+      security_class       = EXCLUDED.security_class,
+      victim_ship_group_id = EXCLUDED.victim_ship_group_id,
+      total_value          = EXCLUDED.total_value
+    WHERE killmail_filters.region_id             IS NULL
+       OR killmail_filters.security_status       IS NULL
+       OR killmail_filters.total_value           IS NULL
+       OR killmail_filters.victim_ship_group_id  IS NULL
+  `;
 
-    logger.debug(
-      `✅ inserted killmail_filters for killmail ${data.killmail_id}`,
-    );
-  } catch (error) {
-    // Log error but don't fail
-    logger.error(
-      `❌ error inserting killmail_filters for ${data.killmail_id}:`,
-      error,
-    );
-  }
+  logger.debug(`✅ inserted killmail_filters for killmail ${data.killmail_id}`);
 }

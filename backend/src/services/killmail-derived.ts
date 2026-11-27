@@ -4,9 +4,9 @@ import type { KillmailAggregateData } from '@services/kill-stats-realtime';
 
 /**
  * The input mapping for the two derived writes every saved killmail needs:
- * the daily leaderboard aggregates (`updateDailyAggregatesRealtime`, inside
- * the saving transaction) and the `killmail_filters` row
- * (`insertKillmailFilter`, after it).
+ * the daily leaderboard aggregates (`updateDailyAggregatesRealtime`) and the
+ * `killmail_filters` row (`insertKillmailFilter`), both inside the saving
+ * transaction.
  *
  * Both read the same ESI detail, and both mappings were written out again in
  * every worker that saves a killmail. The copies drifted:

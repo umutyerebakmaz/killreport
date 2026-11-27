@@ -21,10 +21,10 @@ import prismaWorker from '@services/prisma-worker';
  * precisely because it has none, and the repair writes that row in the same
  * transaction as the increment — so a repaired killmail is never selected
  * again and the counts cannot be inflated by a second run. That is also why
- * the filter row goes in first and is read back: `insertKillmailFilter` logs
- * and swallows its own failures, and a silent failure there would leave an
- * increment with no marker, which is the one way this script could double
- * count.
+ * the filter row goes in first and is read back: an insert that wrote nothing
+ * would leave an increment with no marker, which is the one way this script
+ * could double count. `insertKillmailFilter` throws on a database error now,
+ * which rolls the transaction back; the read-back stays as the second guard.
  *
  * Nothing is fetched from ESI. Everything needed is already in the database;
  * a killmail whose attacker rows are missing is reported and skipped, because

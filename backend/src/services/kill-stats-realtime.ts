@@ -32,9 +32,18 @@ export interface KillmailAggregateData {
   alliance_ids: (number | null)[];
 }
 
+/** The IDs without nulls and duplicates, ascending. */
+function sortedUnique(ids: (number | null)[]): number[] {
+  return [...new Set(ids.filter((id): id is number => id !== null))].sort(
+    (a, b) => a - b,
+  );
+}
+
 /**
  * Update daily aggregates for a single killmail in real-time
- * Called within the same transaction as killmail save for consistency
+ * Called within the same transaction as killmail save for consistency.
+ * Errors are not caught: a failed statement aborts the transaction anyway,
+ * and the killmail must not be committed without its counts.
  */
 export async function updateDailyAggregatesRealtime(
   tx: PrismaTransaction,
@@ -42,68 +51,52 @@ export async function updateDailyAggregatesRealtime(
 ): Promise<void> {
   const killDate = data.killmail_time.toISOString().split('T')[0]; // YYYY-MM-DD
 
-  try {
-    // Extract unique IDs (remove nulls and duplicates)
-    const uniqueCharacterIds = [
-      ...new Set(data.character_ids.filter((id): id is number => id !== null)),
-    ];
-    const uniqueCorporationIds = [
-      ...new Set(
-        data.corporation_ids.filter((id): id is number => id !== null),
-      ),
-    ];
-    const uniqueAllianceIds = [
-      ...new Set(data.alliance_ids.filter((id): id is number => id !== null)),
-    ];
+  // Unique IDs, ascending: every writer locking the stats rows in one order
+  // keeps two concurrent saves of one fight from deadlocking.
+  const uniqueCharacterIds = sortedUnique(data.character_ids);
+  const uniqueCorporationIds = sortedUnique(data.corporation_ids);
+  const uniqueAllianceIds = sortedUnique(data.alliance_ids);
 
-    // Update all three tables in parallel for speed
-    await Promise.all([
-      // Update pilot kills
-      ...uniqueCharacterIds.map(
-        (characterId) =>
-          tx.$executeRaw`
-                    INSERT INTO character_kill_stats (kill_date, character_id, kill_count)
-                    VALUES (${killDate}::date, ${characterId}, 1)
-                    ON CONFLICT (kill_date, character_id)
-                    DO UPDATE SET kill_count = character_kill_stats.kill_count + 1
-                `,
-      ),
+  // Update all three tables in parallel for speed
+  await Promise.all([
+    // Update pilot kills
+    ...uniqueCharacterIds.map(
+      (characterId) =>
+        tx.$executeRaw`
+                  INSERT INTO character_kill_stats (kill_date, character_id, kill_count)
+                  VALUES (${killDate}::date, ${characterId}, 1)
+                  ON CONFLICT (kill_date, character_id)
+                  DO UPDATE SET kill_count = character_kill_stats.kill_count + 1
+              `,
+    ),
 
-      // Update corporation kills (count unique killmails per corp)
-      ...uniqueCorporationIds.map(
-        (corporationId) =>
-          tx.$executeRaw`
-                    INSERT INTO corporation_kill_stats (kill_date, corporation_id, kill_count)
-                    VALUES (${killDate}::date, ${corporationId}, 1)
-                    ON CONFLICT (kill_date, corporation_id)
-                    DO UPDATE SET kill_count = corporation_kill_stats.kill_count + 1
-                `,
-      ),
+    // Update corporation kills (count unique killmails per corp)
+    ...uniqueCorporationIds.map(
+      (corporationId) =>
+        tx.$executeRaw`
+                  INSERT INTO corporation_kill_stats (kill_date, corporation_id, kill_count)
+                  VALUES (${killDate}::date, ${corporationId}, 1)
+                  ON CONFLICT (kill_date, corporation_id)
+                  DO UPDATE SET kill_count = corporation_kill_stats.kill_count + 1
+              `,
+    ),
 
-      // Update alliance kills (count unique killmails per alliance)
-      ...uniqueAllianceIds.map(
-        (allianceId) =>
-          tx.$executeRaw`
-                    INSERT INTO alliance_kill_stats (kill_date, alliance_id, kill_count)
-                    VALUES (${killDate}::date, ${allianceId}, 1)
-                    ON CONFLICT (kill_date, alliance_id)
-                    DO UPDATE SET kill_count = alliance_kill_stats.kill_count + 1
-                `,
-      ),
-    ]);
+    // Update alliance kills (count unique killmails per alliance)
+    ...uniqueAllianceIds.map(
+      (allianceId) =>
+        tx.$executeRaw`
+                  INSERT INTO alliance_kill_stats (kill_date, alliance_id, kill_count)
+                  VALUES (${killDate}::date, ${allianceId}, 1)
+                  ON CONFLICT (kill_date, alliance_id)
+                  DO UPDATE SET kill_count = alliance_kill_stats.kill_count + 1
+              `,
+    ),
+  ]);
 
-    logger.debug(
-      `✅ updated daily aggregates: ${uniqueCharacterIds.length} pilots, ` +
-        `${uniqueCorporationIds.length} corps, ${uniqueAllianceIds.length} alliances`,
-    );
-  } catch (error) {
-    // Log error but don't fail the transaction
-    // The periodic worker will fix any inconsistencies
-    logger.error(
-      '❌ error updating daily aggregates (will be fixed by periodic worker):',
-      error,
-    );
-  }
+  logger.debug(
+    `✅ updated daily aggregates: ${uniqueCharacterIds.length} pilots, ` +
+      `${uniqueCorporationIds.length} corps, ${uniqueAllianceIds.length} alliances`,
+  );
 }
 
 /**

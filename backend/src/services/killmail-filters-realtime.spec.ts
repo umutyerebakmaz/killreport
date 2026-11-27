@@ -2,10 +2,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 /**
  * The write half of killmail_filters — the table every leaderboard and the
- * most-valuable list read from. It runs inside the killmail save path and
- * deliberately swallows its own errors, so nothing downstream reports a row
- * that never landed. That contract, and the array cleaning that decides what a
- * top-attackers lookup will match, are what these tests hold in place.
+ * most-valuable list read from. It runs inside the killmail save
+ * transaction and lets its errors through, so a killmail is never committed
+ * without its filter row. That contract, and the array cleaning that decides
+ * what a top-attackers lookup will match, are what these tests hold in place.
  */
 
 const { prismaWorker, logger } = vi.hoisted(() => ({
@@ -197,22 +197,10 @@ describe('the statement', () => {
 });
 
 describe('failure handling', () => {
-  it('swallows a database error instead of failing the killmail save', async () => {
+  it('rethrows a database error so the killmail save fails with it', async () => {
     prismaWorker.$executeRaw.mockRejectedValue(new Error('deadlock detected'));
 
-    await expect(insert()).resolves.toBeUndefined();
-  });
-
-  it('logs the error with the killmail it belonged to', async () => {
-    const error = new Error('deadlock detected');
-    prismaWorker.$executeRaw.mockRejectedValue(error);
-
-    await insert();
-
-    expect(logger.error).toHaveBeenCalledWith(
-      expect.stringContaining('130000001'),
-      error,
-    );
+    await expect(insert()).rejects.toThrow('deadlock detected');
   });
 
   it('logs a debug line on the way through', async () => {

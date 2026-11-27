@@ -1,0 +1,26 @@
+[package]
+name = "worker-killmail-detail"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+dotenvy.workspace = true
+chrono.workspace = true
+esi.workspace = true
+killmail-writer.workspace = true
+pubsub.workspace = true
+runner.workspace = true
+serde_json.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+futures-util.workspace = true
+mq.workspace = true
+# `#[sqlx::test]` needs the feature even with `migrations = false`; it
+# creates the throwaway databases, it runs no migration.
+sqlx = { workspace = true, features = ["migrate"] }
+wiremock.workspace = true

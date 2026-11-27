@@ -13,11 +13,10 @@
 //! Every time in an alert is UTC: EVE runs on UTC.
 
 use chrono::{DateTime, Utc};
-use redis::aio::MultiplexedConnection;
+use pubsub::RedisPubSub;
 use serde::Serialize;
 use sqlx::PgPool;
-use tokio::sync::OnceCell;
-use tracing::{error, info};
+use tracing::error;
 
 /// At most this many alerts per run, so a reseed or a large reshuffle cannot
 /// flood clients. The Node workers use the same number.
@@ -177,59 +176,33 @@ pub async fn build_alert(
 }
 
 /// Publishes alerts to the API, or does nothing when the API is not listening
-/// on Redis. The connection opens on the first publish, so a run with nothing
-/// to say never touches Redis.
+/// on Redis: a [`RedisPubSub`] on [`CHANNEL`].
 pub struct AlertPublisher {
-    redis_url: Option<String>,
-    connection: OnceCell<MultiplexedConnection>,
+    pubsub: RedisPubSub,
 }
 
 impl AlertPublisher {
-    /// On when `USE_REDIS_PUBSUB` is exactly `true`, as `config.ts` reads it.
-    /// Off, the API's pubsub is in-memory and a Node worker's publish reaches
-    /// nobody either; this publisher then stays silent.
+    /// On when `USE_REDIS_PUBSUB` is exactly `true`; see
+    /// [`RedisPubSub::from_env`].
     pub fn from_env() -> Self {
-        let enabled = std::env::var("USE_REDIS_PUBSUB").is_ok_and(|v| v == "true");
-        if !enabled {
-            info!("📡 USE_REDIS_PUBSUB is not true — sovereignty alerts are not published");
-            return Self::new(None);
+        Self {
+            pubsub: RedisPubSub::from_env("sovereignty alerts"),
         }
-        let url = std::env::var("REDIS_URL").unwrap_or_else(|_| esi::DEFAULT_REDIS_URL.to_owned());
-        Self::new(Some(url))
     }
 
     /// `None` is a disabled publisher.
     pub fn new(redis_url: Option<String>) -> Self {
         Self {
-            redis_url,
-            connection: OnceCell::new(),
+            pubsub: RedisPubSub::new(redis_url),
         }
     }
 
     pub fn is_enabled(&self) -> bool {
-        self.redis_url.is_some()
+        self.pubsub.is_enabled()
     }
 
     pub async fn publish(&self, alert: &SovereigntyAlert) -> anyhow::Result<()> {
-        let Some(url) = &self.redis_url else {
-            return Ok(());
-        };
-        let payload = serde_json::to_string(alert)?;
-        let connection = self
-            .connection
-            .get_or_try_init(|| async {
-                redis::Client::open(url.as_str())?
-                    .get_multiplexed_async_connection()
-                    .await
-            })
-            .await?;
-        let mut connection = connection.clone();
-        redis::cmd("PUBLISH")
-            .arg(CHANNEL)
-            .arg(payload)
-            .query_async::<i64>(&mut connection)
-            .await?;
-        Ok(())
+        self.pubsub.publish(CHANNEL, alert).await
     }
 
     /// Builds and publishes each event in order. A failure is logged and the

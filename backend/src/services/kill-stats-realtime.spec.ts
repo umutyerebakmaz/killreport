@@ -170,22 +170,37 @@ describe('updateDailyAggregatesRealtime', () => {
     expect($executeRaw).not.toHaveBeenCalled();
   });
 
-  it('logs and swallows a database error so the killmail transaction survives', async () => {
+  it('upserts in ascending id order so concurrent saves lock rows the same way', async () => {
+    // Two killmails of one fight listing the same corporations in opposite
+    // order would otherwise lock the same two rows in opposite order.
     const { tx, $executeRaw } = makeTx();
-    const failure = new Error('deadlock detected');
-    $executeRaw.mockRejectedValue(failure);
+
+    await updateDailyAggregatesRealtime(
+      tx,
+      killmail('2026-09-03T12:00:00Z', {
+        character_ids: [1002, 1001],
+        corporation_ids: [2009, 2001, 2009],
+        alliance_ids: [3005, 3001],
+      }),
+    );
+
+    expect(upserts($executeRaw).map((u) => u.entityId)).toEqual([
+      1001, 1002, 2001, 2009, 3001, 3005,
+    ]);
+  });
+
+  it('rethrows a database error so the transaction fails', async () => {
+    // A failed statement aborts a PostgreSQL transaction whatever the caller
+    // does next, so swallowing it only moved the failure to the commit.
+    const { tx, $executeRaw } = makeTx();
+    $executeRaw.mockRejectedValue(new Error('deadlock detected'));
 
     await expect(
       updateDailyAggregatesRealtime(
         tx,
         killmail('2026-09-03T12:00:00Z', { character_ids: [1001] }),
       ),
-    ).resolves.toBeUndefined();
-
-    expect(loggerMock.error).toHaveBeenCalledWith(
-      expect.stringContaining('daily aggregates'),
-      failure,
-    );
+    ).rejects.toThrow('deadlock detected');
   });
 });
 

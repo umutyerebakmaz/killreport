@@ -204,6 +204,14 @@ impl Publisher for FakePublisher {
         let result = (self.result)();
         Box::pin(async move { result })
     }
+    fn publish_killmails<'a>(
+        &'a self,
+        _queue: &'a str,
+        _source: &'static str,
+        _ids: &'a [i32],
+    ) -> BoxFuture<'a, anyhow::Result<u64>> {
+        panic!("this worker publishes no killmails")
+    }
 }
 
 fn two() -> anyhow::Result<u64> {
