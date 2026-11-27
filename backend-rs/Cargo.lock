@@ -1679,6 +1679,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "pubsub"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "esi",
+ "redis",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "queue-alliance-corporations"
 version = "0.1.0"
 dependencies = [
@@ -2421,7 +2434,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "esi",
- "redis",
+ "pubsub",
  "serde",
  "serde_json",
  "sqlx",
