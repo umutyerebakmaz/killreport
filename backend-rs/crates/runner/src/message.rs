@@ -7,7 +7,8 @@ use serde::Deserialize;
 /// The ID is read as `entityId`, or under the name a queue gives it:
 /// `killmailId` (`backfill_killmail_values_queue`), `userId` (the two
 /// killmail sync queues). `fullSync` is read when present, false otherwise;
-/// only the killmail sync workers look at it. Other fields are ignored rather
+/// only the killmail sync workers look at it. `killmailHash` and `announce`
+/// are read the same way, for the detail worker. Other fields are ignored rather
 /// than refused, so a publisher that adds one does not break a worker.
 #[derive(Debug, Deserialize, PartialEq, Eq)]
 pub struct EntityQueueMessage {
@@ -15,6 +16,13 @@ pub struct EntityQueueMessage {
     pub entity_id: i32,
     #[serde(default, rename = "fullSync")]
     pub full_sync: bool,
+    /// The detail queue's hash (`esi_killmail_detail_queue`), absent on
+    /// every other queue.
+    #[serde(default, rename = "killmailHash")]
+    pub killmail_hash: Option<String>,
+    /// The detail queue's announce policy; false when absent.
+    #[serde(default)]
+    pub announce: bool,
 }
 
 impl EntityQueueMessage {

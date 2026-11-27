@@ -47,6 +47,14 @@ impl Publisher for Recorder {
             Ok(messages.len() as u64)
         })
     }
+    fn publish_killmails<'a>(
+        &'a self,
+        _queue: &'a str,
+        _source: &'static str,
+        _ids: &'a [i32],
+    ) -> BoxFuture<'a, anyhow::Result<u64>> {
+        panic!("this worker publishes no killmails")
+    }
 }
 
 async fn worker(pool: PgPool, server: &MockServer) -> AllianceCorporationWorker {

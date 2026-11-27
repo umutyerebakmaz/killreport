@@ -42,6 +42,14 @@ impl Publisher for Sink {
     ) -> BoxFuture<'a, anyhow::Result<u64>> {
         Box::pin(async move { Ok(messages.len() as u64) })
     }
+    fn publish_killmails<'a>(
+        &'a self,
+        _queue: &'a str,
+        _source: &'static str,
+        _ids: &'a [i32],
+    ) -> BoxFuture<'a, anyhow::Result<u64>> {
+        panic!("this worker publishes no killmails")
+    }
 }
 
 async fn corps(server: &MockServer, id: i32, response: ResponseTemplate) {

@@ -18,6 +18,16 @@ pub trait Publisher: Send + Sync {
         messages: &'a [EntityMessage],
         priority: Option<u8>,
     ) -> BoxFuture<'a, anyhow::Result<u64>>;
+
+    /// Publish one `{"killmailId","queuedAt","source"}` message per ID onto
+    /// `queue` ([`mq::KillmailMessage`]) and wait until every one is
+    /// confirmed. Errors as [`Publisher::publish`].
+    fn publish_killmails<'a>(
+        &'a self,
+        queue: &'a str,
+        source: &'static str,
+        ids: &'a [i32],
+    ) -> BoxFuture<'a, anyhow::Result<u64>>;
 }
 
 /// What `Worker::handle` gets besides the ID. The publisher belongs to the
@@ -73,17 +83,34 @@ impl Publisher for ChannelPublisher {
             }
             mq::publish_messages(&self.channel, queue, messages, priority)
                 .await
-                .map_err(|e| {
-                    // Any lapin error here is the channel or the connection
-                    // failing; a broker nack is not a lapin error and stays
-                    // an ordinary one.
-                    if e.downcast_ref::<lapin::Error>().is_some() {
-                        PublisherLost.into()
-                    } else {
-                        e
-                    }
-                })
+                .map_err(lost_on_lapin_error)
         })
+    }
+
+    fn publish_killmails<'a>(
+        &'a self,
+        queue: &'a str,
+        source: &'static str,
+        ids: &'a [i32],
+    ) -> BoxFuture<'a, anyhow::Result<u64>> {
+        Box::pin(async move {
+            if !self.channel.status().connected() {
+                return Err(PublisherLost.into());
+            }
+            mq::publish_killmails(&self.channel, queue, source, ids)
+                .await
+                .map_err(lost_on_lapin_error)
+        })
+    }
+}
+
+/// Any lapin error is the channel or the connection failing; a broker nack
+/// is not a lapin error and stays an ordinary one.
+fn lost_on_lapin_error(e: anyhow::Error) -> anyhow::Error {
+    if e.downcast_ref::<lapin::Error>().is_some() {
+        PublisherLost.into()
+    } else {
+        e
     }
 }
 
@@ -131,6 +158,30 @@ mod tests {
         let messages = [EntityMessage::new(1, "test"), EntityMessage::new(2, "test")];
         let confirmed = publisher.publish(&queue, &messages, Some(3)).await.unwrap();
         assert_eq!(confirmed, 2);
+        let _ = publisher
+            .channel
+            .queue_delete(&queue, QueueDeleteOptions::default())
+            .await;
+        let _ = connection.close(200, "test done").await;
+    }
+
+    #[tokio::test]
+    #[ignore = "needs RabbitMQ in RABBITMQ_URL"]
+    async fn a_killmail_publish_is_confirmed_by_the_broker() {
+        let (connection, publisher, queue) = publisher().await;
+        let confirmed = publisher
+            .publish_killmails(&queue, "test", &[7, 8])
+            .await
+            .unwrap();
+        assert_eq!(confirmed, 2);
+        let got = publisher
+            .channel
+            .basic_get(&queue, lapin::options::BasicGetOptions::default())
+            .await
+            .unwrap()
+            .expect("a message on the queue");
+        let body: serde_json::Value = serde_json::from_slice(&got.delivery.data).unwrap();
+        assert_eq!(body["killmailId"], 7);
         let _ = publisher
             .channel
             .queue_delete(&queue, QueueDeleteOptions::default())
