@@ -26,6 +26,9 @@ yarn worker:user-killmails     # stage 1: list
 yarn worker:killmail-detail    # stage 2: detail and write
 ```
 
+`yarn worker:killmail-detail:rs` is the Rust detail worker. It reads the same
+queue and writes the same rows, so run one or the other.
+
 Nothing else needs starting. The API server (`yarn dev:backend`) publishes the
 jobs itself.
 
@@ -103,14 +106,25 @@ the zKillboard sync all feed the same queue.
 
 For each message it fetches the detail and calls `saveKillmail`
 ([`killmail-writer.ts`](../../src/services/killmail-writer.ts)), the only place
-a killmail is written. One transaction writes `killmails`, `victims`,
-`attackers`, `killmail_items` and the daily leaderboard aggregates. The writer
-then inserts the `killmail_filters` row. Because `announce` is true, it also
-publishes `NEW_KILLMAIL` for GraphQL subscriptions and queues a Discord webhook
-job.
+a Node process writes a killmail. One transaction writes everything:
+`killmails`, `victims`, `attackers`, `killmail_items`, the daily leaderboard
+aggregates and the `killmail_filters` row. Its first statement claims the
+`killmails` row (`ON CONFLICT DO NOTHING`). A killmail that already exists
+returns `false` and is not an error, because two sources can find the same
+killmail. A failure anywhere rolls the whole killmail back, so it is never left
+without its stats or filter row.
 
-A killmail that already exists returns `false` and is not an error. Two sources
-can find the same killmail.
+When a message's `announce` is true, the worker also publishes `NEW_KILLMAIL`
+for GraphQL subscriptions and queues a Discord webhook job after the commit.
+`queue-killmail-refs` always sends `false`: synced killmails are history, not
+news.
+
+The Rust worker
+([`worker-killmail-detail`](../../../backend-rs/workers/worker-killmail-detail/))
+does the same through
+[`killmail-writer`](../../../backend-rs/crates/killmail-writer/), with the same
+rows, values and transaction. It logs a failed announcement and still acks the
+message, since a retry would only find the killmail already stored.
 
 ## Errors and retries
 
@@ -179,16 +193,18 @@ The corporation sync is the same pipeline with different inputs:
 
 ## Files
 
-| Stage               | File                                                                                           |
-| ------------------- | ---------------------------------------------------------------------------------------------- |
-| Scheduling          | [`services/killmail-sync-cron.ts`](../../src/services/killmail-sync-cron.ts)                   |
-| Sync message        | [`services/killmail-sync-message.ts`](../../src/services/killmail-sync-message.ts)             |
-| Manual queue script | [`queues/queue-user-esi-killmails.ts`](../../src/queues/queue-user-esi-killmails.ts)           |
-| List worker         | [`workers/worker-esi-user-killmails.ts`](../../src/workers/worker-esi-user-killmails.ts)       |
-| Token refresh       | [`services/user-credentials.ts`](../../src/services/user-credentials.ts)                       |
-| Walk and refs       | [`services/killmail-walk.ts`](../../src/services/killmail-walk.ts)                             |
-| ESI list call       | [`services/character/character.service.ts`](../../src/services/character/character.service.ts) |
-| Hand-off to detail  | [`queues/queue-killmail-refs.ts`](../../src/queues/queue-killmail-refs.ts)                     |
-| Detail worker       | [`workers/worker-killmail-detail.ts`](../../src/workers/worker-killmail-detail.ts)             |
-| Writer              | [`services/killmail-writer.ts`](../../src/services/killmail-writer.ts)                         |
-| systemd units       | [`deploy/systemd/`](../../../deploy/systemd/), see [systemd.md](../ops/systemd.md)             |
+| Stage               | File                                                                                                |
+| ------------------- | --------------------------------------------------------------------------------------------------- |
+| Scheduling          | [`services/killmail-sync-cron.ts`](../../src/services/killmail-sync-cron.ts)                        |
+| Sync message        | [`services/killmail-sync-message.ts`](../../src/services/killmail-sync-message.ts)                  |
+| Manual queue script | [`queues/queue-user-esi-killmails.ts`](../../src/queues/queue-user-esi-killmails.ts)                |
+| List worker         | [`workers/worker-esi-user-killmails.ts`](../../src/workers/worker-esi-user-killmails.ts)            |
+| Token refresh       | [`services/user-credentials.ts`](../../src/services/user-credentials.ts)                            |
+| Walk and refs       | [`services/killmail-walk.ts`](../../src/services/killmail-walk.ts)                                  |
+| ESI list call       | [`services/character/character.service.ts`](../../src/services/character/character.service.ts)      |
+| Hand-off to detail  | [`queues/queue-killmail-refs.ts`](../../src/queues/queue-killmail-refs.ts)                          |
+| Detail worker       | [`workers/worker-killmail-detail.ts`](../../src/workers/worker-killmail-detail.ts)                  |
+| Writer              | [`services/killmail-writer.ts`](../../src/services/killmail-writer.ts)                              |
+| Rust detail worker  | [`backend-rs/workers/worker-killmail-detail/`](../../../backend-rs/workers/worker-killmail-detail/) |
+| Rust writer         | [`backend-rs/crates/killmail-writer/`](../../../backend-rs/crates/killmail-writer/)                 |
+| systemd units       | [`deploy/systemd/`](../../../deploy/systemd/), see [systemd.md](../ops/systemd.md)                  |

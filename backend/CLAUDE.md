@@ -55,9 +55,10 @@ Concurrency is `channel.prefetch(N)`. Three families of worker exist today:
   `backend-rs/crates/runner/src/prefetch.rs`. Each message is one ESI call and
   one short upsert, so the worker pool keeps up at that depth.
 - The rest set a fixed `PREFETCH_COUNT` constant (1–10) and rely on the
-  limiter for the real rate. `worker-killmail-detail` is fixed on purpose: its
-  writes are heavy, and at 100 they hit the 10 s connection timeout of the
-  2-connection pool workers had then.
+  limiter for the real rate. The Node `worker-killmail-detail` is fixed at 10:
+  its writes are heavy, and at 100 they hit the 10 s connection timeout of the
+  2-connection pool workers had then. The Rust one runs on the runner's rule
+  above; its pool is 10, and the messages past that wait for a connection.
 - `worker-regions` and `worker-constellations` use `prefetch(1)` with a manual
   100 ms sleep, which is 10 req/sec serial. Slower, but simple and safe for
   workers whose write path is a large transaction. They no longer read the
