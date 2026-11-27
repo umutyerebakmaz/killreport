@@ -25,7 +25,15 @@ export interface SaveKillmailOptions {
  * The one place a killmail is written to the database.
  *
  * `true` = newly written, `false` = already there. "Already there" is a
- * result, not an error; it replaces callers catching P2002 themselves.
+ * result, not an error: two sources can find the same killmail.
+ *
+ * Everything is written in one transaction, and its first statement claims
+ * the killmail row (`createMany` with `skipDuplicates` is
+ * `ON CONFLICT DO NOTHING`). A writer that finds the row taken writes
+ * nothing else; a failure anywhere, the filter row included, rolls the
+ * killmail back so that it is fetched again rather than left without the
+ * derived rows no later writer would add. The Rust writer
+ * (`backend-rs/crates/killmail-writer`) does the same.
  */
 export async function saveKillmail(
   detail: KillmailDetail,
@@ -42,12 +50,6 @@ export async function saveKillmail(
     );
   }
 
-  const existing = await prismaWorker.killmail.findUnique({
-    where: { killmail_id: detail.killmail_id },
-    select: { killmail_id: true },
-  });
-  if (existing) return false;
-
   const { victim, attackers, killmail_time, solar_system_id } = detail;
 
   try {
@@ -62,19 +64,23 @@ export async function saveKillmail(
         })) || [],
     });
 
-    await prismaWorker.$transaction(async (tx) => {
-      await tx.killmail.create({
-        data: {
-          killmail_id: detail.killmail_id,
-          killmail_hash: hash,
-          killmail_time: new Date(killmail_time),
-          solar_system_id,
-          total_value: values.totalValue,
-          destroyed_value: values.destroyedValue,
-          dropped_value: values.droppedValue,
-          attacker_count: attackers.length,
-        },
+    const written = await prismaWorker.$transaction(async (tx) => {
+      const claimed = await tx.killmail.createMany({
+        data: [
+          {
+            killmail_id: detail.killmail_id,
+            killmail_hash: hash,
+            killmail_time: new Date(killmail_time),
+            solar_system_id,
+            total_value: values.totalValue,
+            destroyed_value: values.destroyedValue,
+            dropped_value: values.droppedValue,
+            attacker_count: attackers.length,
+          },
+        ],
+        skipDuplicates: true,
       });
+      if (claimed.count === 0) return false;
 
       await tx.victim.create({
         data: {
@@ -133,9 +139,11 @@ export async function saveKillmail(
           })),
         });
       }
-    });
 
-    await insertKillmailFilter(toFilterInput(detail));
+      await insertKillmailFilter(toFilterInput(detail), tx);
+      return true;
+    });
+    if (!written) return false;
 
     if (options.publish ?? true) {
       await pubsub.publish('NEW_KILLMAIL', { killmailId: detail.killmail_id });
@@ -147,7 +155,6 @@ export async function saveKillmail(
 
     return true;
   } catch (error: unknown) {
-    if ((error as { code?: string })?.code === 'P2002') return false;
     logger.error(`❌ failed to write killmail ${detail.killmail_id}`, error);
     throw error;
   }

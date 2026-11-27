@@ -170,22 +170,18 @@ describe('updateDailyAggregatesRealtime', () => {
     expect($executeRaw).not.toHaveBeenCalled();
   });
 
-  it('logs and swallows a database error so the killmail transaction survives', async () => {
+  it('rethrows a database error so the transaction fails', async () => {
+    // A failed statement aborts a PostgreSQL transaction whatever the caller
+    // does next, so swallowing it only moved the failure to the commit.
     const { tx, $executeRaw } = makeTx();
-    const failure = new Error('deadlock detected');
-    $executeRaw.mockRejectedValue(failure);
+    $executeRaw.mockRejectedValue(new Error('deadlock detected'));
 
     await expect(
       updateDailyAggregatesRealtime(
         tx,
         killmail('2026-09-03T12:00:00Z', { character_ids: [1001] }),
       ),
-    ).resolves.toBeUndefined();
-
-    expect(loggerMock.error).toHaveBeenCalledWith(
-      expect.stringContaining('daily aggregates'),
-      failure,
-    );
+    ).rejects.toThrow('deadlock detected');
   });
 });
 

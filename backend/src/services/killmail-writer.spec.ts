@@ -21,7 +21,7 @@ const {
   loggerMock,
 } = vi.hoisted(() => {
   const txMock = {
-    killmail: { create: vi.fn() },
+    killmail: { createMany: vi.fn() },
     victim: { create: vi.fn() },
     attacker: { createMany: vi.fn() },
     killmailItem: { createMany: vi.fn() },
@@ -29,8 +29,7 @@ const {
   return {
     txMock,
     prismaMock: {
-      killmail: { findUnique: vi.fn() },
-      $transaction: vi.fn(async (fn: (tx: unknown) => Promise<void>) =>
+      $transaction: vi.fn(async (fn: (tx: unknown) => Promise<unknown>) =>
         fn(txMock),
       ),
     },
@@ -100,33 +99,24 @@ function detail(overrides: Partial<KillmailDetail> = {}): KillmailDetail {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  prismaMock.killmail.findUnique.mockResolvedValue(null);
+  txMock.killmail.createMany.mockResolvedValue({ count: 1 });
 });
 
 describe('already stored', () => {
-  it('returns false and writes nothing', async () => {
-    prismaMock.killmail.findUnique.mockResolvedValue({
-      killmail_id: 128431979,
-    });
+  it('returns false and writes nothing more when createMany skips the duplicate', async () => {
+    // The claim is the transaction's first statement: ON CONFLICT DO NOTHING
+    // decides between two writers, and the loser writes nothing else.
+    txMock.killmail.createMany.mockResolvedValue({ count: 0 });
 
     const saved = await saveKillmail(detail(), HASH);
 
     expect(saved).toBe(false);
-    expect(prismaMock.$transaction).not.toHaveBeenCalled();
-    expect(calculateKillmailValues).not.toHaveBeenCalled();
+    expect(txMock.victim.create).not.toHaveBeenCalled();
+    expect(txMock.attacker.createMany).not.toHaveBeenCalled();
+    expect(updateDailyAggregatesRealtime).not.toHaveBeenCalled();
     expect(insertKillmailFilter).not.toHaveBeenCalled();
     expect(publish).not.toHaveBeenCalled();
-  });
-});
-
-describe('the existence check', () => {
-  it('asks about the killmail row, which is the unique key that would throw', async () => {
-    await saveKillmail(detail(), HASH);
-
-    expect(prismaMock.killmail.findUnique).toHaveBeenCalledWith({
-      where: { killmail_id: 128431979 },
-      select: { killmail_id: true },
-    });
+    expect(publishToQueue).not.toHaveBeenCalled();
   });
 });
 
@@ -136,17 +126,20 @@ describe('writing a new killmail', () => {
 
     expect(saved).toBe(true);
     expect(prismaMock.$transaction).toHaveBeenCalledTimes(1);
-    expect(txMock.killmail.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({
-        killmail_id: 128431979,
-        killmail_hash: HASH,
-        killmail_time: new Date('2026-09-19T14:03:22Z'),
-        solar_system_id: 30002187,
-        total_value: 1000,
-        destroyed_value: 600,
-        dropped_value: 400,
-        attacker_count: 1,
-      }),
+    expect(txMock.killmail.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({
+          killmail_id: 128431979,
+          killmail_hash: HASH,
+          killmail_time: new Date('2026-09-19T14:03:22Z'),
+          solar_system_id: 30002187,
+          total_value: 1000,
+          destroyed_value: 600,
+          dropped_value: 400,
+          attacker_count: 1,
+        }),
+      ],
+      skipDuplicates: true,
     });
     expect(txMock.victim.create).toHaveBeenCalledWith({
       data: expect.objectContaining({
@@ -175,25 +168,17 @@ describe('writing a new killmail', () => {
     );
   });
 
-  it('writes the filter row after the transaction, awaited', async () => {
+  it('writes the filter row inside the transaction, with tx', async () => {
     await saveKillmail(detail(), HASH);
 
     expect(insertKillmailFilter).toHaveBeenCalledWith(
       expect.objectContaining({ killmail_id: 128431979n, attacker_count: 1 }),
+      txMock,
     );
   });
 });
 
-describe('a second writer that got there first', () => {
-  it('turns P2002 into false rather than throwing', async () => {
-    prismaMock.$transaction.mockRejectedValueOnce(
-      Object.assign(new Error('Unique constraint failed'), { code: 'P2002' }),
-    );
-
-    await expect(saveKillmail(detail(), HASH)).resolves.toBe(false);
-    expect(publish).not.toHaveBeenCalled();
-  });
-
+describe('a failing transaction', () => {
   it('rethrows anything else so the shared failure path can route it', async () => {
     prismaMock.$transaction.mockRejectedValueOnce(new Error('pool timeout'));
 
@@ -303,7 +288,7 @@ describe('the publish option', () => {
 
     expect(publish).not.toHaveBeenCalled();
     // The write path runs unchanged; only the announcement is silent.
-    expect(txMock.killmail.create).toHaveBeenCalled();
+    expect(txMock.killmail.createMany).toHaveBeenCalled();
     expect(insertKillmailFilter).toHaveBeenCalled();
   });
 });
@@ -324,10 +309,8 @@ describe('the discord webhook queue', () => {
     expect(publishToQueue).not.toHaveBeenCalled();
   });
 
-  it('does not publish to discord_webhook_queue for an already-stored killmail (P2002)', async () => {
-    prismaMock.$transaction.mockRejectedValueOnce(
-      Object.assign(new Error('Unique constraint failed'), { code: 'P2002' }),
-    );
+  it('does not publish to discord_webhook_queue for an already-stored killmail', async () => {
+    txMock.killmail.createMany.mockResolvedValue({ count: 0 });
 
     await expect(saveKillmail(detail(), HASH)).resolves.toBe(false);
     expect(publishToQueue).not.toHaveBeenCalled();
@@ -352,15 +335,19 @@ describe('the filter row and the announcement', () => {
     expect(order).toEqual(['filter', 'publish']);
   });
 
-  it('still reports the killmail as saved when the filter row is lost', async () => {
-    // insertKillmailFilter logs and swallows its own failures, so the writer
-    // cannot see one. Accepted outcome: the killmail is written, the filter
-    // row is missing, and repair:killmail-derived finds it later.
-    insertKillmailFilter.mockImplementationOnce(async () => {
-      /* the service swallowed an error in here */
-    });
+  it('rejects when the filter row fails, and announces nothing', async () => {
+    // The filter row is written in the transaction now: its failure rolls
+    // the killmail back, so it is fetched again rather than left without a
+    // filter row that no later writer would ever add.
+    insertKillmailFilter.mockRejectedValueOnce(
+      new Error('filter insert failed'),
+    );
 
-    await expect(saveKillmail(detail(), HASH)).resolves.toBe(true);
+    await expect(saveKillmail(detail(), HASH)).rejects.toThrow(
+      'filter insert failed',
+    );
+    expect(publish).not.toHaveBeenCalled();
+    expect(publishToQueue).not.toHaveBeenCalled();
   });
 });
 
