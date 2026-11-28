@@ -66,7 +66,7 @@ the containing file, and run `yarn docs:check-links` from the repository root.
 - [Cache Optimization Summary](redis-cache/cache-optimization-summary.md) — implementation summary
 - [PostgreSQL Query Cache Analysis](redis-cache/postgresql-query-cache-analysis.md) — query cache analysis
 - [Redis Memory Planning](redis-cache/redis-memory-planning.md) — memory planning
-- [RedisQ Stream](redis-cache/redisq-stream.md) — zKillboard RedisQ real-time stream
+- [R2Z2 Stream](redis-cache/redisq-stream.md) — zKillboard R2Z2 real-time stream (`worker:redisq`, Node and Rust)
 
 ## Operations
 

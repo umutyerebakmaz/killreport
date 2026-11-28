@@ -104,8 +104,13 @@ export async function checkWorkerProcess(
       // Search in process list for:
       // 1. PM2: app name matches (worker-prices)
       // 2. Yarn/Node: file path contains workers/worker-prices
+      // 3. Rust: the binary, backend-rs/target/<profile>/worker-redisq
       const { stdout } = await execAsync(
         `ps aux | grep node | grep -E "(workers/${workerFileName}|${workerFileName}\\.ts)" | grep -v grep`,
+      ).catch(() =>
+        execAsync(
+          `ps aux | grep -E "target/[^/ ]+/${workerFileName}( |$)" | grep -v grep`,
+        ),
       );
 
       if (stdout.trim()) {

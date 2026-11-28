@@ -1,353 +1,120 @@
-# zKillboard RedisQ Real-Time Stream
+# zKillboard R2Z2 real-time stream
 
-## Overview
+`worker:redisq` writes every new killmail the moment zKillboard publishes it.
+It feeds the live killmail list (`NEW_KILLMAIL`) and the Discord notifications.
 
-**Real-time killmail sync** using zKillboard's RedisQ service. This worker continuously polls RedisQ and automatically saves new killmails to the database as they happen in EVE Online.
+The old RedisQ service (`zkillredisq.stream/listen.php`) was shut down on
+2026-05-31. The worker reads its replacement, **R2Z2**
+(<https://github.com/zKillboard/zKillboard/wiki/API-(R2Z2)>). The name
+`redisq` is historical.
 
-### What is RedisQ?
+Two implementations exist, and they behave the same:
 
-RedisQ is zKillboard's public killmail streaming service. It provides a simple HTTP polling interface that delivers killmails in real-time without needing authentication.
+| Script                  | Code                                                                             |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| `yarn worker:redisq`    | [`worker-redisq-stream.ts`](../../src/workers/worker-redisq-stream.ts)           |
+| `yarn worker:redisq:rs` | [`backend-rs/workers/worker-redisq`](../../../backend-rs/workers/worker-redisq/) |
 
-- **Official Docs**: <https://github.com/zKillboard/RedisQ>
-- **Endpoint**: `https://zkillredisq.stream/listen.php`
-- **Method**: HTTP polling (not actual Redis Pub/Sub despite the name)
+Run only one at a time: both read and write the same `stream_cursors` row.
+Run either from `backend/`, so it reads `backend/.env`.
 
-## Features
+## How it works
 
-- 🔄 **Real-Time Sync**: Get killmails as they happen (usually within seconds)
-- 🌊 **Continuous Stream**: Polls RedisQ every 500ms for new killmails
-- 🚀 **No Auth Required**: Public service, no API keys needed
-- 💾 **Auto Deduplication**: Skips killmails already in database
-- ⚡ **Rate Limited**: Respects CloudFlare's 2 req/sec limit
-- 🛡️ **Error Recovery**: Auto-reconnects on failures
-- 📊 **Live Statistics**: Real-time stats on received/saved/skipped
+1. **Start.** The worker reads its position from `stream_cursors`
+   (`stream = 'r2z2'`, the next sequence to read). With no row, it reads
+   `https://r2z2.zkillboard.com/ephemeral/sequence.json` and starts at the
+   head.
+2. **Read.** It fetches `/ephemeral/{sequence}.json`:
+   - **200:** a killmail; it is processed (below), then the sequence advances
+     and is saved. The next read follows 100 ms later, about 10 requests a
+     second, under R2Z2's 15.
+   - **404:** the worker reads `sequence.json` again.
+     - Head not past us: nothing new yet. It waits 6 s and tries the same
+       number again.
+     - Head past us: the file is a gap, expired, or not readable yet. The
+       number is skipped after **3** such 404s in a row.
+     - **10** skips in a row mean the saved position has fallen out of what
+       R2Z2 keeps, and the worker jumps to the head.
+   - **403/429:** it waits 5 s and does not advance.
+   - **Network error or 5xx:** it does not advance. It waits 100 ms, and 5 s
+     on every fifth error in a row.
+   - **200 with no killmail ID or hash:** it is logged and skipped.
+3. **Process.**
+   - The payload carries the full ESI killmail. If that copy is malformed, the
+     worker fetches the killmail from `/killmails/{id}/{hash}/` instead.
+   - **Enrichment:** before the save, every character, corporation, alliance
+     and type the killmail names that the database lacks is fetched from ESI
+     and written. That way no killmail reaches the live list with an
+     "Unknown" name. An entity ESI will not give is queued to its
+     `esi_<entity>_info_queue`, and the killmail is saved anyway.
+     `REDISQ_ENABLE_ENRICHMENT=false` turns enrichment off.
+   - **Save:** the shared killmail writer writes the killmail, victim,
+     attackers, items, daily stats and filter row in one transaction.
+   - **Announce:** a new killmail is published on `NEW_KILLMAIL` and queued
+     to `discord_webhook_queue`. An already stored one is not.
+4. **Failures.** A killmail that cannot be written (ESI down, a save error)
+   goes to `killmail_refs` with `source = 'redisq'`. The detail pipeline
+   (`queue:killmail-refs` → `worker:killmail-detail`) retries it, without an
+   announcement. If even that row cannot be written, the sequence stays and
+   the killmail is read again.
 
-## Architecture
+So a restart, a crash or a database outage loses no killmail. The only
+exception is one R2Z2 itself no longer has.
 
-```mermaid
-flowchart TB
-    ZKB["<b>zKillboard RedisQ</b><br/><i>new killmail detected</i>"]
-    --> Poll["<b>RedisQ poller</b><br/><i>our worker · HTTP GET every 500 ms</i>"]
-    --> Package["<b>Package</b><br/>killID · ESI hash<br/>zkb metadata: value, labels"]
-    --> ESI["<b>ESI API</b><br/><i>rate limited · fetches the full killmail</i>"]
-    --> DB[("<b>PostgreSQL</b><br/><i>killmail + attackers</i>")]
-```
+### What is shared with other workers
 
-## How It Works
+| Part                                                              | Rust                                              | Node                               |
+| ----------------------------------------------------------------- | ------------------------------------------------- | ---------------------------------- |
+| Killmail write                                                    | `crates/killmail-writer` (also the detail worker) | `services/killmail-writer.ts`      |
+| Entity writes (the same functions as the `worker-info-*` workers) | `crates/entity-info`                              | its own upserts in the worker      |
+| Position and 404 rule                                             | `src/cursor.rs`, `src/stream.rs`                  | `services/redisq/stream-cursor.ts` |
 
-### 1. Polling Loop
+## ESI
 
-Worker continuously polls RedisQ endpoint:
+The worker is **live** traffic. Every ESI request asks the shared Redis
+budget with `live` priority, which keeps a reserve that bulk workers cannot
+take. It also gives up rather than wait out a brake longer than 10 s:
 
-```
-GET https://zkillredisq.stream/listen.php?queueID=killreport-stream&ttw=1
-```
+- Node: `setEsiPriority('live')`, `setEsiMaxWait(10_000)`
+- Rust: `EsiClient::live(10 s)`
 
-**Parameters:**
+A killmail whose ESI fetch gives up goes to `killmail_refs`. See
+[`backend/CLAUDE.md`](../../CLAUDE.md), "ESI rate limiting".
 
-- `queueID`: Unique identifier for our service (remembers position for 3 hours)
-- `ttw`: Time to wait (1-10 seconds) - how long to wait for next killmail
-
-### 2. Response Format (After Dec 1, 2025)
-
-RedisQ now returns **only metadata** (no full killmail):
-
-```json
-{
-  "package": {
-    "killID": 130678514,
-    "zkb": {
-      "locationID": 40030969,
-      "hash": "145c457c34ce9c9e8d67e942e764d8f439b22271",
-      "fittedValue": 3373417589.45,
-      "totalValue": 3375084389.45,
-      "points": 13,
-      "npc": false,
-      "solo": false,
-      "labels": ["tz:ru", "cat:6", "pvp"],
-      "href": "https://esi.evetech.net/v1/killmails/130678514/145c457c34ce9c9e8d67e942e764d8f439b22271/"
-    }
-  }
-}
-```
-
-If no killmail available:
-
-```json
-{
-  "package": null
-}
-```
-
-### 3. Fetch Full Killmail from ESI
-
-Using the `killID` and `hash`, we fetch complete data from ESI:
-
-```
-GET https://esi.evetech.net/latest/killmails/{killID}/{hash}/
-```
-
-This returns the full killmail with victim and attackers.
-
-### 4. Save to Database
-
-Worker saves:
-
-- **Killmail** record (victim, location, time)
-- **Attackers** records (all attackers with damage, final blow, etc.)
-
-Automatic deduplication via unique constraint on `killmailId`.
-
-## Usage
-
-### Start the Worker
+## Running
 
 ```bash
 cd backend
-yarn worker:redisq
+yarn worker:redisq       # Node
+yarn worker:redisq:rs    # Rust (cargo run --release)
 ```
 
-**Output:**
+On SIGINT or SIGTERM, the Rust worker finishes the killmail in hand, saves
+its position and exits.
 
-```
-🌊 RedisQ Stream Worker Started
-📡 Endpoint: https://zkillredisq.stream/listen.php
-🆔 Queue ID: killreport-stream
-⏱️  Poll Rate: 500ms (~2 req/sec)
-⏳ Timeout: 1 seconds
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎯 Listening for killmails...
+In production it runs under systemd as
+[`killreport-worker-redisq.service`](../../../deploy/systemd/killreport-worker-redisq.service);
+see [systemd.md](../ops/systemd.md).
 
-📥 Fetching: 130678514 (3.38B ISK)
-✅ Saved: 130678514 | Stats: 1 saved, 0 skipped, 0 errors (5s runtime)
-⏭️  Skipped: 130678515 (already exists)
-```
+`workerStatus` lists it among the standalone workers and finds it with `ps`,
+either the Node file or the Rust binary (`target/<profile>/worker-redisq`).
 
-### Stop the Worker
-
-Press `Ctrl+C` to gracefully shutdown:
-
-```
-🛑 Shutting down RedisQ stream worker...
-
-📊 Final Statistics:
-   Received: 142
-   Saved: 89
-   Skipped: 53
-   Errors: 0
-   Runtime: 3600 seconds
-```
-
-## Rate Limits & Performance
-
-### CloudFlare Limit (RedisQ)
-
-- **Rate**: 2 requests per second per IP
-- **Response**: HTTP 429 if exceeded
-- **Our Config**: 500ms delay = 2 req/sec (exactly at limit)
-
-### ESI Limit
-
-- **Rate**: no single published ceiling; ESI limits by route-group token buckets and an error limit, both reported in response headers
-- **Our Config**: every ESI call goes through `esiClient`, and the limiter paces it from those headers (up to `ESI_MAX_RPS`)
-- **Impact**: RedisQ is the bottleneck (2 req/sec), not ESI
-
-### Typical Performance
-
-- **Latency**: Killmails appear within 1-5 seconds of in-game event
-- **Throughput**: ~2 killmails per second max (RedisQ limit)
-- **Database**: ~1-2ms insert time per killmail
-- **ESI Fetch**: ~100-300ms per killmail
-
-## Error Handling
-
-### Automatic Retries
-
-1. **RedisQ 429 (Rate Limited)**: Back off for 5 seconds
-2. **Network Errors**: Retry up to 3 times with 5s delay
-3. **ESI Errors**: Skip killmail, log error, continue
-4. **Database Errors**: Log error, continue (deduplication handles retries)
-
-### Consecutive Errors
-
-If 5+ consecutive errors occur, worker backs off for 5 seconds to prevent spam.
-
-### Graceful Shutdown
-
-Worker responds to `SIGINT` (Ctrl+C):
-
-- Displays final statistics
-- Closes database connection
-- Exits cleanly
-
-## Comparison: RedisQ vs Character Sync
-
-| Feature           | RedisQ Stream      | Character Sync (`worker:zkillboard`) |
-| ----------------- | ------------------ | ------------------------------------ |
-| **Speed**         | Real-time (1-5s)   | Manual/scheduled                     |
-| **Coverage**      | All EVE killmails  | Specific characters only             |
-| **Auth Required** | No                 | Yes (for character API)              |
-| **Rate Limit**    | 2 req/sec (RedisQ) | 10s between pages (zKillboard)       |
-| **Historical**    | No (only new)      | Yes (can fetch all history)          |
-| **Use Case**      | Live dashboard     | Character analysis                   |
-
-### When to Use Each
-
-**Use RedisQ Stream:**
-
-- Live killmail feed
-- Dashboard with recent activity
-- Monitoring specific regions/alliances
-- Public killboard clone
-
-**Use Character Sync:**
-
-- Historical analysis of specific characters
-- Personal killmail history
-- Targeted data collection
-- Alliance/corp member tracking
-
-## Configuration
-
-Edit `backend/src/workers/worker-redisq-stream.ts`:
-
-```typescript
-const QUEUE_ID = 'killreport-stream'; // Unique ID (change if running multiple instances)
-const TIME_TO_WAIT = 1; // 1-10 seconds timeout
-const REQUEST_DELAY = 500; // 500ms = 2 req/sec (CloudFlare limit)
-const MAX_RETRIES = 3; // Number of retry attempts
-const RETRY_DELAY = 5000; // 5s delay between retries
-```
-
-### Multiple Instances
-
-You can run multiple workers with **different queue IDs**:
-
-```bash
-# Terminal 1: Default stream
-QUEUE_ID=killreport-stream-1 yarn worker:redisq
-
-# Terminal 2: Backup stream
-QUEUE_ID=killreport-stream-2 yarn worker:redisq
-```
-
-Each queue ID maintains its own position in the RedisQ stream.
-
-## Filtering (Optional)
-
-RedisQ supports filters to only receive specific killmails:
-
-```typescript
-// Example: Only high-value kills (1B+ ISK)
-const url = `${REDISQ_URL}?queueID=${QUEUE_ID}&ttw=${TIME_TO_WAIT}&filter=totalValue>=1000000000`;
-
-// Example: Specific alliance
-const url = `${REDISQ_URL}?queueID=${QUEUE_ID}&ttw=${TIME_TO_WAIT}&filter=alliance_id=434243723`;
-
-// Example: Multiple conditions (AND)
-const url = `${REDISQ_URL}?queueID=${QUEUE_ID}&ttw=${TIME_TO_WAIT}&filter=totalValue>=1000000000;pvp=true`;
-```
-
-See [RedisQ Filter Rules](https://github.com/zKillboard/RedisQ#redisq-filter-rules) for more options.
-
-## Production Deployment
-
-### Using systemd
-
-The unit is [`killreport-worker-redisq.service`](../../../deploy/systemd/killreport-worker-redisq.service). Install and enable it as described in [systemd.md](../ops/systemd.md).
-
-```bash
-sudo systemctl start killreport-worker-redisq
-journalctl -u killreport-worker-redisq -f
-systemd-cgtop
-```
-
-### Docker
-
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY backend/package.json backend/yarn.lock ./
-RUN yarn install --frozen-lockfile
-COPY backend/ ./
-CMD ["yarn", "worker:redisq"]
-```
-
-## Monitoring
-
-### GraphQL Query (if implemented)
-
-```graphql
-query {
-  workerStatus {
-    name
-    status
-    killmailsProcessed
-    uptime
-  }
-}
-```
-
-### Database Query
+## Checking on it
 
 ```sql
--- Recent killmails from stream
-SELECT
-  killmailId,
-  killmail_time,
-  victim_damage_taken,
-  (SELECT COUNT(*) FROM attackers WHERE killmail_id = killmails.id) as attacker_count
-FROM killmails
-WHERE created_at >= NOW() - INTERVAL '1 hour'
-ORDER BY created_at DESC
-LIMIT 50;
+-- Where the stream is
+SELECT sequence, updated_at FROM stream_cursors WHERE stream = 'r2z2';
+
+-- Killmails it could not write, still waiting for the detail pipeline
+SELECT r.killmail_id, r.discovered_at, r.queued_count
+FROM killmail_refs r
+LEFT JOIN killmails k ON k.killmail_id = r.killmail_id
+WHERE r.source = 'redisq' AND k.killmail_id IS NULL;
 ```
 
-### Logs
+## Related
 
-Worker logs include:
-
-- ✅ Saved killmails with ISK value
-- ⏭️ Skipped (duplicates)
-- ❌ Errors with stack traces
-- 📊 Periodic statistics
-
-## Troubleshooting
-
-### No Killmails Appearing
-
-1. **Check worker is running**: `ps aux | grep redisq`
-2. **Verify RedisQ is accessible**: `curl https://zkillredisq.stream/listen.php?queueID=test`
-3. **Check database connection**: Worker logs show connection errors
-4. **Verify ESI is responding**: Check `EsiThrottledError` errors from `esiClient`
-
-### Too Many Rate Limit Errors (429)
-
-- **Cause**: Polling too fast
-- **Fix**: Increase `REQUEST_DELAY` to 600ms or higher
-
-### Duplicate Killmails
-
-- **Cause**: Multiple workers with same `QUEUE_ID`
-- **Fix**: Use unique queue IDs or run single instance
-
-### High Memory Usage
-
-- **Cause**: ESI rate limiter queue growing
-- **Fix**: Worker processes ~2 killmails/sec max, memory should stabilize
-
-## Related Documentation
-
-- [Character Killmail Sync](../workers/character-sync.md) - Historical sync for specific characters
-- [Worker Status Monitoring](../workers/worker-status-monitoring.md) - Monitor all workers
-- [Enrichment System](../workers/enrichment.md) - Auto-populate character/corp/alliance data
-- [RedisQ Official Docs](https://github.com/zKillboard/RedisQ) - zKillboard documentation
-
-## Future Enhancements
-
-- [ ] WebSocket support (if zKillboard adds it)
-- [ ] Filter by region/constellation/system
-- [ ] Alert system for high-value kills
-- [ ] Statistics dashboard in GraphQL
-- [ ] Killmail notifications (Discord/Telegram)
-- [ ] Historical backfill mode (combine with character sync)
+- [Killmail refs](../workers/killmail-refs.md): the retry path for killmails
+  that could not be written
+- [Discord webhook](../workers/discord-webhook.md)
+- Design: [`2026-11-28-rust-redisq-design.md`](../../../docs/superpowers/specs/2026-11-28-rust-redisq-design.md)
