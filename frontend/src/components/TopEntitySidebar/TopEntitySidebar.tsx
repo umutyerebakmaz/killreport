@@ -57,6 +57,13 @@ interface TopEntitySidebarProps {
 
 const LAST_7_DAYS = 'Last 7 days';
 
+/**
+ * How often the cards refetch while the page is open. The API holds a live
+ * leaderboard for 300 s (backend/src/resolvers/leaderboard/period.ts), so
+ * polling faster would only read the same cached answer again.
+ */
+const POLL_INTERVAL = 300_000;
+
 export default function TopEntitySidebar({
   filter,
   cards,
@@ -73,36 +80,44 @@ export default function TopEntitySidebar({
 
   const { data: pilots, loading: pilotsLoading } = useTopPilotsQuery({
     variables: { filter: filterVars },
+    pollInterval: POLL_INTERVAL,
     skip: !has('characters'),
   });
   const { data: corporations, loading: corporationsLoading } =
     useTopCorporationsQuery({
       variables: { filter: filterVars },
+      pollInterval: POLL_INTERVAL,
       skip: !has('corporations'),
     });
   const { data: alliances, loading: alliancesLoading } = useTopAlliancesQuery({
     variables: { filter: filterVars },
+    pollInterval: POLL_INTERVAL,
     skip: !has('alliances'),
   });
   const { data: factions, loading: factionsLoading } = useTopFactionsQuery({
     variables: { filter: filterVars },
+    pollInterval: POLL_INTERVAL,
     skip: !has('factions'),
   });
   const { data: attackerShips, loading: attackerShipsLoading } =
     useTopAttackerShipsQuery({
       variables: { filter: filterVars },
+      pollInterval: POLL_INTERVAL,
       skip: !has('attackerShips'),
     });
   const { data: ships, loading: shipsLoading } = useTopDestroyedShipsQuery({
     variables: { filter: filterVars },
+    pollInterval: POLL_INTERVAL,
     skip: !has('ships'),
   });
   const { data: systems, loading: systemsLoading } = useTopSystemsQuery({
     variables: { filter: filterVars },
+    pollInterval: POLL_INTERVAL,
     skip: !has('systems'),
   });
   const { data: regions, loading: regionsLoading } = useTopRegionsQuery({
     variables: { filter: filterVars },
+    pollInterval: POLL_INTERVAL,
     skip: !has('regions'),
   });
 
