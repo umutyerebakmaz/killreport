@@ -102,6 +102,9 @@ jobs:
 
       - run: yarn workspace frontend typecheck
       - run: yarn workspace frontend test
+      # typecheck does not prerender pages or resolve route and server/client
+      # boundaries; only next build does.
+      - run: yarn workspace frontend build
 
   backend-rs:
     name: Backend (Rust)
