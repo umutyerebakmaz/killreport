@@ -278,7 +278,7 @@ async function moveTo(sequence: number): Promise<void> {
  * - 404 → wait, or skip a number the head has passed (stream-cursor.ts)
  * - 403/429 → back off, do not advance
  */
-async function step(): Promise<number> {
+export async function step(): Promise<number> {
   if (currentSequence === null) {
     await initSequence();
   }
@@ -355,12 +355,12 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
     let killmail: KillmailDetail;
     if (pkg.esi) {
       logger.info(
-        `📥 from payload: ${killID} (${formatISK(zkb.totalValue)} ISK)`,
+        `📥 from payload: ${killID} (${formatISK(zkb.totalValue ?? 0)} ISK)`,
       );
       killmail = pkg.esi;
     } else {
       logger.info(
-        `📥 fetching from ESI: ${killID} (${formatISK(zkb.totalValue)} ISK)`,
+        `📥 fetching from ESI: ${killID} (${formatISK(zkb.totalValue ?? 0)} ISK)`,
       );
       killmail = await KillmailService.getKillmailDetail(killID, zkb.hash);
     }
@@ -781,10 +781,11 @@ function setupShutdownHandlers() {
   process.on('SIGTERM', shutdown);
 }
 
-setupShutdownHandlers();
-
-// Start the worker
-redisQStreamWorker().catch((error) => {
-  logger.error('💥 worker crashed:', error);
-  process.exit(1);
-});
+// Start the worker when run as a script, not when a spec imports `step`.
+if (require.main === module) {
+  setupShutdownHandlers();
+  redisQStreamWorker().catch((error) => {
+    logger.error('💥 worker crashed:', error);
+    process.exit(1);
+  });
+}
