@@ -6,10 +6,10 @@
 //! Run from `backend/` so it reads the same `.env` as the Node worker:
 //! `yarn worker:info:alliances:rs`.
 
+use entity_info::alliance;
 use esi::EsiClient;
 use runner::{Context, Outcome, Processed, Worker};
 use sqlx::PgPool;
-use entity_info::alliance;
 
 struct AllianceWorker {
     pool: PgPool,

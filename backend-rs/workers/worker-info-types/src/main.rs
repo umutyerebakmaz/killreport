@@ -11,10 +11,10 @@
 //! Run from `backend/` so it reads the same `.env` as the Node worker:
 //! `yarn worker:info:types:rs`.
 
+use entity_info::type_info;
 use esi::EsiClient;
 use runner::{Context, Outcome, Processed, Worker};
 use sqlx::PgPool;
-use entity_info::type_info;
 
 struct TypeWorker {
     pool: PgPool,

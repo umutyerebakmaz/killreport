@@ -3,8 +3,8 @@
 //! fixture into it; the database `DATABASE_URL` names is never touched.
 
 use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
-use sqlx::PgPool;
 use entity_info::alliance::{upsert_alliance, AllianceInfo};
+use sqlx::PgPool;
 
 const ID: i32 = 99000001;
 

@@ -14,7 +14,8 @@
 //! acquire and observe goes to the per-process limiter, as before the shared
 //! limiter, and one acquire every `REDIS_RETRY_MS` tries Redis again.
 //!
-//! Rust workers never set a priority: every acquire asks as `Priority::Bulk`.
+//! Every acquire asks as `Priority::Bulk` unless its client was made with
+//! `EsiClient::live` (`worker-redisq`).
 
 use std::collections::hash_map::RandomState;
 use std::collections::{HashMap, VecDeque};
@@ -144,6 +145,9 @@ type Grant = Result<Permit, EsiThrottled>;
 struct Waiter {
     id: u64,
     route: EsiRoute,
+    /// What the store is asked as: live traffic keeps a floor of the shared
+    /// bucket that bulk work cannot take.
+    priority: Priority,
     tx: oneshot::Sender<Grant>,
     /// The caller's max wait, and the absolute time it runs out.
     max_wait_ms: Option<f64>,
@@ -309,6 +313,7 @@ impl SharedLimiter {
         self: &Arc<Self>,
         route: &EsiRoute,
         max_wait: Option<Duration>,
+        priority: Priority,
     ) -> Pin<Box<dyn Future<Output = Grant> + Send>> {
         let now = self.now();
         let mut state = self.lock();
@@ -328,6 +333,7 @@ impl SharedLimiter {
         state.queue.push_back(Waiter {
             id,
             route: route.clone(),
+            priority,
             tx,
             max_wait_ms,
             deadline: max_wait_ms.map(|ms| now + ms),
@@ -356,7 +362,7 @@ impl SharedLimiter {
     /// empty.
     async fn process_queue(self: Arc<Self>) {
         loop {
-            let (id, template, bucket_key) = {
+            let (id, priority, template, bucket_key) = {
                 let mut state = self.lock();
                 let Some(head) = state.queue.front() else {
                     state.processing = false;
@@ -365,11 +371,12 @@ impl SharedLimiter {
                 if self.in_flight.load(Ordering::SeqCst) < self.max_concurrent {
                     (
                         Some(head.id),
+                        head.priority,
                         route_template(&head.route.path),
                         head.route.bucket_key.clone().unwrap_or_default(),
                     )
                 } else {
-                    (None, String::new(), String::new())
+                    (None, Priority::Bulk, String::new(), String::new())
                 }
             };
             let Some(id) = id else {
@@ -377,8 +384,7 @@ impl SharedLimiter {
                 continue;
             };
 
-            let reply =
-                with_timeout(self.store.acquire(Priority::Bulk, &template, &bucket_key)).await;
+            let reply = with_timeout(self.store.acquire(priority, &template, &bucket_key)).await;
 
             let sleep_for = {
                 let mut state = self.lock();

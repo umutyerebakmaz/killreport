@@ -1,8 +1,8 @@
 //! The shape of ESI's answer.
 
 use chrono::{Duration, TimeZone, Utc};
-use serde_json::json;
 use entity_info::character::CharacterInfo;
+use serde_json::json;
 
 fn esi(extra: &str) -> String {
     format!(

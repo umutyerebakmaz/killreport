@@ -3,9 +3,9 @@
 //! fixture into it; the database `DATABASE_URL` names is never touched.
 
 use chrono::{Duration, NaiveDateTime, TimeZone, Utc};
+use entity_info::character::{upsert_character, CharacterInfo};
 use serde_json::json;
 use sqlx::PgPool;
-use entity_info::character::{upsert_character, CharacterInfo};
 
 const ID: i32 = 2120000001;
 const UUID: &str = "00851de7-b7ca-5136-871e-d07429563c06";

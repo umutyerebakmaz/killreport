@@ -6,8 +6,8 @@
 use std::sync::{Arc, Mutex};
 
 use chrono::{TimeZone, Utc};
-use serde_json::{json, Value};
 use entity_info::character::{title_fields, CharacterInfo};
+use serde_json::{json, Value};
 
 thread_local! {
     /// The lines of the `capture_warnings` call active on this thread, if any.

@@ -56,6 +56,7 @@ use tokio::task::AbortHandle;
 use tokio::time::Instant;
 
 use crate::route::{parse_limit, route_template, seconds};
+use crate::shared::Priority;
 use crate::shared::SharedStore;
 use crate::shared_limiter::{LimiterStore, SharedLimiter};
 use crate::throttled::{EsiThrottled, ThrottleKind};
@@ -291,7 +292,8 @@ impl RateLimiter {
     }
 
     /// Put the shared Redis budget in front of this limiter, which becomes the
-    /// fallback. Every acquire asks as `Priority::Bulk`.
+    /// fallback. Every acquire asks as `Priority::Bulk` unless it says
+    /// otherwise ([`acquire_with`](Self::acquire_with)).
     pub fn with_shared(self, store: SharedStore) -> Self {
         let url = store.redis_url().to_owned();
         self.with_store_at(Arc::new(store), Some(url))
@@ -342,9 +344,20 @@ impl RateLimiter {
         route: &EsiRoute,
         max_wait: Option<Duration>,
     ) -> impl Future<Output = Result<Permit, EsiThrottled>> + Send + 'static {
+        self.acquire_with(route, max_wait, Priority::Bulk)
+    }
+
+    /// [`acquire`](Self::acquire) asking the shared store as `priority`. The
+    /// per-process limiter has no priorities: in local mode it is ignored.
+    pub fn acquire_with(
+        &self,
+        route: &EsiRoute,
+        max_wait: Option<Duration>,
+        priority: Priority,
+    ) -> impl Future<Output = Result<Permit, EsiThrottled>> + Send + 'static {
         let acquire: Pin<Box<dyn Future<Output = Result<Permit, EsiThrottled>> + Send>> =
             match &self.shared {
-                Some(shared) => shared.acquire(route, max_wait),
+                Some(shared) => shared.acquire(route, max_wait, priority),
                 None => Box::pin(self.acquire_local(route, max_wait)),
             };
         acquire
