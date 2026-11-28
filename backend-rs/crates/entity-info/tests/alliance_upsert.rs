@@ -4,7 +4,7 @@
 
 use chrono::{DateTime, NaiveDateTime, TimeZone, Utc};
 use sqlx::PgPool;
-use worker_info_alliances::alliance::{upsert_alliance, AllianceInfo};
+use entity_info::alliance::{upsert_alliance, AllianceInfo};
 
 const ID: i32 = 99000001;
 

@@ -69,3 +69,18 @@ pub async fn upsert_alliance(
     .await?;
     Ok(inserted)
 }
+
+/// Read it from ESI (`/alliances/{id}`, the info worker's route) and store it.
+pub async fn fetch_and_upsert(
+    pool: &PgPool,
+    esi: &esi::EsiClient,
+    id: i32,
+) -> anyhow::Result<crate::Fetched> {
+    let info: AllianceInfo = esi.get(&format!("/alliances/{id}")).await?;
+    let inserted = upsert_alliance(pool, id, &info).await?;
+    Ok(crate::Fetched {
+        inserted,
+        name: info.name,
+        ticker: Some(info.ticker),
+    })
+}

@@ -5,7 +5,7 @@
 use chrono::{Duration, NaiveDateTime, TimeZone, Utc};
 use serde_json::json;
 use sqlx::PgPool;
-use worker_info_characters::character::{upsert_character, CharacterInfo};
+use entity_info::character::{upsert_character, CharacterInfo};
 
 const ID: i32 = 2120000001;
 const UUID: &str = "00851de7-b7ca-5136-871e-d07429563c06";

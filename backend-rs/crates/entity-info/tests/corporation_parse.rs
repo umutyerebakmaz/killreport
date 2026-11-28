@@ -1,7 +1,7 @@
 //! The shape of ESI's answer.
 
 use chrono::{TimeZone, Utc};
-use worker_info_corporations::corporation::CorporationInfo;
+use entity_info::corporation::CorporationInfo;
 
 fn esi(extra: &str) -> String {
     format!(

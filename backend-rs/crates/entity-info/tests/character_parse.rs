@@ -2,7 +2,7 @@
 
 use chrono::{Duration, TimeZone, Utc};
 use serde_json::json;
-use worker_info_characters::character::CharacterInfo;
+use entity_info::character::CharacterInfo;
 
 fn esi(extra: &str) -> String {
     format!(

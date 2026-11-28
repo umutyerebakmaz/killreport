@@ -4,7 +4,7 @@
 
 use chrono::NaiveDateTime;
 use sqlx::PgPool;
-use worker_info_types::type_info::{upsert_type, TypeInfo};
+use entity_info::type_info::{upsert_type, TypeInfo};
 
 const ID: i32 = 587;
 

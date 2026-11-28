@@ -14,7 +14,7 @@
 use esi::EsiClient;
 use runner::{Context, Outcome, Processed, Worker};
 use sqlx::PgPool;
-use worker_info_types::type_info::{upsert_type, TypeInfo};
+use entity_info::type_info;
 
 struct TypeWorker {
     pool: PgPool,
@@ -29,16 +29,14 @@ impl Worker for TypeWorker {
     const ENTITY: &'static str = "type";
 
     async fn handle(&self, id: i32, _ctx: &Context<'_>) -> anyhow::Result<Processed> {
-        // The trailing slash matches the Node service (`type.service.ts:57`).
-        let info: TypeInfo = self.esi.get(&format!("/universe/types/{id}/")).await?;
-        let inserted = upsert_type(&self.pool, id, &info).await?;
+        let fetched = type_info::fetch_and_upsert(&self.pool, &self.esi, id).await?;
         Ok(Processed {
-            outcome: if inserted {
+            outcome: if fetched.inserted {
                 Outcome::Created
             } else {
                 Outcome::Updated
             },
-            detail: format!(" {}", info.name),
+            detail: format!(" {}", fetched.name),
         })
     }
 }

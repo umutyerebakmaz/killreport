@@ -99,3 +99,18 @@ pub async fn upsert_corporation(
     .await?;
     Ok(inserted)
 }
+
+/// Read it from ESI (`/corporations/{id}/`, the info worker's route) and store it.
+pub async fn fetch_and_upsert(
+    pool: &PgPool,
+    esi: &esi::EsiClient,
+    id: i32,
+) -> anyhow::Result<crate::Fetched> {
+    let info: CorporationInfo = esi.get(&format!("/corporations/{id}/")).await?;
+    let inserted = upsert_corporation(pool, id, &info).await?;
+    Ok(crate::Fetched {
+        inserted,
+        name: info.name,
+        ticker: Some(info.ticker),
+    })
+}

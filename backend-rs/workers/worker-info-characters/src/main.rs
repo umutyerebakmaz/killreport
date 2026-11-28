@@ -12,9 +12,7 @@
 use esi::EsiClient;
 use runner::{Context, Outcome, Processed, Worker};
 use sqlx::PgPool;
-use worker_info_characters::character::{
-    upsert_character, CharacterInfo, CHARACTER_COMPATIBILITY_DATE,
-};
+use entity_info::character;
 
 struct CharacterWorker {
     pool: PgPool,
@@ -30,23 +28,15 @@ impl Worker for CharacterWorker {
 
     async fn handle(&self, id: i32, _ctx: &Context<'_>) -> anyhow::Result<Processed> {
         // Always take the latest info from ESI, at the date that carries the
-        // achievement fields. The trailing slash matches the Node service
-        // (`character.service.ts:53-56`).
-        let info: CharacterInfo = self
-            .esi
-            .get_with_compatibility_date(
-                &format!("/characters/{id}/"),
-                CHARACTER_COMPATIBILITY_DATE,
-            )
-            .await?;
-        let inserted = upsert_character(&self.pool, id, &info).await?;
+        // achievement fields (`entity_info::character::fetch_and_upsert`).
+        let fetched = character::fetch_and_upsert(&self.pool, &self.esi, id).await?;
         Ok(Processed {
-            outcome: if inserted {
+            outcome: if fetched.inserted {
                 Outcome::Created
             } else {
                 Outcome::Updated
             },
-            detail: format!(" {}", info.name),
+            detail: format!(" {}", fetched.name),
         })
     }
 }

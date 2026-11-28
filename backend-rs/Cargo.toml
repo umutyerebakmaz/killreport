@@ -39,3 +39,4 @@ sov = { path = "crates/sov" }
 pubsub = { path = "crates/pubsub" }
 sso = { path = "crates/sso" }
 killmail-refs = { path = "crates/killmail-refs" }
+entity-info = { path = "crates/entity-info" }

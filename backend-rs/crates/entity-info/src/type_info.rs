@@ -77,3 +77,18 @@ pub async fn upsert_type(pool: &PgPool, id: i32, info: &TypeInfo) -> Result<bool
     .await?;
     Ok(inserted)
 }
+
+/// Read it from ESI (`/universe/types/{id}/`, the info worker's route) and store it.
+pub async fn fetch_and_upsert(
+    pool: &PgPool,
+    esi: &esi::EsiClient,
+    id: i32,
+) -> anyhow::Result<crate::Fetched> {
+    let info: TypeInfo = esi.get(&format!("/universe/types/{id}/")).await?;
+    let inserted = upsert_type(pool, id, &info).await?;
+    Ok(crate::Fetched {
+        inserted,
+        name: info.name,
+        ticker: None,
+    })
+}

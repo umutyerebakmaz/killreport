@@ -4,7 +4,7 @@
 
 use chrono::{NaiveDateTime, TimeZone, Utc};
 use sqlx::PgPool;
-use worker_info_corporations::corporation::{upsert_corporation, CorporationInfo};
+use entity_info::corporation::{upsert_corporation, CorporationInfo};
 
 const ID: i32 = 98000001;
 

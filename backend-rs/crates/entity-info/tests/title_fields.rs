@@ -2,7 +2,7 @@
 
 use chrono::{TimeZone, Utc};
 use serde_json::{json, Value};
-use worker_info_characters::character::{title_fields, CharacterInfo, TitleFields};
+use entity_info::character::{title_fields, CharacterInfo, TitleFields};
 
 const UUID: &str = "00851de7-b7ca-5136-871e-d07429563c06";
 

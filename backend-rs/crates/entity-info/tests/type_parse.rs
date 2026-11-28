@@ -1,7 +1,7 @@
 //! Decoding `GET /universe/types/{id}/`.
 
 use serde_json::json;
-use worker_info_types::type_info::TypeInfo;
+use entity_info::type_info::TypeInfo;
 
 #[test]
 fn parses_a_real_esi_answer() {

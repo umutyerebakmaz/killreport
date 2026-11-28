@@ -187,3 +187,22 @@ fn is_uuid(s: &str) -> bool {
             _ => b.is_ascii_hexdigit(),
         })
 }
+
+/// Read the character from ESI at the date that carries the achievement
+/// fields, and store it. The trailing slash matches the Node service
+/// (`character.service.ts:53-56`).
+pub async fn fetch_and_upsert(
+    pool: &PgPool,
+    esi: &esi::EsiClient,
+    id: i32,
+) -> anyhow::Result<crate::Fetched> {
+    let info: CharacterInfo = esi
+        .get_with_compatibility_date(&format!("/characters/{id}/"), CHARACTER_COMPATIBILITY_DATE)
+        .await?;
+    let inserted = upsert_character(pool, id, &info).await?;
+    Ok(crate::Fetched {
+        inserted,
+        name: info.name,
+        ticker: None,
+    })
+}

@@ -573,6 +573,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "entity-info"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "esi",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "wiremock",
+]
+
+[[package]]
 name = "equivalent"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3551,11 +3567,9 @@ name = "worker-info-alliances"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "chrono",
+ "entity-info",
  "esi",
  "runner",
- "serde",
- "serde_json",
  "sqlx",
  "tokio",
 ]
@@ -3565,15 +3579,11 @@ name = "worker-info-characters"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "chrono",
+ "entity-info",
  "esi",
  "runner",
- "serde",
- "serde_json",
  "sqlx",
  "tokio",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -3581,11 +3591,9 @@ name = "worker-info-corporations"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "chrono",
+ "entity-info",
  "esi",
  "runner",
- "serde",
- "serde_json",
  "sqlx",
  "tokio",
 ]
@@ -3595,11 +3603,9 @@ name = "worker-info-types"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "chrono",
+ "entity-info",
  "esi",
  "runner",
- "serde",
- "serde_json",
  "sqlx",
  "tokio",
 ]
@@ -3640,6 +3646,10 @@ dependencies = [
  "tokio",
  "wiremock",
 ]
+
+[[package]]
+name = "worker-redisq"
+version = "0.1.0"
 
 [[package]]
 name = "worker-sovereignty-campaigns"
