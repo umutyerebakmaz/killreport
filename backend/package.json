@@ -125,6 +125,7 @@
     "repair:killmail-derived": "tsx src/workers/repair-killmail-derived.ts",
     "worker:zkillboard": "tsx src/workers/worker-zkillboard-sync.ts",
     "worker:redisq": "tsx src/workers/worker-redisq-stream.ts",
+    "worker:redisq:rs": "cargo run --release --manifest-path ../backend-rs/Cargo.toml -p worker-redisq",
     "worker:races": "tsx src/workers/worker-races.ts",
     "worker:bloodlines": "tsx src/workers/worker-bloodlines.ts",
     "worker:factions": "tsx src/workers/worker-factions.ts",

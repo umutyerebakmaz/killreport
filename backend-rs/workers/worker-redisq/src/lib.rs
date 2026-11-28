@@ -8,4 +8,6 @@ pub mod enrich;
 pub mod outbox;
 pub mod process;
 pub mod r2z2;
+pub mod rabbit;
+pub mod run;
 pub mod stream;

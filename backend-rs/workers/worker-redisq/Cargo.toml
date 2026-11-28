@@ -6,14 +6,19 @@ publish.workspace = true
 
 [dependencies]
 anyhow.workspace = true
+db.workspace = true
+dotenvy.workspace = true
 chrono.workspace = true
 entity-info.workspace = true
 esi.workspace = true
 futures-util.workspace = true
 killmail-refs.workspace = true
 killmail-writer.workspace = true
+lapin.workspace = true
+mq.workspace = true
 pubsub.workspace = true
 reqwest.workspace = true
+runner.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 sqlx.workspace = true
