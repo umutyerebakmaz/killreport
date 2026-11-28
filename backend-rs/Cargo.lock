@@ -3650,6 +3650,18 @@ dependencies = [
 [[package]]
 name = "worker-redisq"
 version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "killmail-writer",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "tokio",
+ "tracing",
+ "wiremock",
+]
 
 [[package]]
 name = "worker-sovereignty-campaigns"
