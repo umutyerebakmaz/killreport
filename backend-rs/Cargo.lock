@@ -3653,7 +3653,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "entity-info",
+ "esi",
+ "futures-util",
+ "killmail-refs",
  "killmail-writer",
+ "pubsub",
  "reqwest",
  "serde",
  "serde_json",

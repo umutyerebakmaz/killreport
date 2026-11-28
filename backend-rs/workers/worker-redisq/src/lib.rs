@@ -4,5 +4,8 @@
 //! `docs/superpowers/specs/2026-11-28-rust-redisq-design.md`.
 
 pub mod cursor;
+pub mod enrich;
+pub mod outbox;
+pub mod process;
 pub mod r2z2;
 pub mod stream;

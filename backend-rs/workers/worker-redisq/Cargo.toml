@@ -7,7 +7,12 @@ publish.workspace = true
 [dependencies]
 anyhow.workspace = true
 chrono.workspace = true
+entity-info.workspace = true
+esi.workspace = true
+futures-util.workspace = true
+killmail-refs.workspace = true
 killmail-writer.workspace = true
+pubsub.workspace = true
 reqwest.workspace = true
 serde.workspace = true
 serde_json.workspace = true
