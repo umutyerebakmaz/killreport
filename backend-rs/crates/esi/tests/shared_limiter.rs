@@ -856,3 +856,61 @@ mod wiring {
         }
     }
 }
+
+/// `EsiClient::live`: the one client that asks as live traffic, and gives up
+/// rather than wait past its maximum (`worker-redisq`).
+mod live_client {
+    use super::*;
+    use wiremock::matchers::{method, path};
+    use wiremock::{Mock, MockServer, ResponseTemplate};
+
+    async fn status_server(expected: u64) -> MockServer {
+        let server = MockServer::start().await;
+        Mock::given(method("GET"))
+            .and(path("/status/"))
+            .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({})))
+            .expect(expected)
+            .mount(&server)
+            .await;
+        server
+    }
+
+    #[tokio::test]
+    async fn a_live_client_asks_the_store_as_live() {
+        let server = status_server(1).await;
+        let store = Arc::new(FakeStore::new(granted()));
+        let client = EsiClient::with_base_url(limiter_with(&store), server.uri())
+            .live(Duration::from_secs(10));
+
+        let _: serde_json::Value = client.get("/status/").await.unwrap();
+        assert_eq!(store.last_acquire().0, Priority::Live);
+    }
+
+    #[tokio::test]
+    async fn the_default_client_still_asks_as_bulk() {
+        let server = status_server(1).await;
+        let store = Arc::new(FakeStore::new(granted()));
+        let client = EsiClient::with_base_url(limiter_with(&store), server.uri());
+
+        let _: serde_json::Value = client.get("/status/").await.unwrap();
+        assert_eq!(store.last_acquire().0, Priority::Bulk);
+    }
+
+    #[tokio::test]
+    async fn a_live_client_gives_up_past_its_max_wait() {
+        let server = status_server(0).await;
+        let store = Arc::new(FakeStore::new(replies(vec![wait(
+            WaitReason::Brake,
+            30_000.0,
+            "420:error-limit",
+        )])));
+        let client = EsiClient::with_base_url(limiter_with(&store), server.uri())
+            .live(Duration::from_secs(10));
+
+        let error = client
+            .get::<serde_json::Value>("/status/")
+            .await
+            .unwrap_err();
+        assert!(matches!(error, esi::EsiError::Throttled(_)), "{error:?}");
+    }
+}

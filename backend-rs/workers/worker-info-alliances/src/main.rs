@@ -6,10 +6,10 @@
 //! Run from `backend/` so it reads the same `.env` as the Node worker:
 //! `yarn worker:info:alliances:rs`.
 
+use entity_info::alliance;
 use esi::EsiClient;
 use runner::{Context, Outcome, Processed, Worker};
 use sqlx::PgPool;
-use worker_info_alliances::alliance::{upsert_alliance, AllianceInfo};
 
 struct AllianceWorker {
     pool: PgPool,
@@ -25,15 +25,18 @@ impl Worker for AllianceWorker {
 
     async fn handle(&self, id: i32, _ctx: &Context<'_>) -> anyhow::Result<Processed> {
         // Always take the latest info from ESI.
-        let info: AllianceInfo = self.esi.get(&format!("/alliances/{id}")).await?;
-        let inserted = upsert_alliance(&self.pool, id, &info).await?;
+        let fetched = alliance::fetch_and_upsert(&self.pool, &self.esi, id).await?;
         Ok(Processed {
-            outcome: if inserted {
+            outcome: if fetched.inserted {
                 Outcome::Created
             } else {
                 Outcome::Updated
             },
-            detail: format!(" {} [{}] ID:{id}", info.name, info.ticker),
+            detail: format!(
+                " {} [{}] ID:{id}",
+                fetched.name,
+                fetched.ticker.unwrap_or_default()
+            ),
         })
     }
 }

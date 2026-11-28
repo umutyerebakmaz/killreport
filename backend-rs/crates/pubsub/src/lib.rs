@@ -6,17 +6,24 @@
 //! here is therefore indistinguishable from one a Node worker publishes, as
 //! long as its JSON keeps the field names and order of the TypeScript type.
 
-use redis::aio::MultiplexedConnection;
+use std::time::Duration;
+
+use redis::aio::{ConnectionManager, ConnectionManagerConfig};
 use serde::Serialize;
 use tokio::sync::OnceCell;
 use tracing::info;
 
+/// How long a connect or a reply may take before the publish fails.
+const TIMEOUT: Duration = Duration::from_secs(5);
+
 /// Publishes to Redis, or does nothing when the API is not listening on
 /// Redis. The connection opens on the first publish, so a run with nothing
-/// to say never touches Redis.
+/// to say never touches Redis. It is a [`ConnectionManager`]: a connection
+/// that dies (a Redis restart, an idle timeout) is opened again, so a
+/// long-running stream keeps publishing.
 pub struct RedisPubSub {
     redis_url: Option<String>,
-    connection: OnceCell<MultiplexedConnection>,
+    connection: OnceCell<ConnectionManager>,
 }
 
 impl RedisPubSub {
@@ -56,9 +63,14 @@ impl RedisPubSub {
         let connection = self
             .connection
             .get_or_try_init(|| async {
-                redis::Client::open(url.as_str())?
-                    .get_multiplexed_async_connection()
-                    .await
+                ConnectionManager::new_with_config(
+                    redis::Client::open(url.as_str())?,
+                    ConnectionManagerConfig::new()
+                        .set_connection_timeout(Some(TIMEOUT))
+                        .set_response_timeout(Some(TIMEOUT))
+                        .set_number_of_retries(1),
+                )
+                .await
             })
             .await?;
         let mut connection = connection.clone();

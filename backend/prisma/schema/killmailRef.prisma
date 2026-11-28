@@ -4,7 +4,7 @@
 model KillmailRef {
   killmail_id    Int       @id
   killmail_hash  String
-  source         String // 'character' or 'corporation'
+  source         String // 'character', 'corporation' or 'redisq'
   discovered_at  DateTime
   queued_count   Int       @default(0)
   last_queued_at DateTime?

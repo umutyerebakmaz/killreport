@@ -37,13 +37,15 @@ spends one common budget. `ESI_MAX_RPS` (default 50) is the upper bound of that
 **application-wide** rate. If Redis cannot be reached, each process drops to its
 own local limiter (`rate-limiter.ts`, logged as `Redis unreachable`) and the
 ceiling is per process again until Redis returns. Requests carry a class: the
-API server and `worker-redisq-stream` call `setEsiPriority('live')` and keep a
+API server and `worker-redisq-stream` call `setEsiPriority('live')` (the Rust
+`worker-redisq` uses `EsiClient::live`; every other Rust client is bulk) and keep a
 reserve of the budget; every other process is `bulk`. Two checkouts share a
 budget only if they share a `REDIS_URL` database; different logical databases
 mean separate budgets.
 
 `ESI_PREFETCH` is a separate, per-worker knob: how many messages a worker holds
-unacked. The API server and `worker-redisq-stream` call `setEsiMaxWait(10_000)`,
+unacked. The API server and `worker-redisq-stream` call `setEsiMaxWait(10_000)`
+(the Rust `worker-redisq`: `EsiClient::live(10 s)`),
 so a brake longer than 10 s fails the request with `EsiThrottledError` instead
 of hanging; workers wait the brake out.
 

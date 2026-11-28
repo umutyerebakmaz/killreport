@@ -6,10 +6,10 @@
 //! Run from `backend/` so it reads the same `.env` as the Node worker:
 //! `yarn worker:info:corporations:rs`.
 
+use entity_info::corporation;
 use esi::EsiClient;
 use runner::{Context, Outcome, Processed, Worker};
 use sqlx::PgPool;
-use worker_info_corporations::corporation::{upsert_corporation, CorporationInfo};
 
 struct CorporationWorker {
     pool: PgPool,
@@ -24,17 +24,19 @@ impl Worker for CorporationWorker {
     const ENTITY: &'static str = "corporation";
 
     async fn handle(&self, id: i32, _ctx: &Context<'_>) -> anyhow::Result<Processed> {
-        // Always take the latest info from ESI. The trailing slash matches
-        // the Node service (`corporation.service.ts:20-22`).
-        let info: CorporationInfo = self.esi.get(&format!("/corporations/{id}/")).await?;
-        let inserted = upsert_corporation(&self.pool, id, &info).await?;
+        // Always take the latest info from ESI.
+        let fetched = corporation::fetch_and_upsert(&self.pool, &self.esi, id).await?;
         Ok(Processed {
-            outcome: if inserted {
+            outcome: if fetched.inserted {
                 Outcome::Created
             } else {
                 Outcome::Updated
             },
-            detail: format!("[{id}] {} [{}]", info.name, info.ticker),
+            detail: format!(
+                "[{id}] {} [{}]",
+                fetched.name,
+                fetched.ticker.unwrap_or_default()
+            ),
         })
     }
 }

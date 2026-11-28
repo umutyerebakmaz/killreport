@@ -13,6 +13,7 @@ use serde::de::DeserializeOwned;
 
 use crate::compatibility::CompatibilityDate;
 use crate::limiter::{EsiRoute, RateLimiter};
+use crate::shared::Priority;
 use crate::throttled::{EsiThrottled, ThrottleKind};
 
 const ESI_BASE_URL: &str = "https://esi.evetech.net";
@@ -74,6 +75,10 @@ pub struct EsiClient {
     http: reqwest::Client,
     base_url: String,
     limiter: RateLimiter,
+    /// How every request asks the limiter: bulk with no maximum wait unless
+    /// made [`live`](Self::live).
+    priority: Priority,
+    max_wait: Option<Duration>,
 }
 
 impl EsiClient {
@@ -100,7 +105,20 @@ impl EsiClient {
             http,
             base_url: base_url.into().trim_end_matches('/').to_owned(),
             limiter,
+            priority: Priority::Bulk,
+            max_wait: None,
         }
+    }
+
+    /// This client as live traffic, the way Node's `setEsiPriority('live')`
+    /// and `setEsiMaxWait` set a process up: every request asks the shared
+    /// budget as `Priority::Live`, and a brake or group wait longer than
+    /// `max_wait` fails it with [`EsiError::Throttled`] instead of waiting.
+    /// For a stream that must not stall behind bulk work (`worker-redisq`).
+    pub fn live(mut self, max_wait: Duration) -> Self {
+        self.priority = Priority::Live;
+        self.max_wait = Some(max_wait);
+        self
     }
 
     /// The limiter this client draws on.
@@ -203,7 +221,10 @@ impl EsiClient {
         };
         // Held until the body has been read; dropping it gives the slot back
         // on every path out of this function.
-        let _permit = self.limiter.acquire(&route, None).await?;
+        let _permit = self
+            .limiter
+            .acquire_with(&route, self.max_wait, self.priority)
+            .await?;
 
         let mut request = self.http.get(format!("{}{path}", self.base_url)).header(
             "x-compatibility-date",

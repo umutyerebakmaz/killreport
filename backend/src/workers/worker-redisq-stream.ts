@@ -9,13 +9,18 @@
  * official replacement. See https://github.com/zKillboard/zKillboard/wiki/API-(R2Z2)
  *
  * How it works:
- * 1. Fetch the current sequence from /ephemeral/sequence.json (starting point)
+ * 1. Resume from the saved `stream_cursors` row, or start at the head from
+ *    /ephemeral/sequence.json when there is none
  * 2. Poll /ephemeral/{sequence}.json, incrementing sequence on each hit
  *    - 200 → killmail payload (killmail_id + hash + esi + zkb), advance sequence
- *    - 404 → no killmail at this sequence yet, wait >= 6s and retry same sequence
+ *    - 404 → no killmail at this sequence yet, wait >= 6s and retry same sequence;
+ *      a number the head has passed is skipped after three tries (stream-cursor.ts)
+ *    The sequence is saved after every settled killmail, so a restart loses none.
  * 3. Use the ESI killmail already embedded in the payload; fall back to fetching
  *    it from ESI by ID+hash only if that embedded copy is missing or malformed
- * 4. Save to database with attacker info
+ * 4. Save to database with attacker info; one that cannot be written goes to
+ *    killmail_refs for the detail pipeline. If even that fails, the sequence
+ *    stays where it is and the killmail is read again.
  * 5. Repeat indefinitely
  *
  * Rate Limits:
@@ -32,10 +37,18 @@ import { CharacterService } from '@services/character/character.service';
 import { CorporationService } from '@services/corporation/corporation.service';
 import { setEsiMaxWait, setEsiPriority } from '@services/esi-client';
 import { KillmailDetail, KillmailService } from '@services/killmail';
+import { recordRefs } from '@services/killmail-refs';
 import { saveKillmail } from '@services/killmail-writer';
 import logger from '@services/logger';
 import prismaWorker from '@services/prisma-worker';
 import { pubsub } from '@services/pubsub';
+import {
+  emptyGap,
+  loadCursor,
+  onFound,
+  onNotFound,
+  saveCursor,
+} from '@services/redisq/stream-cursor';
 import { TypeService } from '@services/type/type.service';
 
 // Feature flag to disable enrichment (to prevent connection pool exhaustion)
@@ -89,12 +102,13 @@ interface R2Z2Killmail {
   sequence_id: number;
 }
 
-// Shutdown flag and interval tracking
+// Shutdown flag
 let isShuttingDown = false;
-let emptyCheckInterval: NodeJS.Timeout | null = null;
 
-// R2Z2 sequence cursor (initialized on worker start from sequence.json)
+// R2Z2 sequence cursor: the next number to read, mirrored in stream_cursors
 let currentSequence: number | null = null;
+// The run of 404s the head has passed (stream-cursor.ts)
+const gap = emptyGap();
 
 // Statistics
 let stats = {
@@ -142,18 +156,9 @@ export async function redisQStreamWorker() {
     try {
       while (!isShuttingDown) {
         try {
-          const killmail = await pollR2Z2();
-
-          if (killmail) {
-            stats.received++;
-            await processKillmail(killmail);
-            consecutiveErrors = 0; // Reset error counter on success
-            // Actively drain backlog with a small delay (stay under 15 req/sec)
-            await sleep(BACKLOG_DELAY);
-          } else {
-            // 404: caught up to the head of the feed, wait before retrying same sequence
-            await sleep(EMPTY_DELAY);
-          }
+          const delay = await step();
+          consecutiveErrors = 0; // Reset error counter on success
+          await sleep(delay);
         } catch (error) {
           consecutiveErrors++;
           stats.errors++;
@@ -191,22 +196,36 @@ const R2Z2_HEADERS = {
     'Killreport Real-Time Sync - github.com/umutyerebakmaz/killreport',
 };
 
+/** The newest sequence R2Z2 has published. */
+async function fetchHead(): Promise<number> {
+  const response = await fetch(SEQUENCE_URL, { headers: R2Z2_HEADERS });
+  if (!response.ok) {
+    throw new Error(
+      `sequence.json error: ${response.status} ${response.statusText}`,
+    );
+  }
+  const data = (await response.json()) as { sequence: number };
+  return data.sequence;
+}
+
 /**
- * Fetch the current head sequence from R2Z2 as the starting cursor.
+ * Resume from the saved position, or start at R2Z2's head (saved at once).
  * Retries a few times so a transient hiccup doesn't crash the worker on boot.
  */
 async function initSequence(): Promise<void> {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const response = await fetch(SEQUENCE_URL, { headers: R2Z2_HEADERS });
-      if (!response.ok) {
-        throw new Error(
-          `sequence.json error: ${response.status} ${response.statusText}`,
-        );
+      const saved = await loadCursor();
+      if (saved !== null) {
+        currentSequence = saved;
+        logger.info(`📍 resuming at sequence ${currentSequence}`);
+        return;
       }
-      const data = (await response.json()) as { sequence: number };
-      currentSequence = data.sequence;
-      logger.info(`📍 starting sequence: ${currentSequence}`);
+      currentSequence = await fetchHead();
+      await saveCursor(currentSequence, new Date());
+      logger.info(
+        `📍 no saved position: starting at the head, ${currentSequence}`,
+      );
       return;
     } catch (error) {
       logger.warn(
@@ -244,51 +263,84 @@ function isUsableEsiKillmail(esi: unknown): esi is KillmailDetail {
   );
 }
 
+/** Move the cursor and save it. */
+async function moveTo(sequence: number): Promise<void> {
+  await saveCursor(sequence, new Date());
+  currentSequence = sequence;
+}
+
 /**
- * Poll R2Z2 for the next killmail at the current sequence.
- * - 200 → returns the killmail package and advances the sequence cursor
- * - 404 → returns null (caught up; caller should wait before retrying same sequence)
- * - 403/429 → backs off and returns null (does NOT advance)
+ * Read the file at the current sequence and settle it; returns how long to
+ * wait before the next step. A transport error, a 5xx, or a killmail written
+ * nowhere throws, and the sequence stays where it is.
+ * - 200 → process, then advance and save
+ * - 200 without a killmail ID or hash → log, advance and save
+ * - 404 → wait, or skip a number the head has passed (stream-cursor.ts)
+ * - 403/429 → back off, do not advance
  */
-async function pollR2Z2(): Promise<RedisQPackage | null> {
+export async function step(): Promise<number> {
   if (currentSequence === null) {
     await initSequence();
   }
+  const current = currentSequence!;
+  const response = await fetch(`${R2Z2_BASE}/${current}.json`, {
+    headers: R2Z2_HEADERS,
+  });
 
-  const url = `${R2Z2_BASE}/${currentSequence}.json`;
-
-  try {
-    const response = await fetch(url, { headers: R2Z2_HEADERS });
-
-    // No killmail at this sequence yet — we've reached the head of the feed
-    if (response.status === 404) {
-      return null;
-    }
-
-    if (!response.ok) {
-      if (response.status === 429 || response.status === 403) {
-        logger.warn(
-          `⚠️  rate limited by R2Z2 (${response.status}), backing off...`,
-        );
-        await sleep(RETRY_DELAY);
-        return null; // don't advance sequence; retry same one next loop
-      }
-      throw new Error(`R2Z2 error: ${response.status} ${response.statusText}`);
-    }
-
-    const data = (await response.json()) as R2Z2Killmail;
-
-    // Advance the cursor only after a successful read
-    currentSequence!++;
-
-    return {
-      killID: data.killmail_id,
-      zkb: { ...data.zkb, hash: data.zkb?.hash ?? data.hash },
-      esi: isUsableEsiKillmail(data.esi) ? data.esi : undefined,
-    } as RedisQPackage;
-  } catch (error) {
-    throw new Error(`Failed to poll R2Z2: ${error}`);
+  if (response.status === 404) {
+    const head = await fetchHead();
+    const next = onNotFound(gap, current, head);
+    if (next.kind === 'wait') return EMPTY_DELAY;
+    logger.warn(
+      next.kind === 'skip'
+        ? `⚠️  sequence ${current} missing with the head at ${head}; skipped`
+        : `⚠️  sequence ${current} is out of R2Z2's range; jumping to the head, ${next.next}`,
+    );
+    await moveTo(next.next);
+    return BACKLOG_DELAY;
   }
+  if (response.status === 429 || response.status === 403) {
+    logger.warn(
+      `⚠️  rate limited by R2Z2 (${response.status}), backing off...`,
+    );
+    return RETRY_DELAY;
+  }
+  if (!response.ok) {
+    throw new Error(`R2Z2 error: ${response.status} ${response.statusText}`);
+  }
+
+  const pkg = parsePackage(await response.text());
+  if (typeof pkg === 'string') {
+    logger.error(`❌ sequence ${current}: unreadable (${pkg}); skipped`);
+  } else {
+    stats.received++;
+    await processKillmail(pkg);
+  }
+  onFound(gap);
+  await moveTo(current + 1);
+  return BACKLOG_DELAY;
+}
+
+/**
+ * A 200's body as a package, or why it is not one. Only the ID and hash are
+ * required; an embedded ESI killmail of the wrong shape is dropped and
+ * fetched instead.
+ */
+function parsePackage(body: string): RedisQPackage | string {
+  let data: R2Z2Killmail;
+  try {
+    data = JSON.parse(body) as R2Z2Killmail;
+  } catch {
+    return 'the body is not JSON';
+  }
+  if (typeof data?.killmail_id !== 'number') return 'no killmail_id';
+  const hash = data.zkb?.hash ?? data.hash;
+  if (typeof hash !== 'string') return `killmail ${data.killmail_id}: no hash`;
+  return {
+    killID: data.killmail_id,
+    zkb: { ...data.zkb, hash },
+    esi: isUsableEsiKillmail(data.esi) ? data.esi : undefined,
+  } as RedisQPackage;
 }
 
 /**
@@ -303,12 +355,12 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
     let killmail: KillmailDetail;
     if (pkg.esi) {
       logger.info(
-        `📥 from payload: ${killID} (${formatISK(zkb.totalValue)} ISK)`,
+        `📥 from payload: ${killID} (${formatISK(zkb.totalValue ?? 0)} ISK)`,
       );
       killmail = pkg.esi;
     } else {
       logger.info(
-        `📥 fetching from ESI: ${killID} (${formatISK(zkb.totalValue)} ISK)`,
+        `📥 fetching from ESI: ${killID} (${formatISK(zkb.totalValue ?? 0)} ISK)`,
       );
       killmail = await KillmailService.getKillmailDetail(killID, zkb.hash);
     }
@@ -348,7 +400,14 @@ async function processKillmail(pkg: RedisQPackage): Promise<void> {
   } catch (error: any) {
     stats.errors++;
     logger.error(`❌ failed to process killmail ${killID}:`, error);
-    // Don't re-throw - continue processing next killmail
+    // Hand it to the detail pipeline. If that write fails too, throw: the
+    // killmail is written nowhere, so the sequence must not move past it.
+    await recordRefs(
+      [{ killmail_id: killID, killmail_hash: zkb.hash }],
+      'redisq',
+      new Date(),
+    );
+    logger.warn(`   ⚠️  killmail ${killID} recorded in killmail_refs`);
   }
 }
 
@@ -703,10 +762,6 @@ function sleep(ms: number): Promise<void> {
 function setupShutdownHandlers() {
   const shutdown = async () => {
     isShuttingDown = true;
-    if (emptyCheckInterval) {
-      clearInterval(emptyCheckInterval);
-      emptyCheckInterval = null;
-    }
     logger.info('\n\n🛑 shutting down RedisQ stream worker...');
     logger.info('\n📊 final statistics:');
     logger.info(`   received: ${stats.received}`);
@@ -726,10 +781,11 @@ function setupShutdownHandlers() {
   process.on('SIGTERM', shutdown);
 }
 
-setupShutdownHandlers();
-
-// Start the worker
-redisQStreamWorker().catch((error) => {
-  logger.error('💥 worker crashed:', error);
-  process.exit(1);
-});
+// Start the worker when run as a script, not when a spec imports `step`.
+if (require.main === module) {
+  setupShutdownHandlers();
+  redisQStreamWorker().catch((error) => {
+    logger.error('💥 worker crashed:', error);
+    process.exit(1);
+  });
+}

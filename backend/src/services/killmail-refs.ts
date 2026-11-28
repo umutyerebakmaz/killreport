@@ -2,14 +2,15 @@ import { utcTimestamp } from '@helpers/utc-timestamp';
 import prismaWorker from '@services/prisma-worker';
 
 /**
- * `killmail_refs`: every killmail a user or corporation sync has seen on ESI,
+ * `killmail_refs`: every killmail a user or corporation sync has seen on ESI
+ * (and every one the R2Z2 stream could not write itself),
  * the durable record of work RabbitMQ only carries. A ref with no row in
  * `killmails` is pending; `queue-killmail-refs` publishes those to the detail
  * queue until they are written. See
  * docs/superpowers/specs/2026-11-26-killmail-refs-sync-design.md.
  */
 
-export type RefSource = 'character' | 'corporation';
+export type RefSource = 'character' | 'corporation' | 'redisq';
 
 export interface KillmailRef {
   killmail_id: number;
