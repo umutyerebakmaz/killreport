@@ -1,0 +1,9 @@
+// The durable position of a polled stream (zKillboard R2Z2 for worker:redisq):
+// the next sequence to read. One row per stream.
+model StreamCursor {
+  stream     String   @id // 'r2z2'
+  sequence   BigInt
+  updated_at DateTime // UTC
+
+  @@map("stream_cursors")
+}

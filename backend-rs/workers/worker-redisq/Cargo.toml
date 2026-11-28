@@ -1,0 +1,7 @@
+[package]
+name = "worker-redisq"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
